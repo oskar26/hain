@@ -43,3 +43,10 @@ One entry per session, newest at the bottom. Format in WORKFLOW.md.
 - Checks: `git submodule status` passes.
 - Notes/risks: Tag b11963 includes LFM3-1.7B text and LFM3-Omni-2B / audio support. Initial project docs/tools also added to git tracking.
 - Next: T-002 (Gradle multi-module skeleton).
+
+## 2026-10-28 · T-002 · done · harness: Antigravity · model: Gemini 3.8 Flash
+- What: Gradle multi-module skeleton set up with 18 modules (1 app, 11 core, 6 feature) adhering to ARCHITECTURE.md §1-2. Gradle 9.1.0, AGP 9.0.1, Kotlin 2.1.20, Compose BOM 2026.03.01. Configured minSdk 29, targetSdk 36, abiFilters arm64-v8a, Java 17, and no material3 dependency.
+- Files: settings.gradle.kts, build.gradle.kts, gradle.properties, gradle/libs.versions.toml, gradlew, gradlew.bat, gradle/wrapper/*, app/src/main/AndroidManifest.xml, all 18 modules' build.gradle.kts and package directories with .gitkeep files.
+- Checks: `./gradlew assembleDebug` and `./gradlew testDebugUnitTest` passed.
+- Notes/risks: AGP 9.0.1 natively includes Kotlin support without requiring the standalone `org.jetbrains.kotlin.android` plugin in Android modules.
+- Next: T-003 (Lint & static checks) or parallel lanes B/C/D.

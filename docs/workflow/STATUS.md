@@ -4,11 +4,11 @@
 
 ## Now
 
-- **Phase:** M1 Project skeleton started (2026-10-28).
+- **Phase:** M1 Project skeleton in progress (2026-10-28).
 - **Next tasks:**
   - Human: **T-000** (benchmark LFM3 on the phone) and **T-080** (model URLs + sha256) — can run any time.
-  - Agents: **T-002** (Gradle multi-module skeleton), then lanes in parallel:
-    A T-003…T-006 · B T-010, T-018, T-019, T-011…T-017 · C T-020 · D T-040…T-045 (pure Kotlin, ideal for small models).
+  - Agents: lanes can run in parallel:
+    A T-003…T-006 · B T-010, T-018, T-019, T-011…T-017 · C T-020, T-030 · D T-040…T-045 (pure Kotlin, ideal for small models) · F T-081.
 - **First milestone goal (M4):** app opens, downloads LFM3-1.7B, streams a German answer, keeps chat history.
 
 ## Milestones
@@ -42,7 +42,7 @@ _None yet._ (List feature + task IDs here when a milestone closes.)
 | What | Version / commit |
 |---|---|
 | llama.cpp | b11963 (`39febd2adb947b70da35e95f9351b3bf58ad170a`) |
-| AGP / Kotlin / Compose BOM | _set in T-002_ |
+| AGP / Kotlin / Compose BOM | AGP 9.0.1 / Kotlin 2.1.20 / Compose BOM 2026.03.01 |
 | SQLite build (FTS5 + sqlite-vec) | _decide in T-020_ |
 | OCR runtime | _decide in T-121_ |
 
@@ -73,3 +73,4 @@ _Agents add ideas here instead of doing them._
 | 2026-10-28 | planning | AGENTS.md, specs, backlog created | Hark (planner) |
 | 2026-10-28 | planning | UI libraries + motion system (ADR-21), 6 new tasks | Hark (planner) |
 | 2026-10-28 | T-001 | Git repo init, GPL-3.0 LICENSE added, llama.cpp pinned at b11963 (39febd2ad) | Antigravity (Gemini 3.8 Flash) |
+| 2026-10-28 | T-002 | Gradle multi-module skeleton (18 modules), AGP 9.0.1, Kotlin 2.1.20, Compose BOM 2026.03.01, assembleDebug green | Antigravity (Gemini 3.8 Flash) |
