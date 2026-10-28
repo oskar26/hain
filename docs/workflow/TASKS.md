@@ -13,7 +13,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-001 | Create Git repo, add llama.cpp submodule | scaffold | XS | A | - | done |
 | T-002 | Gradle multi-module skeleton | scaffold | M | A | T-001 | done |
 | T-003 | Lint & static checks | scaffold | XS | A | T-002 | done |
-| T-004 | Hilt + App class + MainActivity | scaffold | S | A | T-002 | blocked: Hilt plugin/dependencies and core-ui HainTheme missing |
+| T-004 | Hilt + App class + MainActivity | scaffold | S | A | T-002 | done |
 | T-005 | Strings DE/EN + checker script | strings | S | A | T-002 | todo |
 | T-006 | CI workflow | scaffold | XS | A | T-003,T-005 | todo |
 | T-010 | Design tokens | ui | S | B | T-002 | todo |
