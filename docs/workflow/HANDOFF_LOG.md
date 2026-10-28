@@ -57,3 +57,12 @@ One entry per session, newest at the bottom. Format in WORKFLOW.md.
 - Checks: `./gradlew ktlintCheck detekt`, `./gradlew assembleDebug testDebugUnitTest` passed.
 - Notes/risks: `.editorconfig` disables ktlint for `*.gradle.kts` to prevent false positive script formatting conflicts in Gradle build scripts while enforcing style on Kotlin sources.
 - Next: T-004 (Hilt + App class + MainActivity) or parallel lanes.
+
+## 2026-10-28 · T-004 · blocked · harness: Antigravity · model: Gemini 3.8 Flash
+- What: Attempted T-004 (Hilt + App class + MainActivity). Task requires `@HiltAndroidApp HainApp`, edge-to-edge `MainActivity`, and `setContent { HainTheme { Text placeholder } }`.
+- Blocker:
+  1. Hilt build plugin and dependencies (e.g. `com.google.dagger:hilt-android`, compiler/KSP plugin) are not present in `gradle/libs.versions.toml`, root `build.gradle.kts`, or `app/build.gradle.kts`. T-004 lists `files: app/src/main/AndroidManifest.xml, app/.../HainApp.kt, MainActivity.kt` and does not include Gradle files.
+  2. `HainTheme` is not implemented yet; it is slated for T-010 in `:core-ui` (`core-ui/src/main/kotlin/app/hain/ui/theme/HainTheme.kt`).
+- Question logged: Q-05 in STATUS.md regarding how to handle Hilt dependency setup and HainTheme placeholder.
+- Files: docs/workflow/TASKS.md, docs/workflow/STATUS.md, docs/workflow/HANDOFF_LOG.md.
+- Next: Human answers Q-05 or unblocks T-004; in parallel lanes: T-005 (Strings DE/EN), T-010 (Design tokens), T-020 (Room skeleton), T-040 (Data classes).
