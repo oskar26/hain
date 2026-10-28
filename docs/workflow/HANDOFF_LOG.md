@@ -1,0 +1,45 @@
+# HANDOFF_LOG.md — append-only
+
+One entry per session, newest at the bottom. Format in WORKFLOW.md.
+
+## 2026-10-28 · planning · done · harness: Hark · model: planner
+- What: central AGENTS.md, workflow, 16 spec files, ADRs, task backlog (M0–M11), prompts, concept + research.
+- Files: whole repo skeleton (docs only, no code).
+- Checks: n/a
+- Notes/risks: model URLs/sha256 not filled (T-080, never invent). llama.cpp VL support still in review (PR #31252); Omni/audio merged 2026-10-27 (PR #31257), not yet confirmed in a release tag.
+- Next: T-001, T-002; human T-000.
+
+## 2026-10-28 · planning (UI libraries) · done · harness: Hark · model: planner
+- What: assistant-ui checked (React/RN only → UX blueprint, ADR-21). New spec UI_LIBRARIES.md (libraries, assistant-ui mapping, motion system). New tasks T-018, T-019, T-057, T-058, T-059, T-163. Components T-011…T-015 now depend on T-018/T-019.
+- Notes/risks: Q-04 (Rive paid export vs Compose-drawn Pim). Haze blur only API 31+, fallback solid.
+- Next: unchanged (T-001, T-002).
+
+## 2026-10-28 · planning (copy sources) · done · harness: Hark · model: planner
+- What: UI_LIBRARIES.md §2b/§2c: Composables UI (MIT) as copy source for components, SmolChat-Android (Apache-2.0) as JNI reference, AI Edge Gallery as reference, Stream AI components forbidden (Stream License). Roborazzi screenshot loop added to T-018.
+- Next: unchanged.
+
+## 2026-10-28 · planning (Pim v2 + micro-details) · done · harness: Hark · model: planner
+- What: Pim v2 (minimal gumdrop, Compose-drawn, ADR-22, DESIGN_SYSTEM §4, assets/mascot/v2). SmolChat UI rejected (engine code only). awesome-kotlin checked: Konfetti, Showkase added; micro-details catalogue UI_LIBRARIES §2e.
+- Next: Q-04 recommendation Compose-drawn; owner to confirm.
+- 2026-10-28: Pim v2 SVGs + animations generated (tools/pim_gen.py). Compose Unstyled added as backup component base (UI_LIBRARIES §2c-bis).
+
+## 2026-10-28 · planning (Pim v2.1 motion + voice) · done · harness: Hark · model: planner
+- What: leaf fixed (sits on stem tip, stem grows from body); rig with 16 params; 33 motions (9 states, 24 micro-actions) + idle director in tools/pim_gen.py → motion/pim_motion.json, static SVGs, GIFs, preview HTML. Pim voice chosen: kerstin-low +3 st (de), cori-medium +2 st (en); samples in assets/voice/. ADR-23, VOICE.md, DESIGN_SYSTEM §4, MODELS, LICENSES, T-016/T-141/T-163 updated.
+- Next: owner listens to samples and confirms voice; T-080 must add kerstin-low URL + SHA-256 (human).
+
+## 2026-10-28 · planning (Pim voice v2) · done · harness: Hark · model: planner
+- What: owner rejected Piper quality, likes Kerstin's colour → Pim voice = Kokoro German Kerstin (cryptomilk, Apache-2.0) +2 st, EN Kokoro af_heart +1 st; Piper kerstin-low/cori as fallback for slow phones. New samples in assets/voice/, scripts in tools/voice/, new task T-143 (ONNX export), VOICE/MODELS/LICENSES/ADR-23 updated.
+- Next: owner confirms samples; T-143 needs device RTF numbers.
+
+## 2026-10-28 · planning (Pim voice DE) · open · harness: Hark · model: planner
+- Owner: EN af_heart good, DE Kokoro-Kerstin unusable. 4 German candidates (Pocket TTS cosette/anna/eponine, Kokoro Victoria) in assets/voice/candidates_de/. Waiting for owner choice.
+
+## 2026-10-28 · planning (Pim voice multilingual) · done · harness: Hark · model: planner
+- Owner: one voice everywhere. Pocket TTS voice anna +2 st, 7 languages, English default + chosen language pack at setup. Samples assets/voice/samples/pim_<lang>.mp3. Also added assets/mascot/v2/pim_all_frames.svg(.txt) (all 1349 frames, ids <motion>_f<NNN>) via tools/pim_frames_svg.py.
+
+## 2026-10-28 · T-001 · done · harness: Antigravity · model: Gemini 3.8 Flash
+- What: Git repo initialized with branch main, GPL-3.0 LICENSE added, llama.cpp submodule added at tag b11963 (commit 39febd2adb947b70da35e95f9351b3bf58ad170a) with LFM3 text and Omni/VL support.
+- Files: .gitmodules, third_party/llama.cpp, LICENSE, docs/workflow/STATUS.md, docs/workflow/TASKS.md, docs/workflow/HANDOFF_LOG.md.
+- Checks: `git submodule status` passes.
+- Notes/risks: Tag b11963 includes LFM3-1.7B text and LFM3-Omni-2B / audio support. Initial project docs/tools also added to git tracking.
+- Next: T-002 (Gradle multi-module skeleton).

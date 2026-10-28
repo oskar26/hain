@@ -1,0 +1,2049 @@
+{
+ "version": "2.1",
+ "viewBox": [
+  -12,
+  -18,
+  144,
+  144
+ ],
+ "drawBox": 120,
+ "colors": {
+  "body": "#7FD6A4",
+  "leaf": "#3FAF77",
+  "eye": "#1F2A2E",
+  "accent": "#3FAF77"
+ },
+ "geometry": {
+  "body": "M60 34 C82 34 92 52 92 76 C92 96 80 106 60 106 C40 106 28 96 28 76 C28 52 38 34 60 34 Z",
+  "stem": "M60 42 C60 33 59.5 26 57.5 20.5",
+  "stemBase": [
+   60,
+   36
+  ],
+  "leaf": "M57.5 20.5 C54 11 44 7.5 36.5 11.5 C38 20 48 24.5 57.5 20.5 Z",
+  "leafTip": [
+   57.5,
+   20.5
+  ],
+  "leafVein": "M56 19.5 C51 16 45 14 40 13",
+  "eyeL": [
+   48.5,
+   71.0
+  ],
+  "eyeR": [
+   71.5,
+   71.0
+  ],
+  "eyeW": 7.0,
+  "eyeH": 14.0
+ },
+ "neutral": {
+  "x": 0,
+  "y": 0,
+  "sx": 1,
+  "sy": 1,
+  "tilt": 0,
+  "bend": 0,
+  "leaf": 0,
+  "leafScale": 1,
+  "eyes": "pill",
+  "eyeH": 1,
+  "eyeDX": 0,
+  "eyeDY": 0,
+  "eyeLS": 1,
+  "eyeRS": 1,
+  "fx": "",
+  "fxA": 0,
+  "fxX": 0,
+  "fxY": 0
+ },
+ "easings": [
+  "linear",
+  "in",
+  "out",
+  "inOut",
+  "back",
+  "spring"
+ ],
+ "idleSchedule": {
+  "gap_ms": [
+   3500,
+   9000
+  ],
+  "no_repeat_last": 2,
+  "weights": {
+   "blink": 30,
+   "double_blink": 8,
+   "look_left": 7,
+   "look_right": 7,
+   "look_around": 6,
+   "look_up": 4,
+   "leaf_flutter": 7,
+   "hop": 4,
+   "double_hop": 2,
+   "wiggle": 4,
+   "yawn": 2,
+   "shake": 2,
+   "giggle": 2,
+   "curious_tilt": 3,
+   "stretch_wide": 2,
+   "sneeze": 1,
+   "dozing": 1
+  },
+  "after_idle_s_to_sleep": 60,
+  "notes": "blink also fires on its own every 3-6 s; micro-actions never run while thinking/listening/speaking; reduce_motion => only blink"
+ },
+ "motions": [
+  {
+   "name": "idle",
+   "kind": "state",
+   "loop": true,
+   "duration": 2400,
+   "desc": "breathing + gentle leaf sway; micro-actions are played on top of this",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {
+      "sy": 1,
+      "sx": 1,
+      "leaf": -0.8999999999999999
+     }
+    },
+    {
+     "t": 1200.0,
+     "ease": "inOut",
+     "p": {
+      "sy": 1.02,
+      "sx": 0.993,
+      "leaf": 3
+     }
+    },
+    {
+     "t": 2400,
+     "ease": "inOut",
+     "p": {
+      "sy": 1,
+      "sx": 1,
+      "leaf": -0.8999999999999999
+     }
+    }
+   ]
+  },
+  {
+   "name": "thinking",
+   "kind": "state",
+   "loop": true,
+   "duration": 1800,
+   "desc": "eyes look up-right and drift, leaf ticks like a metronome",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {
+      "eyeDX": 2,
+      "eyeDY": -4,
+      "tilt": -3,
+      "leaf": -6,
+      "bend": -2
+     }
+    },
+    {
+     "t": 450,
+     "ease": "inOut",
+     "p": {
+      "eyeDX": 3.2,
+      "eyeDY": -4.6,
+      "leaf": 8,
+      "bend": 2
+     }
+    },
+    {
+     "t": 900,
+     "ease": "inOut",
+     "p": {
+      "eyeDX": 1.6,
+      "eyeDY": -3.6,
+      "leaf": -6,
+      "bend": -2,
+      "sy": 1.01
+     }
+    },
+    {
+     "t": 1350,
+     "ease": "inOut",
+     "p": {
+      "eyeDX": 2.6,
+      "eyeDY": -4.4,
+      "leaf": 8,
+      "bend": 2
+     }
+    },
+    {
+     "t": 1800,
+     "ease": "inOut",
+     "p": {
+      "eyeDX": 2,
+      "eyeDY": -4,
+      "leaf": -6,
+      "bend": -2
+     }
+    }
+   ]
+  },
+  {
+   "name": "listening",
+   "kind": "state",
+   "loop": true,
+   "duration": 1600,
+   "desc": "big eyes, stretches with mic level (in app: driven by RMS, this loop is the fallback)",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {
+      "eyes": "wide",
+      "sx": 0.97,
+      "sy": 1.04,
+      "leaf": 4
+     }
+    },
+    {
+     "t": 250,
+     "ease": "out",
+     "p": {
+      "eyes": "wide",
+      "sx": 0.95,
+      "sy": 1.08,
+      "leaf": 8,
+      "eyeH": 1.05
+     }
+    },
+    {
+     "t": 600,
+     "ease": "inOut",
+     "p": {
+      "eyes": "wide",
+      "sx": 0.97,
+      "sy": 1.04,
+      "leaf": 4
+     }
+    },
+    {
+     "t": 800,
+     "ease": "out",
+     "p": {
+      "eyes": "wide",
+      "sx": 0.955,
+      "sy": 1.065,
+      "leaf": 7
+     }
+    },
+    {
+     "t": 1600,
+     "ease": "inOut",
+     "p": {
+      "eyes": "wide",
+      "sx": 0.97,
+      "sy": 1.04,
+      "leaf": 4
+     }
+    }
+   ]
+  },
+  {
+   "name": "speaking",
+   "kind": "state",
+   "loop": true,
+   "duration": 1200,
+   "desc": "bobs per syllable (in app: driven by TTS amplitude)",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {
+      "sy": 1,
+      "y": 0,
+      "leaf": 0
+     }
+    },
+    {
+     "t": 150,
+     "ease": "out",
+     "p": {
+      "sy": 1.03,
+      "sx": 0.99,
+      "y": -1.5,
+      "leaf": 4
+     }
+    },
+    {
+     "t": 300,
+     "ease": "inOut",
+     "p": {
+      "sy": 0.99,
+      "y": 0,
+      "leaf": -2
+     }
+    },
+    {
+     "t": 480,
+     "ease": "out",
+     "p": {
+      "sy": 1.025,
+      "y": -1,
+      "leaf": 3,
+      "eyeH": 0.92
+     }
+    },
+    {
+     "t": 640,
+     "ease": "inOut",
+     "p": {
+      "sy": 1,
+      "y": 0,
+      "leaf": -1
+     }
+    },
+    {
+     "t": 820,
+     "ease": "out",
+     "p": {
+      "sy": 1.035,
+      "y": -2,
+      "leaf": 5
+     }
+    },
+    {
+     "t": 1000,
+     "ease": "inOut",
+     "p": {
+      "sy": 0.99,
+      "y": 0,
+      "leaf": -2
+     }
+    },
+    {
+     "t": 1200,
+     "ease": "inOut",
+     "p": {
+      "sy": 1,
+      "y": 0,
+      "leaf": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "sleeping",
+   "kind": "state",
+   "loop": true,
+   "duration": 4000,
+   "desc": "flat and slow, leaf hangs, little zz",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {
+      "eyes": "closed",
+      "sx": 1.12,
+      "sy": 0.84,
+      "leaf": -25,
+      "bend": -4,
+      "fx": "zz",
+      "fxA": 0,
+      "fxY": 4
+     }
+    },
+    {
+     "t": 2000,
+     "ease": "inOut",
+     "p": {
+      "eyes": "closed",
+      "sx": 1.14,
+      "sy": 0.82,
+      "leaf": -22,
+      "bend": -3,
+      "fx": "zz",
+      "fxA": 1,
+      "fxY": -4
+     }
+    },
+    {
+     "t": 4000,
+     "ease": "inOut",
+     "p": {
+      "eyes": "closed",
+      "sx": 1.12,
+      "sy": 0.84,
+      "leaf": -25,
+      "bend": -4,
+      "fx": "zz",
+      "fxA": 0,
+      "fxY": -12
+     }
+    }
+   ]
+  },
+  {
+   "name": "happy",
+   "kind": "state",
+   "loop": false,
+   "duration": 1400,
+   "desc": "squash, jump, sparkles; used after success",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {
+      "eyes": "happy",
+      "sx": 1.08,
+      "sy": 0.92,
+      "leaf": 0
+     }
+    },
+    {
+     "t": 260,
+     "ease": "out",
+     "p": {
+      "eyes": "happy",
+      "sx": 0.95,
+      "sy": 1.07,
+      "y": -7,
+      "leaf": 16,
+      "fx": "sparkle",
+      "fxA": 1
+     }
+    },
+    {
+     "t": 520,
+     "ease": "in",
+     "p": {
+      "eyes": "happy",
+      "sx": 1.06,
+      "sy": 0.94,
+      "y": 0,
+      "leaf": 6,
+      "fx": "sparkle",
+      "fxA": 0.6
+     }
+    },
+    {
+     "t": 900,
+     "ease": "spring",
+     "p": {
+      "eyes": "happy",
+      "sx": 1,
+      "sy": 1,
+      "leaf": 10,
+      "fx": "sparkle",
+      "fxA": 0
+     }
+    },
+    {
+     "t": 1400,
+     "ease": "inOut",
+     "p": {
+      "eyes": "happy",
+      "leaf": 10
+     }
+    }
+   ]
+  },
+  {
+   "name": "celebrate",
+   "kind": "state",
+   "loop": false,
+   "duration": 2000,
+   "desc": "double jump with tilt, pairs with Konfetti leaves",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {
+      "eyes": "happy",
+      "sx": 1.1,
+      "sy": 0.9
+     }
+    },
+    {
+     "t": 220,
+     "ease": "out",
+     "p": {
+      "eyes": "happy",
+      "y": -10,
+      "sx": 0.94,
+      "sy": 1.08,
+      "tilt": -6,
+      "leaf": 18,
+      "fx": "sparkle",
+      "fxA": 1
+     }
+    },
+    {
+     "t": 440,
+     "ease": "in",
+     "p": {
+      "eyes": "happy",
+      "y": 0,
+      "sx": 1.08,
+      "sy": 0.92,
+      "tilt": 0,
+      "leaf": 4
+     }
+    },
+    {
+     "t": 660,
+     "ease": "out",
+     "p": {
+      "eyes": "happy",
+      "y": -10,
+      "sx": 0.94,
+      "sy": 1.08,
+      "tilt": 6,
+      "leaf": 18,
+      "fx": "sparkle",
+      "fxA": 1
+     }
+    },
+    {
+     "t": 880,
+     "ease": "in",
+     "p": {
+      "eyes": "happy",
+      "y": 0,
+      "sx": 1.08,
+      "sy": 0.92,
+      "tilt": 0,
+      "leaf": 4,
+      "fx": "sparkle",
+      "fxA": 0.4
+     }
+    },
+    {
+     "t": 1300,
+     "ease": "spring",
+     "p": {
+      "eyes": "happy",
+      "sx": 1,
+      "sy": 1,
+      "leaf": 12,
+      "fx": "sparkle",
+      "fxA": 0
+     }
+    },
+    {
+     "t": 2000,
+     "ease": "inOut",
+     "p": {
+      "eyes": "happy",
+      "leaf": 10
+     }
+    }
+   ]
+  },
+  {
+   "name": "error",
+   "kind": "state",
+   "loop": false,
+   "duration": 1600,
+   "desc": "startle, then puzzled tilt with a sweat drop",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {
+      "eyes": "pill"
+     }
+    },
+    {
+     "t": 120,
+     "ease": "out",
+     "p": {
+      "eyes": "wide",
+      "y": -3,
+      "sy": 1.04,
+      "fx": "drop",
+      "fxA": 0
+     }
+    },
+    {
+     "t": 300,
+     "ease": "inOut",
+     "p": {
+      "eyes": "pill",
+      "eyeLS": 1.2,
+      "eyeRS": 0.85,
+      "tilt": 6,
+      "leaf": -8,
+      "y": 0,
+      "fx": "drop",
+      "fxA": 1
+     }
+    },
+    {
+     "t": 1200,
+     "ease": "inOut",
+     "p": {
+      "eyes": "pill",
+      "eyeLS": 1.2,
+      "eyeRS": 0.85,
+      "tilt": 6,
+      "leaf": -10,
+      "fx": "drop",
+      "fxA": 1,
+      "fxY": 6
+     }
+    },
+    {
+     "t": 1600,
+     "ease": "inOut",
+     "p": {
+      "eyes": "pill",
+      "eyeLS": 1.2,
+      "eyeRS": 0.85,
+      "tilt": 6,
+      "leaf": -10,
+      "fx": "drop",
+      "fxA": 0,
+      "fxY": 10
+     }
+    }
+   ]
+  },
+  {
+   "name": "downloading",
+   "kind": "state",
+   "loop": false,
+   "duration": 3000,
+   "desc": "leaf grows with download progress (in app: leafScale = progress)",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {
+      "leafScale": 0.2,
+      "leaf": -10,
+      "eyeDY": -3,
+      "eyeDX": -2
+     }
+    },
+    {
+     "t": 1500,
+     "ease": "inOut",
+     "p": {
+      "leafScale": 0.65,
+      "leaf": 4,
+      "eyeDY": -4,
+      "eyeDX": -1,
+      "sy": 1.01
+     }
+    },
+    {
+     "t": 2600,
+     "ease": "out",
+     "p": {
+      "leafScale": 1.15,
+      "leaf": 14,
+      "eyeDY": -4,
+      "sy": 1.02
+     }
+    },
+    {
+     "t": 3000,
+     "ease": "spring",
+     "p": {
+      "leafScale": 1,
+      "leaf": 8
+     }
+    }
+   ]
+  },
+  {
+   "name": "blink",
+   "kind": "micro",
+   "loop": false,
+   "duration": 260,
+   "desc": "single blink",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 90,
+     "ease": "in",
+     "p": {
+      "eyeH": 0.12
+     }
+    },
+    {
+     "t": 260,
+     "ease": "out",
+     "p": {
+      "eyeH": 1
+     }
+    }
+   ]
+  },
+  {
+   "name": "double_blink",
+   "kind": "micro",
+   "loop": false,
+   "duration": 600,
+   "desc": "two quick blinks",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 80,
+     "ease": "in",
+     "p": {
+      "eyeH": 0.12
+     }
+    },
+    {
+     "t": 180,
+     "ease": "out",
+     "p": {
+      "eyeH": 1
+     }
+    },
+    {
+     "t": 320,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 400,
+     "ease": "in",
+     "p": {
+      "eyeH": 0.12
+     }
+    },
+    {
+     "t": 600,
+     "ease": "out",
+     "p": {
+      "eyeH": 1
+     }
+    }
+   ]
+  },
+  {
+   "name": "look_left",
+   "kind": "micro",
+   "loop": false,
+   "duration": 1500,
+   "desc": "glance left, blink back",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 220,
+     "ease": "back",
+     "p": {
+      "eyeDX": -4,
+      "tilt": -2
+     }
+    },
+    {
+     "t": 1100,
+     "ease": "inOut",
+     "p": {
+      "eyeDX": -4,
+      "tilt": -2
+     }
+    },
+    {
+     "t": 1250,
+     "ease": "in",
+     "p": {
+      "eyeDX": -4,
+      "eyeH": 0.12,
+      "tilt": -1
+     }
+    },
+    {
+     "t": 1500,
+     "ease": "out",
+     "p": {
+      "eyeH": 1
+     }
+    }
+   ]
+  },
+  {
+   "name": "look_right",
+   "kind": "micro",
+   "loop": false,
+   "duration": 1500,
+   "desc": "glance right, blink back",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 220,
+     "ease": "back",
+     "p": {
+      "eyeDX": 4,
+      "tilt": 2
+     }
+    },
+    {
+     "t": 1100,
+     "ease": "inOut",
+     "p": {
+      "eyeDX": 4,
+      "tilt": 2
+     }
+    },
+    {
+     "t": 1250,
+     "ease": "in",
+     "p": {
+      "eyeDX": 4,
+      "eyeH": 0.12,
+      "tilt": 1
+     }
+    },
+    {
+     "t": 1500,
+     "ease": "out",
+     "p": {
+      "eyeH": 1
+     }
+    }
+   ]
+  },
+  {
+   "name": "look_around",
+   "kind": "micro",
+   "loop": false,
+   "duration": 2600,
+   "desc": "left, right, back to you",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 260,
+     "ease": "back",
+     "p": {
+      "eyeDX": -4,
+      "eyeDY": -1,
+      "tilt": -3
+     }
+    },
+    {
+     "t": 900,
+     "ease": "inOut",
+     "p": {
+      "eyeDX": -4,
+      "eyeDY": -1,
+      "tilt": -3
+     }
+    },
+    {
+     "t": 1250,
+     "ease": "back",
+     "p": {
+      "eyeDX": 4,
+      "eyeDY": -1,
+      "tilt": 3,
+      "leaf": 4
+     }
+    },
+    {
+     "t": 1900,
+     "ease": "inOut",
+     "p": {
+      "eyeDX": 4,
+      "eyeDY": -1,
+      "tilt": 3,
+      "leaf": 4
+     }
+    },
+    {
+     "t": 2250,
+     "ease": "out",
+     "p": {
+      "eyeDX": 0,
+      "eyeDY": 0,
+      "tilt": 0,
+      "leaf": 0
+     }
+    },
+    {
+     "t": 2350,
+     "ease": "in",
+     "p": {
+      "eyeH": 0.12
+     }
+    },
+    {
+     "t": 2600,
+     "ease": "out",
+     "p": {
+      "eyeH": 1
+     }
+    }
+   ]
+  },
+  {
+   "name": "look_up",
+   "kind": "micro",
+   "loop": false,
+   "duration": 1800,
+   "desc": "looks up at its own leaf",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 300,
+     "ease": "back",
+     "p": {
+      "eyeDY": -5,
+      "sy": 1.03,
+      "leaf": 6
+     }
+    },
+    {
+     "t": 1300,
+     "ease": "inOut",
+     "p": {
+      "eyeDY": -5,
+      "sy": 1.03,
+      "leaf": 6
+     }
+    },
+    {
+     "t": 1800,
+     "ease": "inOut",
+     "p": {
+      "eyeDY": 0,
+      "sy": 1,
+      "leaf": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "hop",
+   "kind": "micro",
+   "loop": false,
+   "duration": 900,
+   "desc": "anticipation squash, hop, land squash",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 140,
+     "ease": "out",
+     "p": {
+      "sx": 1.1,
+      "sy": 0.9
+     }
+    },
+    {
+     "t": 330,
+     "ease": "out",
+     "p": {
+      "sx": 0.94,
+      "sy": 1.08,
+      "y": -12,
+      "leaf": -10,
+      "bend": -3
+     }
+    },
+    {
+     "t": 520,
+     "ease": "in",
+     "p": {
+      "sx": 0.98,
+      "sy": 1.02,
+      "y": 0,
+      "leaf": 8,
+      "bend": 2
+     }
+    },
+    {
+     "t": 620,
+     "ease": "out",
+     "p": {
+      "sx": 1.08,
+      "sy": 0.92,
+      "leaf": 6
+     }
+    },
+    {
+     "t": 900,
+     "ease": "spring",
+     "p": {
+      "sx": 1,
+      "sy": 1,
+      "leaf": 0,
+      "bend": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "double_hop",
+   "kind": "micro",
+   "loop": false,
+   "duration": 1300,
+   "desc": "two little hops",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 110,
+     "ease": "out",
+     "p": {
+      "sx": 1.08,
+      "sy": 0.92
+     }
+    },
+    {
+     "t": 260,
+     "ease": "out",
+     "p": {
+      "y": -8,
+      "sx": 0.95,
+      "sy": 1.06,
+      "leaf": -8
+     }
+    },
+    {
+     "t": 410,
+     "ease": "in",
+     "p": {
+      "y": 0,
+      "sx": 1.06,
+      "sy": 0.94,
+      "leaf": 6
+     }
+    },
+    {
+     "t": 560,
+     "ease": "out",
+     "p": {
+      "y": -11,
+      "sx": 0.94,
+      "sy": 1.07,
+      "leaf": -10
+     }
+    },
+    {
+     "t": 720,
+     "ease": "in",
+     "p": {
+      "y": 0,
+      "sx": 1.08,
+      "sy": 0.92,
+      "leaf": 8
+     }
+    },
+    {
+     "t": 1300,
+     "ease": "spring",
+     "p": {
+      "sx": 1,
+      "sy": 1,
+      "leaf": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "leaf_flutter",
+   "kind": "micro",
+   "loop": false,
+   "duration": 1200,
+   "desc": "leaf flutters in a breeze",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 100,
+     "ease": "out",
+     "p": {
+      "leaf": 12
+     }
+    },
+    {
+     "t": 200,
+     "ease": "inOut",
+     "p": {
+      "leaf": -6
+     }
+    },
+    {
+     "t": 300,
+     "ease": "inOut",
+     "p": {
+      "leaf": 10
+     }
+    },
+    {
+     "t": 400,
+     "ease": "inOut",
+     "p": {
+      "leaf": -4
+     }
+    },
+    {
+     "t": 500,
+     "ease": "inOut",
+     "p": {
+      "leaf": 7
+     }
+    },
+    {
+     "t": 650,
+     "ease": "inOut",
+     "p": {
+      "leaf": -2
+     }
+    },
+    {
+     "t": 1200,
+     "ease": "spring",
+     "p": {
+      "leaf": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "leaf_wave",
+   "kind": "micro",
+   "loop": false,
+   "duration": 1600,
+   "desc": "waves hello with its leaf",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 200,
+     "ease": "out",
+     "p": {
+      "leaf": 24,
+      "bend": 6,
+      "tilt": 2,
+      "eyes": "happy"
+     }
+    },
+    {
+     "t": 400,
+     "ease": "inOut",
+     "p": {
+      "leaf": 4,
+      "bend": 2,
+      "eyes": "happy"
+     }
+    },
+    {
+     "t": 600,
+     "ease": "inOut",
+     "p": {
+      "leaf": 24,
+      "bend": 6,
+      "eyes": "happy"
+     }
+    },
+    {
+     "t": 800,
+     "ease": "inOut",
+     "p": {
+      "leaf": 4,
+      "bend": 2,
+      "eyes": "happy"
+     }
+    },
+    {
+     "t": 1000,
+     "ease": "inOut",
+     "p": {
+      "leaf": 22,
+      "bend": 5,
+      "eyes": "happy"
+     }
+    },
+    {
+     "t": 1600,
+     "ease": "spring",
+     "p": {
+      "leaf": 0,
+      "bend": 0,
+      "tilt": 0,
+      "eyes": "pill"
+     }
+    }
+   ]
+  },
+  {
+   "name": "shake",
+   "kind": "micro",
+   "loop": false,
+   "duration": 1100,
+   "desc": "shakes like a wet puppy, leaf flops",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 120,
+     "ease": "in",
+     "p": {
+      "sx": 1.04,
+      "sy": 0.96,
+      "eyes": "squeeze"
+     }
+    },
+    {
+     "t": 220,
+     "ease": "inOut",
+     "p": {
+      "tilt": -7,
+      "x": -2,
+      "leaf": 18,
+      "bend": -6,
+      "eyes": "squeeze"
+     }
+    },
+    {
+     "t": 320,
+     "ease": "inOut",
+     "p": {
+      "tilt": 7,
+      "x": 2,
+      "leaf": -14,
+      "bend": 6,
+      "eyes": "squeeze"
+     }
+    },
+    {
+     "t": 420,
+     "ease": "inOut",
+     "p": {
+      "tilt": -6,
+      "x": -2,
+      "leaf": 14,
+      "bend": -5,
+      "eyes": "squeeze"
+     }
+    },
+    {
+     "t": 520,
+     "ease": "inOut",
+     "p": {
+      "tilt": 5,
+      "x": 2,
+      "leaf": -10,
+      "bend": 4,
+      "eyes": "squeeze"
+     }
+    },
+    {
+     "t": 620,
+     "ease": "inOut",
+     "p": {
+      "tilt": -2,
+      "x": -1,
+      "leaf": 6,
+      "bend": -2,
+      "eyes": "squeeze"
+     }
+    },
+    {
+     "t": 1100,
+     "ease": "spring",
+     "p": {
+      "tilt": 0,
+      "x": 0,
+      "leaf": 0,
+      "bend": 0,
+      "sx": 1,
+      "sy": 1,
+      "eyes": "pill"
+     }
+    }
+   ]
+  },
+  {
+   "name": "yawn",
+   "kind": "micro",
+   "loop": false,
+   "duration": 2400,
+   "desc": "big stretch with closed eyes, sleepy squish",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 500,
+     "ease": "out",
+     "p": {
+      "sy": 1.08,
+      "sx": 0.95,
+      "eyes": "closed",
+      "leaf": 10,
+      "bend": 2
+     }
+    },
+    {
+     "t": 1300,
+     "ease": "inOut",
+     "p": {
+      "sy": 1.1,
+      "sx": 0.94,
+      "eyes": "closed",
+      "leaf": 12,
+      "tilt": -2
+     }
+    },
+    {
+     "t": 1700,
+     "ease": "in",
+     "p": {
+      "sy": 0.94,
+      "sx": 1.06,
+      "eyes": "closed",
+      "leaf": -6,
+      "tilt": 0
+     }
+    },
+    {
+     "t": 2000,
+     "ease": "out",
+     "p": {
+      "sy": 1,
+      "sx": 1,
+      "eyes": "pill",
+      "eyeH": 0.5,
+      "leaf": 0
+     }
+    },
+    {
+     "t": 2400,
+     "ease": "inOut",
+     "p": {
+      "eyeH": 1
+     }
+    }
+   ]
+  },
+  {
+   "name": "wiggle",
+   "kind": "micro",
+   "loop": false,
+   "duration": 1400,
+   "desc": "happy side-to-side wiggle",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 200,
+     "ease": "inOut",
+     "p": {
+      "tilt": -5,
+      "sx": 1.02,
+      "leaf": -6
+     }
+    },
+    {
+     "t": 450,
+     "ease": "inOut",
+     "p": {
+      "tilt": 5,
+      "sx": 1.02,
+      "leaf": 6
+     }
+    },
+    {
+     "t": 700,
+     "ease": "inOut",
+     "p": {
+      "tilt": -5,
+      "leaf": -6
+     }
+    },
+    {
+     "t": 950,
+     "ease": "inOut",
+     "p": {
+      "tilt": 5,
+      "leaf": 6
+     }
+    },
+    {
+     "t": 1400,
+     "ease": "spring",
+     "p": {
+      "tilt": 0,
+      "sx": 1,
+      "leaf": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "nod",
+   "kind": "micro",
+   "loop": false,
+   "duration": 1000,
+   "desc": "nods yes (for confirmations)",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 150,
+     "ease": "out",
+     "p": {
+      "sy": 0.95,
+      "sx": 1.03,
+      "eyeDY": 2,
+      "leaf": 6
+     }
+    },
+    {
+     "t": 320,
+     "ease": "inOut",
+     "p": {
+      "sy": 1.02,
+      "eyeDY": 0,
+      "leaf": -3
+     }
+    },
+    {
+     "t": 470,
+     "ease": "out",
+     "p": {
+      "sy": 0.95,
+      "sx": 1.03,
+      "eyeDY": 2,
+      "leaf": 6
+     }
+    },
+    {
+     "t": 1000,
+     "ease": "spring",
+     "p": {
+      "sy": 1,
+      "sx": 1,
+      "eyeDY": 0,
+      "leaf": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "headshake",
+   "kind": "micro",
+   "loop": false,
+   "duration": 1100,
+   "desc": "shakes no (for 'I can't do that')",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 150,
+     "ease": "inOut",
+     "p": {
+      "eyeDX": -3,
+      "tilt": -4,
+      "leaf": 6
+     }
+    },
+    {
+     "t": 330,
+     "ease": "inOut",
+     "p": {
+      "eyeDX": 3,
+      "tilt": 4,
+      "leaf": -6
+     }
+    },
+    {
+     "t": 510,
+     "ease": "inOut",
+     "p": {
+      "eyeDX": -3,
+      "tilt": -4,
+      "leaf": 6
+     }
+    },
+    {
+     "t": 690,
+     "ease": "inOut",
+     "p": {
+      "eyeDX": 3,
+      "tilt": 4,
+      "leaf": -6
+     }
+    },
+    {
+     "t": 1100,
+     "ease": "spring",
+     "p": {
+      "eyeDX": 0,
+      "tilt": 0,
+      "leaf": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "surprised",
+   "kind": "micro",
+   "loop": false,
+   "duration": 1500,
+   "desc": "jumps, big eyes, '!' ",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 80,
+     "ease": "out",
+     "p": {
+      "eyes": "wide",
+      "eyeH": 1.1,
+      "y": -8,
+      "sy": 1.08,
+      "sx": 0.94,
+      "leaf": 22,
+      "bend": 4,
+      "fx": "!",
+      "fxA": 1
+     }
+    },
+    {
+     "t": 260,
+     "ease": "in",
+     "p": {
+      "eyes": "wide",
+      "y": 0,
+      "sy": 0.96,
+      "sx": 1.03,
+      "leaf": 10,
+      "fx": "!",
+      "fxA": 1
+     }
+    },
+    {
+     "t": 1100,
+     "ease": "inOut",
+     "p": {
+      "eyes": "wide",
+      "sy": 1,
+      "sx": 1,
+      "leaf": 8,
+      "fx": "!",
+      "fxA": 1
+     }
+    },
+    {
+     "t": 1500,
+     "ease": "inOut",
+     "p": {
+      "eyes": "pill",
+      "leaf": 0,
+      "bend": 0,
+      "fx": "!",
+      "fxA": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "giggle",
+   "kind": "micro",
+   "loop": false,
+   "duration": 1300,
+   "desc": "tiny fast bounces with happy eyes",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {
+      "eyes": "happy"
+     }
+    },
+    {
+     "t": 100,
+     "ease": "out",
+     "p": {
+      "eyes": "happy",
+      "y": -2.5,
+      "sy": 1.03
+     }
+    },
+    {
+     "t": 200,
+     "ease": "in",
+     "p": {
+      "eyes": "happy",
+      "y": 0,
+      "sy": 0.97
+     }
+    },
+    {
+     "t": 300,
+     "ease": "out",
+     "p": {
+      "eyes": "happy",
+      "y": -2.5,
+      "sy": 1.03,
+      "tilt": -2
+     }
+    },
+    {
+     "t": 400,
+     "ease": "in",
+     "p": {
+      "eyes": "happy",
+      "y": 0,
+      "sy": 0.97
+     }
+    },
+    {
+     "t": 500,
+     "ease": "out",
+     "p": {
+      "eyes": "happy",
+      "y": -2,
+      "sy": 1.02,
+      "tilt": 2
+     }
+    },
+    {
+     "t": 600,
+     "ease": "in",
+     "p": {
+      "eyes": "happy",
+      "y": 0,
+      "sy": 0.98
+     }
+    },
+    {
+     "t": 1300,
+     "ease": "spring",
+     "p": {
+      "eyes": "pill",
+      "sy": 1,
+      "tilt": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "shy",
+   "kind": "micro",
+   "loop": false,
+   "duration": 2200,
+   "desc": "looks down, squishes, small heart (after a compliment)",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 400,
+     "ease": "out",
+     "p": {
+      "eyeDY": 4,
+      "eyeDX": -2,
+      "tilt": -6,
+      "sx": 1.03,
+      "sy": 0.96,
+      "leaf": -14,
+      "bend": -3,
+      "fx": "heart",
+      "fxA": 0
+     }
+    },
+    {
+     "t": 800,
+     "ease": "inOut",
+     "p": {
+      "eyeDY": 4,
+      "eyeDX": -2,
+      "tilt": -6,
+      "leaf": -14,
+      "fx": "heart",
+      "fxA": 1,
+      "fxY": 0
+     }
+    },
+    {
+     "t": 1700,
+     "ease": "inOut",
+     "p": {
+      "eyeDY": 4,
+      "eyeDX": -2,
+      "tilt": -6,
+      "leaf": -12,
+      "fx": "heart",
+      "fxA": 0,
+      "fxY": -10
+     }
+    },
+    {
+     "t": 2200,
+     "ease": "spring",
+     "p": {
+      "eyeDY": 0,
+      "eyeDX": 0,
+      "tilt": 0,
+      "sx": 1,
+      "sy": 1,
+      "leaf": 0,
+      "bend": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "curious_tilt",
+   "kind": "micro",
+   "loop": false,
+   "duration": 1800,
+   "desc": "head tilt with '?'",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 300,
+     "ease": "back",
+     "p": {
+      "tilt": 8,
+      "eyeLS": 1.2,
+      "eyeRS": 0.9,
+      "leaf": 10,
+      "fx": "?",
+      "fxA": 1
+     }
+    },
+    {
+     "t": 1300,
+     "ease": "inOut",
+     "p": {
+      "tilt": 8,
+      "eyeLS": 1.2,
+      "eyeRS": 0.9,
+      "leaf": 10,
+      "fx": "?",
+      "fxA": 1
+     }
+    },
+    {
+     "t": 1800,
+     "ease": "spring",
+     "p": {
+      "tilt": 0,
+      "eyeLS": 1,
+      "eyeRS": 1,
+      "leaf": 0,
+      "fx": "?",
+      "fxA": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "dozing",
+   "kind": "micro",
+   "loop": false,
+   "duration": 3200,
+   "desc": "nods off, jolts awake",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 900,
+     "ease": "inOut",
+     "p": {
+      "eyeH": 0.5,
+      "leaf": -6
+     }
+    },
+    {
+     "t": 1700,
+     "ease": "inOut",
+     "p": {
+      "eyeH": 0.15,
+      "tilt": 4,
+      "sy": 0.97,
+      "leaf": -16,
+      "bend": -3
+     }
+    },
+    {
+     "t": 2300,
+     "ease": "inOut",
+     "p": {
+      "eyeH": 0.12,
+      "tilt": 7,
+      "sy": 0.95,
+      "leaf": -20,
+      "bend": -4
+     }
+    },
+    {
+     "t": 2420,
+     "ease": "out",
+     "p": {
+      "eyes": "wide",
+      "eyeH": 1,
+      "tilt": 0,
+      "sy": 1.06,
+      "y": -4,
+      "leaf": 14,
+      "bend": 3
+     }
+    },
+    {
+     "t": 3200,
+     "ease": "spring",
+     "p": {
+      "eyes": "pill",
+      "sy": 1,
+      "y": 0,
+      "leaf": 0,
+      "bend": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "sneeze",
+   "kind": "micro",
+   "loop": false,
+   "duration": 1600,
+   "desc": "achoo \u2014 leaf flips",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 300,
+     "ease": "in",
+     "p": {
+      "sy": 1.06,
+      "sx": 0.96,
+      "tilt": -4,
+      "eyeH": 0.5,
+      "leaf": 8
+     }
+    },
+    {
+     "t": 600,
+     "ease": "inOut",
+     "p": {
+      "sy": 1.08,
+      "sx": 0.95,
+      "tilt": -6,
+      "eyes": "squeeze",
+      "leaf": 10
+     }
+    },
+    {
+     "t": 700,
+     "ease": "out",
+     "p": {
+      "sy": 0.9,
+      "sx": 1.1,
+      "tilt": 6,
+      "y": 2,
+      "eyes": "squeeze",
+      "leaf": -24,
+      "bend": -6
+     }
+    },
+    {
+     "t": 1000,
+     "ease": "inOut",
+     "p": {
+      "sy": 1,
+      "sx": 1,
+      "tilt": 0,
+      "y": 0,
+      "eyes": "pill",
+      "eyeH": 0.6,
+      "leaf": 4,
+      "bend": 0
+     }
+    },
+    {
+     "t": 1600,
+     "ease": "spring",
+     "p": {
+      "eyeH": 1,
+      "leaf": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "stretch_wide",
+   "kind": "micro",
+   "loop": false,
+   "duration": 1800,
+   "desc": "stretches sideways",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 500,
+     "ease": "out",
+     "p": {
+      "sx": 1.12,
+      "sy": 0.9,
+      "eyes": "closed",
+      "leaf": -4
+     }
+    },
+    {
+     "t": 1100,
+     "ease": "inOut",
+     "p": {
+      "sx": 1.13,
+      "sy": 0.89,
+      "eyes": "closed"
+     }
+    },
+    {
+     "t": 1800,
+     "ease": "spring",
+     "p": {
+      "sx": 1,
+      "sy": 1,
+      "eyes": "pill",
+      "leaf": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "peek_caret",
+   "kind": "micro",
+   "loop": false,
+   "duration": 900,
+   "desc": "looks down at the composer (hold while user types; eye offset follows caret in app)",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 250,
+     "ease": "back",
+     "p": {
+      "eyeDX": -3,
+      "eyeDY": 4,
+      "tilt": -2
+     }
+    },
+    {
+     "t": 900,
+     "ease": "inOut",
+     "p": {
+      "eyeDX": -3,
+      "eyeDY": 4,
+      "tilt": -2
+     }
+    }
+   ]
+  },
+  {
+   "name": "tap_squish",
+   "kind": "micro",
+   "loop": false,
+   "duration": 600,
+   "desc": "reaction when the user taps Pim",
+   "keys": [
+    {
+     "t": 0,
+     "ease": "inOut",
+     "p": {}
+    },
+    {
+     "t": 80,
+     "ease": "out",
+     "p": {
+      "sx": 1.12,
+      "sy": 0.88,
+      "eyes": "squeeze"
+     }
+    },
+    {
+     "t": 600,
+     "ease": "spring",
+     "p": {
+      "sx": 1,
+      "sy": 1,
+      "eyes": "pill"
+     }
+    }
+   ]
+  }
+ ]
+}

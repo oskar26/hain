@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><title>Pim – Animationen</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#F7F7F4;--fg:#1F2A2E;--mint:#7FD6A4;--leaf:#3FAF77;--card:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#121816;--fg:#E8F0EC;--card:#1B2420}}
+*{box-sizing:border-box}body{margin:0;font:15px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
+header{padding:24px 24px 8px;display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+h1{font-size:22px;margin:0}#hero{width:200px;height:200px;cursor:pointer}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button{border:0;border-radius:999px;padding:8px 14px;background:var(--card);color:var(--fg);cursor:pointer;box-shadow:0 1px 2px #0002;transition:transform .15s}
+button:active{transform:scale(.94)}button.on{background:var(--leaf);color:#fff}
+h2{font-size:15px;margin:20px 24px 6px;opacity:.7;text-transform:uppercase;letter-spacing:.06em}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:0 24px 24px}
+.card{background:var(--card);border-radius:20px;padding:10px;text-align:center;cursor:pointer;transition:transform .2s}
+.card:hover{transform:translateY(-2px)}.card svg{width:120px;height:120px}
+.card b{display:block;font-size:13px}.card small{display:block;opacity:.6;font-size:11px;min-height:28px}
+</style></head><body>
+<header>
+ <svg id="hero" viewBox="-12 -18 144 144"></svg>
+ <div><h1>Pim v2.1</h1><p>Klick auf Pim = Antippen. Unten jede Animation, Klick spielt sie groß ab.</p>
+  <div class="ctl"><button id="auto" class="on">Zufalls-Leerlauf an</button>
+  <button data-state="idle">Ruhe</button><button data-state="thinking">Denkt</button><button data-state="listening">Hört zu</button>
+  <button data-state="speaking">Spricht</button><button data-state="sleeping">Schläft</button></div></div>
+</header>
+<h2>Zustände</h2><div class="grid" id="states"></div>
+<h2>Mini-Aktionen</h2><div class="grid" id="micro"></div>
+<script>
+const M=/*MOTION_JSON*/;
+const G=M.geometry,C=M.colors,N=M.neutral,NUM=Object.keys(N).filter(k=>typeof N[k]!=="string");
+function ease(n,u){u=Math.min(Math.max(u,0),1);switch(n){case"linear":return u;case"in":return u**3;case"out":return 1-(1-u)**3;
+ case"back":{const c1=1.70158,c3=2.70158;return 1+c3*(u-1)**3+c1*(u-1)**2}
+ case"spring":return 1-Math.exp(-6*u)*Math.cos(10.5*u);default:return u<.5?4*u**3:1-(-2*u+2)**3/2}}
+function resolve(a){let cur={...N};return a.keys.map(k=>{cur={...cur,...k.p};return[k.t,k.ease||"inOut",cur]})}
+function sample(a,t){const f=a._f||(a._f=resolve(a));if(a.loop)t%=a.duration;if(t<=f[0][0])return{...f[0][2]};
+ for(let i=1;i<f.length;i++){const[t0,,A]=f[i-1],[t1,e,B]=f[i];if(t<=t1){const r=(t-t0)/Math.max(t1-t0,1),u=ease(e,r),o={};
+  NUM.forEach(k=>o[k]=A[k]+(B[k]-A[k])*u);o.eyes=r>=.5?B.eyes:A.eyes;o.fx=r>=.5?B.fx:A.fx;return o}}return{...f[f.length-1][2]}}
+function eye(c,kind,s,p){const cx=c[0]+p.eyeDX,cy=c[1]+p.eyeDY;
+ if(kind==="pill"||kind==="wide"){const w=(kind==="wide"?8.2:G.eyeW)*s;let h=(kind==="wide"?17:G.eyeH)*s*p.eyeH;h=Math.max(h,2.2);const r=Math.min(w,h)/2;
+  return`<rect x="${cx-w/2}" y="${cy-h/2}" width="${w}" height="${h}" rx="${r}" fill="${C.eye}"/>`}
+ if(kind==="happy")return`<path d="M${cx-5} ${cy+2} Q${cx} ${cy-6.5} ${cx+5} ${cy+2}" fill="none" stroke="${C.eye}" stroke-width="3.2" stroke-linecap="round"/>`;
+ if(kind==="closed")return`<path d="M${cx-5} ${cy-1} Q${cx} ${cy+5} ${cx+5} ${cy-1}" fill="none" stroke="${C.eye}" stroke-width="3.2" stroke-linecap="round"/>`;
+ const d=c===G.eyeL?1:-1;return`<path d="M${cx-4*d} ${cy-4} L${cx+3*d} ${cy} L${cx-4*d} ${cy+4}" fill="none" stroke="${C.eye}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`}
+function star(cx,cy,r){return`M${cx} ${cy-r} Q${cx} ${cy} ${cx+r} ${cy} Q${cx} ${cy} ${cx} ${cy+r} Q${cx} ${cy} ${cx-r} ${cy} Q${cx} ${cy} ${cx} ${cy-r} Z`}
+function fx(p){if(!p.fx||p.fxA<=.01)return"";const a=p.fxA,x=96+p.fxX,y=30+p.fxY;
+ switch(p.fx){case"zz":return`<g opacity="${a}" fill="${C.accent}" font-family="sans-serif" font-weight="700"><text x="${x}" y="${y+8}" font-size="9">z</text><text x="${x+7}" y="${y}" font-size="12">z</text></g>`;
+ case"!":case"?":return`<text x="${x}" y="${y+6}" opacity="${a}" fill="${C.accent}" font-family="sans-serif" font-weight="800" font-size="16">${p.fx}</text>`;
+ case"sparkle":return`<path d="${star(x,y,6*a)} ${star(x-70,y+8,4*a)} ${star(x+4,y+26,3*a)}" fill="${C.accent}" opacity="${a}"/>`;
+ case"heart":return`<path transform="translate(${x} ${y}) scale(${.6+.4*a})" opacity="${a}" fill="${C.accent}" d="M0 4 C-6 -2 -2 -7 0 -3 C2 -7 6 -2 0 4 Z"/>`;
+ case"drop":return`<path transform="translate(${x-8} ${y+14})" opacity="${a}" fill="#8CC8E8" d="M0 -5 C3 -1 4 2 0 4 C-4 2 -3 -1 0 -5 Z"/>`}return""}
+function render(p){const sb=G.stemBase,lt=G.leafTip;
+ return`<g transform="translate(${p.x} ${p.y}) rotate(${p.tilt} 60 106) translate(60 106) scale(${p.sx} ${p.sy}) translate(-60 -106)">
+ <g transform="rotate(${p.bend} ${sb[0]} ${sb[1]})"><path d="${G.stem}" fill="none" stroke="${C.leaf}" stroke-width="3.6" stroke-linecap="round"/>
+ <g transform="translate(${lt[0]} ${lt[1]}) rotate(${p.leaf}) scale(${p.leafScale}) translate(${-lt[0]} ${-lt[1]})"><path d="${G.leaf}" fill="${C.leaf}"/>
+ <path d="${G.leafVein}" fill="none" stroke="${C.body}" stroke-width="1.1" stroke-linecap="round" opacity=".55"/></g></g>
+ <path d="${G.body}" fill="${C.body}"/>${eye(G.eyeL,p.eyes,p.eyeLS,p)}${eye(G.eyeR,p.eyes,p.eyeRS,p)}</g>${fx(p)}`}
+const byName=Object.fromEntries(M.motions.map(m=>[m.name,m]));
+const players=[];
+function card(m,host){const d=document.createElement("div");d.className="card";d.innerHTML=`<svg viewBox="-12 -18 144 144"></svg><b>${m.name}</b><small>${m.desc||""}</small>`;
+ host.appendChild(d);const svg=d.querySelector("svg");const pl={svg,m,start:performance.now()+Math.random()*800,len:m.duration+(m.loop?0:900)};players.push(pl);
+ d.onclick=()=>play(m.name)}
+M.motions.forEach(m=>card(m,document.getElementById(m.kind==="state"?"states":"micro")));
+// hero: base state + overlay micro-action (micro params override the base where they differ from neutral)
+const hero=document.getElementById("hero");let base="idle",over=null,overStart=0,auto=true,next=performance.now()+2000,last=[];
+function play(n){const m=byName[n];if(m.kind==="state"&&m.loop){base=n;over=null}else{over=m;overStart=performance.now()}}
+function pickIdle(){const s=M.idleSchedule,w=Object.entries(s.weights).filter(([k])=>!last.includes(k));let r=Math.random()*w.reduce((a,[,v])=>a+v,0);
+ for(const[k,v]of w){if((r-=v)<=0){last=[k,...last].slice(0,s.no_repeat_last);return k}}return"blink"}
+function frame(now){players.forEach(p=>{p.svg.innerHTML=render(sample(p.m,((now-p.start)%p.len+p.len)%p.len))});
+ let p=sample(byName[base],now);
+ if(over){const t=now-overStart;if(t>over.duration)over=null;else{const o=sample(over,t);NUM.forEach(k=>{if(o[k]!==N[k])p[k]=(k==="sx"||k==="sy"||k==="eyeH"||k==="eyeLS"||k==="eyeRS"||k==="leafScale")?p[k]*o[k]:p[k]+o[k]});
+  if(o.eyes!=="pill")p.eyes=o.eyes;if(o.fx){p.fx=o.fx;p.fxA=o.fxA;p.fxX=o.fxX;p.fxY=o.fxY}}}
+ if(auto&&base==="idle"&&!over&&now>next){play(pickIdle());const g=M.idleSchedule.gap_ms;next=now+g[0]+Math.random()*(g[1]-g[0])}
+ hero.innerHTML=render(p);requestAnimationFrame(frame)}
+hero.onclick=()=>play("tap_squish");
+document.getElementById("auto").onclick=e=>{auto=!auto;e.target.classList.toggle("on",auto);e.target.textContent=auto?"Zufalls-Leerlauf an":"Zufalls-Leerlauf aus"};
+document.querySelectorAll("[data-state]").forEach(b=>b.onclick=()=>play(b.dataset.state));
+requestAnimationFrame(frame);
+</script></body></html>
