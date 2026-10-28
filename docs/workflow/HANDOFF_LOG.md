@@ -50,3 +50,10 @@ One entry per session, newest at the bottom. Format in WORKFLOW.md.
 - Checks: `./gradlew assembleDebug` and `./gradlew testDebugUnitTest` passed.
 - Notes/risks: AGP 9.0.1 natively includes Kotlin support without requiring the standalone `org.jetbrains.kotlin.android` plugin in Android modules.
 - Next: T-003 (Lint & static checks) or parallel lanes B/C/D.
+
+## 2026-10-28 · T-003 · done · harness: Antigravity · model: Gemini 3.8 Flash
+- What: Lint and static checks configured across all modules. Added ktlint-gradle 14.2.0 and detekt 1.23.8 plugins to build.gradle.kts and gradle/libs.versions.toml. Added config/detekt.yml with Composable ignored in FunctionNaming, and .editorconfig ignoring Composable in ktlint function naming rule.
+- Files: build.gradle.kts, config/detekt.yml, .editorconfig, gradle/libs.versions.toml, docs/workflow/TASKS.md, docs/workflow/STATUS.md, docs/workflow/HANDOFF_LOG.md.
+- Checks: `./gradlew ktlintCheck detekt`, `./gradlew assembleDebug testDebugUnitTest` passed.
+- Notes/risks: `.editorconfig` disables ktlint for `*.gradle.kts` to prevent false positive script formatting conflicts in Gradle build scripts while enforcing style on Kotlin sources.
+- Next: T-004 (Hilt + App class + MainActivity) or parallel lanes.

@@ -8,7 +8,7 @@
 - **Next tasks:**
   - Human: **T-000** (benchmark LFM3 on the phone) and **T-080** (model URLs + sha256) — can run any time.
   - Agents: lanes can run in parallel:
-    A T-003…T-006 · B T-010, T-018, T-019, T-011…T-017 · C T-020, T-030 · D T-040…T-045 (pure Kotlin, ideal for small models) · F T-081.
+    A T-004…T-006 · B T-010, T-018, T-019, T-011…T-017 · C T-020, T-030 · D T-040…T-045 (pure Kotlin, ideal for small models) · F T-081.
 - **First milestone goal (M4):** app opens, downloads LFM3-1.7B, streams a German answer, keeps chat history.
 
 ## Milestones
@@ -74,3 +74,4 @@ _Agents add ideas here instead of doing them._
 | 2026-10-28 | planning | UI libraries + motion system (ADR-21), 6 new tasks | Hark (planner) |
 | 2026-10-28 | T-001 | Git repo init, GPL-3.0 LICENSE added, llama.cpp pinned at b11963 (39febd2ad) | Antigravity (Gemini 3.8 Flash) |
 | 2026-10-28 | T-002 | Gradle multi-module skeleton (18 modules), AGP 9.0.1, Kotlin 2.1.20, Compose BOM 2026.03.01, assembleDebug green | Antigravity (Gemini 3.8 Flash) |
+| 2026-10-28 | T-003 | KtLint + Detekt setup, Compose naming configured, ./gradlew ktlintCheck detekt green | Antigravity (Gemini 3.8 Flash) |
