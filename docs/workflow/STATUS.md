@@ -5,6 +5,7 @@
 ## Now
 
 - **Phase:** M1 Project skeleton in progress (2026-10-28).
+- **Known build issues:** read `docs/workflow/KNOWN_ISSUES.md` before touching Gradle/JDK/lint — KI-01: Gradle daemon pinned to JDK 21 because detekt 1.23.x crashes on JDK 25; KI-02: T-004 "app starts" still needs a device check.
 - **Next tasks:**
   - Human: **T-000** (benchmark LFM3 on the phone) and **T-080** (model URLs + sha256) — can run any time; answer **Q-05** for T-004.
   - Agents: lanes can run in parallel:
@@ -42,6 +43,8 @@ _None yet._ (List feature + task IDs here when a milestone closes.)
 | What | Version / commit |
 |---|---|
 | llama.cpp | b11963 (`39febd2adb947b70da35e95f9351b3bf58ad170a`) |
+| Gradle daemon JVM | 21 via `gradle/gradle-daemon-jvm.properties` — required for detekt 1.23.x, do not remove (KI-01) |
+| Hilt | 2.60.1 via KSP (added in T-004) |
 | AGP / Kotlin / Compose BOM | AGP 9.0.1 / Kotlin 2.1.20 / Compose BOM 2026.03.01 |
 | SQLite build (FTS5 + sqlite-vec) | _decide in T-020_ |
 | OCR runtime | _decide in T-121_ |
