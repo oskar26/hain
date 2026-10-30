@@ -16,7 +16,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-004 | Hilt + App class + MainActivity | scaffold | S | A | T-002 | done |
 | T-005 | Strings DE/EN + checker script | strings | S | A | T-002 | review |
 | T-006 | CI workflow | scaffold | XS | A | T-003,T-005 | doing (ZCode/GLM-5.3) |
-| T-010 | Design tokens | ui | S | B | T-002 | todo |
+| T-010 | Design tokens | ui | S | B | T-002 | review |
 | T-011 | Components: HainText, HainSurface, HainButton, HainIconButton | ui | S | B | T-018,T-019 | todo |
 | T-012 | Components: HainTextField, Composer | ui | S | B | T-018,T-019 | todo |
 | T-013 | Components: UserBubble, AssistantBlock (markdown via renderer core), ReasoningBlock | ui | M | B | T-018,T-019 | todo |
