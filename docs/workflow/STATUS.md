@@ -5,7 +5,7 @@
 ## Now
 
 - **Phase:** M1 Project skeleton in progress (2026-10-28).
-- **Known build issues:** read `docs/workflow/KNOWN_ISSUES.md` before touching Gradle/JDK/lint — KI-01: Gradle daemon pinned to JDK 21 because detekt 1.23.x crashes on JDK 25; KI-02: T-004 "app starts" still needs a device check.
+- **Known build issues:** read `docs/workflow/KNOWN_ISSUES.md` before touching Gradle/JDK/lint — KI-01: Gradle daemon pinned to JDK 21 because detekt 1.23.x crashes on JDK 25; KI-02: T-004 "app starts" needs a real device (emulator unusable inside the agent sandbox).
 - **Next tasks:**
   - Human: **T-000** (benchmark LFM3 on the phone) and **T-080** (model URLs + sha256) — can run any time; answer **Q-05** for T-004.
   - Agents: lanes can run in parallel:
@@ -80,4 +80,5 @@ _Agents add ideas here instead of doing them._
 | 2026-10-28 | T-002 | Gradle multi-module skeleton (18 modules), AGP 9.0.1, Kotlin 2.1.20, Compose BOM 2026.03.01, assembleDebug green | Antigravity (Gemini 3.8 Flash) |
 | 2026-10-28 | T-003 | KtLint + Detekt setup, Compose naming configured, ./gradlew ktlintCheck detekt green | Antigravity (Gemini 3.8 Flash) |
 | 2026-10-28 | T-004 | blocked: Hilt plugin/dependencies missing from build and HainTheme not in core-ui yet | Antigravity (Gemini 3.8 Flash) |
-| 2026-10-28 | review T-001…T-004 + T-004 | review passed; T-004 done: Hilt 2.60.1 via KSP, HainApp, MainActivity, daemon pinned to JDK 21 (detekt) | ZCode (GLM-5.3-Flash) |
+| 2026-10-30 | review T-001…T-004 + T-004 | review passed; T-004 done: Hilt 2.60.1 via KSP, HainApp, MainActivity, daemon pinned to JDK 21 (detekt) | ZCode (GLM-5.3) |
+| 2026-10-30 | T-004 follow-up | KNOWN_ISSUES.md created (KI-01..KI-03); on-device check deferred by human (KI-02); Pixel_7 AVD repaired | ZCode (GLM-5.3) |

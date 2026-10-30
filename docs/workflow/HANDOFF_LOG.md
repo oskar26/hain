@@ -76,3 +76,10 @@ One entry per session, newest at the bottom. Format in WORKFLOW.md.
 - Checks: `./gradlew assembleDebug testDebugUnitTest ktlintCheck detekt` all green. APK contains Hilt-generated components. On-device acceptance ("app starts") not runnable: `adb devices` shows no device attached.
 - Notes/risks: Hilt Gradle plugin resets detekt's jvmTarget inference to the daemon JVM; do not remove the daemon-JVM pin until detekt ≥ 2.0.0-alpha (JDK 25 tested). T-002 also committed docs/workflow/AGENT_PROMPTS.md and LOCAL_MODELS.md (generated workflow docs) beyond its file list — harmless, left in.
 - Next: T-005 (strings + checker), then lanes B/C/D per STATUS.md "Now".
+
+## 2026-10-30 · T-004 follow-up (notes + device-check attempt) · done · harness: ZCode · model: GLM-5.3
+- What: persisted the session findings in docs/workflow/KNOWN_ISSUES.md (KI-01 detekt/JDK-25 daemon pin, KI-02 on-device acceptance, KI-03 review deviations); STATUS.md points to it ("Now" + pinned versions). Attempted to close KI-02 with the local Pixel_7 emulator: the AVD was an unusable stub — repaired ~/.android/avd/Pixel_7.ini and config.ini (image.sysdir.1, tag.id, abi.type, skin); emulator boots and KVM works.
+- Why still open: the agent sandbox reaps background processes — adb server dies between tool calls and the emulator launcher (owner of the adb bridge) gets killed, so `adb devices` never lists the running qemu. Human decided to stop ("dann höre auf"). Cleanup done: no qemu processes, AVD locks removed, adb server stopped.
+- How to close KI-02: attach a real device → `adb install -r app/build/outputs/apk/debug/app-debug.apk` → `adb shell am start -n app.hain/.MainActivity` (no crash, label "Hain"). Emulator also works when started from Android Studio outside the sandbox (Pixel_7 AVD is now functional, API 36 x86_64, ARM translation covers the arm64-only APK).
+- Checks: `./gradlew assembleDebug testDebugUnitTest ktlintCheck detekt` green on JDK 21 daemon (504 tasks).
+- Next: T-005 (Strings DE/EN + checker), lanes B/C/D per STATUS.md "Now".

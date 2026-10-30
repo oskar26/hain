@@ -35,12 +35,26 @@ Consequences:
 - After any Kotlin/detekt/AGP upgrade, re-run `./gradlew detekt` on the
   machine's default JDK before considering to drop the pin.
 
-## KI-02 · T-004 on-device acceptance still unverified — OPEN
+## KI-02 · T-004 on-device acceptance still unverified — OPEN (deferred by human 2026-10-30)
 
-"App starts on device/emulator" could not be checked: `adb devices` shows no
-device. Build-level checks are green and the Hilt-generated components were
-verified inside the APK dex. Verify on the first device connection and record
-the result in HANDOFF_LOG.md, then close this entry.
+"App starts on device/emulator" could not be checked: no device attached. Build-level
+checks are green and the Hilt-generated components were verified inside the APK dex.
+
+Attempt 2026-10-30 (agent sandbox): the local `Pixel_7` AVD was an unusable stub
+(missing `~/.android/avd/Pixel_7.ini`, config.ini without `image.sysdir.1`/`tag.id`/
+`abi.type`); it was repaired and the emulator boots. But the agent sandbox reaps
+background processes: the adb server dies between tool calls and the emulator launcher
+(which owns the adb bridge) gets killed, leaving an orphaned qemu that `adb devices`
+never shows. Human decided to stop the attempt. Verify instead on a real device:
+
+```bash
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb shell am start -n app.hain/.MainActivity   # expect no crash, app label "Hain"
+```
+
+Then close this entry and note the result in HANDOFF_LOG.md. Note for the emulator
+path: the AVD works when started from Android Studio outside the sandbox
+(`emulator -avd Pixel_7`, API 36, x86_64, ARM translation for the arm64-only APK).
 
 ## KI-03 · recorded review deviations (no action needed)
 
