@@ -1,8 +1,8 @@
 package app.hain.ui.theme
 
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.Density
+import com.kyant.capsule.ContinuousRoundedRectangle
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -12,27 +12,25 @@ class HainShapesTest {
     private val density = Density(1f)
     private val anySize = Size(100f, 100f)
 
-    private fun radius(shape: RoundedCornerShape) = shape.topStart.toPx(anySize, density)
+    private fun radius(shape: ContinuousRoundedRectangle) = shape.topStart.toPx(anySize, density)
 
     @Test
     fun `corner radii match spec`() {
         val s = StandardHainShapes
-        assertEquals(28f, radius(s.composer as RoundedCornerShape))
-        assertEquals(20f, radius(s.userBubble as RoundedCornerShape))
-        assertEquals(16f, radius(s.card as RoundedCornerShape))
-        assertEquals(12f, radius(s.chip as RoundedCornerShape))
-        assertEquals(12f, radius(s.button as RoundedCornerShape))
+        // composer is a full capsule (no fixed radius), all others are squircles
+        assertEquals(20f, radius(s.userBubble as ContinuousRoundedRectangle))
+        assertEquals(16f, radius(s.card as ContinuousRoundedRectangle))
+        assertEquals(12f, radius(s.chip as ContinuousRoundedRectangle))
+        assertEquals(12f, radius(s.button as ContinuousRoundedRectangle))
     }
 
     @Test
-    fun `all shape tokens are RoundedCornerShape instances`() {
-        // T-018 swaps these for Capsule squircles; until then no token may
-        // silently fall back to an arbitrary shape.
+    fun `all shape tokens are continuous (squircle) shapes`() {
         val s = StandardHainShapes
-        assertTrue(s.composer is RoundedCornerShape)
-        assertTrue(s.userBubble is RoundedCornerShape)
-        assertTrue(s.card is RoundedCornerShape)
-        assertTrue(s.chip is RoundedCornerShape)
-        assertTrue(s.button is RoundedCornerShape)
+        assertTrue(s.composer is ContinuousRoundedRectangle)
+        assertTrue(s.userBubble is ContinuousRoundedRectangle)
+        assertTrue(s.card is ContinuousRoundedRectangle)
+        assertTrue(s.chip is ContinuousRoundedRectangle)
+        assertTrue(s.button is ContinuousRoundedRectangle)
     }
 }

@@ -49,6 +49,17 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | Konfetti (konfetti-compose) | ISC | ok |
 | Compose Unstyled (composablehorizons) | MIT (verify at add time) | ok, backup component base |
 | Showkase (debug only) | Apache-2.0 | ok |
+| Roborazzi (screenshot testing) | Apache-2.0 | ok |
+| Lucide (icon SVG sources) | ISC | ok |
+
+**Added in T-018 (2026-10-30).** All licences verified against the artifacts' POMs on Maven Central.
+Newest stable versions that still work with the pinned toolchain (AGP 9.0.1 / compileSdk 36 /
+AGP-embedded Kotlin 2.2.0, which reads Kotlin metadata ≤ 2.3.0): Compose Unstyled 2.6.0,
+Haze 1.7.0 (1.x `hazeEffect` API), Capsule 2.1.3, Backdrop 2.0.0-alpha03, compose-shimmer 1.3.2,
+multiplatform-markdown-renderer 0.41.0 (+ `-code`), Coil 3.4.0, Lottie Compose 6.7.1,
+Konfetti 2.0.5, Showkase 1.0.5 (debug + KSP only), Roborazzi 1.77.0 (test only).
+`androidx.compose.material3` is excluded from every :core-ui configuration (hard rule).
+
 | MediaPipe | Apache-2.0 | ok |
 | MI-GAN | MIT | verify |
 | MODNet | Apache-2.0 | verify |

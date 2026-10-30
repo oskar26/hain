@@ -22,7 +22,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-013 | Components: UserBubble, AssistantBlock (markdown via renderer core), ReasoningBlock | ui | M | B | T-018,T-019 | todo |
 | T-014 | Components: HainChip, ToolChip, HainCard, SegmentedControl | ui | S | B | T-018,T-019 | todo |
 | T-015 | Components: SettingsRow, HainSwitch, TopBar, Drawer, BottomSheet, Toast, EmptyState, ProgressBar | ui | S | B | T-018,T-019 | todo |
-| T-018 | Add UI libraries + thin wrappers | scaffold | S | B | T-010 | todo |
+| T-018 | Add UI libraries + thin wrappers | scaffold | S | B | T-010 | review |
 | T-019 | Motion system HainMotion + MotionGovernor | ui | S | B | T-018 | todo |
 | T-016 | Pim v2 drawn in Compose (static states) | ui | S | B | T-010 | todo |
 | T-017 | Lucide icons as vector drawables | ui | S | B | T-010 | todo |

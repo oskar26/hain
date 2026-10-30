@@ -1,13 +1,14 @@
 package app.hain.ui.theme
 
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
+import com.kyant.capsule.ContinuousCapsule
+import com.kyant.capsule.ContinuousRoundedRectangle
 
 /**
  * Corner tokens, ported verbatim from DESIGN_SYSTEM.md §2.
- * Plain `RoundedCornerShape` for now — T-018 swaps these for Capsule
- * `ContinuousRoundedRectangle` / `ContinuousCapsule` squircles.
+ * All shapes are G2-continuous squircles via Capsule (UI_LIBRARIES.md §2);
+ * the composer is a full capsule.
  */
 data class HainShapes(
     val composer: Shape,
@@ -19,9 +20,9 @@ data class HainShapes(
 
 val StandardHainShapes =
     HainShapes(
-        composer = RoundedCornerShape(28.dp),
-        userBubble = RoundedCornerShape(20.dp),
-        card = RoundedCornerShape(16.dp),
-        chip = RoundedCornerShape(12.dp),
-        button = RoundedCornerShape(12.dp),
+        composer = ContinuousCapsule,
+        userBubble = ContinuousRoundedRectangle(20.dp),
+        card = ContinuousRoundedRectangle(16.dp),
+        chip = ContinuousRoundedRectangle(12.dp),
+        button = ContinuousRoundedRectangle(12.dp),
     )

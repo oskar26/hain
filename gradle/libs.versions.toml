@@ -17,6 +17,17 @@ detekt = "1.23.8"
 androidxTest = "1.7.0"
 androidxTestExt = "1.3.0"
 androidxTestRunner = "1.7.0"
+compose-unstyled = "2.6.0"
+haze = "1.7.0"
+capsule = "2.1.3"
+backdrop = "2.0.0-alpha03"
+shimmer = "1.3.2"
+markdownRenderer = "0.41.0"
+coil = "3.4.0"
+lottie = "6.7.1"
+showkase = "1.0.5"
+konfetti = "2.0.5"
+roborazzi = "1.77.0"
 androidxTestEspresso = "3.7.0"
 
 [libraries]
@@ -39,6 +50,23 @@ junit = { module = "junit:junit", version.ref = "junit" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
 
+# UI libraries (UI_LIBRARIES.md §2) — all GPL-3.0 compatible, see LICENSES.md
+compose-unstyled = { module = "com.composables:composeunstyled", version.ref = "compose-unstyled" }
+haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
+capsule = { module = "io.github.kyant0:capsule", version.ref = "capsule" }
+backdrop = { module = "io.github.kyant0:backdrop", version.ref = "backdrop" }
+compose-shimmer = { module = "com.valentinilk.shimmer:compose-shimmer", version.ref = "shimmer" }
+markdown-renderer-core = { module = "com.mikepenz:multiplatform-markdown-renderer", version.ref = "markdownRenderer" }
+markdown-renderer-code = { module = "com.mikepenz:multiplatform-markdown-renderer-code", version.ref = "markdownRenderer" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie" }
+showkase = { module = "com.airbnb.android:showkase", version.ref = "showkase" }
+showkase-processor = { module = "com.airbnb.android:showkase-processor", version.ref = "showkase" }
+konfetti-compose = { module = "nl.dionsegijn:konfetti-compose", version.ref = "konfetti" }
+roborazzi = { module = "io.github.takahirom.roborazzi:roborazzi", version.ref = "roborazzi" }
+roborazzi-compose = { module = "io.github.takahirom.roborazzi:roborazzi-compose", version.ref = "roborazzi" }
+roborazzi-junit-rule = { module = "io.github.takahirom.roborazzi:roborazzi-junit-rule", version.ref = "roborazzi" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
@@ -50,3 +78,4 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
