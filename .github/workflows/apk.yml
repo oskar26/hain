@@ -1,12 +1,12 @@
 name: APK
 
-# Builds an installable APK on every push and pull request.
+# Builds an installable APK for every pull request and every push to main.
 # Pushes to main also refresh the "nightly" pre-release, so the newest APK is
 # always at: Releases → nightly → hain-debug.apk (same debug key → installs as update).
 
 on:
   push:
-    branches: ['**']
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
