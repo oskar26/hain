@@ -15,42 +15,42 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-003 | Lint & static checks | scaffold | XS | A | T-002 | done |
 | T-004 | Hilt + App class + MainActivity | scaffold | S | A | T-002 | done |
 | T-005 | Strings DE/EN + checker script | strings | S | A | T-002 | review |
-| T-006 | CI workflow | scaffold | XS | A | T-003,T-005 | doing (ZCode/GLM-5.3) |
+| T-006 | CI workflow | scaffold | XS | A | T-003,T-005 | review |
 | T-010 | Design tokens | ui | S | B | T-002 | review |
-| T-011 | Components: HainText, HainSurface, HainButton, HainIconButton | ui | S | B | T-018,T-019 | todo |
-| T-012 | Components: HainTextField, Composer | ui | S | B | T-018,T-019 | todo |
-| T-013 | Components: UserBubble, AssistantBlock (markdown via renderer core), ReasoningBlock | ui | M | B | T-018,T-019 | todo |
+| T-011 | Components: HainText, HainSurface, HainButton, HainIconButton | ui | S | B | T-018,T-019 | review (subset) |
+| T-012 | Components: HainTextField, Composer | ui | S | B | T-018,T-019 | review (subset) |
+| T-013 | Components: UserBubble, AssistantBlock (markdown via renderer core), ReasoningBlock | ui | M | B | T-018,T-019 | review (subset) |
 | T-014 | Components: HainChip, ToolChip, HainCard, SegmentedControl | ui | S | B | T-018,T-019 | todo |
-| T-015 | Components: SettingsRow, HainSwitch, TopBar, Drawer, BottomSheet, Toast, EmptyState, ProgressBar | ui | S | B | T-018,T-019 | todo |
+| T-015 | Components: SettingsRow, HainSwitch, TopBar, Drawer, BottomSheet, Toast, EmptyState, ProgressBar | ui | S | B | T-018,T-019 | review (subset) |
 | T-018 | Add UI libraries + thin wrappers | scaffold | S | B | T-010 | review |
 | T-019 | Motion system HainMotion + MotionGovernor | ui | S | B | T-018 | review |
 | T-016 | Pim v2 drawn in Compose (static states) | ui | S | B | T-010 | review |
 | T-017 | Lucide icons as vector drawables | ui | S | B | T-010 | review |
 | T-020 | Encrypted Room DB skeleton | feature | M | C | T-002 | todo |
-| T-030 | JNI bridge: load/generate/cancel | native | M | C | T-001,T-002 | todo |
-| T-031 | Copy prompts into assets | scaffold | XS | C | T-002 | todo |
-| T-032 | LlmEngine implementation | feature | S | C | T-030 | todo |
-| T-033 | Prefix KV cache reuse | native | S | C | T-030 | todo |
+| T-030 | JNI bridge: load/generate/cancel | native | M | C | T-001,T-002 | review |
+| T-031 | Copy prompts into assets | scaffold | XS | C | T-002 | review |
+| T-032 | LlmEngine implementation | feature | S | C | T-030 | review |
+| T-033 | Prefix KV cache reuse | native | S | C | T-030 | review |
 | T-040 | Data classes ChatMessage/ToolSchema/ToolCall | feature | XS | D | T-002 | review |
 | T-041 | Golden prompt files + render script | test | S | D | T-040 | review |
 | T-042 | PromptBuilder (pure Kotlin) | feature | M | D | T-041 | review |
 | T-043 | ToolCallParser | feature | S | D | T-040 | review |
 | T-044 | StreamSplitter | feature | S | D | T-043 | review |
 | T-045 | ThinkingPolicy + SystemPrompt.fill | feature | S | D | T-040 | review |
-| T-050 | ChatEngine turn loop | feature | M | E | T-032,T-042,T-044,T-045,T-020 | todo |
-| T-051 | ChatViewModel + UI state | feature | S | E | T-050 | todo |
-| T-052 | Chat screen | ui | M | E | T-051,T-011,T-012,T-013 | todo |
+| T-050 | ChatEngine turn loop | feature | M | E | T-032,T-042,T-044,T-045,T-020 | review (no tools yet) |
+| T-051 | ChatViewModel + UI state | feature | S | E | T-050 | review |
+| T-052 | Chat screen | ui | M | E | T-051,T-011,T-012,T-013 | review |
 | T-057 | Branches, message queue, stopped/error states | feature | M | E | T-051 | todo |
 | T-058 | ChatViewport + scroll-to-bottom pill | ui | S | E | T-052 | todo |
 | T-059 | ToolTimeline + SourceChips | ui | S | E | T-052,T-062 | todo |
-| T-053 | Drawer: chat list, search, rename, delete, pin | ui | M | E | T-052,T-015 | todo |
+| T-053 | Drawer: chat list, search, rename, delete, pin | ui | M | E | T-052,T-015 | review (basic) |
 | T-054 | Export & share chat | feature | S | E | T-053 | todo |
 | T-055 | Model picker in top bar | ui | S | E | T-052,T-081 | todo |
 | T-056 | Private chat + app lock | feature | S | E | T-053 | todo |
-| T-080 | Fill model catalogue with real URLs + sha256 | plan | S | F | - | todo |
-| T-081 | Catalog + DeviceCheck | feature | S | F | T-002 | todo |
-| T-082 | PackDownloader (WorkManager) | feature | M | F | T-081 | todo |
-| T-083 | Onboarding (welcome, language, download brain) | ui | M | F | T-082,T-016 | todo |
+| T-080 | Fill model catalogue with real URLs + sha256 | plan | S | F | - | review |
+| T-081 | Catalog + DeviceCheck | feature | S | F | T-002 | review (no DeviceCheck yet) |
+| T-082 | PackDownloader (WorkManager) | feature | M | F | T-081 | review |
+| T-083 | Onboarding (welcome, language, download brain) | ui | M | F | T-082,T-016 | review (basic) |
 | T-084 | Packs screen in settings | ui | S | F | T-082 | todo |
 | T-060 | NetworkGate + network log | feature | S | A | T-020 | todo |
 | T-061 | Pim launcher icon + VectorDrawable export | ui | S | B | T-016 | todo |
