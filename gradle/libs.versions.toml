@@ -11,6 +11,8 @@ androidxLifecycle = "2.10.0"
 hilt = "2.60.1"
 androidxActivity = "1.13.0"
 coroutines = "1.10.2"
+kotlinxSerialization = "1.8.1"
+kxml2 = "2.3.0"
 junit = "4.13.2"
 ktlintGradle = "14.2.0"
 detekt = "1.23.8"
@@ -46,6 +48,8 @@ androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtim
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+kxml2 = { module = "net.sf.kxml:kxml2", version.ref = "kxml2" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 junit = { module = "junit:junit", version.ref = "junit" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
