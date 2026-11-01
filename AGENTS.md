@@ -122,6 +122,7 @@ Package root: `app.hain` (placeholder until the name is legally checked).
 ## 7. Commands
 
 ```bash
+bash tools/sync.sh          # keep this checkout == GitHub (pull --rebase, submodule, push); start + end of session
 git submodule update --init --recursive
 ./gradlew assembleDebug
 ./gradlew testDebugUnitTest

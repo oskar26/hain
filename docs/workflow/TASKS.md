@@ -31,12 +31,12 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-031 | Copy prompts into assets | scaffold | XS | C | T-002 | todo |
 | T-032 | LlmEngine implementation | feature | S | C | T-030 | todo |
 | T-033 | Prefix KV cache reuse | native | S | C | T-030 | todo |
-| T-040 | Data classes ChatMessage/ToolSchema/ToolCall | feature | XS | D | T-002 | todo |
-| T-041 | Golden prompt files + render script | test | S | D | T-040 | todo |
-| T-042 | PromptBuilder (pure Kotlin) | feature | M | D | T-041 | todo |
-| T-043 | ToolCallParser | feature | S | D | T-040 | todo |
-| T-044 | StreamSplitter | feature | S | D | T-043 | todo |
-| T-045 | ThinkingPolicy + SystemPrompt.fill | feature | S | D | T-040 | todo |
+| T-040 | Data classes ChatMessage/ToolSchema/ToolCall | feature | XS | D | T-002 | review |
+| T-041 | Golden prompt files + render script | test | S | D | T-040 | review |
+| T-042 | PromptBuilder (pure Kotlin) | feature | M | D | T-041 | review |
+| T-043 | ToolCallParser | feature | S | D | T-040 | review |
+| T-044 | StreamSplitter | feature | S | D | T-043 | review |
+| T-045 | ThinkingPolicy + SystemPrompt.fill | feature | S | D | T-040 | review |
 | T-050 | ChatEngine turn loop | feature | M | E | T-032,T-042,T-044,T-045,T-020 | todo |
 | T-051 | ChatViewModel + UI state | feature | S | E | T-050 | todo |
 | T-052 | Chat screen | ui | M | E | T-051,T-011,T-012,T-013 | todo |
@@ -62,7 +62,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-067 | read_page with Readability4K | feature | S | A | T-066 | todo |
 | T-068 | Intent tools (alarm, timer, calendar, navigate) + ConfirmCard | feature | M | A | T-062,T-014 | todo |
 | T-069 | Online indicator & network log screen | ui | S | A | T-060 | todo |
-| T-070 | Feed parser RSS2/Atom/RDF | feature | S | B | T-002 | todo |
+| T-070 | Feed parser RSS2/Atom/RDF | feature | S | B | T-002 | review |
 | T-071 | Standard feed list + repository | feature | S | B | T-070,T-060 | todo |
 | T-072 | news tool + NewsCard | feature | S | B | T-071,T-062 | todo |
 | T-073 | News screen (3-mode switch, own feeds) | ui | M | B | T-072 | todo |

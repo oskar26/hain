@@ -108,3 +108,23 @@ Human-authorized batch mode (7 tasks, one session; AGENTS.md §1 override). Base
 
 **Not done / deferred:** on-device install via adb — device attached but unauthorized (user must confirm the USB-debugging dialog); KI-02 check runs after that.
 **Reviewer should look at first:** core-ui/build.gradle.kts (material3 exclusion at configuration level — intentional, matches card rule "no material3 in the dependency tree"), tools/check_strings.py, HainGlass/HainShimmer wrappers, PimGeometry path parser.
+
+## 2026-11-01 · batch D "Chat-Kern" (T-040…T-045) + T-070 · review · harness: Hark · branch `hark/batch-d`
+
+Human-authorized large batch ("sehr großer Happen"; AGENTS.md §1 override). One commit per task, draft PR, not ready-for-review without the human.
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-040 | review | compiles; used by all tests below | — | — |
+| T-041 | review | G-01…G-06 rendered by `tools/render_golden.py` from the official Jinja chat template (jinja2) | — | regenerate goldens if the model template changes |
+| T-042 | review | `LfmPromptBuilderTest` 11/11, byte-exact vs goldens | `PyJson.kt` (JSON exactly like Python `json.dumps`, needed for byte equality); kotlinx-serialization-json 1.8.1 → libs.versions.toml, LICENSES.md | — |
+| T-043 | review | `XmlToolCallParserTest` 13/13 | — | strict: malformed call → no calls, text kept, error list |
+| T-044 | review | `StreamSplitterTest` 7/7 | — | tag hold-back max 12 chars |
+| T-045 | review | `ThinkingPolicyTest` 6/6, `SystemPromptFillerTest` 5/5 | `EmergencyNumbers` (in SystemPromptFiller.kt) | `SystemPromptVars.of()` takes time/locale/region only; city/memory/custom via `copy()` (detekt LongParameterList) |
+| T-070 | review | `FeedParserTest` on real responses of all 14 standard feeds (fixtures saved 2026-11-01) + synthetic cases | kxml2 2.3.0 (test only) → LICENSES.md | own parser on XmlPullParser, no Rome/other lib |
+
+**Gate:** `:core-llm:testDebugUnitTest :core-tools:testDebugUnitTest ktlintCheck detekt` green (see PR). Not run: `assembleDebug` for :app with native (submodule not initialised in the Hark sandbox; no JNI change in this batch).
+**Also:** `tools/sync.sh` (keep a local checkout identical to GitHub; documented in AGENTS.md §7). KI-02 title corrected to OPEN — the body and the batch log both say the device check is still pending.
+**Gotcha:** JUnit4 rejects `@Test fun x() = check(...)` when `check` returns a value ("Method should be void") — use block bodies.
+**Next:** T-032 (JNI bridge, native, strong model) → T-050 turn loop; T-071 feed repository.
+
