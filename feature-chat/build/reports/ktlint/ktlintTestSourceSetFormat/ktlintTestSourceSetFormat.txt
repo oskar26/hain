@@ -1,0 +1,8 @@
+[90m/workspace/work/hain-gh/feature-chat/src/test/kotlin/app/hain/feature/chat/internal/[0mChatStoreTest.kt[90m:[0m1[90m:1:[0m Missing newline before ")" [90m(standard:argument-list-wrapping)[0m
+[90m/workspace/work/hain-gh/feature-chat/src/test/kotlin/app/hain/feature/chat/internal/[0mChatStoreTest.kt[90m:[0m1[90m:1:[0m Missing trailing comma before ")" [90m(standard:trailing-comma-on-call-site)[0m
+[90m/workspace/work/hain-gh/feature-chat/src/test/kotlin/app/hain/feature/chat/internal/[0mChatStoreTest.kt[90m:[0m26[90m:22:[0m Argument should be on a separate line (unless all arguments can fit a single line) [90m(standard:argument-list-wrapping)[0m
+[90m/workspace/work/hain-gh/feature-chat/src/test/kotlin/app/hain/feature/chat/internal/[0mChatStoreTest.kt[90m:[0m26[90m:77:[0m Argument should be on a separate line (unless all arguments can fit a single line) [90m(standard:argument-list-wrapping)[0m
+
+Summary error count (descending) by rule:
+  standard:argument-list-wrapping: 3
+  standard:trailing-comma-on-call-site: 1

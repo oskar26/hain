@@ -128,3 +128,22 @@ Human-authorized large batch ("sehr großer Happen"; AGENTS.md §1 override). On
 **Gotcha:** JUnit4 rejects `@Test fun x() = check(...)` when `check` returns a value ("Method should be void") — use block bodies.
 **Next:** T-032 (JNI bridge, native, strong model) → T-050 turn loop; T-071 feed repository.
 
+
+## 2026-11-01 · batch E "M4 MVP: basic working app" · review · harness: Hark · branch `hark/batch-e`
+
+Human asked: "mach es basic funktionsfähig, bau schon das UI, GitHub Action die immer APKs baut". One commit per task group, draft PR.
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-006 | review | `apk.yml`: APK on every push/PR (artifact), nightly pre-release on main | `app/signing/hain-debug.keystore` (shared public debug key, force-added) | first real runner run = this PR |
+| T-030/T-033 | review | host test (aarch64 Linux, same C++ + LFM3-1.7B Q4_K_M): "Paris." then "Wien. 😊", 2nd turn 0.6 s via prefix reuse; emoji/umlaut UTF-8 intact | — | **deviation from LLM.md §1:** shared libs + `GGML_BACKEND_DL`/`GGML_CPU_ALL_VARIANTS` instead of static `armv8.2-a+dotprod+i8mm` (avoids SIGILL); app uses `useLegacyPackaging` so backends can be dlopen'ed. Callback gets UTF-8 `byte[]`, not String. Vulkan not wired. |
+| T-031 | review | `PromptAssetsTest` (assets == prompts/) | — | plain copy, test guards drift |
+| T-032 | review | compile + used by ChatEngine tests (fake) | — | one model, one generation at a time; threads = cores−2 (2…6) |
+| T-080/T-081/T-082 | review | `CatalogParserTest`; sha256/size from HF API (LiquidAI/LFM3-1.7B-GGUF, verified by local download) | core-models manifest (FGS dataSync + POST_NOTIFICATIONS) | no DeviceCheck/bench yet; no Wi-Fi-only setting yet; downloads bypass NetworkGate (T-060 not done) |
+| T-011…T-013, T-015 (subset) | review | compile; used by screens | — | HainButton, HainIconButton, HainMenuRow, Composer, UserBubble, AssistantBlock (mikepenz markdown core, own colours), ReasoningBlock, MessageAction, TopBar, EmptyState, ProgressBar. Missing: HainTextField, chips/cards, switch, sheet, toast, previews |
+| T-050…T-053 | review | `ChatEngineTest` 2/2, `ChatStoreTest` 2/2 | app wiring (MainActivity, AppModule, SystemPromptSource) | **no tools** (system prompt says so via custom instructions); chats in memory only until T-020; no model picker/settings |
+| T-083 | review | compile | — | basic: welcome + download + progress + retry; no language step |
+
+**Gate:** `assembleDebug testDebugUnitTest ktlintCheck detekt -Phain.native=false` green, 37 unit tests in touched modules, 0 failures; `check_strings` OK. Native APK built by `apk.yml` on GitHub.
+**Sandbox gotchas:** NDK has no linux-aarch64 host → native only on CI (`-Phain.native=false` locally). AAPT2 is x86-64 → run via `qemu-x86_64` wrapper set in `~/.gradle/gradle.properties` (`android.aapt2FromMavenOverride`, the file must be named `aapt2`).
+**Next:** device test (KI-02), T-020 Room, T-062 tools, settings, T-084.

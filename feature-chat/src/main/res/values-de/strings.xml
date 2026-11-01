@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_greeting">Hallo! Was kann ich für dich tun?</string>
+    <string name="chat_greeting_body">Alles bleibt auf deinem Handy.</string>
+    <string name="chat_placeholder">Nachricht an Hain</string>
+    <string name="chat_send">Senden</string>
+    <string name="chat_stop">Stopp</string>
+    <string name="chat_menu">Chats öffnen</string>
+    <string name="chat_new">Neuer Chat</string>
+    <string name="chat_copy">Kopieren</string>
+    <string name="chat_copied">Kopiert</string>
+    <string name="chat_retry">Nochmal fragen</string>
+    <string name="chat_share">Teilen</string>
+    <string name="chat_delete">Chat löschen</string>
+    <string name="chat_thought_for">Gedacht für %1$d s</string>
+    <string name="chat_thinking">Pim denkt nach…</string>
+    <string name="chat_stopped">Gestoppt</string>
+    <string name="chat_loading_brain">Das Gehirn wird geweckt…</string>
+    <string name="chat_brain_ready">Auf diesem Handy</string>
+    <string name="chat_history">Chats</string>
+    <string name="chat_history_empty">Hier erscheinen deine Chats.</string>
+    <string name="chat_today">Heute</string>
+    <string name="chat_earlier">Früher</string>
+    <string name="chat_error_load">Das Gehirn konnte nicht starten. Starte die App neu.</string>
+    <string name="chat_error_context">Dieser Chat ist zu lang für das Gehirn. Starte einen neuen Chat.</string>
+    <string name="chat_error_generation">Da ist was schiefgegangen. Nochmal fragen?</string>
+    <string name="chat_error_no_native">Diese Version hat keine KI-Engine.</string>
+    <string name="chat_suggestion_1">Erklär mir Photosynthese einfach</string>
+    <string name="chat_suggestion_2">Ideen für eine plastikfreie Woche</string>
+    <string name="chat_suggestion_3">Schreib ein kurzes Geburtstagsgedicht</string>
+    <string name="chat_suggestion_4">Hilf mir, meinen Tag zu planen</string>
+</resources>

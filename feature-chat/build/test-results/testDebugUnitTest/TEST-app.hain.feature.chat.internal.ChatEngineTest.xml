@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.hain.feature.chat.internal.ChatEngineTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-01T19:58:54.110Z" hostname="(none)" time="0.912">
+  <properties/>
+  <testcase name="thoroughModeSplitsReasoning" classname="app.hain.feature.chat.internal.ChatEngineTest" time="0.902"/>
+  <testcase name="fastModeStreamsTextWithoutThinking" classname="app.hain.feature.chat.internal.ChatEngineTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

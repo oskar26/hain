@@ -1,0 +1,31 @@
+R_DEF: Internal format may change without notice
+local
+string chat_brain_ready
+string chat_copied
+string chat_copy
+string chat_delete
+string chat_earlier
+string chat_error_context
+string chat_error_generation
+string chat_error_load
+string chat_error_no_native
+string chat_greeting
+string chat_greeting_body
+string chat_history
+string chat_history_empty
+string chat_loading_brain
+string chat_menu
+string chat_new
+string chat_placeholder
+string chat_retry
+string chat_send
+string chat_share
+string chat_stop
+string chat_stopped
+string chat_suggestion_1
+string chat_suggestion_2
+string chat_suggestion_3
+string chat_suggestion_4
+string chat_thinking
+string chat_thought_for
+string chat_today

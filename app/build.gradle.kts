@@ -13,11 +13,21 @@ android {
         applicationId = "app.hain"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 1
+        versionCode = (providers.gradleProperty("hain.versionCode").orNull ?: "1").toInt()
         versionName = "0.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             abiFilters += listOf("arm64-v8a")
+        }
+    }
+
+    // Shared debug key (app/signing/hain-debug.keystore, public by design) so CI APKs update each other.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("signing/hain-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
         }
     }
 
@@ -39,6 +49,10 @@ android {
     }
 
     packaging {
+        // ggml loads its CPU backends with dlopen from nativeLibraryDir (GGML_BACKEND_DL).
+        jniLibs {
+            useLegacyPackaging = true
+        }
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
@@ -53,6 +67,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.foundation)

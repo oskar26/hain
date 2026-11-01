@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_body">Hain thinks right on your phone. Your chats never leave it. For that I need a brain once: %1$s.</string>
+    <string name="onboarding_cancel">Cancel</string>
+    <string name="onboarding_done">All set! Let us talk.</string>
+    <string name="onboarding_download">Download brain</string>
+    <string name="onboarding_fail_checksum">The file arrived damaged. Please try again.</string>
+    <string name="onboarding_fail_network">The download stopped. Check your internet and try again.</string>
+    <string name="onboarding_fail_storage">Not enough free space. Free up %1$s and try again.</string>
+    <string name="onboarding_fail_unknown">Something went wrong. Please try again.</string>
+    <string name="onboarding_licence">Model: %1$s · %2$s</string>
+    <string name="onboarding_progress">%1$s of %2$s</string>
+    <string name="onboarding_queued">Waiting for internet…</string>
+    <string name="onboarding_retry">Try again</string>
+    <string name="onboarding_start">Start chatting</string>
+    <string name="onboarding_title">Hi, I am Pim.</string>
+    <string name="onboarding_verifying">Checking the download…</string>
+    <string name="onboarding_wifi">Best over Wi-Fi. You can keep using your phone meanwhile.</string>
+</resources>

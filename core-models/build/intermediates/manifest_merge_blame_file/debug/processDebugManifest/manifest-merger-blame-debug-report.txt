@@ -1,0 +1,37 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    xmlns:tools="http://schemas.android.com/tools"
+4    package="app.hain.models" >
+5
+6    <uses-sdk android:minSdkVersion="29" />
+7
+8    <!-- Model downloads (MODELS.md "Downloader"): the only network use of this module. -->
+9    <uses-permission android:name="android.permission.INTERNET" />
+9-->/workspace/work/hain-gh/core-models/src/main/AndroidManifest.xml:6:5-67
+9-->/workspace/work/hain-gh/core-models/src/main/AndroidManifest.xml:6:22-64
+10    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+10-->/workspace/work/hain-gh/core-models/src/main/AndroidManifest.xml:7:5-79
+10-->/workspace/work/hain-gh/core-models/src/main/AndroidManifest.xml:7:22-76
+11    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+11-->/workspace/work/hain-gh/core-models/src/main/AndroidManifest.xml:8:5-77
+11-->/workspace/work/hain-gh/core-models/src/main/AndroidManifest.xml:8:22-74
+12    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+12-->/workspace/work/hain-gh/core-models/src/main/AndroidManifest.xml:9:5-87
+12-->/workspace/work/hain-gh/core-models/src/main/AndroidManifest.xml:9:22-84
+13    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+13-->/workspace/work/hain-gh/core-models/src/main/AndroidManifest.xml:10:5-77
+13-->/workspace/work/hain-gh/core-models/src/main/AndroidManifest.xml:10:22-74
+14
+15    <application>
+15-->/workspace/work/hain-gh/core-models/src/main/AndroidManifest.xml:12:5-17:19
+16        <service
+16-->/workspace/work/hain-gh/core-models/src/main/AndroidManifest.xml:13:9-16:34
+17            android:name="androidx.work.impl.foreground.SystemForegroundService"
+17-->/workspace/work/hain-gh/core-models/src/main/AndroidManifest.xml:14:13-81
+18            android:foregroundServiceType="dataSync"
+18-->/workspace/work/hain-gh/core-models/src/main/AndroidManifest.xml:15:13-53
+19            tools:node="merge" />
+19-->/workspace/work/hain-gh/core-models/src/main/AndroidManifest.xml:16:13-31
+20    </application>
+21
+22</manifest>

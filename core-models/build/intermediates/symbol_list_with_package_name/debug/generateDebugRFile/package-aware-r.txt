@@ -1,0 +1,3 @@
+app.hain.models
+string models_download_channel
+string models_downloading

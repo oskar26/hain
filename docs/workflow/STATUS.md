@@ -4,11 +4,13 @@
 
 ## Now
 
-- **Phase:** M1 + M2 done (2026-11-01). M3 LLM core pure-Kotlin part in review: T-040…T-045 and T-070 (feed parser) on branch `hark/batch-d`, draft PR (Hark, 2026-11-01).
+- **Phase:** M1 + M2 + M3 pure-Kotlin core on main (PR #1 merged 2026-11-01). **M4 MVP "basic working app" in review** on branch `hark/batch-e`, draft PR #2: JNI bridge + LlmEngine, model download + onboarding, chat screen with drawer, APK workflow (Hark, 2026-11-01).
+- **APK:** every push builds one (Actions → APK). Pushes to main refresh the `nightly` pre-release with `hain-debug.apk` (shared debug key in `app/signing/`, installs as update).
+- **llama.cpp pin:** `39febd2ad` (2026-10-28, has LFM3). Native build = shared libs with `GGML_BACKEND_DL` + `GGML_CPU_ALL_VARIANTS` (runtime CPU pick, no SIGILL on older phones).
 - **Known build issues:** read `docs/workflow/KNOWN_ISSUES.md` before touching Gradle/JDK/lint — KI-01: Gradle daemon pinned to JDK 21 because detekt 1.23.x crashes on JDK 25; KI-02 (open): T-004 "app starts" on-device check — phone attached but USB debugging not authorized; **new KI-04: the pinned toolchain (AGP 9.0.1 / compileSdk 36, AGP-embedded Kotlin 2.2.0) caps library versions** — newest "latest stable" of several UI libraries need compileSdk 37 / Kotlin ≥ 2.3; chosen newest-compatible versions are listed in LICENSES.md. Upgrading AGP → 9.1 + compileSdk 37 (T-002-scale change) would unlock them.
 - **Next tasks:**
   - Human: **T-000** (benchmark LFM3 on the phone) and **T-080** (model URLs + sha256) — can run any time.
-  - Agents: components T-011…T-015 are now unblocked (T-018/T-019 done); lanes C T-020, T-030 · D: T-032 (JNI) is the next blocker for T-050 · B T-071 · F T-081.
+  - Agents: T-020 (encrypted Room → chats survive restarts), T-062 tool loop, T-084 packs screen, settings (T-09x), T-071 feeds; finish T-014/T-015 components.
 - **First milestone goal (M4):** app opens, downloads LFM3-1.7B, streams a German answer, keeps chat history.
 
 ## Milestones

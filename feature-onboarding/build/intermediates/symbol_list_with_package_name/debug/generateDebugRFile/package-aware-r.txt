@@ -1,0 +1,17 @@
+app.hain.feature.onboarding
+string onboarding_body
+string onboarding_cancel
+string onboarding_done
+string onboarding_download
+string onboarding_fail_checksum
+string onboarding_fail_network
+string onboarding_fail_storage
+string onboarding_fail_unknown
+string onboarding_licence
+string onboarding_progress
+string onboarding_queued
+string onboarding_retry
+string onboarding_start
+string onboarding_title
+string onboarding_verifying
+string onboarding_wifi
