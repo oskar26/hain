@@ -43,6 +43,9 @@ object HainIcons {
     val delete: Painter @Composable get() = painterResource(R.drawable.ic_trash_2)
     val download: Painter @Composable get() = painterResource(R.drawable.ic_download)
     val globe: Painter @Composable get() = painterResource(R.drawable.ic_globe)
+    val more: Painter @Composable get() = painterResource(R.drawable.ic_ellipsis)
+    val pin: Painter @Composable get() = painterResource(R.drawable.ic_pin)
+    val edit: Painter @Composable get() = painterResource(R.drawable.ic_pencil)
 }
 
 @Preview(name = "Light — icon grid")

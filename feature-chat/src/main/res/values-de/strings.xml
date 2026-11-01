@@ -29,4 +29,20 @@
     <string name="chat_suggestion_2">Ideen für eine plastikfreie Woche</string>
     <string name="chat_suggestion_3">Schreib ein kurzes Geburtstagsgedicht</string>
     <string name="chat_suggestion_4">Hilf mir, meinen Tag zu planen</string>
+    <string name="chat_search">Chats durchsuchen</string>
+    <string name="chat_search_clear">Suche leeren</string>
+    <string name="chat_search_empty">Kein Chat passt.</string>
+    <string name="chat_group_pinned">Angeheftet</string>
+    <string name="chat_group_yesterday">Gestern</string>
+    <string name="chat_group_week">Letzte 7 Tage</string>
+    <string name="chat_group_older">Älter</string>
+    <string name="chat_more">Mehr</string>
+    <string name="chat_pin">Anheften</string>
+    <string name="chat_unpin">Lösen</string>
+    <string name="chat_rename">Umbenennen</string>
+    <string name="chat_rename_save">Namen speichern</string>
+    <string name="chat_cancel">Abbrechen</string>
+    <string name="chat_delete_short">Löschen</string>
+    <string name="chat_delete_confirm">Diesen Chat löschen? Das geht nicht rückgängig.</string>
+    <string name="chat_delete_yes">Löschen</string>
 </resources>

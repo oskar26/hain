@@ -8,6 +8,7 @@ import app.hain.llm.api.LlmEngine
 import app.hain.llm.api.Role
 import app.hain.llm.api.StopReason
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +19,9 @@ import kotlinx.coroutines.launch
 
 data class ChatUiState(
     val chats: List<Chat> = emptyList(),
+    /** [chats] after the drawer search, in drawer sections. */
+    val groups: List<Pair<ChatGroup, List<Chat>>> = emptyList(),
+    val searchQuery: String = "",
     val currentChatId: Long? = null,
     val messages: List<UiMessage> = emptyList(),
     val input: String = "",
@@ -30,26 +34,35 @@ data class ChatUiState(
 enum class ChatError { MODEL_LOAD, CONTEXT_FULL, GENERATION }
 
 /** Chat screen state + actions (T-051). */
+@Suppress("TooManyFunctions") // one small function per chat action
 class ChatViewModel(
     private val llm: LlmEngine,
     private val engine: ChatEngine,
     private val store: ChatStore,
     private val modelPath: () -> String,
+    private val clock: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {
     private val local = MutableStateFlow(LocalState())
     private var job: Job? = null
+    private var searchJob: Job? = null
 
     private data class LocalState(
         val currentChatId: Long? = null,
         val input: String = "",
         val generating: Boolean = false,
         val error: ChatError? = null,
+        val searchQuery: String = "",
+        val searchHits: Set<Long>? = null,
     )
 
     val state: StateFlow<ChatUiState> =
         combine(store.chats, local, llm.state) { chats, l, engineState ->
+            val visible = chats.filter { it.messages.isNotEmpty() }
+            val hits = l.searchHits
             ChatUiState(
-                chats = chats.filter { it.messages.isNotEmpty() },
+                chats = visible,
+                groups = groupChats(if (hits == null) visible else visible.filter { it.id in hits }, clock()),
+                searchQuery = l.searchQuery,
                 currentChatId = l.currentChatId,
                 messages = chats.firstOrNull { it.id == l.currentChatId }?.messages.orEmpty(),
                 input = l.input,
@@ -82,6 +95,28 @@ class ChatViewModel(
     fun deleteChat(id: Long) {
         if (local.value.currentChatId == id) newChat()
         store.delete(id)
+    }
+
+    fun renameChat(
+        id: Long,
+        title: String,
+    ) = store.rename(id, title)
+
+    fun setPinned(
+        id: Long,
+        pinned: Boolean,
+    ) = store.setPinned(id, pinned)
+
+    /** Drawer search: filters the chat list by title, text and the full-text index. */
+    fun onSearchChange(query: String) {
+        local.update { it.copy(searchQuery = query) }
+        searchJob?.cancel()
+        searchJob =
+            viewModelScope.launch {
+                if (query.isNotBlank()) delay(SEARCH_DEBOUNCE)
+                val hits = store.search(query)
+                local.update { if (it.searchQuery == query) it.copy(searchHits = hits) else it }
+            }
     }
 
     fun send() {
@@ -188,6 +223,7 @@ class ChatViewModel(
 
     private companion object {
         const val STOP_TIMEOUT = 5_000L
+        const val SEARCH_DEBOUNCE = 150L
         const val MS_PER_S = 1000L
         const val MS_ROUND = 500L
     }
