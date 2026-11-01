@@ -19,7 +19,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.hain.ui.theme.HainTheme
 
 /**
  * Which word indices in a freshly grown word list should animate.
@@ -109,3 +111,15 @@ private fun FadingWord(
 
 // 2 dp rise for streaming words (UI_LIBRARIES.md §3 "Tokens stream").
 private val WORD_RISE = 2.dp
+
+@Preview(name = "WordFadeIn — light")
+@Preview(name = "WordFadeIn — dark", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+internal fun WordFadeInPreview() {
+    HainTheme {
+        androidx.compose.foundation.layout.Column {
+            WordFadeIn(text = "Guten Morgen! Ich bin Pim, dein Sprout.", style = app.hain.ui.theme.LocalHainTypography.current.body)
+            WordFadeIn(text = "Streaming Wörter faden einzeln ein.", style = app.hain.ui.theme.LocalHainTypography.current.bodySmall)
+        }
+    }
+}
