@@ -2,15 +2,10 @@ package app.hain.feature.chat.api
 
 import android.content.Intent
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,10 +13,8 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -35,12 +28,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -48,7 +40,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hain.feature.chat.R
-import app.hain.feature.chat.internal.Chat
 import app.hain.feature.chat.internal.ChatError
 import app.hain.feature.chat.internal.ChatUiState
 import app.hain.feature.chat.internal.ChatViewModel
@@ -59,7 +50,6 @@ import app.hain.ui.components.AssistantBlock
 import app.hain.ui.components.Composer
 import app.hain.ui.components.EmptyState
 import app.hain.ui.components.HainIconButton
-import app.hain.ui.components.HainMenuRow
 import app.hain.ui.components.MessageAction
 import app.hain.ui.components.MessageActionKind
 import app.hain.ui.components.ReasoningBlock
@@ -89,10 +79,14 @@ fun ChatScreen(
     BackHandler(enabled = drawerOpen) { drawerOpen = false }
 
     Box(modifier.fillMaxSize().background(colors.bg)) {
+        val chatScale by animateFloatAsState(if (drawerOpen) OPEN_SCALE else 1f, label = "chat-scale")
         Column(
             Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
+                .graphicsLayer {
+                    scaleX = chatScale
+                    scaleY = chatScale
+                }.statusBarsPadding()
                 .navigationBarsPadding()
                 .imePadding(),
         ) {
@@ -130,20 +124,28 @@ fun ChatScreen(
                 modifier = Modifier.padding(LocalHainSpacing.current.md),
             )
         }
-        ChatDrawer(
+        ChatListDrawer(
             open = drawerOpen,
-            chats = state.chats,
+            hasChats = state.chats.isNotEmpty(),
+            groups = state.groups,
+            searchQuery = state.searchQuery,
             currentChatId = state.currentChatId,
-            onClose = { drawerOpen = false },
-            onNewChat = {
-                viewModel.newChat()
-                drawerOpen = false
-            },
-            onOpen = {
-                viewModel.openChat(it)
-                drawerOpen = false
-            },
-            onDelete = viewModel::deleteChat,
+            actions =
+                DrawerActions(
+                    onClose = { drawerOpen = false },
+                    onNewChat = {
+                        viewModel.newChat()
+                        drawerOpen = false
+                    },
+                    onOpen = {
+                        viewModel.openChat(it)
+                        drawerOpen = false
+                    },
+                    onDelete = viewModel::deleteChat,
+                    onRename = viewModel::renameChat,
+                    onPin = viewModel::setPinned,
+                    onSearch = viewModel::onSearchChange,
+                ),
         )
     }
 }
@@ -306,77 +308,4 @@ private fun ErrorLine(state: ChatUiState) {
     )
 }
 
-@Suppress("LongParameterList", "LongMethod")
-@Composable
-private fun ChatDrawer(
-    open: Boolean,
-    chats: List<Chat>,
-    currentChatId: Long?,
-    onClose: () -> Unit,
-    onNewChat: () -> Unit,
-    onOpen: (Long) -> Unit,
-    onDelete: (Long) -> Unit,
-) {
-    val colors = LocalHainColors.current
-    val type = LocalHainTypography.current
-    val spacing = LocalHainSpacing.current
-    AnimatedVisibility(open, enter = fadeIn(), exit = fadeOut()) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = SCRIM_ALPHA))
-                .clickable(remember { MutableInteractionSource() }, indication = null, onClick = onClose),
-        )
-    }
-    AnimatedVisibility(
-        open,
-        enter = slideInHorizontally { -it },
-        exit = slideOutHorizontally { -it },
-    ) {
-        Column(
-            Modifier
-                .fillMaxHeight()
-                .width(300.dp)
-                .background(colors.bg)
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(spacing.md),
-        ) {
-            HainMenuRow(HainIcons.plus, stringResource(R.string.chat_new), onNewChat, Modifier.fillMaxWidth())
-            Spacer(Modifier.height(spacing.md))
-            BasicText(
-                stringResource(R.string.chat_history),
-                style = type.label.copy(color = colors.textMuted),
-                modifier = Modifier.padding(horizontal = spacing.md, vertical = spacing.sm),
-            )
-            if (chats.isEmpty()) {
-                BasicText(
-                    stringResource(R.string.chat_history_empty),
-                    style = type.bodySmall.copy(color = colors.textMuted),
-                    modifier = Modifier.padding(spacing.md),
-                )
-            }
-            LazyColumn(Modifier.weight(1f)) {
-                items(chats, key = { it.id }) { chat ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        HainMenuRow(
-                            icon = null,
-                            label = chat.title,
-                            onClick = { onOpen(chat.id) },
-                            selected = chat.id == currentChatId,
-                            modifier = Modifier.weight(1f),
-                        )
-                        HainIconButton(
-                            HainIcons.delete,
-                            stringResource(R.string.chat_delete),
-                            { onDelete(chat.id) },
-                            tint = colors.textMuted,
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-private const val SCRIM_ALPHA = 0.32f
+private const val OPEN_SCALE = 0.94f

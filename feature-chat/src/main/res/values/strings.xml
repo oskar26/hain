@@ -29,4 +29,20 @@
     <string name="chat_suggestion_2">Ideas for a plastic-free week</string>
     <string name="chat_suggestion_3">Write a short birthday poem</string>
     <string name="chat_suggestion_4">Help me plan my day</string>
+    <string name="chat_search">Search chats</string>
+    <string name="chat_search_clear">Clear search</string>
+    <string name="chat_search_empty">No chat matches.</string>
+    <string name="chat_group_pinned">Pinned</string>
+    <string name="chat_group_yesterday">Yesterday</string>
+    <string name="chat_group_week">Last 7 days</string>
+    <string name="chat_group_older">Older</string>
+    <string name="chat_more">More</string>
+    <string name="chat_pin">Pin</string>
+    <string name="chat_unpin">Unpin</string>
+    <string name="chat_rename">Rename</string>
+    <string name="chat_rename_save">Save name</string>
+    <string name="chat_cancel">Cancel</string>
+    <string name="chat_delete_short">Delete</string>
+    <string name="chat_delete_confirm">Delete this chat? This can’t be undone.</string>
+    <string name="chat_delete_yes">Delete</string>
 </resources>

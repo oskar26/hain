@@ -4,13 +4,13 @@
 
 ## Now
 
-- **Phase:** M1 + M2 + M3 pure-Kotlin core on main (PR #1 merged 2026-11-01). **M4 MVP "basic working app" in review** on branch `hark/batch-e`, draft PR #2: JNI bridge + LlmEngine, model download + onboarding, chat screen with drawer, APK workflow (Hark, 2026-11-01).
+- **Phase:** M1–M3 core + M4 MVP on main (PR #1, #2 merged 2026-11-01). **Day 1 of the v0.2 plan in review** on `hark/day-1`: chats are saved in an encrypted Room DB (T-020) and the drawer has search, rename, pin, delete and day sections (T-053).
 - **APK:** every push builds one (Actions → APK). Pushes to main refresh the `nightly` pre-release with `hain-debug.apk` (shared debug key in `app/signing/`, installs as update).
 - **llama.cpp pin:** `39febd2ad` (2026-10-28, has LFM3). Native build = shared libs with `GGML_BACKEND_DL` + `GGML_CPU_ALL_VARIANTS` (runtime CPU pick, no SIGILL on older phones).
 - **Known build issues:** read `docs/workflow/KNOWN_ISSUES.md` before touching Gradle/JDK/lint — KI-01: Gradle daemon pinned to JDK 21 because detekt 1.23.x crashes on JDK 25; KI-02 (open): T-004 "app starts" on-device check — phone attached but USB debugging not authorized; **new KI-04: the pinned toolchain (AGP 9.0.1 / compileSdk 36, AGP-embedded Kotlin 2.2.0) caps library versions** — newest "latest stable" of several UI libraries need compileSdk 37 / Kotlin ≥ 2.3; chosen newest-compatible versions are listed in LICENSES.md. Upgrading AGP → 9.1 + compileSdk 37 (T-002-scale change) would unlock them.
 - **Next tasks:**
   - Human: **T-000** (benchmark LFM3 on the phone) and **T-080** (model URLs + sha256) — can run any time.
-  - Agents: T-020 (encrypted Room → chats survive restarts), T-062 tool loop, T-084 packs screen, settings (T-09x), T-071 feeds; finish T-014/T-015 components.
+  - Agents (v0.2 plan): settings + DataStore (T-09x), T-084 packs screen, DeviceCheck, onboarding language; then T-060/T-062 tool loop, T-071 feeds; finish T-014/T-015 components.
 - **First milestone goal (M4):** app opens, downloads LFM3-1.7B, streams a German answer, keeps chat history.
 
 ## Milestones
@@ -48,7 +48,7 @@ _None yet._ (List feature + task IDs here when a milestone closes.)
 | Hilt | 2.60.1 via KSP (added in T-004) |
 | AGP / Kotlin / Compose BOM | AGP 9.0.1 / Kotlin 2.1.20 / Compose BOM 2026.03.01 |
 | UI libraries (T-018) | Compose Unstyled 2.6.0 · Haze 1.7.0 · Capsule 2.1.3 · Backdrop 2.0.0-alpha03 · shimmer 1.3.2 · markdown-renderer 0.41.0 · Coil 3.4.0 · Lottie 6.7.1 · Konfetti 2.0.5 · Showkase 1.0.5 (debug) · Roborazzi 1.77.0 (test) — newest versions compatible with the pinned toolchain (KI-04) |
-| SQLite build (FTS5 + sqlite-vec) | _decide in T-020_ |
+| SQLite build | **T-020 decision:** `net.zetetic:sqlcipher-android` 4.10.0 (SQLCipher 4, own SQLite) via Room `SupportOpenHelperFactory`, raw 32-byte key (`x'…'`, no KDF) wrapped by an AES-GCM Keystore key, wrapped key in `noBackupFilesDir/hain_db.key`. Full-text: **FTS4** (`@Fts4`, unicode61, Room-managed triggers) instead of FTS5 — Room cannot declare FTS5 tables. **sqlite-vec deferred** to M8 (needs loadable extension or own SQLCipher build; decide in T-110). |
 | OCR runtime | _decide in T-121_ |
 
 ## Benchmarks (T-000)

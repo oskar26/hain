@@ -33,6 +33,9 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | SQLCipher Community | BSD-style | ok |
 | sqlite-vec | MIT/Apache-2.0 | ok |
 | Room, Compose, Hilt, WorkManager | Apache-2.0 | ok |
+| Room 2.7.2 (runtime, ktx, compiler via KSP) + androidx.sqlite 2.5.2 | Apache-2.0 | ok (T-020) |
+| net.zetetic:sqlcipher-android 4.10.0 | BSD-style (zetetic.net/sqlcipher/license) | ok (T-020, encrypted `hain.db`) |
+| Robolectric 4.16 + androidx.test:core 1.7.0 (test only) | MIT / Apache-2.0 | ok (T-020 DAO tests) |
 | multiplatform-markdown-renderer | Apache-2.0 | ok |
 | Inter, Atkinson Hyperlegible, JetBrains Mono | OFL-1.1 | ok |
 | Lucide icons | ISC | ok |

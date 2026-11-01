@@ -1,15 +1,15 @@
 # DATA.md — database & storage
 
 Room database `hain.db`, encrypted with **SQLCipher** (key in Android Keystore-wrapped random 32 bytes, DataStore holds the wrapped key).
-Bundled SQLite build with FTS5 + sqlite-vec (`requery/sqlite-android`-style AAR or own build; decided in T-020, record in STATUS.md).
+SQLite build: SQLCipher for Android (`net.zetetic:sqlcipher-android`), decided in T-020 (STATUS.md → Pinned versions). Full-text tables are **FTS4** (Room `@Fts4`, tokenizer unicode61); sqlite-vec decided in T-110.
 
 ## Tables
 
 | table | columns |
 |---|---|
 | `chat` | id PK, title, created_at, updated_at, model_id, pinned bool, private bool, archived bool |
-| `message` | id PK, chat_id FK, role (system/user/assistant/tool), content TEXT, reasoning TEXT?, tool_calls_json TEXT?, tool_call_id TEXT?, cards_json TEXT?, sources_json TEXT?, attachments_json TEXT?, created_at, tokens INT?, parent_id (for edit/regenerate branches) |
-| `message_fts` | FTS5(content, content='message', content_rowid='id') |
+| `message` | id PK, chat_id FK, role (system/user/assistant/tool), content TEXT, reasoning TEXT?, tool_calls_json TEXT?, tool_call_id TEXT?, cards_json TEXT?, sources_json TEXT?, attachments_json TEXT?, created_at, tokens INT?, parent_id (for edit/regenerate branches), thinking_ms INT?, status (ok/stopped/failed) |
+| `message_fts` | FTS4(content, content='message'), unicode61 — Room keeps it in sync |
 | `chat_summary` | chat_id PK, summary, updated_at |
 | `memory_profile` | id=1, text, updated_at |
 | `memory_topic` | id, title UNIQUE, note, updated_at |
