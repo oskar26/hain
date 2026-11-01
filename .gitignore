@@ -15,3 +15,8 @@ captures/
 __pycache__/
 *.pyc
 
+.pi/settings.json
+*.jks
+*.keystore
+keystore.properties
+.env
