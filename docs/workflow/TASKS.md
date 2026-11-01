@@ -26,7 +26,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-019 | Motion system HainMotion + MotionGovernor | ui | S | B | T-018 | review |
 | T-016 | Pim v2 drawn in Compose (static states) | ui | S | B | T-010 | review |
 | T-017 | Lucide icons as vector drawables | ui | S | B | T-010 | review |
-| T-020 | Encrypted Room DB skeleton | feature | M | C | T-002 | todo |
+| T-020 | Encrypted Room DB skeleton | feature | M | C | T-002 | review |
 | T-030 | JNI bridge: load/generate/cancel | native | M | C | T-001,T-002 | review |
 | T-031 | Copy prompts into assets | scaffold | XS | C | T-002 | review |
 | T-032 | LlmEngine implementation | feature | S | C | T-030 | review |
@@ -43,7 +43,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-057 | Branches, message queue, stopped/error states | feature | M | E | T-051 | todo |
 | T-058 | ChatViewport + scroll-to-bottom pill | ui | S | E | T-052 | todo |
 | T-059 | ToolTimeline + SourceChips | ui | S | E | T-052,T-062 | todo |
-| T-053 | Drawer: chat list, search, rename, delete, pin | ui | M | E | T-052,T-015 | review (basic) |
+| T-053 | Drawer: chat list, search, rename, delete, pin | ui | M | E | T-052,T-015 | review |
 | T-054 | Export & share chat | feature | S | E | T-053 | todo |
 | T-055 | Model picker in top bar | ui | S | E | T-052,T-081 | todo |
 | T-056 | Private chat + app lock | feature | S | E | T-053 | todo |

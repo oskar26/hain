@@ -147,3 +147,17 @@ Human asked: "mach es basic funktionsfähig, bau schon das UI, GitHub Action die
 **Gate:** `assembleDebug testDebugUnitTest ktlintCheck detekt -Phain.native=false` green, 37 unit tests in touched modules, 0 failures; `check_strings` OK. Native APK built by `apk.yml` on GitHub.
 **Sandbox gotchas:** NDK has no linux-aarch64 host → native only on CI (`-Phain.native=false` locally). AAPT2 is x86-64 → run via `qemu-x86_64` wrapper set in `~/.gradle/gradle.properties` (`android.aapt2FromMavenOverride`, the file must be named `aapt2`).
 **Next:** device test (KI-02), T-020 Room, T-062 tools, settings, T-084.
+
+## 2026-11-01 · day 1 "Chats bleiben gespeichert" (T-020, T-053) · review · harness: Hark · branch `hark/day-1`
+
+v0.2 plan, day 1 of 6. One commit per task, draft PR, not ready-for-review without the human.
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-020 | review | `HainDatabaseTest` 3/3 (insert/query, rename/pin/cascade delete, FTS prefix + umlaut search incl. update/delete triggers), `FtsQueryTest` 3/3, `ChatStorePersistenceTest` 3/3 | `ChatStore`/`ChatPersistence`/`RoomChatPersistence` in :feature-chat and `AppModule` (wiring: chats survive restarts); `core-data/schemas/` (exported Room schema v1) | **decisions (STATUS → Pinned versions):** SQLCipher for Android 4.10.0, raw key `x'…'` (no KDF), Keystore-wrapped key file in `noBackupFilesDir`; **FTS4 instead of FTS5** (Room cannot declare FTS5); sqlite-vec deferred to T-110. Wrapped key in a file, not DataStore (DataStore not in the build yet). DAO tests run on the bundled SQLite driver (Robolectric's native SQLite has no linux-aarch64 build); SQLCipher itself is only exercised on the device. If the DB cannot open, chats stay in memory (logged). |
+| T-053 | review | `ChatGroupsTest` 2/2; compile | `HainIcons` + `ic_ellipsis`/`ic_pin`/`ic_pencil` (Lucide) in :core-ui; `DrawerActions.kt` | drawer: search (text + FTS), sections Pinned/Today/Yesterday/7 days/Older, per-chat ⋯ → pin, rename (inline), delete (inline confirm); chat scales to 0.94 while the drawer is open. No UI test yet (no Compose test setup in the repo); no continuous-corner/parallax polish. |
+
+**Persistence model:** `ChatStore` stays the in-memory source for the UI and writes through, in order, on an IO scope. Streaming answers are saved only when finished. Ids start at the wall clock and are bumped past the DB's max id, so they stay unique across restarts.
+**Gate:** `assembleDebug testDebugUnitTest ktlintCheck detekt -Phain.native=false` green (112 unit tests, 0 failures), `check_strings` OK. Native APK by `apk.yml`. Low-memory sandbox: `--max-workers=2 -Pkotlin.compiler.execution.strategy=in-process` avoids daemon crashes.
+**Sandbox gotchas:** run ktlintFormat with `-Phain.native=false` too, otherwise Gradle starts downloading the NDK. `build/` outputs of some modules are tracked in git by an older commit — do not stage them (`git add` explicit paths).
+**Next:** day 2 — settings + DataStore, packs screen, DeviceCheck, onboarding language.
