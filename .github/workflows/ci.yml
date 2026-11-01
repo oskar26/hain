@@ -26,16 +26,16 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      - name: Set up NDK
+      - name: Set up NDK + CMake
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;27.0.12077973" > /dev/null
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;27.0.12077973" "cmake;3.31.6" > /dev/null
 
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@v4
 
       - name: Build and test
-        run: ./gradlew assembleDebug testDebugUnitTest ktlintCheck detekt
+        run: ./gradlew assembleDebug testDebugUnitTest ktlintCheck detekt -Phain.native=false  # native APK: apk.yml
 
       - name: String parity check (DE/EN)
         run: python3 tools/check_strings.py
