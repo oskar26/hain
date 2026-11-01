@@ -1,9 +1,12 @@
 package app.hain.feature.chat.internal
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicLong
 
 /** A message as the chat UI shows it. */
@@ -23,26 +26,64 @@ data class Chat(
     val title: String,
     val messages: List<UiMessage>,
     val updatedAt: Long,
+    val pinned: Boolean = false,
+    val createdAt: Long = updatedAt,
 )
 
 /**
- * Chats of this app session. In memory for the MVP; the encrypted Room database (T-020) replaces it
- * behind the same functions.
+ * All chats, held in memory for the UI and written through to [persistence] (the encrypted Room
+ * database, T-020) in order on [scope]. Streaming answers stay in memory until they are finished.
  */
+@Suppress("TooManyFunctions") // one small function per chat action
 class ChatStore(
+    private val persistence: ChatPersistence? = null,
+    private val scope: CoroutineScope? = null,
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
-    private val ids = AtomicLong(1)
+    // Ids start at the clock so they stay unique across app starts even before the database is read.
+    private val ids = AtomicLong(maxOf(clock(), 1))
     private val mutableChats = MutableStateFlow<List<Chat>>(emptyList())
     val chats: StateFlow<List<Chat>> = mutableChats.asStateFlow()
+    private val mutableLoaded = MutableStateFlow(persistence == null || scope == null)
+
+    /** `true` once the saved chats are in [chats]. */
+    val loaded: StateFlow<Boolean> = mutableLoaded.asStateFlow()
+
+    private val writes = Channel<suspend (ChatPersistence) -> Unit>(Channel.UNLIMITED)
+
+    init {
+        if (persistence != null && scope != null) {
+            scope.launch {
+                runCatching { restore(persistence) }
+                mutableLoaded.value = true
+                for (write in writes) runCatching { write(persistence) }
+            }
+        }
+    }
+
+    private suspend fun restore(persistence: ChatPersistence) {
+        val saved = persistence.load()
+        val maxId = maxOf(persistence.maxId(), saved.maxOfOrNull { it.id } ?: 0)
+        ids.updateAndGet { maxOf(it, maxId + 1) }
+        mutableChats.update { current ->
+            val fresh = current.map { it.id }.toSet()
+            (current + saved.filterNot { it.id in fresh }).sortedByDescending { it.updatedAt }
+        }
+    }
+
+    private fun write(block: suspend (ChatPersistence) -> Unit) {
+        if (persistence != null && scope != null) writes.trySend(block)
+    }
 
     fun nextId(): Long = ids.getAndIncrement()
 
     fun chat(id: Long?): Chat? = mutableChats.value.firstOrNull { it.id == id }
 
     fun create(title: String): Chat {
-        val chat = Chat(nextId(), title, emptyList(), clock())
+        val now = clock()
+        val chat = Chat(nextId(), title, emptyList(), now, createdAt = now)
         mutableChats.update { listOf(chat) + it }
+        write { it.saveChat(chat) }
         return chat
     }
 
@@ -50,6 +91,7 @@ class ChatStore(
         chatId: Long,
         message: UiMessage,
     ) {
+        val now = clock()
         mutableChats.update { list ->
             list
                 .map { chat ->
@@ -63,10 +105,11 @@ class ChatStore(
                             } else {
                                 chat.messages + message
                             }
-                        chat.copy(messages = messages, updatedAt = clock())
+                        chat.copy(messages = messages, updatedAt = now)
                     }
                 }.sortedByDescending { it.updatedAt }
         }
+        if (!message.streaming) write { it.saveMessage(chatId, message, now) }
     }
 
     fun removeMessage(
@@ -76,10 +119,54 @@ class ChatStore(
         mutableChats.update { list ->
             list.map { c -> if (c.id == chatId) c.copy(messages = c.messages.filterNot { it.id == messageId }) else c }
         }
+        write { it.deleteMessage(messageId) }
     }
 
     fun delete(chatId: Long) {
         mutableChats.update { list -> list.filterNot { it.id == chatId } }
+        write { it.deleteChat(chatId) }
+    }
+
+    fun rename(
+        chatId: Long,
+        title: String,
+    ) {
+        val clean = title.trim().replace(Regex("\\s+"), " ").take(MAX_RENAME)
+        if (clean.isEmpty()) return
+        updateChat(chatId) { it.copy(title = clean) }
+    }
+
+    fun setPinned(
+        chatId: Long,
+        pinned: Boolean,
+    ) = updateChat(chatId) { it.copy(pinned = pinned) }
+
+    private fun updateChat(
+        chatId: Long,
+        change: (Chat) -> Chat,
+    ) {
+        var changed: Chat? = null
+        mutableChats.update { list ->
+            list.map { c -> if (c.id == chatId) change(c).also { changed = it } else c }
+        }
+        changed?.let { chat -> write { it.saveChat(chat) } }
+    }
+
+    /**
+     * Ids of chats matching [query]: title or message text contains it, plus full-text hits from the
+     * database (word prefixes). Blank query → `null` (no filter).
+     */
+    suspend fun search(query: String): Set<Long>? {
+        val q = query.trim()
+        if (q.isEmpty()) return null
+        val local =
+            mutableChats.value
+                .filter { chat ->
+                    chat.title.contains(q, ignoreCase = true) ||
+                        chat.messages.any { it.text.contains(q, ignoreCase = true) }
+                }.map { it.id }
+        val indexed = runCatching { persistence?.search(q) }.getOrNull().orEmpty()
+        return (local + indexed).toSet()
     }
 
     /** First words of the first user message, at most [MAX_TITLE] characters. */
@@ -90,5 +177,6 @@ class ChatStore(
 
     private companion object {
         const val MAX_TITLE = 40
+        const val MAX_RENAME = 80
     }
 }
