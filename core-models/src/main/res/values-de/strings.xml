@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="models_download_channel">Modell-Downloads</string>
+    <string name="models_downloading">%1$s wird geladen</string>
+</resources>

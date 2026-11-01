@@ -1,0 +1,2 @@
+int string models_download_channel 0x0
+int string models_downloading 0x0

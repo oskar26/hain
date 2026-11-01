@@ -23,6 +23,8 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | ONNX Runtime | MIT | ok |
 | kotlinx.serialization (json, 1.8.1) | Apache-2.0 | ok (T-040, ToolSchema JSON) |
 | kxml2 2.3.0 (test only, XmlPullParser on the JVM) | BSD-style (MIT-like) | ok (T-070) |
+| androidx.work (work-runtime-ktx 2.12.0) | Apache-2.0 | ok (T-082, model downloads) |
+| LFM3-1.7B GGUF (downloaded at runtime, not bundled) | LFM Open License v1.0 | model weights, not linked code; licence shown in onboarding (T-083) |
 | pdfbox-android | Apache-2.0 | ok |
 | MuPDF | AGPL | **do not use** |
 | Readability4K | Apache-2.0 | verify |

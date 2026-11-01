@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "models": [
+    {
+      "id": "lfm3-1.7b-q4km",
+      "name": "LFM3 1.7B",
+      "kind": "brain",
+      "lang": ["de", "en", "fr", "es", "it", "pt", "nl", "pl"],
+      "files": [
+        {
+          "url": "https://huggingface.co/LiquidAI/LFM3-1.7B-GGUF/resolve/main/LFM3-1.7B-Q4_K_M.gguf",
+          "sha256": "3793e1e6e2266919d6e015287221b41100175a98eddaba92e111aed3b05c93c4",
+          "size": 1099627808
+        }
+      ],
+      "min_ram_gb": 4,
+      "licence": "LFM Open License v1.0",
+      "licence_url": "https://huggingface.co/LiquidAI/LFM3-1.7B-GGUF/blob/main/LICENSE",
+      "default": true
+    }
+  ]
+}
