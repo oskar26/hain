@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The app draws its own background in Compose (HainTheme); the window
+         theme only has to remove the system action bar. -->
+    <style name="Theme.Hain" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

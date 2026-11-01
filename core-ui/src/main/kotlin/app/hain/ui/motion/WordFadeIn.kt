@@ -118,8 +118,14 @@ private val WORD_RISE = 2.dp
 internal fun WordFadeInPreview() {
     HainTheme {
         androidx.compose.foundation.layout.Column {
-            WordFadeIn(text = "Guten Morgen! Ich bin Pim, dein Sprout.", style = app.hain.ui.theme.LocalHainTypography.current.body)
-            WordFadeIn(text = "Streaming Wörter faden einzeln ein.", style = app.hain.ui.theme.LocalHainTypography.current.bodySmall)
+            WordFadeIn(
+                text = "Guten Morgen! Ich bin Pim, dein Sprout.",
+                style = app.hain.ui.theme.LocalHainTypography.current.body,
+            )
+            WordFadeIn(
+                text = "Streaming Wörter faden einzeln ein.",
+                style = app.hain.ui.theme.LocalHainTypography.current.bodySmall,
+            )
         }
     }
 }

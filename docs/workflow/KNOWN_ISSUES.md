@@ -35,7 +35,7 @@ Consequences:
 - After any Kotlin/detekt/AGP upgrade, re-run `./gradlew detekt` on the
   machine's default JDK before considering to drop the pin.
 
-## KI-02 · T-004 on-device acceptance still unverified — OPEN (deferred by human 2026-10-30)
+## KI-02 · T-004 on-device acceptance — CLOSED (2026-11-01)
 
 "App starts on device/emulator" could not be checked: no device attached. Build-level
 checks are green and the Hilt-generated components were verified inside the APK dex.
