@@ -49,7 +49,7 @@ never shows. Human decided to stop the attempt. Verify instead on a real device:
 
 ```bash
 adb install -r app/build/outputs/apk/debug/app-debug.apk
-adb shell am start -n app.hain/.MainActivity   # expect no crash, app label "Hain"
+adb shell am start -n app.hain.debug/app.hain.MainActivity   # expect no crash, app label "Hain"
 ```
 
 Then close this entry and note the result in HANDOFF_LOG.md. Note for the emulator
@@ -77,3 +77,10 @@ built with Kotlin 2.4), Backdrop 2.0.0-alpha03 (2.0.0 stable needs SDK 37).
 `androidx.compose.material3` is excluded from every :core-ui configuration.
 Upgrading to AGP 9.1 + compileSdk 37 would unlock the newer versions; that is
 a T-002-scale toolchain change and needs a human decision.
+
+## KI-05 · Debug builds use `app.hain.debug` (2026-11-01, fixed)
+
+A Hain build signed with another key (e.g. a local PC debug build) blocked the CI nightly with
+`INSTALL_FAILED_UPDATE_INCOMPATIBLE`, and on Xiaomi/HyperOS the leftover could not be removed from the phone alone.
+Debug builds now use `applicationIdSuffix = ".debug"` → package `app.hain.debug` (version name `x.y.z-debug`).
+They install beside any other Hain. Start: `adb shell am start -n app.hain.debug/app.hain.MainActivity`.
