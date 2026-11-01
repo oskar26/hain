@@ -32,6 +32,11 @@ android {
     }
 
     buildTypes {
+        // Test builds get their own id so they install beside any other Hain build (store, F-Droid, own PC build).
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

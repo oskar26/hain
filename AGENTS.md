@@ -132,7 +132,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
 Models are **never committed**. For local dev put GGUF files in `~/hain-models/` and push with
-`adb push ~/hain-models/LFM3-1.7B-Q4_K_M.gguf /sdcard/Android/data/app.hain/files/models/` (see MODELS.md).
+`adb push ~/hain-models/LFM3-1.7B-Q4_K_M.gguf /sdcard/Android/data/app.hain.debug/files/models/` (see MODELS.md).
 
 ## 8. Glossary
 
