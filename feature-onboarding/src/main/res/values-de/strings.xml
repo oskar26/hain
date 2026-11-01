@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_title">Hallo, ich bin Pim.</string>
+    <string name="onboarding_body">Hain denkt direkt auf deinem Handy. Deine Chats verlassen es nie. Dafür brauche ich einmal ein Gehirn: %1$s.</string>
+    <string name="onboarding_wifi">Am besten im WLAN. Du kannst dein Handy währenddessen weiter nutzen.</string>
+    <string name="onboarding_download">Gehirn herunterladen</string>
+    <string name="onboarding_cancel">Abbrechen</string>
+    <string name="onboarding_retry">Nochmal versuchen</string>
+    <string name="onboarding_progress">%1$s von %2$s</string>
+    <string name="onboarding_queued">Warte auf Internet…</string>
+    <string name="onboarding_verifying">Download wird geprüft…</string>
+    <string name="onboarding_done">Fertig! Lass uns reden.</string>
+    <string name="onboarding_start">Loslegen</string>
+    <string name="onboarding_fail_network">Der Download ist abgebrochen. Prüfe dein Internet und versuch es nochmal.</string>
+    <string name="onboarding_fail_storage">Zu wenig Speicher frei. Mach %1$s frei und versuch es nochmal.</string>
+    <string name="onboarding_fail_checksum">Die Datei kam beschädigt an. Bitte versuch es nochmal.</string>
+    <string name="onboarding_fail_unknown">Da ist was schiefgegangen. Bitte versuch es nochmal.</string>
+    <string name="onboarding_licence">Modell: %1$s · %2$s</string>
+</resources>
