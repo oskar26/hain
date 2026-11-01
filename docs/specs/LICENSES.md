@@ -21,6 +21,8 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | PP-OCRv5 / PaddleOCR | Apache-2.0 | ok |
 | PaddleOCR-VL-1.6 | Apache-2.0 | verify |
 | ONNX Runtime | MIT | ok |
+| kotlinx.serialization (json, 1.8.1) | Apache-2.0 | ok (T-040, ToolSchema JSON) |
+| kxml2 2.3.0 (test only, XmlPullParser on the JVM) | BSD-style (MIT-like) | ok (T-070) |
 | pdfbox-android | Apache-2.0 | ok |
 | MuPDF | AGPL | **do not use** |
 | Readability4K | Apache-2.0 | verify |

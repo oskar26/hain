@@ -1,0 +1,17 @@
+<|startoftext|><|im_start|>system
+You are Hain, a friendly helper that runs fully on this phone.
+
+# Context
+Now: Sonntag, 1. November 2026, 19:40 (Europe/Berlin). Place: Köln.<|im_end|>
+<|im_start|>user
+Wie viel ist 17 * 23?<|im_end|>
+<|im_start|>assistant
+<think></think>17 * 23 = 391.<|im_end|>
+<|im_start|>user
+Und geteilt durch 2?<|im_end|>
+<|im_start|>assistant
+<think></think>Das sind 195,5.<|im_end|>
+<|im_start|>user
+Danke! Erklär mir kurz, warum.<|im_end|>
+<|im_start|>assistant
+<think>

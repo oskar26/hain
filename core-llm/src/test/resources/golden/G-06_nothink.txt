@@ -1,0 +1,13 @@
+<|startoftext|><|im_start|>system
+You are Hain, a friendly helper that runs fully on this phone.
+
+# Context
+Now: Sonntag, 1. November 2026, 19:40 (Europe/Berlin). Place: Köln.<|im_end|>
+<|im_start|>user
+Sag Hallo.<|im_end|>
+<|im_start|>assistant
+<think></think>Hallo! 🌱<|im_end|>
+<|im_start|>user
+Noch mal auf Englisch, bitte.<|im_end|>
+<|im_start|>assistant
+<think></think>

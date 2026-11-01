@@ -4,11 +4,11 @@
 
 ## Now
 
-- **Phase:** M1 Project skeleton done; M2 Design system & Pim base done (2026-11-01). Batch "Fundament + UI-Basis" finished: T-005, T-006, T-010, T-016, T-017, T-018, T-019 all `review`/done.
-- **Known build issues:** read `docs/workflow/KNOWN_ISSUES.md` before touching Gradle/JDK/lint — KI-01: Gradle daemon pinned to JDK 21 because detekt 1.23.x crashes on JDK 25; KI-02: T-004 "app starts" on-device check (install via adb pending user confirmation); **new KI-04: the pinned toolchain (AGP 9.0.1 / compileSdk 36, AGP-embedded Kotlin 2.2.0) caps library versions** — newest "latest stable" of several UI libraries need compileSdk 37 / Kotlin ≥ 2.3; chosen newest-compatible versions are listed in LICENSES.md. Upgrading AGP → 9.1 + compileSdk 37 (T-002-scale change) would unlock them.
+- **Phase:** M1 + M2 done (2026-11-01). M3 LLM core pure-Kotlin part in review: T-040…T-045 and T-070 (feed parser) on branch `hark/batch-d`, draft PR (Hark, 2026-11-01).
+- **Known build issues:** read `docs/workflow/KNOWN_ISSUES.md` before touching Gradle/JDK/lint — KI-01: Gradle daemon pinned to JDK 21 because detekt 1.23.x crashes on JDK 25; KI-02 (open): T-004 "app starts" on-device check — phone attached but USB debugging not authorized; **new KI-04: the pinned toolchain (AGP 9.0.1 / compileSdk 36, AGP-embedded Kotlin 2.2.0) caps library versions** — newest "latest stable" of several UI libraries need compileSdk 37 / Kotlin ≥ 2.3; chosen newest-compatible versions are listed in LICENSES.md. Upgrading AGP → 9.1 + compileSdk 37 (T-002-scale change) would unlock them.
 - **Next tasks:**
   - Human: **T-000** (benchmark LFM3 on the phone) and **T-080** (model URLs + sha256) — can run any time.
-  - Agents: components T-011…T-015 are now unblocked (T-018/T-019 done); lanes C T-020, T-030 · D T-040…T-045 · F T-081.
+  - Agents: components T-011…T-015 are now unblocked (T-018/T-019 done); lanes C T-020, T-030 · D: T-032 (JNI) is the next blocker for T-050 · B T-071 · F T-081.
 - **First milestone goal (M4):** app opens, downloads LFM3-1.7B, streams a German answer, keeps chat history.
 
 ## Milestones

@@ -1,0 +1,48 @@
+<|startoftext|><|im_start|>system
+You are Hain, a friendly helper that runs fully on this phone.
+
+# Context
+Now: Sonntag, 1. November 2026, 19:40 (Europe/Berlin). Place: Köln.
+
+<tools>
+{"name": "weather", "description": "Weather forecast for a place. Use for weather, rain, temperature.", "parameters": {"type": "object", "properties": {"city": {"type": "string", "description": "City name, e.g. Köln"}, "days": {"type": "integer", "description": "Forecast days, 1-7"}}, "required": ["city"]}}
+{"name": "web_search", "description": "Search the web for current information.", "parameters": {"type": "object", "properties": {"query": {"type": "string", "description": "Search words"}}, "required": ["query"]}}
+</tools><|im_end|>
+<|im_start|>user
+Wie wird das Wetter morgen in Köln?<|im_end|>
+<|im_start|>assistant
+<think>Der Nutzer will das Wetter für morgen. Ich rufe weather auf.</think>Ich schaue nach.
+<tool_call>
+<function=weather>
+<parameter=city>
+Köln
+</parameter>
+<parameter=days>
+2
+</parameter>
+</function>
+</tool_call>
+
+<tool_call>
+<function=web_search>
+<parameter=query>
+Köln Wetter "morgen"
+</parameter>
+<parameter=strict>
+true
+</parameter>
+<parameter=filter>
+{"lang": "de", "max": 3}
+</parameter>
+</function>
+</tool_call><|im_end|>
+<|im_start|>tool
+<tool_response>
+{"city": "Köln", "tomorrow": {"max": 12, "min": 6, "code": 61}}
+</tool_response><|im_end|>
+<|im_start|>tool
+<tool_response>
+[1] wetter.com: Köln morgen Regen, 12 °C
+</tool_response><|im_end|>
+<|im_start|>assistant
+<think>
