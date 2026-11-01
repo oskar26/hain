@@ -24,7 +24,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-015 | Components: SettingsRow, HainSwitch, TopBar, Drawer, BottomSheet, Toast, EmptyState, ProgressBar | ui | S | B | T-018,T-019 | todo |
 | T-018 | Add UI libraries + thin wrappers | scaffold | S | B | T-010 | review |
 | T-019 | Motion system HainMotion + MotionGovernor | ui | S | B | T-018 | review |
-| T-016 | Pim v2 drawn in Compose (static states) | ui | S | B | T-010 | todo |
+| T-016 | Pim v2 drawn in Compose (static states) | ui | S | B | T-010 | review |
 | T-017 | Lucide icons as vector drawables | ui | S | B | T-010 | todo |
 | T-020 | Encrypted Room DB skeleton | feature | M | C | T-002 | todo |
 | T-030 | JNI bridge: load/generate/cancel | native | M | C | T-001,T-002 | todo |
