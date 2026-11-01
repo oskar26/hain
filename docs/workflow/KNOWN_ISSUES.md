@@ -62,3 +62,18 @@ path: the AVD works when started from Android Studio outside the sandbox
   `docs/workflow/LOCAL_MODELS.md` beyond its file list (generated planner
   docs; harmless, kept).
 - T-001's repo-init commit includes the planner docs/assets skeleton.
+
+## KI-04 · pinned toolchain caps UI-library versions (watch when upgrading)
+
+The project pins AGP 9.0.1 / compileSdk 36 (T-002), and AGP 9.0.1 embeds a
+Kotlin compiler 2.2.0 that reads Kotlin metadata up to 2.3.0. The newest
+"latest stable" of several UI libraries (T-018, 2026-10-30 snapshots) require
+compileSdk 37, AGP ≥ 9.1 or Kotlin ≥ 2.3 metadata and therefore cannot be used
+yet. Newest compatible versions actually pinned (see LICENSES.md):
+Compose Unstyled 2.6.0 (2.9.2+ needs SDK 37, 2.9.x/2.8.x need Kotlin 2.4
+stdlib), Haze 1.7.0 (2.x needs SDK 37), markdown-renderer 0.41.0 (0.42+ needs
+SDK 37), Coil 3.4.0 (3.5+ needs SDK 37/Kotlin 2.4), Konfetti 2.0.5 (2.0.6+
+built with Kotlin 2.4), Backdrop 2.0.0-alpha03 (2.0.0 stable needs SDK 37).
+`androidx.compose.material3` is excluded from every :core-ui configuration.
+Upgrading to AGP 9.1 + compileSdk 37 would unlock the newer versions; that is
+a T-002-scale toolchain change and needs a human decision.

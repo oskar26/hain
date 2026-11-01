@@ -4,12 +4,11 @@
 
 ## Now
 
-- **Phase:** M1 Project skeleton in progress (2026-10-28).
-- **Known build issues:** read `docs/workflow/KNOWN_ISSUES.md` before touching Gradle/JDK/lint — KI-01: Gradle daemon pinned to JDK 21 because detekt 1.23.x crashes on JDK 25; KI-02: T-004 "app starts" needs a real device (emulator unusable inside the agent sandbox).
+- **Phase:** M1 Project skeleton done; M2 Design system & Pim base done (2026-11-01). Batch "Fundament + UI-Basis" finished: T-005, T-006, T-010, T-016, T-017, T-018, T-019 all `review`/done.
+- **Known build issues:** read `docs/workflow/KNOWN_ISSUES.md` before touching Gradle/JDK/lint — KI-01: Gradle daemon pinned to JDK 21 because detekt 1.23.x crashes on JDK 25; KI-02: T-004 "app starts" on-device check (install via adb pending user confirmation); **new KI-04: the pinned toolchain (AGP 9.0.1 / compileSdk 36, AGP-embedded Kotlin 2.2.0) caps library versions** — newest "latest stable" of several UI libraries need compileSdk 37 / Kotlin ≥ 2.3; chosen newest-compatible versions are listed in LICENSES.md. Upgrading AGP → 9.1 + compileSdk 37 (T-002-scale change) would unlock them.
 - **Next tasks:**
-  - Human: **T-000** (benchmark LFM3 on the phone) and **T-080** (model URLs + sha256) — can run any time; answer **Q-05** for T-004.
-  - Agents: lanes can run in parallel:
-    A T-005…T-006 · B T-010, T-018, T-019, T-011…T-017 · C T-020, T-030 · D T-040…T-045 (pure Kotlin, ideal for small models) · F T-081.
+  - Human: **T-000** (benchmark LFM3 on the phone) and **T-080** (model URLs + sha256) — can run any time.
+  - Agents: components T-011…T-015 are now unblocked (T-018/T-019 done); lanes C T-020, T-030 · D T-040…T-045 · F T-081.
 - **First milestone goal (M4):** app opens, downloads LFM3-1.7B, streams a German answer, keeps chat history.
 
 ## Milestones
@@ -46,6 +45,7 @@ _None yet._ (List feature + task IDs here when a milestone closes.)
 | Gradle daemon JVM | 21 via `gradle/gradle-daemon-jvm.properties` — required for detekt 1.23.x, do not remove (KI-01) |
 | Hilt | 2.60.1 via KSP (added in T-004) |
 | AGP / Kotlin / Compose BOM | AGP 9.0.1 / Kotlin 2.1.20 / Compose BOM 2026.03.01 |
+| UI libraries (T-018) | Compose Unstyled 2.6.0 · Haze 1.7.0 · Capsule 2.1.3 · Backdrop 2.0.0-alpha03 · shimmer 1.3.2 · markdown-renderer 0.41.0 · Coil 3.4.0 · Lottie 6.7.1 · Konfetti 2.0.5 · Showkase 1.0.5 (debug) · Roborazzi 1.77.0 (test) — newest versions compatible with the pinned toolchain (KI-04) |
 | SQLite build (FTS5 + sqlite-vec) | _decide in T-020_ |
 | OCR runtime | _decide in T-121_ |
 
@@ -82,3 +82,4 @@ _Agents add ideas here instead of doing them._
 | 2026-10-28 | T-004 | blocked: Hilt plugin/dependencies missing from build and HainTheme not in core-ui yet | Antigravity (Gemini 3.8 Flash) |
 | 2026-10-30 | review T-001…T-004 + T-004 | review passed; T-004 done: Hilt 2.60.1 via KSP, HainApp, MainActivity, daemon pinned to JDK 21 (detekt) | ZCode (GLM-5.3) |
 | 2026-10-30 | T-004 follow-up | KNOWN_ISSUES.md created (KI-01..KI-03); on-device check deferred by human (KI-02); Pixel_7 AVD repaired | ZCode (GLM-5.3) |
+| 2026-11-01 | batch T-005, T-006, T-010, T-018, T-019, T-016, T-017 | all 7 tasks review/done: strings+checker, CI, tokens+fonts, UI libs+wrappers, motion system, Pim v2, Lucide icons | ZCode (GLM-5.3) |

@@ -83,3 +83,28 @@ One entry per session, newest at the bottom. Format in WORKFLOW.md.
 - How to close KI-02: attach a real device → `adb install -r app/build/outputs/apk/debug/app-debug.apk` → `adb shell am start -n app.hain/.MainActivity` (no crash, label "Hain"). Emulator also works when started from Android Studio outside the sandbox (Pixel_7 AVD is now functional, API 36 x86_64, ARM translation covers the arm64-only APK).
 - Checks: `./gradlew assembleDebug testDebugUnitTest ktlintCheck detekt` green on JDK 21 daemon (504 tasks).
 - Next: T-005 (Strings DE/EN + checker), lanes B/C/D per STATUS.md "Now".
+
+## 2026-11-01 · batch "Fundament + UI-Basis" (T-005, T-006, T-010, T-018, T-019, T-016, T-017) · done · harness: ZCode · model: GLM-5.3
+
+Human-authorized batch mode (7 tasks, one session; AGENTS.md §1 override). Baseline was green (T-004 state); all dependencies inside/outside the batch satisfied.
+
+| task | status | check result | commit | files outside list (reason) | open issues |
+|---|---|---|---|---|---|
+| T-005 | done | `python3 tools/check_strings.py` OK (pos. + neg. test proven) | 571c1b7 | TASKS.md (protocol) | locales_config.xml not yet wired into AndroidManifest (`android:localeConfig`) — manifest not in card; wire in a settings/l10n task |
+| T-006 | done | YAML valid (actionlint not installed locally); `cat` check | 7508d63 | TASKS.md | CI untested on a real runner (no push from here); NDK pinned to r27 per ADR |
+| T-010 | done | `:core-ui:testDebugUnitTest` 9/9 + full gate | 02b2ca6 | TASKS.md | — |
+| T-018 | done | assembleDebug + `grep material3` on `:core-ui:dependencies` → 0 hits + full gate | fd0e615 | build.gradle.kts root (roborazzi plugin), LICENSES.md (hard rule), TASKS.md | version pins constrained by toolchain → KI-04; Backdrop only as alpha03 |
+| T-019 | done | `:core-ui:testDebugUnitTest` (motion tests) + full gate | 25949f9, 9fe177a (preview fix) | TASKS.md | — |
+| T-016 | done | `:core-ui:testDebugUnitTest` (Pim tests) + full gate | dbd9247 | TASKS.md | drawing split across PimGeometry.kt (data) / Pim.kt (render) — both files are in the card list |
+| T-017 | done | assembleDebug (22 drawables compile) + full gate | d081480 | TASKS.md | converter was an own script (vd-tool not installed), output equivalent; icons from lucide-static 1.66.0 (ISC) |
+
+**Final gate:** `clean assembleDebug testDebugUnitTest ktlintCheck detekt` green (541 tasks), `check_strings` OK, 33 core-ui unit tests / 0 failures, 0 material3 imports, 0 TODO/FIXME, 0 skipped tests.
+
+**Self-review notes:**
+- AAPT2 requires the *unprefixed* `name=` attribute on `<string>`; `android:name` is silently dropped (cost one red herring in T-005).
+- Showkase requires non-private `@Preview` functions → previews are `internal` (convention for T-011+).
+- `WordFadeIn` "regenerate" path snaps (non-append edits never animate); `MotionGovernor` streak resets on fast frames and never re-enables blur mid-session.
+- Pim geometry/anchors are locked by tests against `pim_motion.json` values; fx glyphs (zz/!/?) are hand-drawn const paths because the JSON only covers state fx.
+
+**Not done / deferred:** on-device install via adb — device attached but unauthorized (user must confirm the USB-debugging dialog); KI-02 check runs after that.
+**Reviewer should look at first:** core-ui/build.gradle.kts (material3 exclusion at configuration level — intentional, matches card rule "no material3 in the dependency tree"), tools/check_strings.py, HainGlass/HainShimmer wrappers, PimGeometry path parser.
