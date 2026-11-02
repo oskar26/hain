@@ -43,7 +43,7 @@ People who care about privacy but are not tech experts, and people who are criti
 | Chat | Streaming answers, Markdown, code, thinking block, stop, regenerate, copy, share | ✅ basic |
 | First start | Downloads the brain (LFM3-1.7B, 1.1 GB) with resume and checksum | ✅ |
 | Chats | Saved and encrypted, search, rename, pin, delete, export | 🔨 in progress |
-| Settings | Answer mode (fast / auto / thorough), theme, large text, own instructions, knowledge packs | 🗓 planned |
+| Settings | Answer mode (fast / auto / thorough), theme, large text, own instructions, knowledge packs | 🚧 partly (no packs yet) |
 | Tools | Calculator & units, weather, Wikipedia, web search without API key, read web pages | 🗓 planned |
 | Phone actions | Alarm, timer, calendar entry, navigation – always confirmed | 🗓 planned |
 | News | Standard mix (incl. junge Welt), standard + own feeds, or only own feeds | 🗓 planned |
