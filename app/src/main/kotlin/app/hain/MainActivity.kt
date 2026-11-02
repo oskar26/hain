@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,6 +27,7 @@ import app.hain.feature.settings.api.SettingsActions
 import app.hain.feature.settings.api.SettingsScreen
 import app.hain.llm.api.LlmEngine
 import app.hain.models.api.ModelRepository
+import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.theme.HainTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -90,38 +92,48 @@ class MainActivity : ComponentActivity() {
                     },
                 highLegibility = settings.readableFont,
             ) {
-                var installed by remember { mutableStateOf(models.isInstalled(brain)) }
-                if (!installed) {
-                    OnboardingScreen(models = models, onDone = { installed = models.isInstalled(brain) })
-                } else {
-                    val chatViewModel =
-                        viewModel {
-                            ChatViewModel(
-                                llm = llm,
-                                engine =
-                                    ChatEngine(
-                                        llm,
-                                        prompts::current,
-                                        answerMode = { LlmAnswerMode.fromKey(current.answerMode.name.lowercase()) },
-                                    ),
-                                store = chatStore,
-                                modelPath = { models.mainFile(brain).absolutePath },
-                            )
+                CompositionLocalProvider(LocalReduceMotion provides systemReducesMotion()) {
+                    var installed by remember { mutableStateOf(models.isInstalled(brain)) }
+                    if (!installed) {
+                        OnboardingScreen(models = models, onDone = { installed = models.isInstalled(brain) })
+                    } else {
+                        val chatViewModel =
+                            viewModel {
+                                ChatViewModel(
+                                    llm = llm,
+                                    engine =
+                                        ChatEngine(
+                                            llm,
+                                            prompts::current,
+                                            answerMode = { LlmAnswerMode.fromKey(current.answerMode.name.lowercase()) },
+                                        ),
+                                    store = chatStore,
+                                    modelPath = { models.mainFile(brain).absolutePath },
+                                )
+                            }
+                        ChatScreen(
+                            viewModel = chatViewModel,
+                            onOpenSettings = { showSettings = true },
+                        )
+                        if (showSettings) {
+                            SettingsScreen(settings, settingsActions({ showSettings = false }, { showPacks = true }))
                         }
-                    ChatScreen(
-                        viewModel = chatViewModel,
-                        onOpenSettings = { showSettings = true },
-                    )
-                    if (showSettings) {
-                        SettingsScreen(settings, settingsActions({ showSettings = false }, { showPacks = true }))
-                    }
-                    if (showPacks) {
-                        PacksScreen(models, deviceRamGb(), { showPacks = false })
+                        if (showPacks) {
+                            PacksScreen(models, deviceRamGb(), { showPacks = false })
+                        }
                     }
                 }
             }
         }
     }
+
+    /** System "remove animations" (animator scale 0) → Pim and the glow stay still. */
+    private fun systemReducesMotion(): Boolean =
+        android.provider.Settings.Global.getFloat(
+            contentResolver,
+            android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f,
+        ) == 0f
 }
 
 private const val BYTES_PER_GB = 1_000_000_000.0
