@@ -1,0 +1,75 @@
+package app.hain.feature.onboarding.api
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import app.hain.feature.onboarding.R
+import app.hain.ui.components.HainButton
+import app.hain.ui.effects.Celebration
+import app.hain.ui.motion.rememberHainHaptics
+import app.hain.ui.pim.JuicyPim
+import app.hain.ui.pim.PimState
+import app.hain.ui.theme.LocalHainSpacing
+import app.hain.ui.theme.LocalHainTypography
+
+private val FOREST_TOP = Color(color = 0xFF0B3D2A)
+private val FOREST_BOTTOM = Color(color = 0xFF0F1311)
+private val ON_FOREST = Color(color = 0xFFECEFED)
+private val ON_FOREST_MUTED = Color(color = 0xFFB5D9C6)
+
+/** Download done (2e, Phantom style): dark forest, Pim hops, confetti, a happy buzz. */
+@Composable
+internal fun SuccessScreen(
+    onDone: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val type = LocalHainTypography.current
+    val spacing = LocalHainSpacing.current
+    val haptics = rememberHainHaptics()
+    LaunchedEffect(Unit) { haptics.toolConfirm() }
+    Box(modifier.fillMaxSize().background(Brush.verticalGradient(listOf(FOREST_TOP, FOREST_BOTTOM)))) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(spacing.xl),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Spacer(Modifier.weight(1f))
+            JuicyPim(PimState.CELEBRATE, 168.dp)
+            Spacer(Modifier.height(spacing.xl))
+            BasicText(
+                stringResource(R.string.onboarding_done),
+                style = type.display.copy(color = ON_FOREST, textAlign = TextAlign.Center),
+            )
+            Spacer(Modifier.height(spacing.md))
+            BasicText(
+                stringResource(R.string.onboarding_done_body),
+                style = type.body.copy(color = ON_FOREST_MUTED, textAlign = TextAlign.Center),
+            )
+            Spacer(Modifier.weight(1f))
+            HainButton(stringResource(R.string.onboarding_start), onDone, Modifier.fillMaxWidth())
+        }
+        Celebration(Modifier.fillMaxSize())
+    }
+}

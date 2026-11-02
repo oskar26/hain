@@ -9,11 +9,23 @@
     <string name="onboarding_progress">%1$s of %2$s</string>
     <string name="onboarding_queued">Waiting for internet…</string>
     <string name="onboarding_verifying">Checking the download…</string>
-    <string name="onboarding_done">All set! Let us talk.</string>
+    <string name="onboarding_done">All set!</string>
     <string name="onboarding_start">Start chatting</string>
     <string name="onboarding_fail_network">The download stopped. Check your internet and try again.</string>
     <string name="onboarding_fail_storage">Not enough free space. Free up %1$s and try again.</string>
     <string name="onboarding_fail_checksum">The file arrived damaged. Please try again.</string>
     <string name="onboarding_fail_unknown">Something went wrong. Please try again.</string>
     <string name="onboarding_licence">Model: %1$s · %2$s</string>
+    <string name="onboarding_done_body">I can now think right here, even without internet. Ask me anything.</string>
+    <string name="tour_1_title">Hi, I am Pim!</string>
+    <string name="tour_1_body">I live in Hain, your helper for questions, writing and learning. Tap me if you like.</string>
+    <string name="tour_2_title">Everything stays on your phone</string>
+    <string name="tour_2_body">I think right on your phone. Your chats never leave it, and nobody reads along.</string>
+    <string name="tour_3_title">Your forest grows with you</string>
+    <string name="tour_3_body">Soon you can plant little helpers as trees: weather, bus and train, news. You switch each one on or off.</string>
+    <string name="tour_4_title">Let\'s go</string>
+    <string name="tour_4_body">First I need my knowledge once. After that I work without internet.</string>
+    <string name="tour_next">Next</string>
+    <string name="tour_skip">Skip</string>
+    <string name="tour_go">Let\'s go</string>
 </resources>

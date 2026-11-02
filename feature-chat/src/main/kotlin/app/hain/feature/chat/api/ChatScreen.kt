@@ -57,7 +57,9 @@ import app.hain.ui.components.MessageActionKind
 import app.hain.ui.components.ReasoningBlock
 import app.hain.ui.components.TopBar
 import app.hain.ui.components.UserBubble
+import app.hain.ui.effects.ThinkingGlow
 import app.hain.ui.motion.rememberHainHaptics
+import app.hain.ui.pim.JuicyPim
 import app.hain.ui.pim.Pim
 import app.hain.ui.pim.PimState
 import app.hain.ui.theme.LocalHainColors
@@ -82,6 +84,7 @@ fun ChatScreen(
 
     Box(modifier.fillMaxSize().background(colors.bg)) {
         val chatScale by animateFloatAsState(if (drawerOpen) OPEN_SCALE else 1f, label = "chat-scale")
+        ThinkingGlow(visible = state.isGenerating, modifier = Modifier.fillMaxSize())
         Column(
             Modifier
                 .fillMaxSize()
@@ -184,7 +187,7 @@ private fun Greeting(onSuggestion: (String) -> Unit) {
         EmptyState(
             title = stringResource(R.string.chat_greeting),
             body = stringResource(R.string.chat_greeting_body),
-            art = { Pim(PimState.HAPPY, 96.dp) },
+            art = { JuicyPim(PimState.HAPPY, 104.dp) },
         )
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(spacing.sm, Alignment.CenterHorizontally),
