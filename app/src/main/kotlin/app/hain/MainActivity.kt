@@ -21,6 +21,7 @@ import app.hain.feature.chat.internal.ChatEngine
 import app.hain.feature.chat.internal.ChatStore
 import app.hain.feature.chat.internal.ChatViewModel
 import app.hain.feature.onboarding.api.OnboardingScreen
+import app.hain.feature.settings.api.PacksScreen
 import app.hain.feature.settings.api.SettingsActions
 import app.hain.feature.settings.api.SettingsScreen
 import app.hain.llm.api.LlmEngine
@@ -41,7 +42,10 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var settingsRepository: SettingsRepository
 
-    private fun settingsActions(onBack: () -> Unit): SettingsActions {
+    private fun settingsActions(
+        onBack: () -> Unit,
+        onOpenPacks: () -> Unit,
+    ): SettingsActions {
         val repo = settingsRepository
 
         fun write(block: suspend () -> Unit) {
@@ -56,7 +60,14 @@ class MainActivity : ComponentActivity() {
             onAboutMe = { write { repo.setAboutMe(it) } },
             onStyle = { write { repo.setStyle(it) } },
             onReset = { write { repo.reset() } },
+            onOpenPacks = onOpenPacks,
         )
+    }
+
+    private fun deviceRamGb(): Int {
+        val info = android.app.ActivityManager.MemoryInfo()
+        getSystemService(android.app.ActivityManager::class.java).getMemoryInfo(info)
+        return Math.round(info.totalMem / BYTES_PER_GB).toInt()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,6 +80,7 @@ class MainActivity : ComponentActivity() {
             val settings by settingsRepository.settings.collectAsStateWithLifecycle(HainSettings())
             current = settings
             var showSettings by rememberSaveable { mutableStateOf(false) }
+            var showPacks by rememberSaveable { mutableStateOf(false) }
             HainTheme(
                 darkTheme =
                     when (settings.theme) {
@@ -102,10 +114,15 @@ class MainActivity : ComponentActivity() {
                         onOpenSettings = { showSettings = true },
                     )
                     if (showSettings) {
-                        SettingsScreen(settings, settingsActions { showSettings = false })
+                        SettingsScreen(settings, settingsActions({ showSettings = false }, { showPacks = true }))
+                    }
+                    if (showPacks) {
+                        PacksScreen(models, deviceRamGb(), { showPacks = false })
                     }
                 }
             }
         }
     }
 }
+
+private const val BYTES_PER_GB = 1_000_000_000.0

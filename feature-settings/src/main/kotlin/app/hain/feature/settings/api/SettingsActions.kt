@@ -15,4 +15,5 @@ class SettingsActions(
     val onAboutMe: (String) -> Unit,
     val onStyle: (String) -> Unit,
     val onReset: () -> Unit,
+    val onOpenPacks: () -> Unit,
 )

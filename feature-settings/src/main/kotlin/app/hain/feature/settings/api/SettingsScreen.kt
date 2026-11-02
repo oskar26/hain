@@ -104,6 +104,8 @@ fun SettingsScreen(
                 ),
                 actions.onAnswerMode,
             )
+            Group(R.string.settings_group_packs)
+            Link(R.string.settings_packs, R.string.settings_packs_hint, actions.onOpenPacks)
             Group(R.string.settings_group_you)
             TextSetting(
                 R.string.settings_about_me,
@@ -221,5 +223,19 @@ private fun TextSetting(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
+    }
+}
+
+@Composable
+private fun Link(
+    label: Int,
+    hint: Int,
+    onClick: () -> Unit,
+) {
+    val colors = LocalHainColors.current
+    val type = LocalHainTypography.current
+    Column(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+        BasicText(stringResource(label), style = type.bodySmall.copy(color = colors.text))
+        BasicText(stringResource(hint), style = type.label.copy(color = colors.textMuted))
     }
 }

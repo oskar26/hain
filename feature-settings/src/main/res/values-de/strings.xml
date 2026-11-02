@@ -24,4 +24,18 @@
     <string name="settings_style">Wie soll Hain antworten?</string>
     <string name="settings_style_hint">Zum Beispiel: kurz und freundlich.</string>
     <string name="settings_reset">Einstellungen zurücksetzen</string>
+    <string name="settings_packs">Wissenspakete</string>
+    <string name="settings_packs_hint">Sieh, was auf deinem Handy ist, und lade mehr.</string>
+    <string name="packs_title">Wissenspakete</string>
+    <string name="packs_intro">Pakete sind das, was Hain weiß und kann. Sie bleiben auf deinem Handy.</string>
+    <string name="packs_installed">Auf deinem Handy</string>
+    <string name="packs_download">Laden</string>
+    <string name="packs_delete">Entfernen</string>
+    <string name="packs_cancel">Stopp</string>
+    <string name="packs_wait">Bitte warten …</string>
+    <string name="packs_loading">Lädt … %1$d%%</string>
+    <string name="packs_fit_tight">Das könnte auf deinem Handy langsam sein.</string>
+    <string name="packs_fit_space">Auf deinem Handy ist nicht genug Platz frei.</string>
+    <string name="packs_fit_small">Dein Handy ist zu klein für dieses Paket.</string>
+    <string name="settings_group_packs">Pakete</string>
 </resources>
