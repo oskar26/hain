@@ -38,8 +38,13 @@ class DefaultModelRepository(
 
     override fun mainFile(model: ModelInfo): File = File(modelsDir, model.files.first().fileName)
 
-    override fun isInstalled(model: ModelInfo): Boolean =
-        model.files.all { f -> File(modelsDir, f.fileName).let { it.exists() && it.length() == f.size } }
+    override fun isInstalled(model: ModelInfo): Boolean {
+        val installed =
+            model.files.all { f -> File(modelsDir, f.fileName).let { it.exists() && it.length() == f.size } }
+        // The old Q4_K_M brain is replaced by QAD-Q4_0: free the space once the new file is complete.
+        if (installed && model.kind == "brain") File(modelsDir, LEGACY_BRAIN_FILE).delete()
+        return installed
+    }
 
     override fun downloadState(model: ModelInfo): Flow<DownloadState> =
         workManager.getWorkInfosForUniqueWorkFlow(workName(model)).map { infos ->
@@ -105,4 +110,8 @@ class DefaultModelRepository(
     override fun freeSpace(): Long = modelsDir.usableSpace
 
     private fun workName(model: ModelInfo) = "download-${model.id}"
+
+    private companion object {
+        const val LEGACY_BRAIN_FILE = "LFM3-1.7B-Q4_K_M.gguf"
+    }
 }

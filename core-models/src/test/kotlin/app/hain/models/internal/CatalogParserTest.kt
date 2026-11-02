@@ -12,8 +12,8 @@ class CatalogParserTest {
         val brains = models.filter { it.kind == "brain" && it.isDefault }
         assertEquals(1, brains.size)
         val file = brains.single().files.single()
-        assertEquals("LFM3-1.7B-Q4_K_M.gguf", file.fileName)
-        assertEquals(1_099_627_808L, file.size)
+        assertEquals("LFM3-1.7B-QAD-Q4_0.gguf", file.fileName)
+        assertEquals(1_049_615_680L, file.size)
         assertTrue(file.url.startsWith("https://huggingface.co/"))
     }
 

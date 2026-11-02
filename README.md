@@ -59,7 +59,7 @@ People who care about privacy but are not tech experts, and people who are criti
 
 | Pack | Model | Size | Purpose |
 |---|---|---|---|
-| Brain (base) | LFM3-1.7B Q4_K_M | 1.1 GB | chat, tools, memory |
+| Brain (base) | LFM3-1.7B QAD Q4_0 | 1.0 GB | chat, tools, memory |
 | Remember & files | LFM2.5-Embedding-350M | ~0.2 GB | search in memory, chats, files |
 | Reading text | PaddleOCR PP-OCRv5 mobile (Latin) | 12 MB | PDFs and photos, without Google |
 | Dictation | Moonshine Small | ~0.12–0.25 GB | microphone, DE + EN |
