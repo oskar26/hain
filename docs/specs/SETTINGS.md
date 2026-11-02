@@ -14,7 +14,7 @@ Level 1 = visible directly; level 2 = under "Erweitert / Advanced".
 | | reduce_motion | bool | false | 2 |
 | | haptics | bool | true | 2 |
 | | start_screen | chat/home | chat | 2 |
-| Model | brain_model_id | string | lfm3-1.7b-q4km | 1 |
+| Model | brain_model_id | string | lfm3-1.7b-qad-q4_0 | 1 |
 | | answer_mode | fast/thorough/auto | auto | 1 |
 | | prompt_variant | full/short | full | 2 |
 | | temperature, top_k, top_p, min_p, repeat_penalty | numbers | LLM.md §6 | 2 |

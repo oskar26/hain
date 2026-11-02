@@ -7,7 +7,7 @@ Each entry: `id, name, kind (brain|embed|stt|tts|ocr|ocr_vl|omni|vl|imagegen|ima
 
 | id | kind | approx size | default |
 |---|---|---|---|
-| lfm3-1.7b-q4km | brain | 1.1 GB | ✓ |
+| lfm3-1.7b-qad-q4_0 | brain | 1.0 GB | ✓ |
 | lfm2.5-embed-350m-q8 | embed | 0.2 GB | ✓ |
 | ppocrv5-mobile-latin | ocr | 12 MB | ✓ (bundled in APK or first-start download) |
 | moonshine-small-de / -en | stt | 0.12–0.25 GB | ✓ for app language |
