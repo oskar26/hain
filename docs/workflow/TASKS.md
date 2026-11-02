@@ -48,7 +48,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-055 | Model picker in top bar | ui | S | E | T-052,T-081 | todo |
 | T-056 | Private chat + app lock | feature | S | E | T-053 | todo |
 | T-080 | Fill model catalogue with real URLs + sha256 | plan | S | F | - | review (brain now QAD-Q4_0, day 2) |
-| T-081 | Catalog + DeviceCheck | feature | S | F | T-002 | review (no DeviceCheck yet) |
+| T-081 | Catalog + DeviceCheck | feature | S | F | T-002 | review (DeviceCheck pure rules + Packs screen) |
 | T-082 | PackDownloader (WorkManager) | feature | M | F | T-081 | review |
 | T-083 | Onboarding (welcome, language, download brain) | ui | M | F | T-082,T-016 | review (basic) |
 | T-084 | Packs screen in settings | ui | S | F | T-082 | todo |

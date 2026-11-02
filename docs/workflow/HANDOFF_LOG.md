@@ -175,3 +175,11 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 | T-101 | review | compile | `ChatEngine` takes an `answerMode` provider; `SystemPromptSource` takes custom instructions; drawer got a Settings row | No filled-prompt preview yet; no UI test (no Compose test setup). |
 
 **Next:** day 2c: packs screen, DeviceCheck, model picker, onboarding language step.
+
+## 2026-11-02 · day 2c "Wissenspakete" (T-081 DeviceCheck, packs screen) · review · harness: Hark · branch `hark/day-2c`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-081 | review | `DeviceCheckTest` (4 cases); Gate | packs screen in `feature-settings` (reads `ModelRepository`), Settings row "Wissenspakete" | Only one pack in catalog; RAM from `ActivityManager`. |
+
+**Next:** day 2d: model picker (T-055), onboarding language step (T-083).
