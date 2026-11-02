@@ -183,3 +183,14 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 | T-081 | review | `DeviceCheckTest` (4 cases); Gate | packs screen in `feature-settings` (reads `ModelRepository`), Settings row "Wissenspakete" | Only one pack in catalog; RAM from `ActivityManager`. |
 
 **Next:** day 2d: model picker (T-055), onboarding language step (T-083).
+
+## 2026-11-02 · day 2d "Fixes aus dem Gerätetest" (Teil 1) · review · harness: Hark · branch `hark/day-2d`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-080 | review | `SettingsRepositoryTest` (auto language → device language) | `SystemPromptSource` passes the device language | Antwortsprache Auto = Sprache der Nutzernachricht, sonst Gerätesprache. |
+| T-057 | review | `ChatEngineTest` (stopped while thinking) | `ChatViewModel` no longer copies live text into a stopped answer | Branches/queue still open. |
+| T-083 | review | Gate | `PimGeometry` viewBox translate sign fixed (Pim was shifted and clipped) | Onboarding-Sprache bleibt 2f. |
+| T-053 | review | Gate | Header says Hain, greeting scrolls, chips equal width, one thinking indicator | Auto-Titel (4), Ladezeit (3), Nachricht bearbeiten (6) → Häppchen 2d-2. |
+
+**Next:** day 2d-2: Ladezeit messen, Auto-Titel, Nachricht bearbeiten; dann 2e.

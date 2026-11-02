@@ -9,7 +9,7 @@ import java.util.Locale
 /** Fills `assets/prompts/system_full.en.txt` for each turn (LLM.md §9). */
 class SystemPromptSource(
     private val context: Context,
-    private val customInstructions: () -> String = { "" },
+    private val customInstructions: (String) -> String = { "" },
 ) {
     private val template by lazy {
         context.assets
@@ -23,12 +23,12 @@ class SystemPromptSource(
         val vars =
             SystemPromptVars
                 .of(ZonedDateTime.now(), locale, locale.country.ifEmpty { null })
-                .copy(userCustomInstructions = instructions())
+                .copy(userCustomInstructions = instructions(locale))
         return SystemPromptFiller.fill(template, vars)
     }
 
-    private fun instructions(): String =
-        listOf(NO_TOOLS_YET, customInstructions())
+    private fun instructions(locale: Locale): String =
+        listOf(NO_TOOLS_YET, customInstructions(locale.getDisplayLanguage(Locale.ENGLISH)))
             .filter { it.isNotBlank() }
             .joinToString("\n")
 

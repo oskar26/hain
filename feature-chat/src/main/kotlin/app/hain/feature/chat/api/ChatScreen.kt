@@ -23,7 +23,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -68,7 +70,6 @@ import app.hain.ui.theme.LocalHainTypography
 @Composable
 fun ChatScreen(
     viewModel: ChatViewModel,
-    modelName: String,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -92,7 +93,7 @@ fun ChatScreen(
                 .imePadding(),
         ) {
             TopBar(
-                title = modelName,
+                title = stringResource(R.string.chat_title),
                 subtitle = engineLine(state),
                 leading = {
                     HainIconButton(HainIcons.menu, stringResource(R.string.chat_menu), { drawerOpen = true })
@@ -176,7 +177,7 @@ private fun Greeting(onSuggestion: (String) -> Unit) {
             stringResource(R.string.chat_suggestion_4),
         )
     Column(
-        Modifier.fillMaxSize().padding(spacing.lg),
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(spacing.lg),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -206,6 +207,7 @@ private fun SuggestionChip(
         style = LocalHainTypography.current.bodySmall.copy(color = colors.text),
         modifier =
             Modifier
+                .fillMaxWidth(CHIP_WIDTH)
                 .border(1.dp, colors.border, shape)
                 .clickable(onClick = onClick)
                 .padding(horizontal = 14.dp, vertical = 10.dp),
@@ -259,7 +261,7 @@ private fun Answer(
                     ?: stringResource(R.string.chat_thinking)
             ReasoningBlock(title = title, reasoning = reasoning)
         }
-        if (message.streaming && message.text.isEmpty()) {
+        if (message.streaming && message.text.isEmpty() && message.reasoning == null) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Pim(PimState.THINKING, 28.dp)
                 Spacer(Modifier.width(8.dp))
@@ -314,3 +316,4 @@ private fun ErrorLine(state: ChatUiState) {
 }
 
 private const val OPEN_SCALE = 0.94f
+private const val CHIP_WIDTH = 0.9f

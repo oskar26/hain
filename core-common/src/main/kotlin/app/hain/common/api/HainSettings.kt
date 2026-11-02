@@ -19,12 +19,13 @@ data class HainSettings(
     val style: String = "",
 ) {
     /** Text for the "user instructions" slot of the system prompt; empty if nothing is set. */
-    fun customInstructions(): String =
+    fun customInstructions(deviceLanguage: String = "English"): String =
         buildList {
             when (answerLanguage) {
                 AnswerLanguage.DE -> add("Always answer in German.")
                 AnswerLanguage.EN -> add("Always answer in English.")
-                AnswerLanguage.AUTO -> Unit
+                AnswerLanguage.AUTO ->
+                    add("Answer in the language the user writes in. If unsure, answer in $deviceLanguage.")
             }
             if (aboutMe.isNotBlank()) add("About the user: ${aboutMe.trim()}")
             if (style.isNotBlank()) add("How the user wants answers: ${style.trim()}")
