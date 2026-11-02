@@ -13,6 +13,7 @@
   - Agents (v0.2 plan): settings + DataStore (T-09x), T-084 packs screen, DeviceCheck, onboarding language; then T-060/T-062 tool loop, T-071 feeds; finish T-014/T-015 components.
 - **First milestone goal (M4):** app opens, downloads LFM3-1.7B, streams a German answer, keeps chat history.
 
+- **Day 2c (02.11.):** DeviceCheck (pure rules, tested) + packs screen (list, load, remove, fit hints) in `hark/day-2c`; model picker + onboarding language → day 2d.
 - **Day 2b (02.11.):** settings (DataStore, theme, readable font, answer language/mode, about me/style) in `hark/day-2b`; packs screen, DeviceCheck, picker, onboarding language → day 2c.
 - **Day 2a (02.11.):** brain model is now LFM3-1.7B-QAD-Q4_0 (`hark/day-2`).
 

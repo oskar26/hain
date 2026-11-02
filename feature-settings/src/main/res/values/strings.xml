@@ -24,4 +24,18 @@
     <string name="settings_style">How should Hain answer?</string>
     <string name="settings_style_hint">For example: short and friendly.</string>
     <string name="settings_reset">Reset settings</string>
+    <string name="settings_packs">Knowledge packs</string>
+    <string name="settings_packs_hint">See what is on your phone and load more.</string>
+    <string name="packs_title">Knowledge packs</string>
+    <string name="packs_intro">Packs are what Hain knows and can do. They stay on your phone.</string>
+    <string name="packs_installed">On your phone</string>
+    <string name="packs_download">Load</string>
+    <string name="packs_delete">Remove</string>
+    <string name="packs_cancel">Stop</string>
+    <string name="packs_wait">Please wait…</string>
+    <string name="packs_loading">Loading… %1$d%%</string>
+    <string name="packs_fit_tight">This might be slow on your phone.</string>
+    <string name="packs_fit_space">Not enough free space on your phone.</string>
+    <string name="packs_fit_small">Your phone is too small for this pack.</string>
+    <string name="settings_group_packs">Packs</string>
 </resources>
