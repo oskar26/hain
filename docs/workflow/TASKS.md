@@ -30,7 +30,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-030 | JNI bridge: load/generate/cancel | native | M | C | T-001,T-002 | review |
 | T-031 | Copy prompts into assets | scaffold | XS | C | T-002 | review |
 | T-032 | LlmEngine implementation | feature | S | C | T-030 | review |
-| T-033 | Prefix KV cache reuse | native | S | C | T-030 | review |
+| T-033 | Prefix KV cache reuse | native | S | C | T-030 | review (2d-2: checkpoints for hybrid LFM, stop inside a prompt, warm-up) |
 | T-040 | Data classes ChatMessage/ToolSchema/ToolCall | feature | XS | D | T-002 | review |
 | T-041 | Golden prompt files + render script | test | S | D | T-040 | review |
 | T-042 | PromptBuilder (pure Kotlin) | feature | M | D | T-041 | review |
@@ -40,7 +40,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-050 | ChatEngine turn loop | feature | M | E | T-032,T-042,T-044,T-045,T-020 | review (no tools yet) |
 | T-051 | ChatViewModel + UI state | feature | S | E | T-050 | review |
 | T-052 | Chat screen | ui | M | E | T-051,T-011,T-012,T-013 | review |
-| T-057 | Branches, message queue, stopped/error states | feature | M | E | T-051 | todo |
+| T-057 | Branches, message queue, stopped/error states | feature | M | E | T-051 | review (subset 2d-2: stop at once, edit own message, ask again on any answer; branches/queue open) |
 | T-058 | ChatViewport + scroll-to-bottom pill | ui | S | E | T-052 | todo |
 | T-059 | ToolTimeline + SourceChips | ui | S | E | T-052,T-062 | todo |
 | T-053 | Drawer: chat list, search, rename, delete, pin | ui | M | E | T-052,T-015 | review |
@@ -50,7 +50,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-080 | Fill model catalogue with real URLs + sha256 | plan | S | F | - | review (brain now QAD-Q4_0, day 2) |
 | T-081 | Catalog + DeviceCheck | feature | S | F | T-002 | review (DeviceCheck pure rules + Packs screen) |
 | T-082 | PackDownloader (WorkManager) | feature | M | F | T-081 | review |
-| T-083 | Onboarding (welcome, language, download brain) | ui | M | F | T-082,T-016 | review (tour + success; language → 2f) |
+| T-083 | Onboarding (welcome, language, download brain) | ui | M | F | T-082,T-016 | review (tour + success + skip download; language → 2f) |
 | T-084 | Packs screen in settings | ui | S | F | T-082 | todo |
 | T-060 | NetworkGate + network log | feature | S | A | T-020 | todo |
 | T-061 | Pim launcher icon + VectorDrawable export | ui | S | B | T-016 | todo |
@@ -92,7 +92,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-150 | Multimodal: Omni/VL image input via mtmd | native | M | C | T-030 | todo |
 | T-163 | Pim animated (Compose: blink, breathe, squash, eye tracking) | ui | M | B | T-061,T-019 | review (no eye tracking) |
 | T-170 | Image generation pack (SD1.5+DMD2, MNN) | native | M | D | T-160 | todo |
-| T-190 | Accessibility & performance pass | fix | M | H | T-052,T-100 | todo |
+| T-190 | Accessibility & performance pass | fix | M | H | T-052,T-100 | doing (2d-2: non-debuggable CI APK, draw-only animations, throttled streaming; R8 + own baseline profile open) |
 | T-195 | Trademark check name 'Hain' | plan | XS | H | - | todo |
 | T-199 | Beta release (GitHub + F-Droid metadata) | scaffold | S | H | T-190 | todo |
 
