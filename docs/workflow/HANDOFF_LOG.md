@@ -166,3 +166,12 @@ v0.2 plan, day 1 of 6. One commit per task, draft PR, not ready-for-review witho
 
 Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09a…7452; catalog id `lfm3-1.7b-qad-q4_0`). The old Q4_K_M file is deleted automatically once the new one is complete. Sampling defaults (temp 0.1, repeat 1.1) already match. Catalog test, MODELS.md, README, AGENTS.md updated.
 **Split:** settings/DataStore, packs screen, DeviceCheck, model picker, onboarding language move to day 2b (plan row 2b).
+
+## 2026-11-02 · day 2b "Einstellungen" (T-100, T-101) · review · harness: Hark · branch `hark/day-2b`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-100 | review | `SettingsRepositoryTest` (defaults, read-back, reset, custom instructions) | `core-common` (DataStore preferences-core, Apache-2.0, in LICENSES.md) instead of core-data; `AppModule` provides the repository | Only level-1 keys so far: theme, readable font, answer language, answer mode, about me, style. Other SETTINGS.md keys come with their features. |
+| T-101 | review | compile | `ChatEngine` takes an `answerMode` provider; `SystemPromptSource` takes custom instructions; drawer got a Settings row | No filled-prompt preview yet; no UI test (no Compose test setup). |
+
+**Next:** day 2c: packs screen, DeviceCheck, model picker, onboarding language step.

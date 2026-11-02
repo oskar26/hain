@@ -5,6 +5,7 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | Component | Licence | Status |
 |---|---|---|
 | llama.cpp / ggml | MIT | ok |
+| AndroidX DataStore (preferences) | Apache-2.0 | ok |
 | LFM3 models (1.7B, VL, Omni, Audio) | LFM Open License v1.0 (free < $10M revenue) | ok for non-commercial/small; show in About |
 | LFM2.5-Embedding-350M | LFM Open License | verify |
 | sherpa-onnx | Apache-2.0 | ok |

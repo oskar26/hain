@@ -2,6 +2,8 @@ package app.hain.di
 
 import android.content.Context
 import android.util.Log
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import app.hain.common.api.SettingsRepository
 import app.hain.data.HainDatabase
 import app.hain.data.KeystoreKeyProvider
 import app.hain.feature.chat.internal.ChatStore
@@ -18,6 +20,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import java.io.File
 import javax.inject.Singleton
 
 @Module
@@ -34,6 +37,18 @@ object AppModule {
     fun modelRepository(
         @ApplicationContext context: Context,
     ): ModelRepository = DefaultModelRepository(context)
+
+    @Provides
+    @Singleton
+    fun settingsRepository(
+        @ApplicationContext context: Context,
+    ): SettingsRepository =
+        SettingsRepository(
+            PreferenceDataStoreFactory.create(
+                scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+                produceFile = { File(context.filesDir, "datastore/settings.preferences_pb") },
+            ),
+        )
 
     /** Chats survive app restarts in the encrypted database; if it cannot open, chats stay in memory. */
     @Provides

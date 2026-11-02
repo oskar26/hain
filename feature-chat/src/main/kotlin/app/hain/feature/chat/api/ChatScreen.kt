@@ -69,6 +69,7 @@ import app.hain.ui.theme.LocalHainTypography
 fun ChatScreen(
     viewModel: ChatViewModel,
     modelName: String,
+    onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -145,6 +146,10 @@ fun ChatScreen(
                     onRename = viewModel::renameChat,
                     onPin = viewModel::setPinned,
                     onSearch = viewModel::onSearchChange,
+                    onSettings = {
+                        drawerOpen = false
+                        onOpenSettings()
+                    },
                 ),
         )
     }

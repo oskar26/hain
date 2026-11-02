@@ -10,4 +10,5 @@ internal class DrawerActions(
     val onRename: (Long, String) -> Unit,
     val onPin: (Long, Boolean) -> Unit,
     val onSearch: (String) -> Unit,
+    val onSettings: () -> Unit,
 )

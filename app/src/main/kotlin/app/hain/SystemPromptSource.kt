@@ -9,6 +9,7 @@ import java.util.Locale
 /** Fills `assets/prompts/system_full.en.txt` for each turn (LLM.md §9). */
 class SystemPromptSource(
     private val context: Context,
+    private val customInstructions: () -> String = { "" },
 ) {
     private val template by lazy {
         context.assets
@@ -22,9 +23,14 @@ class SystemPromptSource(
         val vars =
             SystemPromptVars
                 .of(ZonedDateTime.now(), locale, locale.country.ifEmpty { null })
-                .copy(userCustomInstructions = NO_TOOLS_YET)
+                .copy(userCustomInstructions = instructions())
         return SystemPromptFiller.fill(template, vars)
     }
+
+    private fun instructions(): String =
+        listOf(NO_TOOLS_YET, customInstructions())
+            .filter { it.isNotBlank() }
+            .joinToString("\n")
 
     private companion object {
         // MVP: the tool loop (T-062) is not wired yet, so tell the model it has no tools.

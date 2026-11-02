@@ -39,10 +39,11 @@ class ChatEngine(
     private val systemPrompt: () -> String,
     private val promptBuilder: PromptBuilder = LfmPromptBuilder(),
     private val clock: () -> Long = System::currentTimeMillis,
+    private val answerMode: () -> AnswerMode = { AnswerMode.AUTO },
 ) {
     fun respond(
         history: List<ChatMessage>,
-        mode: AnswerMode = AnswerMode.AUTO,
+        mode: AnswerMode = answerMode(),
     ): Flow<TurnUpdate> =
         flow {
             val lastUser = history.lastOrNull()?.content.orEmpty()
