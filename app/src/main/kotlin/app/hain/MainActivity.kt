@@ -26,10 +26,12 @@ import app.hain.feature.settings.api.PacksScreen
 import app.hain.feature.settings.api.SettingsActions
 import app.hain.feature.settings.api.SettingsScreen
 import app.hain.llm.api.LlmEngine
+import app.hain.models.api.DownloadState
 import app.hain.models.api.ModelRepository
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.theme.HainTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import app.hain.llm.internal.AnswerMode as LlmAnswerMode
@@ -66,6 +68,28 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    private fun chatViewModel(
+        prompts: SystemPromptSource,
+        settings: () -> HainSettings,
+    ): ChatViewModel {
+        val brain = models.defaultBrain
+        return ChatViewModel(
+            llm = llm,
+            engine =
+                ChatEngine(
+                    llm,
+                    prompts::current,
+                    answerMode = { LlmAnswerMode.fromKey(settings().answerMode.name.lowercase()) },
+                ),
+            store = chatStore,
+            modelPath = { models.mainFile(brain).absolutePath },
+            brainInstalled = models.downloadState(brain).map { it is DownloadState.Installed },
+        )
+    }
+
+    /** Small start flags (read on the main thread, so no flash of the wrong screen). */
+    private val startPrefs by lazy { getSharedPreferences(START_PREFS, MODE_PRIVATE) }
+
     private fun deviceRamGb(): Int {
         val info = android.app.ActivityManager.MemoryInfo()
         getSystemService(android.app.ActivityManager::class.java).getMemoryInfo(info)
@@ -94,26 +118,22 @@ class MainActivity : ComponentActivity() {
             ) {
                 CompositionLocalProvider(LocalReduceMotion provides systemReducesMotion()) {
                     var installed by remember { mutableStateOf(models.isInstalled(brain)) }
-                    if (!installed) {
-                        OnboardingScreen(models = models, onDone = { installed = models.isInstalled(brain) })
+                    var skipped by remember { mutableStateOf(startPrefs.getBoolean(KEY_SKIPPED, false)) }
+                    if (!installed && !skipped) {
+                        OnboardingScreen(
+                            models = models,
+                            onDone = { installed = models.isInstalled(brain) },
+                            onSkip = {
+                                startPrefs.edit().putBoolean(KEY_SKIPPED, true).apply()
+                                skipped = true
+                            },
+                        )
                     } else {
-                        val chatViewModel =
-                            viewModel {
-                                ChatViewModel(
-                                    llm = llm,
-                                    engine =
-                                        ChatEngine(
-                                            llm,
-                                            prompts::current,
-                                            answerMode = { LlmAnswerMode.fromKey(current.answerMode.name.lowercase()) },
-                                        ),
-                                    store = chatStore,
-                                    modelPath = { models.mainFile(brain).absolutePath },
-                                )
-                            }
+                        val chatViewModel = viewModel { chatViewModel(prompts) { current } }
                         ChatScreen(
                             viewModel = chatViewModel,
                             onOpenSettings = { showSettings = true },
+                            onGetBrain = { showPacks = true },
                         )
                         if (showSettings) {
                             SettingsScreen(settings, settingsActions({ showSettings = false }, { showPacks = true }))
@@ -137,3 +157,5 @@ class MainActivity : ComponentActivity() {
 }
 
 private const val BYTES_PER_GB = 1_000_000_000.0
+private const val START_PREFS = "hain_start"
+private const val KEY_SKIPPED = "onboarding_skipped"
