@@ -28,4 +28,15 @@ class ChatStoreTest {
             store.titleFrom("Wie kann ich im Alltag am einfachsten Plastik sparen und dabei Geld?"),
         )
     }
+
+    @Test
+    fun truncateFromKeepsOrDropsTheMessage() {
+        val store = ChatStore()
+        val chat = store.create("t")
+        (1L..4L).forEach { store.upsertMessage(chat.id, UiMessage(it, it % 2 == 1L, "m$it")) }
+        store.truncateFrom(chat.id, 3, keep = true)
+        assertEquals(listOf(1L, 2L, 3L), store.chat(chat.id)!!.messages.map { it.id })
+        store.truncateFrom(chat.id, 2, keep = false)
+        assertEquals(listOf(1L), store.chat(chat.id)!!.messages.map { it.id })
+    }
 }
