@@ -50,7 +50,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-080 | Fill model catalogue with real URLs + sha256 | plan | S | F | - | review (brain now QAD-Q4_0, day 2) |
 | T-081 | Catalog + DeviceCheck | feature | S | F | T-002 | review (DeviceCheck pure rules + Packs screen) |
 | T-082 | PackDownloader (WorkManager) | feature | M | F | T-081 | review |
-| T-083 | Onboarding (welcome, language, download brain) | ui | M | F | T-082,T-016 | review (basic) |
+| T-083 | Onboarding (welcome, language, download brain) | ui | M | F | T-082,T-016 | review (tour + success; language → 2f) |
 | T-084 | Packs screen in settings | ui | S | F | T-082 | todo |
 | T-060 | NetworkGate + network log | feature | S | A | T-020 | todo |
 | T-061 | Pim launcher icon + VectorDrawable export | ui | S | B | T-016 | todo |
@@ -90,7 +90,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-160 | Image edit kit | feature | M | D | T-082 | todo |
 | T-090 | German/English eval set + runner | test | M | H | T-042,T-062 | todo |
 | T-150 | Multimodal: Omni/VL image input via mtmd | native | M | C | T-030 | todo |
-| T-163 | Pim animated (Compose: blink, breathe, squash, eye tracking) | ui | M | B | T-061,T-019 | todo |
+| T-163 | Pim animated (Compose: blink, breathe, squash, eye tracking) | ui | M | B | T-061,T-019 | review (no eye tracking) |
 | T-170 | Image generation pack (SD1.5+DMD2, MNN) | native | M | D | T-160 | todo |
 | T-190 | Accessibility & performance pass | fix | M | H | T-052,T-100 | todo |
 | T-195 | Trademark check name 'Hain' | plan | XS | H | - | todo |

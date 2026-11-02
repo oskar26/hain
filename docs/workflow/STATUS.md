@@ -13,6 +13,7 @@
   - Agents (v0.2 plan): settings + DataStore (T-09x), T-084 packs screen, DeviceCheck, onboarding language; then T-060/T-062 tool loop, T-071 feeds; finish T-014/T-015 components.
 - **First milestone goal (M4):** app opens, downloads LFM3-1.7B, streams a German answer, keeps chat history.
 
+- **Day 2e (02.11.):** Persönlichkeit Teil 1 in `hark/day-2e`: Willkommenstour (4 Seiten, 3D-Objekte), Pim lebendig (Glanz, Atmen, Blinzeln, Hüpfen, Antippen), Erfolgs-Screen mit Konfetti + Haptik, Denk-Verlauf unten→oben, gewölbte Knöpfe mit Eindrücken; Bewegung reduzieren = System-Animationen aus. Einstellungen neu (Gruppen, Unterseiten) + weitere Micro-Animationen → 2e-2.
 - **Day 2d (02.11.):** Antwortsprache Auto, Stopp beim Denken, Pim-Position, Kopfzeile Hain, Begrüßung scrollbar, ein Denk-Hinweis in `hark/day-2d`; Ladezeit, Auto-Titel, Bearbeiten → 2d-2.
 - **Day 2c (02.11.):** DeviceCheck (pure rules, tested) + packs screen (list, load, remove, fit hints) in `hark/day-2c`; model picker + onboarding language → day 2d.
 - **Day 2b (02.11.):** settings (DataStore, theme, readable font, answer language/mode, about me/style) in `hark/day-2b`; packs screen, DeviceCheck, picker, onboarding language → day 2c.

@@ -19,7 +19,10 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -34,13 +37,13 @@ import app.hain.models.api.ModelRepository
 import app.hain.ui.components.HainButton
 import app.hain.ui.components.HainButtonStyle
 import app.hain.ui.components.ProgressBar
-import app.hain.ui.pim.Pim
+import app.hain.ui.pim.JuicyPim
 import app.hain.ui.pim.PimState
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 
-/** First start (T-083, basic): Pim says hello and the brain gets downloaded. */
+/** First start (T-083): welcome tour, then the brain gets downloaded, then Pim cheers. */
 @Composable
 fun OnboardingScreen(
     models: ModelRepository,
@@ -64,20 +67,32 @@ fun OnboardingScreen(
         }
     }
 
+    var tourDone by rememberSaveable { mutableStateOf(false) }
+    if (!tourDone && download == DownloadState.Idle) {
+        WelcomeTour(onFinish = { tourDone = true }, modifier = modifier)
+        return
+    }
+    if (download is DownloadState.Installed) {
+        SuccessScreen(onDone = onDone, modifier = modifier)
+        return
+    }
+
     Column(
         modifier
             .fillMaxSize()
-            .background(colors.bg)
+            .background(tourBackground())
             .statusBarsPadding()
             .navigationBarsPadding()
             .padding(spacing.xl),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Pim(state = pimState(download), size = 120.dp)
+        JuicyPim(state = pimState(download), size = 140.dp)
         Spacer(Modifier.height(spacing.xl))
-        val title = if (download is DownloadState.Installed) R.string.onboarding_done else R.string.onboarding_title
-        BasicText(stringResource(title), style = type.display.copy(color = colors.text, textAlign = TextAlign.Center))
+        BasicText(
+            stringResource(R.string.onboarding_title),
+            style = type.display.copy(color = colors.text, textAlign = TextAlign.Center),
+        )
         Spacer(Modifier.height(spacing.md))
         BasicText(
             stringResource(R.string.onboarding_body, size),

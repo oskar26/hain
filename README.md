@@ -24,7 +24,7 @@
 
 A *Hain* is a small, sheltered grove: a quiet place that belongs to you. Hain runs a language model **directly on your phone** with llama.cpp. You can chat, search, read photos and PDFs, talk, and let it remember things – **no cloud, no account, no API keys**. Hain only goes online when you ask for something from the internet, and it always shows you where the request goes.
 
-Your guide is **Pim**, a small mint-green sprout.
+Your guide is **Pim**, a small mint-green sprout. He shows you around in a short welcome tour, breathes, blinks and hops, squishes when you tap him and cheers with confetti once the brain is downloaded. While he thinks, a soft green glow rises from the bottom of the screen. With the system setting "remove animations" everything stays still.
 
 ## Principles
 

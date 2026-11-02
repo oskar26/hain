@@ -220,6 +220,7 @@ fun DrawScope.drawPim(
     pose: PimPose,
     colors: PimColors,
     showVein: Boolean,
+    gloss: Boolean = false,
 ) {
     translate(-PimGeometry.VIEW_BOX_X, -PimGeometry.VIEW_BOX_Y) {
         // body group: squash + tilt around the bottom centre, then position offset
@@ -228,7 +229,7 @@ fun DrawScope.drawPim(
             rotate(pose.tilt, PimGeometry.BODY_BOTTOM_CENTRE)
             scale(pose.sx, pose.sy, PimGeometry.BODY_BOTTOM_CENTRE)
         }) {
-            drawBodyAndEyes(pose, colors)
+            drawBodyAndEyes(pose, colors, gloss)
         }
         // stem + leaf group: bend around the stem base, leaf around its own tip
         withTransform({
@@ -244,8 +245,11 @@ fun DrawScope.drawPim(
 private fun DrawScope.drawBodyAndEyes(
     pose: PimPose,
     colors: PimColors,
+    gloss: Boolean,
 ) {
-    drawPath(svgPathToPathPublic(PimGeometry.BODY_PATH), colors.body)
+    val body = svgPathToPathPublic(PimGeometry.BODY_PATH)
+    drawPath(body, colors.body)
+    if (gloss) drawBodyGloss(body)
 
     val left = PimGeometry.EYE_L + Offset(pose.eyeDX, pose.eyeDY)
     val right = PimGeometry.EYE_R + Offset(pose.eyeDX, pose.eyeDY)
