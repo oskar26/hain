@@ -36,6 +36,10 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
+            // 2d-2 speed: the APK that CI builds for phones (`-Phain.fastDebug=true`) is not debuggable.
+            // A debuggable app runs Compose without ART optimisations and ignores the baseline
+            // profiles of Compose & co. — several times slower. Local builds stay debuggable.
+            isDebuggable = providers.gradleProperty("hain.fastDebug").orNull != "true"
         }
         release {
             isMinifyEnabled = false

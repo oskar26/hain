@@ -42,15 +42,17 @@ fun JuicyPim(
     val reduce = LocalReduceMotion.current
     val base = poseFor(state)
     if (reduce) {
-        PimCanvas(pose = base, size = size, modifier = modifier, shadowLift = 0f)
+        PimCanvas(pose = { base }, size = size, modifier = modifier, shadowLift = 0f)
         return
     }
-    val phase by rememberInfiniteTransition(label = "pim-life").animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(periodFor(state), easing = LinearEasing), RepeatMode.Restart),
-        label = "pim-phase",
-    )
+    // State objects, read only inside the draw lambda below: Pim moves at 60 fps without recomposing.
+    val phase =
+        rememberInfiniteTransition(label = "pim-life").animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(periodFor(state), easing = LinearEasing), RepeatMode.Restart),
+            label = "pim-phase",
+        )
     val squish = remember { Animatable(0f) }
     var blinking by remember { mutableStateOf(false) }
     var delighted by remember { mutableStateOf(false) }
@@ -66,7 +68,6 @@ fun JuicyPim(
         }
     }
 
-    val pose = livePose(base, state, phase, squish.value, blinking, delighted)
     val tap =
         Modifier.pointerInput(onTap) {
             detectTapGestures {
@@ -81,7 +82,12 @@ fun JuicyPim(
                 }
             }
         }
-    PimCanvas(pose = pose, size = size, modifier = modifier.then(tap), shadowLift = 0f)
+    PimCanvas(
+        pose = { livePose(base, state, phase.value, squish.value, blinking, delighted) },
+        size = size,
+        modifier = modifier.then(tap),
+        shadowLift = 0f,
+    )
 }
 
 /** Pure pose math so it can be unit-tested: [phase] runs 0→1 per cycle. */
@@ -134,6 +140,6 @@ private const val TAP_SQUASH = 0.16f
 private const val JELLY_DAMPING = 0.3f
 private const val JELLY_STIFFNESS = 260f
 private const val DELIGHT_MS = 600L
-private const val BLINK_MS = 130L
+private const val BLINK_MS = 200L
 private const val BLINK_MIN_MS = 2400L
 private const val BLINK_MAX_MS = 5200L

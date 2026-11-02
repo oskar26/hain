@@ -51,7 +51,7 @@ jobs:
             cxx-${{ runner.os }}-${{ hashFiles('core-llm/src/main/cpp/**', '.gitmodules') }}-
 
       - name: Build APK
-        run: ./gradlew :app:assembleDebug -Phain.versionCode=${{ github.run_number }} --stacktrace
+        run: ./gradlew :app:assembleDebug -Phain.fastDebug=true -Phain.versionCode=${{ github.run_number }} --stacktrace
 
       - name: Rename APK
         run: |
