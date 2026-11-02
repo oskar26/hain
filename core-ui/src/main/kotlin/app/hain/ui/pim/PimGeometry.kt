@@ -221,7 +221,7 @@ fun DrawScope.drawPim(
     colors: PimColors,
     showVein: Boolean,
 ) {
-    translate(PimGeometry.VIEW_BOX_X, PimGeometry.VIEW_BOX_Y) {
+    translate(-PimGeometry.VIEW_BOX_X, -PimGeometry.VIEW_BOX_Y) {
         // body group: squash + tilt around the bottom centre, then position offset
         withTransform({
             translate(pose.x, pose.y)

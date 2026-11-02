@@ -48,7 +48,10 @@ class SettingsRepositoryTest {
 
     @Test
     fun customInstructionsListOnlyWhatIsSet() {
-        assertEquals("", HainSettings().customInstructions())
+        assertEquals(
+            "Answer in the language the user writes in. If unsure, answer in German.",
+            HainSettings().customInstructions("German"),
+        )
         val text = HainSettings(answerLanguage = AnswerLanguage.EN, style = " short ").customInstructions()
         assertEquals("Always answer in English.\nHow the user wants answers: short", text)
     }

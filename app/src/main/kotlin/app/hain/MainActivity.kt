@@ -75,7 +75,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val brain = models.defaultBrain
         var current = HainSettings()
-        val prompts = SystemPromptSource(applicationContext) { current.customInstructions() }
+        val prompts = SystemPromptSource(applicationContext) { lang -> current.customInstructions(lang) }
         setContent {
             val settings by settingsRepository.settings.collectAsStateWithLifecycle(HainSettings())
             current = settings
@@ -110,7 +110,6 @@ class MainActivity : ComponentActivity() {
                         }
                     ChatScreen(
                         viewModel = chatViewModel,
-                        modelName = brain.name,
                         onOpenSettings = { showSettings = true },
                     )
                     if (showSettings) {

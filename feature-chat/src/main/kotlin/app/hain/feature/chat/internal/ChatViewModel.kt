@@ -188,15 +188,7 @@ class ChatViewModel(
         update: TurnUpdate.Finished,
     ) {
         val out = update.output
-        val text =
-            out.text.ifBlank {
-                store
-                    .chat(chatId)
-                    ?.messages
-                    ?.lastOrNull()
-                    ?.text
-                    .orEmpty()
-            }
+        val text = out.text
         store.upsertMessage(
             chatId,
             UiMessage(

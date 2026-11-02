@@ -21,6 +21,7 @@ import org.junit.Test
 class ChatEngineTest {
     private class FakeLlm(
         private val chunks: List<String>,
+        private val end: StopReason = StopReason.END,
     ) : LlmEngine {
         var lastPrompt = ""
         var lastParams: SamplingParams? = null
@@ -38,7 +39,7 @@ class ChatEngineTest {
         ): Flow<GenerationEvent> {
             lastPrompt = prompt
             lastParams = params
-            val events = chunks.map { GenerationEvent.Token(it) } + GenerationEvent.Done(StopReason.END)
+            val events = chunks.map { GenerationEvent.Token(it) } + GenerationEvent.Done(end)
             return flowOf(*events.toTypedArray())
         }
 
@@ -71,6 +72,16 @@ class ChatEngineTest {
             assertEquals("Antwort", last.output.text)
             assertTrue(llm.lastPrompt.endsWith("<|im_start|>assistant\n<think>"))
             assertEquals(4096, llm.lastParams?.maxTokens)
+        }
+
+    @Test
+    fun stoppedWhileThinkingKeepsThinkingOutOfTheAnswer() =
+        runTest {
+            val llm = FakeLlm(listOf("noch am denken"), StopReason.CANCELLED)
+            val updates = ChatEngine(llm, { "S" }).respond(user("warum?"), AnswerMode.THOROUGH).toList()
+            val last = updates.last() as TurnUpdate.Finished
+            assertEquals("", last.output.text)
+            assertEquals("noch am denken", last.output.reasoning)
         }
 
     private fun user(text: String) = listOf(ChatMessage(Role.USER, text))

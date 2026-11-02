@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="chat_title">Hain</string>
     <string name="chat_greeting">Hi! What can I do for you?</string>
     <string name="chat_greeting_body">Everything stays on your phone.</string>
     <string name="chat_placeholder">Message Hain</string>

@@ -89,7 +89,14 @@ class ChatEngine(
             val (rest, parsed) = splitter.finish()
             apply(rest)
             val thoughtFor = if (thinking) (thinkingEnd ?: clock()) - start else null
-            emit(TurnUpdate.Finished(parsed, reason, thoughtFor))
+            // A stopped answer keeps what was shown live: thinking stays thinking, never becomes the answer.
+            val output =
+                if (reason == StopReason.CANCELLED) {
+                    parsed.copy(reasoning = reasoning.toString().ifBlank { null }, text = text.toString())
+                } else {
+                    parsed
+                }
+            emit(TurnUpdate.Finished(output, reason, thoughtFor))
         }
 
     private companion object {
