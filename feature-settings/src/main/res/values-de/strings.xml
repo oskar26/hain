@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_back">Zurück</string>
+    <string name="settings_group_look">Aussehen</string>
+    <string name="settings_theme">Farben</string>
+    <string name="settings_theme_system">Wie mein Handy</string>
+    <string name="settings_theme_light">Hell</string>
+    <string name="settings_theme_dark">Dunkel</string>
+    <string name="settings_readable">Gut lesbar</string>
+    <string name="settings_readable_hint">Nutzt eine besonders klare Schrift.</string>
+    <string name="settings_group_answers">Antworten</string>
+    <string name="settings_answer_language">Sprache der Antworten</string>
+    <string name="settings_lang_auto">Automatisch</string>
+    <string name="settings_lang_de">Deutsch</string>
+    <string name="settings_lang_en">English</string>
+    <string name="settings_answer_mode">Art der Antworten</string>
+    <string name="settings_mode_auto">Automatisch</string>
+    <string name="settings_mode_fast">Schnell</string>
+    <string name="settings_mode_thorough">Gründlich</string>
+    <string name="settings_group_you">Über dich</string>
+    <string name="settings_about_me">Was soll Hain über dich wissen?</string>
+    <string name="settings_about_me_hint">Zum Beispiel: Ich wohne in Köln und koche gern.</string>
+    <string name="settings_style">Wie soll Hain antworten?</string>
+    <string name="settings_style_hint">Zum Beispiel: kurz und freundlich.</string>
+    <string name="settings_reset">Einstellungen zurücksetzen</string>
+</resources>

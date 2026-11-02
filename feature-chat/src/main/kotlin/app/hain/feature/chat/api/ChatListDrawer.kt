@@ -102,6 +102,12 @@ internal fun ChatListDrawer(
             HainMenuRow(HainIcons.plus, stringResource(R.string.chat_new), actions.onNewChat, Modifier.fillMaxWidth())
             Spacer(Modifier.height(spacing.sm))
             DrawerList(hasChats, groups, searchQuery, currentChatId, actions, Modifier.weight(1f))
+            HainMenuRow(
+                HainIcons.settings,
+                stringResource(R.string.chat_settings),
+                actions.onSettings,
+                Modifier.fillMaxWidth(),
+            )
         }
     }
 }

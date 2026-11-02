@@ -6,6 +6,7 @@
     <string name="chat_send">Send</string>
     <string name="chat_stop">Stop</string>
     <string name="chat_menu">Open chats</string>
+    <string name="chat_settings">Settings</string>
     <string name="chat_new">New chat</string>
     <string name="chat_copy">Copy</string>
     <string name="chat_copied">Copied</string>
