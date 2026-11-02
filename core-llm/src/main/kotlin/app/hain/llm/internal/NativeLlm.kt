@@ -5,6 +5,11 @@ fun interface TokenCallback {
     fun onToken(bytes: ByteArray): Boolean
 }
 
+/** Receives the model loading progress (0..1). Return `false` to abort loading. */
+fun interface LoadProgress {
+    fun onProgress(progress: Float): Boolean
+}
+
 /** The whole JNI surface (LLM.md §1). Blocking calls: run them on one background thread. */
 internal object NativeLlm {
     const val STOP_EOS = 0
@@ -25,6 +30,7 @@ internal object NativeLlm {
         nCtx: Int,
         nThreads: Int,
         nGpuLayers: Int,
+        progress: LoadProgress?,
     ): Long
 
     external fun nativeFree(handle: Long)
@@ -35,15 +41,30 @@ internal object NativeLlm {
         addSpecial: Boolean,
     ): IntArray
 
+    @Suppress("LongParameterList") // one flat JNI call
     external fun nativeGenerate(
         handle: Long,
         promptUtf8: ByteArray,
+        cutBytes: IntArray,
         params: FloatArray,
         grammar: String?,
         cb: TokenCallback,
     ): Int
 
-    external fun nativeCancel(handle: Long)
+    /** Sets or clears the stop flag; a set flag also aborts a running decode. */
+    external fun nativeSetCancel(
+        handle: Long,
+        cancel: Boolean,
+    )
+
+    external fun nativePrefill(
+        handle: Long,
+        promptUtf8: ByteArray,
+        cutBytes: IntArray,
+    ): Boolean
+
+    /** [loadMs, promptTokens, reusedTokens, prefillMs, genTokens, genMs] of the last calls. */
+    external fun nativeStats(handle: Long): FloatArray
 
     external fun nativeKvReuse(
         handle: Long,
