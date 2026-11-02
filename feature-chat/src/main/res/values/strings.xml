@@ -47,4 +47,13 @@
     <string name="chat_delete_short">Delete</string>
     <string name="chat_delete_confirm">Delete this chat? This can’t be undone.</string>
     <string name="chat_delete_yes">Delete</string>
+    <string name="chat_loading_brain_progress">Waking up the brain… %1$d %%</string>
+    <string name="chat_brain_missing">Brain not downloaded yet</string>
+    <string name="chat_brain_banner">Pim still needs his brain to answer (about 1 GB, best on Wi-Fi).</string>
+    <string name="chat_brain_get">Get it</string>
+    <string name="chat_brain_later">Later</string>
+    <string name="chat_no_brain_hint">Pim can answer once his brain is on your phone.</string>
+    <string name="chat_edit">Edit</string>
+    <string name="chat_editing">Editing your message</string>
+    <string name="chat_edit_cancel">Stop editing</string>
 </resources>

@@ -47,4 +47,13 @@
     <string name="chat_delete_short">Löschen</string>
     <string name="chat_delete_confirm">Diesen Chat löschen? Das geht nicht rückgängig.</string>
     <string name="chat_delete_yes">Löschen</string>
+    <string name="chat_loading_brain_progress">Gehirn wacht auf … %1$d %%</string>
+    <string name="chat_brain_missing">Gehirn noch nicht geladen</string>
+    <string name="chat_brain_banner">Pim braucht noch sein Gehirn, um zu antworten (etwa 1 GB, am besten im WLAN).</string>
+    <string name="chat_brain_get">Laden</string>
+    <string name="chat_brain_later">Später</string>
+    <string name="chat_no_brain_hint">Pim kann antworten, sobald sein Gehirn auf deinem Handy ist.</string>
+    <string name="chat_edit">Bearbeiten</string>
+    <string name="chat_editing">Du bearbeitest deine Nachricht</string>
+    <string name="chat_edit_cancel">Bearbeiten abbrechen</string>
 </resources>
