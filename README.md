@@ -41,7 +41,7 @@ People who care about privacy but are not tech experts, and people who are criti
 | Area | What Hain does | State |
 |---|---|---|
 | Chat | Streaming answers, Markdown, code, thinking block, stop, regenerate, copy, share | ✅ basic |
-| First start | Downloads the brain (LFM3-1.7B, 1.1 GB) with resume and checksum | ✅ |
+| First start | Playful welcome tour with Pim, downloads the brain (LFM3-1.7B, 1.0 GB) with resume and checksum, celebration screen | ✅ |
 | Chats | Saved and encrypted, search, rename, pin, delete, export | 🔨 in progress |
 | Settings | Answer mode (fast / auto / thorough), theme, large text, own instructions, knowledge packs | 🚧 partly (packs screen; no picker yet) |
 | Tools | Calculator & units, weather, Wikipedia, web search without API key, read web pages | 🗓 planned |
