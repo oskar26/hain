@@ -161,3 +161,8 @@ v0.2 plan, day 1 of 6. One commit per task, draft PR, not ready-for-review witho
 **Gate:** `assembleDebug testDebugUnitTest ktlintCheck detekt -Phain.native=false` green (112 unit tests, 0 failures), `check_strings` OK. Native APK by `apk.yml`. Low-memory sandbox: `--max-workers=2 -Pkotlin.compiler.execution.strategy=in-process` avoids daemon crashes.
 **Sandbox gotchas:** run ktlintFormat with `-Phain.native=false` too, otherwise Gradle starts downloading the NDK. `build/` outputs of some modules are tracked in git by an older commit — do not stage them (`git add` explicit paths).
 **Next:** day 2 — settings + DataStore, packs screen, DeviceCheck, onboarding language.
+
+## 2026-11-02 · day 2a "Neues Gehirn-Modell" (T-080) · review · harness: Hark · branch `hark/day-2`
+
+Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09a…7452; catalog id `lfm3-1.7b-qad-q4_0`). The old Q4_K_M file is deleted automatically once the new one is complete. Sampling defaults (temp 0.1, repeat 1.1) already match. Catalog test, MODELS.md, README, AGENTS.md updated.
+**Split:** settings/DataStore, packs screen, DeviceCheck, model picker, onboarding language move to day 2b (plan row 2b).

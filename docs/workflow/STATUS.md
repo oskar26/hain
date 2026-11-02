@@ -13,6 +13,8 @@
   - Agents (v0.2 plan): settings + DataStore (T-09x), T-084 packs screen, DeviceCheck, onboarding language; then T-060/T-062 tool loop, T-071 feeds; finish T-014/T-015 components.
 - **First milestone goal (M4):** app opens, downloads LFM3-1.7B, streams a German answer, keeps chat history.
 
+- **Day 2a (02.11.):** brain model is now LFM3-1.7B-QAD-Q4_0 (`hark/day-2`).
+
 ## Milestones
 
 | M | Name | State |
