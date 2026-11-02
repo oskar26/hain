@@ -76,3 +76,17 @@ Konfetti 2.0.5, Showkase 1.0.5 (debug + KSP only), Roborazzi 1.77.0 (test only).
 | MNN | Apache-2.0 | ok |
 | Kiwix/libkiwix (optional, later) | GPL-3.0 | ok with GPL app |
 | Google ML Kit / Play Services | proprietary | **do not use** |
+
+## Website (`website/`, not part of the app)
+
+Full list and notes: [website/LICENSES.md](../../website/LICENSES.md).
+
+| Component | Licence | Status |
+|---|---|---|
+| motion (DOM helpers, shipped to visitors) | MIT | ok |
+| React / React DOM (build-time prerendering only) | MIT | ok |
+| Tailwind CSS 4, Vite 8, @vitejs/plugin-react | MIT | ok (build tools) |
+| TypeScript | Apache-2.0 | ok (build tool) |
+| lucide-react | ISC | ok |
+| Inter Variable (@fontsource-variable/inter, self-hosted) | OFL-1.1 | ok |
+| Aceternity UI / 21st.dev | own licences | **inspiration only, no code copied** (Aceternity licence forbids redistributing source) |
