@@ -1,0 +1,11 @@
+name: "💬 Frage / Question"
+description: Du kommst nicht weiter oder willst etwas wissen. / You are stuck or want to know something.
+title: "[Frage] "
+labels: ["frage"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Deine Frage / Your question
+    validations:
+      required: true
