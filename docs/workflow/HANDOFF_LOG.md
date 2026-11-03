@@ -255,3 +255,11 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 
 **Host check** (llama.cpp `39febd2`, `LFM3-1.7B-QAD-Q4_0.gguf`, temp 0.1, our prompt + tools block): "Wetter morgen in Köln" → `weather(place=Köln)`, "Wer war Ada Lovelace" → `wikipedia(topic, lang=de)`, "15 % von 80" → `calculate(15% * 80)`, Berlin weather (EN) and "mayor of Paris" → right tools, small talk and jokes → no tool. With a weather result the brain answered in German from the data but mixed up today/tomorrow → days in the result are now named (`"day":"morgen"`). "42 km in Meilen" came as `42 km in m` → example in the tool description now uses `mi`.
 
+
+## 2026-11-03 · redesign "Aktionen + Seitenleiste" (2d-4 points 2+3) · review · harness: Hark · branch `hark/redesign`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-010 | review | `HainTypeTest` (Hanken scale, body ≥ 16 sp), `HainShapesTest` (3 radii + capsule), `HainColorsTest` (new tokens), `HainSurfaceTest`, `HainMotionLanguageTest` (snap when reduced) | all screens that drew their own surface: `Composer`, `HainCard`, `HainChip`, `Buttons`, `Scaffolding`, `SettingsRows`/`SettingsScreen`/`PacksScreen`, `WelcomeTour`/`SuccessScreen`, `ChatScreen`/`ChatListDrawer` (move onto tokens) | task id T-010 used for the design-system part (T-083 is onboarding); Inter fonts removed; Roborazzi screenshots not recorded (Robolectric native graphics missing on the aarch64 sandbox) |
+| T-057 | review | `MessageRatingsTest`, `ChatViewModelTest.thumbsToggleAndStayPerAnswer` | `MainActivity` (wires `PrefsRatings`), `HainIcons` + 2 Lucide drawables (thumbs) | follow-up suggestions skipped (extra brain call per answer); read aloud waits for voice (Häppchen 10); ratings of deleted chats stay in prefs (tiny) |
+| T-053 | review | compiles; reduce motion → `snap()` for drawer, scrim, list, menu | `PopupMenu` (now `expanded` param for fade-out) | menu near the screen bottom does not flip upwards yet |
