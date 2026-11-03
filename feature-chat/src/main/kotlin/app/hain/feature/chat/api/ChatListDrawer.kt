@@ -1,6 +1,7 @@
 package app.hain.feature.chat.api
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
@@ -39,6 +41,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -60,10 +63,18 @@ import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.HainMenuRow
 import app.hain.ui.components.HainPopupItem
 import app.hain.ui.components.HainPopupMenu
+import app.hain.ui.motion.HainMotion
+import app.hain.ui.motion.HainMotionMoment
+import app.hain.ui.motion.LocalReduceMotion
+import app.hain.ui.motion.hainSpring
+import app.hain.ui.motion.hainTween
+import app.hain.ui.motion.motionSpec
+import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
+import app.hain.ui.theme.hainSurface
 
 /** Chat list drawer: search, sections Pinned/Today/Yesterday/7 days/Older, rename, pin, delete (T-053). */
 @Suppress("LongParameterList") // drawer state is passed flat so previews stay simple
@@ -78,18 +89,24 @@ internal fun ChatListDrawer(
 ) {
     val colors = LocalHainColors.current
     val spacing = LocalHainSpacing.current
-    AnimatedVisibility(open, enter = fadeIn(), exit = fadeOut()) {
+    val reduce = LocalReduceMotion.current
+    // scrim fades, the panel glides on the calm drawer spring; both snap with reduced motion (T-053)
+    AnimatedVisibility(
+        open,
+        enter = fadeIn(hainTween(HainMotion.BASE_MS, reduce)),
+        exit = fadeOut(hainTween(HainMotion.BASE_MS, reduce)),
+    ) {
         Box(
             Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = SCRIM_ALPHA))
+                .background(colors.scrim)
                 .clickable(remember { MutableInteractionSource() }, indication = null, onClick = actions.onClose),
         )
     }
     AnimatedVisibility(
         open,
-        enter = slideInHorizontally { -it },
-        exit = slideOutHorizontally { -it },
+        enter = slideInHorizontally(motionSpec(HainMotionMoment.DRAWER, reduce)) { -it },
+        exit = slideOutHorizontally(motionSpec(HainMotionMoment.DRAWER, reduce)) { -it },
     ) {
         Column(
             Modifier
@@ -129,6 +146,21 @@ private fun DrawerList(
     val colors = LocalHainColors.current
     val spacing = LocalHainSpacing.current
     var expandedId by rememberSaveable { mutableStateOf<Long?>(null) }
+    val reduce = LocalReduceMotion.current
+    // list changes (pin, rename, delete) fade and glide instead of jumping; nothing moves when reduced
+    val itemMotion: Modifier.(LazyItemScope) -> Modifier = { scope ->
+        with(scope) {
+            if (reduce) {
+                animateItem(fadeInSpec = null, placementSpec = null, fadeOutSpec = null)
+            } else {
+                animateItem(
+                    fadeInSpec = hainTween(HainMotion.FAST_MS, false),
+                    placementSpec = hainSpring(false),
+                    fadeOutSpec = hainTween(HainMotion.FAST_MS, false),
+                )
+            }
+        }
+    }
     if (groups.isEmpty()) {
         val empty =
             if (hasChats && searchQuery.isNotBlank()) {
@@ -145,7 +177,7 @@ private fun DrawerList(
                     stringResource(group.label()),
                     style = type.label.copy(color = colors.textMuted),
                     modifier =
-                        Modifier.padding(
+                        Modifier.itemMotion(this).padding(
                             start = spacing.md,
                             end = spacing.md,
                             top = spacing.md,
@@ -160,7 +192,7 @@ private fun DrawerList(
                     expanded = chat.id == expandedId,
                     onToggle = { expandedId = if (expandedId == chat.id) null else chat.id },
                     actions = actions,
-                    modifier = Modifier.animateItem(),
+                    modifier = Modifier.itemMotion(this),
                 )
             }
         }
@@ -184,11 +216,11 @@ private fun SearchField(
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     val spacing = LocalHainSpacing.current
-    val shape = LocalHainShapes.current.chip
+    val shape = LocalHainShapes.current.card
     Row(
         Modifier
             .fillMaxWidth()
-            .background(colors.surface, shape)
+            .hainSurface(HainLevel.FLAT, shape)
             .padding(start = spacing.md, end = spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -247,49 +279,82 @@ private fun ChatRow(
         })
         return
     }
-    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    // the highlight covers the whole row, ⋯ included; while its menu is open the row is marked (T-053)
+    val highlight by animateColorAsState(
+        when {
+            expanded -> colors.surfaceHigh
+            selected -> colors.surface
+            else -> Color.Transparent
+        },
+        hainTween(HainMotion.FAST_MS),
+        label = "row-highlight",
+    )
+    Row(
+        modifier
+            .fillMaxWidth()
+            .clip(LocalHainShapes.current.row)
+            .background(highlight),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         HainMenuRow(
             icon = if (chat.pinned) HainIcons.pin else null,
             label = chat.title,
             onClick = { actions.onOpen(chat.id) },
-            selected = selected,
             modifier = Modifier.weight(1f),
         )
         Box {
-            HainIconButton(HainIcons.more, stringResource(R.string.chat_more), onToggle, tint = colors.textMuted)
-            if (expanded) {
-                HainPopupMenu(
-                    onDismiss = onToggle,
-                    alignment = Alignment.TopEnd,
-                    offset = IntOffset(0, with(LocalDensity.current) { MENU_OFFSET.dp.roundToPx() }),
-                ) {
-                    if (mode == RowMode.CONFIRM_DELETE) {
-                        ConfirmDelete(
-                            onDelete = {
-                                actions.onDelete(chat.id)
-                                onToggle()
-                            },
-                            onCancel = { mode = RowMode.MENU },
-                        )
-                    } else {
-                        HainPopupItem(
-                            HainIcons.pin,
-                            stringResource(if (chat.pinned) R.string.chat_unpin else R.string.chat_pin),
-                            {
-                                actions.onPin(chat.id, !chat.pinned)
-                                onToggle()
-                            },
-                        )
-                        HainPopupItem(HainIcons.edit, stringResource(R.string.chat_rename), { mode = RowMode.RENAME })
-                        HainPopupItem(
-                            HainIcons.delete,
-                            stringResource(R.string.chat_delete_short),
-                            { mode = RowMode.CONFIRM_DELETE },
-                            danger = true,
-                        )
-                    }
-                }
-            }
+            HainIconButton(HainIcons.more, stringResource(R.string.chat_more), onToggle, tint = colors.icon)
+            RowMenu(chat, expanded, mode, { mode = it }, onToggle, actions)
+        }
+    }
+}
+
+/** The ⋯ menu of one chat as a glass tile right under the button (T-053). */
+@Suppress("LongParameterList")
+@Composable
+private fun RowMenu(
+    chat: Chat,
+    expanded: Boolean,
+    mode: RowMode,
+    onMode: (RowMode) -> Unit,
+    onToggle: () -> Unit,
+    actions: DrawerActions,
+) {
+    val density = LocalDensity.current
+    // glass tile right under the ⋯, growing out of its top-right corner
+    HainPopupMenu(
+        expanded = expanded,
+        onDismiss = onToggle,
+        alignment = Alignment.TopEnd,
+        offset =
+            with(density) {
+                IntOffset(MENU_SHADOW_ROOM.dp.roundToPx(), (MENU_OFFSET - MENU_SHADOW_ROOM).dp.roundToPx())
+            },
+    ) {
+        if (mode == RowMode.CONFIRM_DELETE) {
+            ConfirmDelete(
+                onDelete = {
+                    actions.onDelete(chat.id)
+                    onToggle()
+                },
+                onCancel = { onMode(RowMode.MENU) },
+            )
+        } else {
+            HainPopupItem(
+                HainIcons.pin,
+                stringResource(if (chat.pinned) R.string.chat_unpin else R.string.chat_pin),
+                {
+                    actions.onPin(chat.id, !chat.pinned)
+                    onToggle()
+                },
+            )
+            HainPopupItem(HainIcons.edit, stringResource(R.string.chat_rename), { onMode(RowMode.RENAME) })
+            HainPopupItem(
+                HainIcons.delete,
+                stringResource(R.string.chat_delete_short),
+                { onMode(RowMode.CONFIRM_DELETE) },
+                danger = true,
+            )
         }
     }
 }
@@ -346,8 +411,8 @@ private fun ConfirmDelete(
     }
 }
 
-private const val SCRIM_ALPHA = 0.32f
 private const val DRAWER_WIDTH = 300
 private const val ICON_SIZE = 20
-private const val MENU_OFFSET = 40
+private const val MENU_OFFSET = 44
+private const val MENU_SHADOW_ROOM = 12
 private const val CONFIRM_WIDTH = 240
