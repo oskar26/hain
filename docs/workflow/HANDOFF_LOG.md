@@ -236,3 +236,19 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 | task | status | check result | files outside list (reason) | open issues |
 |---|---|---|---|---|
 | T-080 | review | `ReplyLanguageTest` (detector, setting/device rules, German prompt ends with the rule), `ChatEngineTest` (hint after history, checkpoints kept, no hint), `PromptAssetsTest`; host run with llama.cpp `39febd2` + `LFM3-1.7B-QAD-Q4_0.gguf` (14 prompts auto + 5 extra cases, all in the right language, no mixing) | `SystemPromptSource` (template per language, settings instead of `customInstructions`), `MainActivity` (2 lines), `ChatEngine` (`turnHint`, `# Kontext` heading), `SystemPromptFiller` (`{language_rule}`) | **Cause:** the system prompt was English with the language rule in the middle; LFM3-1.7B follows the prompt language → "I'm doing great" / "Sure! Lauch (leek) …". `HainSettings.customInstructions()` is no longer used by the app (left in place, settings files belong to the parallel settings run). Content quality of the 1.7B model stays limited (e.g. invented leek dishes) – not a language issue. Sampling unchanged. Device check on the phone still open. |
+
+## 2026-11-03 · day 3 "Werkzeuge I" · review · harness: Hark · branch `hark/day-3`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-014 | review | compiles, previews light+dark, no material3 | – | ToolChip lives in feature-chat (ToolTimeline) |
+| T-060 | review | `HttpNetworkGateTest` (log without query, detail, UA, offline + user download, https only, failures, 7 days) | API in `core-common/api/net` (settings + chat + tools need it), `AppModule` | HttpURLConnection instead of OkHttp (no new lib), log in memory → Room in 3b; model download not yet through the gate (3b) |
+| T-062 | review | `ToolRouterTest`, `ChatEngineToolsTest` (loop, 3-round cap, offline schemas, quick sum) | `ChatEngine`, `ChatViewModel`, `MainActivity`, `SystemPromptSource`, prompt assets (tool rule) | – |
+| T-063 | review | `CalculatorTest` + `UnitsTest` (> 50 cases) | – | currency not in v1 |
+| T-064 | review | `WeatherToolTest` (fixtures, gate, days named) | – | WeatherCard → 3b |
+| T-065 | review | `WikipediaToolTest` (fixtures, URLs, language) | – | WikiCard → 3b |
+| T-059 | review | `ChatEngineToolsTest.stepsSurviveTheDatabase` | `ChatStore`, `RoomChatPersistence` (steps+sources in `sources_json`) | no favicons yet (needs Coil, 3b) |
+| T-069 | review | compiles; strings EN+DE | `SettingsPages` (Privacy page), `SettingsActions` | UI test missing |
+
+**Host check** (llama.cpp `39febd2`, `LFM3-1.7B-QAD-Q4_0.gguf`, temp 0.1, our prompt + tools block): "Wetter morgen in Köln" → `weather(place=Köln)`, "Wer war Ada Lovelace" → `wikipedia(topic, lang=de)`, "15 % von 80" → `calculate(15% * 80)`, Berlin weather (EN) and "mayor of Paris" → right tools, small talk and jokes → no tool. With a weather result the brain answered in German from the data but mixed up today/tomorrow → days in the result are now named (`"day":"morgen"`). "42 km in Meilen" came as `42 km in m` → example in the tool description now uses `mi`.
+
