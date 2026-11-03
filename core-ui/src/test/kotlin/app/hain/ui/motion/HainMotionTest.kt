@@ -66,3 +66,21 @@ class HainMotionTest {
         }
     }
 }
+
+class HainMotionLanguageTest {
+    @Test
+    fun `shared durations stay short and calm`() {
+        assertEquals(150, HainMotion.FAST_MS)
+        assertEquals(180, HainMotion.MENU_MS)
+        assertTrue(HainMotion.MENU_MS in 150..200)
+    }
+
+    @Test
+    fun `tween and spring snap when motion is reduced`() {
+        assertTrue(hainTween<Float>(HainMotion.MENU_MS, reduceMotion = true) is SnapSpec)
+        assertTrue(hainSpring<Float>(reduceMotion = true) is SnapSpec)
+        assertTrue(hainTween<Float>(HainMotion.MENU_MS, reduceMotion = false) is TweenSpec)
+        val spring = hainSpring<Float>(reduceMotion = false) as SpringSpec
+        assertEquals(HainMotion.CALM_DAMPING, spring.dampingRatio)
+    }
+}

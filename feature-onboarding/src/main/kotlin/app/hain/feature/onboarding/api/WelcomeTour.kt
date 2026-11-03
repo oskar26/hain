@@ -144,5 +144,5 @@ private val DOT = 8.dp
 private val DOT_ACTIVE = 22.dp
 private val MINT_WASH = Color(color = 0xFF7FD6A4)
 private val LIME_WASH = Color(color = 0xFFD8F0A0)
-private const val WASH_TOP = 0.28f
-private const val WASH_BOTTOM = 0.22f
+private const val WASH_TOP = 0.16f
+private const val WASH_BOTTOM = 0.12f
