@@ -24,6 +24,8 @@ android {
 dependencies {
     implementation(project(":core-common"))
     implementation(project(":core-data"))
+    api(project(":core-llm"))
+    implementation(libs.kotlinx.coroutines.core)
     implementation(libs.androidx.core.ktx)
 
     testImplementation(libs.junit)

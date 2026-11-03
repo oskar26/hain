@@ -18,6 +18,10 @@ data class HainSettings(
     val answerMode: AnswerMode = AnswerMode.AUTO,
     val aboutMe: String = "",
     val style: String = "",
+    /** Offline mode: no tool goes online; only a download you start yourself (SETTINGS.md `offline_mode`). */
+    val offlineMode: Boolean = false,
+    /** Network log keeps full addresses, not just the host (SETTINGS.md `network_log_detail`). */
+    val networkLogDetail: Boolean = false,
 ) {
     /** Text for the "user instructions" slot of the system prompt; empty if nothing is set. */
     fun customInstructions(deviceLanguage: String = "English"): String =

@@ -3,7 +3,9 @@ package app.hain.di
 import android.content.Context
 import android.util.Log
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import app.hain.common.api.HainSettings
 import app.hain.common.api.SettingsRepository
+import app.hain.common.api.net.NetworkGate
 import app.hain.data.HainDatabase
 import app.hain.data.KeystoreKeyProvider
 import app.hain.feature.chat.internal.ChatStore
@@ -12,6 +14,7 @@ import app.hain.llm.api.LlmEngine
 import app.hain.llm.internal.LlamaEngine
 import app.hain.models.api.ModelRepository
 import app.hain.models.internal.DefaultModelRepository
+import app.hain.tools.internal.net.HttpNetworkGate
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,7 +23,9 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.io.File
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Singleton
 
 @Module
@@ -49,6 +54,21 @@ object AppModule {
                 produceFile = { File(context.filesDir, "datastore/settings.preferences_pb") },
             ),
         )
+
+    /**
+     * The one way to the internet (T-060). Reads offline mode and the log detail from the settings,
+     * which are kept up to date in the background.
+     */
+    @Provides
+    @Singleton
+    fun networkGate(settings: SettingsRepository): NetworkGate {
+        val current = AtomicReference(HainSettings())
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { settings.settings.collect { current.set(it) } }
+        return HttpNetworkGate(
+            offline = { current.get().offlineMode },
+            detailedLog = { current.get().networkLogDetail },
+        )
+    }
 
     /** Chats survive app restarts in the encrypted database; if it cannot open, chats stay in memory. */
     @Provides
