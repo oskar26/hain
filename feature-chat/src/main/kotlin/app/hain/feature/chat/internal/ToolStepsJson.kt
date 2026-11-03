@@ -1,5 +1,6 @@
 package app.hain.feature.chat.internal
 
+import app.hain.tools.api.PhoneAction
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -10,13 +11,17 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 
-/** Tool steps and sources of an answer as one JSON text in `message.sources_json` (no schema change). */
+/**
+ * Tool steps, sources and phone-action cards of an answer as one JSON text in `message.sources_json`
+ * (no schema change).
+ */
 internal object ToolStepsJson {
     fun encode(
         steps: List<ToolStep>,
         sources: List<SourceRef>,
+        actions: List<ActionCard> = emptyList(),
     ): String? {
-        if (steps.isEmpty() && sources.isEmpty()) return null
+        if (steps.isEmpty() && sources.isEmpty() && actions.isEmpty()) return null
         return buildJsonObject {
             putJsonArray("steps") {
                 steps.forEach { s ->
@@ -41,7 +46,29 @@ internal object ToolStepsJson {
                     )
                 }
             }
+            if (actions.isNotEmpty()) {
+                putJsonArray("actions") {
+                    actions.forEach { a ->
+                        add(JsonObject(PhoneAction.toJson(a.action) + ("state" to JsonPrimitive(a.state.name))))
+                    }
+                }
+            }
         }.toString()
+    }
+
+    /** The phone-action cards in [json] (T-068); unknown ones are skipped. */
+    fun decodeActions(json: String?): List<ActionCard> {
+        val root =
+            json
+                ?.takeIf { it.isNotBlank() }
+                ?.let { runCatching { Json.parseToJsonElement(it).jsonObject }.getOrNull() }
+                ?: return emptyList()
+        return (root["actions"] as? JsonArray).orEmpty().mapNotNull { el ->
+            val o = el as? JsonObject ?: return@mapNotNull null
+            val action = PhoneAction.fromJson(o) ?: return@mapNotNull null
+            val state = ActionState.entries.firstOrNull { it.name == o.text("state") } ?: ActionState.PENDING
+            ActionCard(action, state)
+        }
     }
 
     fun decode(json: String?): Pair<List<ToolStep>, List<SourceRef>> {

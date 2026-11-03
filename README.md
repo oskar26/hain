@@ -84,7 +84,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | ✏️ Chat extras | Automatic chat titles; tap your own message to edit or copy it. Chat list: small glass menu at each chat (pin, rename, delete), smooth drawer | ✅ |
 | 📤 Export | Export a chat as Markdown or PDF | 🗓️ |
 | 🧭 Settings, part 2 | Clearer layout with icon tiles and sub pages, own "reduce motion" switch. Still open: pack picker, language step at first start, glossy 3D Pim and new first-start pictures | 🚧 |
-| 🔧 Tools | Calculator and units, weather (Open-Meteo), Wikipedia (German/English), web search without API key that reads several pages, reading a link – Pim shows each step and its sources under the answer. Still open: alarm, timer, calendar and navigation with a confirm card, weather card | 🚧 |
+| 🔧 Tools | Calculator and units, weather (Open-Meteo), Wikipedia (German/English), web search without API key that reads several pages (or your own SearXNG), reading a link, alarm, timer, calendar entry and route with a confirm card – Pim shows each step and its sources under the answer. Still open: weather card, repeating alarms | 🚧 |
 | ⏰ Phone actions | Alarm, timer, calendar entry, navigation, always confirmed by you | 🗓️ |
 | 🛡️ Network log | Every tool request goes through one gate: orange "Online" dot while it runs, offline mode, log of the last 7 days in Settings → Privacy. Still open: brain download through the gate, log kept across app restarts | 🚧 |
 | 📰 News | Standard mix (incl. junge Welt), standard + own feeds, or only own feeds | 🗓️ |
@@ -101,6 +101,9 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Alarm, timer, calendar and directions – always with your OK.** Say "Stell mir einen Wecker um 6:30", "Timer 10 Minuten", "Trag Zahnarzt morgen um 15 Uhr ein" or "Navigier mich zum Kölner Dom". Pim prepares it and shows a small card under the answer; nothing happens until you tap **Stellen**, **Starten** or **Eintragen** (or **Abbrechen**). Then your clock, calendar or map app takes over – the calendar opens already filled in, so Hain needs no calendar permission. If your phone has no app for it, the card tells you. Works in offline mode too.
+- **Your own search.** Run your own SearXNG? Put its address in Settings → Privacy and Pim asks it first.
+- **Search gives DuckDuckGo a break.** When DuckDuckGo answers with its "are you a bot?" page, Hain leaves it alone for 10 minutes and uses the other sources instead.
 - **Softer screen changes and a depth switch in the chat.** The start page now glides into the chat, settings slide in and out. Above the message box you pick **Auto / Fast / Thorough** – it applies to your next message (same setting as Settings → Answers).
 - **Tools in every message.** Before, Pim used a tool only once per chat and afterwards pretended to have "looked it up". Now Pim remembers which tools it really used, calls them again for every new question (weather, Wikipedia, search) and never claims to have looked something up without doing it.
 - **Pim searches the web – without an API key.** Ask "Recherchier mal: Wie viel Strom spart eine Wärmepumpe?" and Pim searches (DuckDuckGo, SearXNG or Wikipedia), reads the 3 best pages at the same time and answers from them. You watch every step above the answer ("Suche · Wärmepumpe ✓", "3 Seiten gelesen ✓"), the pages Pim really read are the source chips below. If it needs more, Pim searches a second time. In the answer mode **Schnell** Pim searches once and reads one page.
@@ -287,7 +290,7 @@ Architecture: [docs/specs/ARCHITECTURE.md](docs/specs/ARCHITECTURE.md) · Design
 
 ## Auf Deutsch
 
-Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Gerät läuft: chatten, rechnen, Wetter und Wikipedia nachschauen, und bald auch im Web suchen, Fotos und PDFs verstehen, sprechen und sich Dinge merken. Keine Cloud, kein Konto, keine API-Schlüssel. Ins Internet geht Hain nur, wenn du etwas brauchst, und zeigt dir genau, wohin die Anfrage geht. Das ganze Konzept steht in [docs/concept/KONZEPT.md](docs/concept/KONZEPT.md).
+Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Gerät läuft: chatten, rechnen, Wetter und Wikipedia nachschauen, im Web suchen, Wecker, Timer, Termine und Routen vorbereiten (du bestätigst jedes Mal mit einem Tipp), und bald auch Fotos und PDFs verstehen, sprechen und sich Dinge merken. Keine Cloud, kein Konto, keine API-Schlüssel. Ins Internet geht Hain nur, wenn du etwas brauchst, und zeigt dir genau, wohin die Anfrage geht. Das ganze Konzept steht in [docs/concept/KONZEPT.md](docs/concept/KONZEPT.md).
 
 **Installieren:** Auf dem Handy die [Nightly-Seite](https://github.com/oskar26/hain/releases/tag/nightly) öffnen, `hain-debug.apk` laden, beim Öffnen „Unbekannte Apps installieren“ für den Browser erlauben, installieren. Beim ersten Start lädt Pim das Gehirn (ca. 1 GB, am besten im WLAN) – das kannst du auch überspringen und später im Chat nachholen. Updates einfach drüber installieren, Chats und Gehirn bleiben erhalten.
 

@@ -51,6 +51,11 @@
     <string name="settings_about_text">Hain is a small helper that thinks on your phone, without the cloud. Pim is the little drop that keeps you company. Hain is free and open source (GPL-3.0).</string>
     <string name="settings_offline">Offline mode</string>
     <string name="settings_offline_hint">Pim never goes online. Weather and Wikipedia pause.</string>
+    <string name="settings_searx">Your own search (SearXNG)</string>
+    <string name="settings_searx_placeholder">https://searx.example.org</string>
+    <string name="settings_searx_hint">Got your own SearXNG? Put its address here and Pim asks it first. Empty = Hain’s usual sources.</string>
+    <string name="settings_searx_ok">Pim asks this search first.</string>
+    <string name="settings_searx_bad">That doesn’t look like an https address yet.</string>
     <string name="settings_log_title">Network log</string>
     <string name="settings_log_hint">Every time Hain went online in the last 7 days. Your chats are never sent.</string>
     <string name="settings_log_all">All</string>

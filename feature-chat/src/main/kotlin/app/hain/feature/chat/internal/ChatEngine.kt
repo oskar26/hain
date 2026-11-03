@@ -40,6 +40,7 @@ sealed interface TurnUpdate {
         val steps: List<ToolStep> = emptyList(),
         val sources: List<SourceRef> = emptyList(),
         val trace: List<ToolTrace> = emptyList(),
+        val actions: List<ActionCard> = emptyList(),
     ) : TurnUpdate
 }
 
@@ -125,6 +126,7 @@ class ChatEngine(
                             turn.steps.toList(),
                             turn.sources.toList(),
                             turn.trace.toList(),
+                            turn.actions.toList(),
                         ),
                     )
                     return@flow
@@ -142,6 +144,7 @@ class ChatEngine(
         val steps = mutableListOf<ToolStep>()
         val sources = mutableListOf<SourceRef>()
         val trace = mutableListOf<ToolTrace>()
+        val actions = mutableListOf<ActionCard>()
         val reasoning = StringBuilder()
         var thinkingMs = 0L
         var searches = 0
@@ -179,6 +182,8 @@ class ChatEngine(
                 state = if (result.error == null) StepState.DONE else StepState.FAILED,
                 error = result.error,
             )
+        // a phone action is only prepared here; the card under the answer asks before anything happens
+        result.action?.let { turn.actions += ActionCard(it) }
         val pages = readPages(router, result, ctx, turn, thinking)
         (pages?.sources ?: result.sources).forEach { s ->
             if (turn.sources.none { it.url == s.url }) turn.sources += SourceRef(s.title, s.url)
@@ -376,7 +381,8 @@ class ChatEngine(
         ): String = "{\"search\":$search,\"read\":$pages}"
 
         private const val MAX_CALLS_PER_ROUND = 3
-        private val DETAIL_KEYS = listOf("place", "topic", "expression", "query", "url")
+        private val DETAIL_KEYS =
+            listOf("place", "topic", "expression", "query", "url", "time", "title", "destination")
 
         /** A few words for the tool line while it runs: the place, topic or sum the brain asked for. */
         internal fun detailOf(call: ToolCall): String? =

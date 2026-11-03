@@ -22,6 +22,8 @@ data class HainSettings(
     val offlineMode: Boolean = false,
     /** Network log keeps full addresses, not just the host (SETTINGS.md `network_log_detail`). */
     val networkLogDetail: Boolean = false,
+    /** Own SearXNG address, asked first by the web search (SETTINGS.md `searxng_url`); empty = none. */
+    val searxUrl: String = "",
 ) {
     /** Text for the "user instructions" slot of the system prompt; empty if nothing is set. */
     fun customInstructions(deviceLanguage: String = "English"): String =
@@ -35,4 +37,30 @@ data class HainSettings(
             if (aboutMe.isNotBlank()) add("About the user: ${aboutMe.trim()}")
             if (style.isNotBlank()) add("How the user wants answers: ${style.trim()}")
         }.joinToString("\n")
+}
+
+/** The SearXNG address a user typed, made usable (4b). */
+object SearxAddress {
+    private val HOST = Regex("""^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:\d{1,5})?(/.*)?$""")
+
+    /**
+     * "searx.example.org/" → "https://searx.example.org"; a trailing "/search" or "?…" is cut off.
+     * `null` for blank input, `http://` (Hain only talks https) or anything that is not an address.
+     */
+    @Suppress("ReturnCount")
+    fun normalize(input: String): String? {
+        var t = input.trim()
+        if (t.isEmpty() || t.any { it.isWhitespace() }) return null
+        if (t.startsWith("http://", ignoreCase = true)) return null
+        t = t.removePrefix("https://").removePrefix("HTTPS://")
+        t =
+            t
+                .substringBefore('?')
+                .substringBefore('#')
+                .trimEnd('/')
+                .removeSuffix("/search")
+                .trimEnd('/')
+        if (!HOST.matches(t.lowercase())) return null
+        return "https://$t"
+    }
 }

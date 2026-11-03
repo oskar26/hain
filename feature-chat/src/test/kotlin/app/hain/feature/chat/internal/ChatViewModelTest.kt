@@ -164,4 +164,41 @@ class ChatViewModelTest {
         vm.rate(5L, Rating.DOWN)
         assertEquals(null, vm.ratings.value[5L])
     }
+
+    @Test
+    fun confirmCardTapIsKeptOnTheMessage() {
+        val store = ChatStore()
+        val chat = store.create("Wecker")
+        val alarm =
+            app.hain.tools.api.PhoneAction
+                .Alarm(6, 30)
+        store.upsertMessage(chat.id, UiMessage(1, isUser = true, text = "Wecker 6:30"))
+        val answer = UiMessage(2, isUser = false, text = "Tipp auf Stellen.", actions = listOf(ActionCard(alarm)))
+        store.upsertMessage(chat.id, answer)
+        val vm = viewModel(FakeLlm(), store)
+        vm.openChat(chat.id)
+        vm.resolveAction(2, 0, ActionEvent.CONFIRMED)
+        assertEquals(
+            ActionState.DONE,
+            store
+                .chat(chat.id)!!
+                .messages
+                .last()
+                .actions
+                .single()
+                .state,
+        )
+        // one tap, one action
+        vm.resolveAction(2, 0, ActionEvent.CANCELLED)
+        assertEquals(
+            ActionState.DONE,
+            store
+                .chat(chat.id)!!
+                .messages
+                .last()
+                .actions
+                .single()
+                .state,
+        )
+    }
 }

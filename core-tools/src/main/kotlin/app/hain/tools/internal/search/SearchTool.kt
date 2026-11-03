@@ -30,7 +30,17 @@ import java.net.URLEncoder
 class SearchTool(
     private val gate: NetworkGate,
     private val searxInstances: List<String> = SEARX_INSTANCES,
+    private val clock: () -> Long = System::currentTimeMillis,
 ) : Tool {
+    /**
+     * DuckDuckGo back-off (4b): when a DuckDuckGo page answers with its bot check, that page is
+     * left out for [BACKOFF_MS] and the next service answers instead, so we stop knocking.
+     */
+    private val pausedUntil = java.util.concurrent.ConcurrentHashMap<String, Long>()
+
+    /** `true` while [service] (`ddg` or `ddg_lite`) is paused after a bot check. */
+    fun isPaused(service: String): Boolean = (pausedUntil[service] ?: 0L) > clock()
+
     override val online = true
     override val schema =
         ToolSchema(
@@ -57,7 +67,7 @@ class SearchTool(
     ): ToolResult {
         val query = Args.required(args, "query").take(MAX_QUERY)
         val hits =
-            search(query, ctx.lang)
+            search(query, ctx.lang, ctx.searxUrl)
                 .distinctBy { it.url }
                 .filterNot { blocked(it.url) }
                 .take(MAX_HITS)
@@ -89,12 +99,15 @@ class SearchTool(
     private suspend fun search(
         query: String,
         lang: String,
+        ownSearx: String?,
     ): List<SearchHit> {
+        // the user's own SearXNG (settings) comes first, then the public ones
+        val searx = (listOfNotNull(ownSearx) + searxInstances).distinct()
         val attempts =
-            searxInstances.map { base -> suspend { SearchParsers.searxng(get(searxUrl(base, query, lang))) } } +
+            searx.map { base -> suspend { SearchParsers.searxng(get(searxUrl(base, query, lang))) } } +
                 listOf(
-                    suspend { SearchParsers.duckDuckGo(get(ddgUrl(query, lang))) },
-                    suspend { SearchParsers.duckDuckGoLite(get(ddgLiteUrl(query, lang))) },
+                    suspend { ddg(DDG, ddgUrl(query, lang), SearchParsers::duckDuckGo) },
+                    suspend { ddg(DDG_LITE, ddgLiteUrl(query, lang), SearchParsers::duckDuckGoLite) },
                     suspend { SearchParsers.wikipedia(get(wikiUrl(query, lang)), wikiLang(lang)) },
                 )
         for (attempt in attempts) {
@@ -113,6 +126,23 @@ class SearchTool(
         return emptyList()
     }
 
+    /** One DuckDuckGo page, skipped while paused; a bot check pauses it for [BACKOFF_MS]. */
+    @Suppress("ReturnCount")
+    private suspend fun ddg(
+        service: String,
+        url: String,
+        parse: (String) -> List<SearchHit>,
+    ): List<SearchHit> {
+        if (isPaused(service)) return emptyList()
+        val response = gate.fetch(GateRequest(url, Purpose.SEARCH, headers = HEADERS))
+        if (SearchParsers.isBotCheck(response.code, response.body)) {
+            pausedUntil[service] = clock() + BACKOFF_MS
+            return emptyList()
+        }
+        if (!response.ok) throw IOException("HTTP ${response.code}")
+        return parse(response.body)
+    }
+
     private suspend fun get(url: String): String {
         val response = gate.fetch(GateRequest(url, Purpose.SEARCH, headers = HEADERS))
         if (!response.ok) throw IOException("HTTP ${response.code}")
@@ -121,6 +151,11 @@ class SearchTool(
 
     companion object {
         const val NAME = "web_search"
+
+        /** How long a DuckDuckGo page rests after its bot check (4b): 10 minutes. */
+        const val BACKOFF_MS = 10 * 60 * 1000L
+        const val DDG = "ddg"
+        const val DDG_LITE = "ddg_lite"
         private const val MAX_QUERY = 120
         private const val MAX_HITS = 6
 
