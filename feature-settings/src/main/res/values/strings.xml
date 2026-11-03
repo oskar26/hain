@@ -38,4 +38,15 @@
     <string name="packs_fit_space">Not enough free space on your phone.</string>
     <string name="packs_fit_small">Your phone is too small for this pack.</string>
     <string name="settings_group_packs">Packs</string>
+    <string name="settings_look_hint">Colors and text.</string>
+    <string name="settings_answers_hint">Language and style of answers.</string>
+    <string name="settings_you_hint">Tell Hain about you.</string>
+    <string name="settings_group_privacy">Privacy</string>
+    <string name="settings_privacy_hint">What stays on your phone.</string>
+    <string name="settings_group_about">About Hain</string>
+    <string name="settings_about_hint">Version and what Hain is.</string>
+    <string name="settings_reduce_motion">Reduce motion</string>
+    <string name="settings_reduce_motion_hint">Pim and the effects stay calm.</string>
+    <string name="settings_privacy_text">Everything stays on your phone. Your chats are locked with a key that never leaves your phone. Hain sends nothing to anyone and has no tracking.</string>
+    <string name="settings_about_text">Hain is a small helper that thinks on your phone, without the cloud. Pim is the little drop that keeps you company. Hain is free and open source (GPL-3.0).</string>
 </resources>

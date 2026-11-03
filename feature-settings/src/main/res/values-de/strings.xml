@@ -38,4 +38,15 @@
     <string name="packs_fit_space">Auf deinem Handy ist nicht genug Platz frei.</string>
     <string name="packs_fit_small">Dein Handy ist zu klein für dieses Paket.</string>
     <string name="settings_group_packs">Pakete</string>
+    <string name="settings_look_hint">Farben und Schrift.</string>
+    <string name="settings_answers_hint">Sprache und Art der Antworten.</string>
+    <string name="settings_you_hint">Erzähl Hain von dir.</string>
+    <string name="settings_group_privacy">Privatsphäre</string>
+    <string name="settings_privacy_hint">Was auf deinem Handy bleibt.</string>
+    <string name="settings_group_about">Über Hain</string>
+    <string name="settings_about_hint">Version und worum es geht.</string>
+    <string name="settings_reduce_motion">Weniger Bewegung</string>
+    <string name="settings_reduce_motion_hint">Pim und die Effekte bleiben ruhig.</string>
+    <string name="settings_privacy_text">Alles bleibt auf deinem Handy. Deine Chats sind mit einem Schlüssel gesperrt, der dein Handy nie verlässt. Hain schickt nichts an andere und verfolgt dich nicht.</string>
+    <string name="settings_about_text">Hain ist ein kleiner Helfer, der auf deinem Handy denkt, ohne Cloud. Pim ist der kleine Tropfen, der dich begleitet. Hain ist frei und quelloffen (GPL-3.0).</string>
 </resources>

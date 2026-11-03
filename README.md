@@ -83,7 +83,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🎨 Personality | Living Pim, green "thinking" glow, soft 3D buttons | ✅ |
 | ✏️ Chat extras | Automatic chat titles, copy or edit your own message (long press) | ✅ |
 | 📤 Export | Export a chat as Markdown or PDF | 🗓️ |
-| 🧭 Settings, part 2 | Clearer layout with groups, own "reduce motion" switch, pack picker, language step at first start, glossy 3D Pim and new first-start pictures | 🚧 |
+| 🧭 Settings, part 2 | Clearer layout with icon tiles and sub pages, own "reduce motion" switch. Still open: pack picker, language step at first start, glossy 3D Pim and new first-start pictures | 🚧 |
 | 🔧 Tools | Calculator and units, weather, Wikipedia, web search without API key, read web pages | 🗓️ |
 | ⏰ Phone actions | Alarm, timer, calendar entry, navigation, always confirmed by you | 🗓️ |
 | 🛡️ Network log | Every internet request goes through one gate and shows up in a log you can read | 🗓️ |

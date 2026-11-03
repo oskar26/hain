@@ -227,6 +227,10 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 
 **Gate:** `assembleDebug testDebugUnitTest ktlintCheck detekt -Phain.native=false` green (135 unit tests, 0 failures), `check_strings` OK. Native APK by `apk.yml` (PR #14). **Next:** 2d-3 (Einstellungen neu, 3D-UI/Onboarding-Bilder, Pim-3D-Glanz; R8 + Baseline-Profil after a device check).
 
+
+## Day 2d-3 (03.11.)
+- T-100: settings are now a hub of icon tiles (Look, Answers, About you, Knowledge packs, Privacy, About Hain) with sub pages; new DataStore key `reduce_motion` feeds `LocalReduceMotion` (OR system animation scale). EN+DE strings.
+- Not done (stays in 2d-3 / later): glossy 3D Pim, new onboarding pictures, R8 + baseline profile (needs device test of 2d-2 first).
 ## 2026-11-03 · fix "Antwortsprache Deutsch zuverlässig" (T-080) · review · harness: Hark · branch `hark/fix-language`
 
 | task | status | check result | files outside list (reason) | open issues |

@@ -17,6 +17,7 @@ class SettingsRepository(
             HainSettings(
                 theme = p[THEME].toEnum(ThemeChoice.SYSTEM),
                 readableFont = p[READABLE_FONT] ?: false,
+                reduceMotion = p[REDUCE_MOTION] ?: false,
                 answerLanguage = p[ANSWER_LANGUAGE].toEnum(AnswerLanguage.AUTO),
                 answerMode = p[ANSWER_MODE].toEnum(AnswerMode.AUTO),
                 aboutMe = p[ABOUT_ME].orEmpty(),
@@ -27,6 +28,8 @@ class SettingsRepository(
     suspend fun setTheme(value: ThemeChoice) = store.edit { it[THEME] = value.name }
 
     suspend fun setReadableFont(value: Boolean) = store.edit { it[READABLE_FONT] = value }
+
+    suspend fun setReduceMotion(value: Boolean) = store.edit { it[REDUCE_MOTION] = value }
 
     suspend fun setAnswerLanguage(value: AnswerLanguage) = store.edit { it[ANSWER_LANGUAGE] = value.name }
 
@@ -42,6 +45,7 @@ class SettingsRepository(
     private companion object {
         val THEME = stringPreferencesKey("theme")
         val READABLE_FONT = booleanPreferencesKey("readable_font")
+        val REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
         val ANSWER_LANGUAGE = stringPreferencesKey("answer_language")
         val ANSWER_MODE = stringPreferencesKey("answer_mode")
         val ABOUT_ME = stringPreferencesKey("custom_about_me")
