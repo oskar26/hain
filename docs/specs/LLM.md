@@ -135,10 +135,59 @@ States: `REASONING` (inside `<think>` … `</think>`), `TEXT`, `TOOL` (from `<to
 
 ## 9. System prompt
 
-`SystemPrompt.fill(template, vars)` loads `assets/prompts/system_full.en.txt` (or short) and replaces
-`{weekday} {date} {time} {timezone} {city} {emergency_number} {memory_snippets} {user_custom_instructions}`.
+`SystemPromptFiller.fill(template, vars)` loads `assets/prompts/system_full.<de|en>.txt` (or short) and replaces
+`{weekday} {date} {time} {timezone} {city} {emergency_number} {memory_snippets} {user_custom_instructions} {language_rule}`.
 Missing values → empty string, then collapse triple newlines. `emergency_number`: `112` for EU locales, `911` US, `999` UK, else `112`.
-Date/time formatted in the **app language** (`Dienstag, 28. Oktober 2026` / `Tuesday, 28 October 2026`).
+Date/time formatted in the **prompt language** with the device region (`Dienstag, 28. Oktober 2026` / `Tuesday, 28 October 2026`).
+
+**Language (T-080 fix, 2026-11-03).** LFM3-1.7B follows the language of its system prompt much more than a rule inside it:
+with the old English prompt, German messages got English or mixed answers ("Sure! Lauch (leek) eignet sich…").
+`ReplyLanguagePolicy` (`:core-llm`) therefore decides:
+
+| `answer_language` | prompt file | language rule (last lines, `# Sprache` / `# Language`) | hint before each answer |
+|---|---|---|---|
+| `de` | `system_full.de.txt` | „Antworte immer nur auf Deutsch. Misch keine englischen Wörter …“ | `Antworte auf Deutsch.` |
+| `en` | `system_full.en.txt` | "Always answer in English only. Never mix in German …" | `Answer in English.` |
+| `auto` (default) | device language `de` → DE file, else EN file | "answer in the language of the last message, never mix" | language of the last user message (stop-word detector, umlauts ×2); unclear ("Hi", "ok") → device language |
+
+The hint is a one-line `system` turn **after** the history (`…user<|im_end|>\n<|im_start|>system\nAntworte auf Deutsch.<|im_end|>\n<|im_start|>assistant\n`).
+It is never stored, so the cached prompt start and the checkpoint at the end of the history (§1, T-033) stay valid; the next turn re-reads only the last answer.
+`user_custom_instructions` holds the "no tools yet" line (until T-062) plus "about me" / "style" from the settings, labelled in the prompt language.
+The context heading is `# Context` / `# Kontext` (end of the fixed part = first checkpoint).
+
+Prompt rules for a 1.7B model (learned on the host, 03.11.): short bullet rules, no tool names while no tools are connected
+(the old prompt made the model write a `weather` tool call and invent a "[1] Wikipedia" source), and don't *mention* things you
+don't want literally: "at most one emoji / nature touch" gave a 😊 under every answer and "Das ist ein kleiner Natur-Hauch für dich".
+Sampling stays `chat` (temp 0.1, top_k 50, repeat 1.1): the language problem was the prompt, not the sampler.
+
+Default German prompt (`prompts/system_full.de.txt`; the English file is the same text in English):
+
+```text
+Du bist Pim, ein kleiner, freundlicher Spross aus dem Hain. Du bist eine KI in der App Hain und läufst komplett auf diesem Handy. Chats bleiben auf dem Gerät.
+
+# So antwortest du
+- Du hilfst bei allem: Schule, Kochen, Alltag, Wissen, Ideen.
+- Duze den Nutzer. Klinge warm, natürlich und locker, wie ein netter Freund.
+- Antworte meist in 2 bis 5 Sätzen. Bei Erklärungen, Rezepten oder Anleitungen darfst du ausführlicher sein und eine kurze Liste nutzen.
+- Fang direkt mit dem Inhalt an, ohne „Hallo“. Nur wenn der Nutzer grüßt, grüß kurz zurück.
+- Auf Smalltalk antworte herzlich und stell eine kleine Gegenfrage.
+- Nutze einfache Wörter und kurze Sätze. Formatiere sparsam: **fett** für das Wichtigste, Listen mit „-“.
+- Keine Floskeln. Wiederhole nicht die Frage.
+
+# Ehrlich bleiben
+- Erfinde nichts: keine Fakten, Zahlen, Links oder Zitate. Wenn du unsicher bist, sag das offen.
+- Dein Wissen kann veraltet sein. Bei Aktuellem wie Wetter, Nachrichten oder Preisen sag ehrlich, dass du es nicht sicher weißt.
+- Gesundheit, Recht, Geld: nur allgemeine Infos, empfiehl Fachleute. In Gefahr: sofort {emergency_number} anrufen.
+- Schädliche Bitten lehnst du kurz und freundlich ab.
+
+# Kontext
+Jetzt: {weekday}, {date}, {time} ({timezone}). Ort: {city}.
+Über den Nutzer: {memory_snippets}
+{user_custom_instructions}
+
+# Sprache
+{language_rule}
+```
 
 ## 10. Omni (optional pack, later tasks)
 

@@ -80,6 +80,7 @@ class MainActivity : ComponentActivity() {
                     llm,
                     prompts::current,
                     answerMode = { LlmAnswerMode.fromKey(settings().answerMode.name.lowercase()) },
+                    turnHint = prompts::turnHint,
                 ),
             store = chatStore,
             modelPath = { models.mainFile(brain).absolutePath },
@@ -101,7 +102,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val brain = models.defaultBrain
         var current = HainSettings()
-        val prompts = SystemPromptSource(applicationContext) { lang -> current.customInstructions(lang) }
+        val prompts = SystemPromptSource(applicationContext) { current }
         setContent {
             val settings by settingsRepository.settings.collectAsStateWithLifecycle(HainSettings())
             current = settings

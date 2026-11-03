@@ -69,6 +69,42 @@ class ChatEngineTest {
         }
 
     @Test
+    fun languageHintGoesAfterTheHistoryAndKeepsTheCheckpoints() =
+        runTest {
+            val llm = FakeLlm(listOf("Gut!"))
+            val system = "Sei nett.\n\n# Kontext\nJetzt: 07:00"
+            val history = listOf(ChatMessage(Role.USER, "wie geht es dir"))
+            var askedFor = ""
+            val hint = { last: String ->
+                askedFor = last
+                "Antworte auf Deutsch."
+            }
+            ChatEngine(llm, { system }, turnHint = hint)
+                .respond(history, AnswerMode.FAST)
+                .toList()
+            val prompt = llm.lastPrompt
+            assertEquals("wie geht es dir", askedFor)
+            assertTrue(
+                prompt,
+                prompt.endsWith(
+                    "wie geht es dir<|im_end|>\n<|im_start|>system\nAntworte auf Deutsch.<|im_end|>\n" +
+                        "<|im_start|>assistant\n<think></think>",
+                ),
+            )
+            val cuts = llm.checkpoints.last()
+            assertTrue(prompt.substring(cuts.first()).startsWith("# Kontext"))
+            assertTrue(prompt.substring(0, cuts.last()).endsWith("wie geht es dir<|im_end|>\n"))
+        }
+
+    @Test
+    fun noHintWhenNoneIsGiven() =
+        runTest {
+            val llm = FakeLlm(listOf("A"))
+            ChatEngine(llm, { "S" }, turnHint = { null }).respond(user("Hi"), AnswerMode.FAST).toList()
+            assertTrue(llm.lastPrompt.endsWith("Hi<|im_end|>\n<|im_start|>assistant\n<think></think>"))
+        }
+
+    @Test
     fun systemPromptTimeMovesOnlyEveryHalfHour() {
         var now = 1_000_000L
         val engine = ChatEngine(FakeLlm(), { "S" }, clock = { now })

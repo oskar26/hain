@@ -16,6 +16,7 @@ data class SystemPromptVars(
     val emergencyNumber: String? = null,
     val memorySnippets: String? = null,
     val userCustomInstructions: String? = null,
+    val languageRule: String? = null,
 ) {
     companion object {
         /**
@@ -70,6 +71,7 @@ object SystemPromptFiller {
                 "{emergency_number}" to (vars.emergencyNumber ?: EmergencyNumbers.DEFAULT),
                 "{memory_snippets}" to vars.memorySnippets,
                 "{user_custom_instructions}" to vars.userCustomInstructions,
+                "{language_rule}" to vars.languageRule,
             )
         var result = template
         values.forEach { (placeholder, value) -> result = result.replace(placeholder, value?.trim().orEmpty()) }
