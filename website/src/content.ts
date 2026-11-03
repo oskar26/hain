@@ -372,8 +372,8 @@ export const COPY: Record<Lang, Copy> = {
 // and set `file` to its name, e.g. file: '01-welcome.webp'.
 // `de` is an optional German version of the same screen.
 export const SCREENSHOTS: { id: string; file?: string; de?: string }[] = [
-  { id: '01-welcome' },
-  { id: '02-chat' },
-  { id: '03-settings' },
+  { id: '01-welcome', file: '01-welcome.webp' },
+  { id: '02-chat', file: '02-chat.webp' },
+  { id: '03-settings', file: '03-settings.webp' },
   { id: '04-packs' },
 ]
