@@ -3,6 +3,7 @@ package app.hain.tools.api
 import app.hain.common.api.net.OfflineException
 import app.hain.llm.api.ToolCall
 import app.hain.llm.api.ToolSchema
+import app.hain.tools.internal.search.PageReader
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
@@ -17,6 +18,7 @@ import java.io.IOException
 class ToolRouter(
     private val tools: List<Tool>,
     private val timeoutMs: Long = TIMEOUT_MS,
+    private val pages: PageReader? = null,
 ) {
     private val byName = tools.associateBy { it.schema.name }
 
@@ -50,8 +52,42 @@ class ToolRouter(
         }
     }
 
+    /**
+     * Reads the pages a web search picked (T-067), all at once, each cut to [maxChars]. The result
+     * lists only the pages that worked; `null` when nothing could be read.
+     */
+    @Suppress("SwallowedException", "ReturnCount")
+    suspend fun readPages(
+        urls: List<String>,
+        ctx: ToolContext,
+        maxChars: Int = PAGE_CHARS,
+    ): ToolResult? {
+        val reader = pages ?: return null
+        if (urls.isEmpty() || ctx.offline) return null
+        val read =
+            try {
+                withTimeout(READ_TIMEOUT_MS) { reader.readAll(urls, maxChars) }
+            } catch (e: TimeoutCancellationException) {
+                emptyList()
+            } catch (e: OfflineException) {
+                emptyList()
+            }
+        if (read.isEmpty()) return null
+        return ToolResult(
+            forModel = PageReader.forModel(read),
+            label = read.size.toString(),
+            sources = read.map { ToolSource(it.title, it.url) },
+        )
+    }
+
     companion object {
         const val TIMEOUT_MS = 12_000L
+
+        /** All pages of one search together (they load in parallel). */
+        const val READ_TIMEOUT_MS = 15_000L
+
+        /** Characters per page the brain gets after a search (3 pages ≈ 1000 tokens). */
+        const val PAGE_CHARS = 1200
         private const val OFFLINE_HINT = "Offline mode is on. Tell the user and offer to answer from memory."
 
         /** `{"error":"<code>","hint":"<one sentence>"}` (TOOLS.md §7). */

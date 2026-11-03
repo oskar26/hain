@@ -22,11 +22,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import app.hain.feature.chat.R
+import app.hain.feature.chat.internal.ChatEngine
 import app.hain.feature.chat.internal.SourceRef
 import app.hain.feature.chat.internal.StepState
 import app.hain.feature.chat.internal.ToolStep
@@ -58,13 +60,8 @@ internal fun ToolTimeline(
 
 @Composable
 private fun toolText(step: ToolStep): String {
-    val name =
-        when (step.name) {
-            "calculate" -> stringResource(R.string.chat_tool_calculate)
-            "weather" -> stringResource(R.string.chat_tool_weather)
-            "wikipedia" -> stringResource(R.string.chat_tool_wikipedia)
-            else -> stringResource(R.string.chat_tool_other)
-        }
+    if (step.name == ChatEngine.READ_STEP) return readPagesText(step)
+    val name = stringResource(toolName(step.name))
     val tail =
         when {
             step.state == StepState.RUNNING && step.detail == null -> stringResource(R.string.chat_tool_running)
@@ -73,6 +70,27 @@ private fun toolText(step: ToolStep): String {
             else -> step.detail
         }
     return if (tail.isNullOrBlank()) name else "$name · $tail"
+}
+
+private fun toolName(name: String): Int =
+    when (name) {
+        "calculate" -> R.string.chat_tool_calculate
+        "weather" -> R.string.chat_tool_weather
+        "wikipedia" -> R.string.chat_tool_wikipedia
+        ChatEngine.SEARCH_TOOL -> R.string.chat_tool_search
+        "read_page" -> R.string.chat_tool_read_page
+        else -> R.string.chat_tool_other
+    }
+
+/** "Lese 3 Seiten…" while the pages of a search load, then "3 Seiten gelesen". */
+@Composable
+private fun readPagesText(step: ToolStep): String {
+    val n = step.detail?.toIntOrNull() ?: 0
+    return when (step.state) {
+        StepState.RUNNING -> pluralStringResource(R.plurals.chat_tool_reading_pages, n, n)
+        StepState.DONE -> pluralStringResource(R.plurals.chat_tool_read_pages, n, n)
+        StepState.FAILED -> stringResource(R.string.chat_tool_pages) + " · " + stringResource(R.string.chat_tool_failed)
+    }
 }
 
 @Composable

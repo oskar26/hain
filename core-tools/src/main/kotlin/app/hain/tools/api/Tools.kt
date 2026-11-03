@@ -8,7 +8,14 @@ data class ToolContext(
     val lang: String,
     val now: ZonedDateTime,
     val offline: Boolean,
-)
+    /** How many search hits are read in full after a web search: 3, or 1 in the "Schnell" mode. */
+    val pagesToRead: Int = DEFAULT_PAGES,
+) {
+    companion object {
+        const val DEFAULT_PAGES = 3
+        const val FAST_PAGES = 1
+    }
+}
 
 /** A page a tool used; shown as a source chip under the answer. */
 data class ToolSource(
@@ -22,12 +29,14 @@ data class ToolSource(
  * @property forModel compact JSON the brain reads in `<tool_response>`.
  * @property label a few words for the tool line in the chat ("Köln", "12 × 7"); `null` = none.
  * @property error short English code (`offline`, `timeout`, `not_found` …); `null` = it worked.
+ * @property readUrls pages the chat engine should read next with [ToolRouter.readPages] (web search).
  */
 data class ToolResult(
     val forModel: String,
     val label: String? = null,
     val sources: List<ToolSource> = emptyList(),
     val error: String? = null,
+    val readUrls: List<String> = emptyList(),
 )
 
 /** One tool the brain may call. [online] tools go through the NetworkGate. */

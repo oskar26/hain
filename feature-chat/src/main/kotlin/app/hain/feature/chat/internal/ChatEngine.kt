@@ -17,6 +17,7 @@ import app.hain.llm.internal.StreamSplitter
 import app.hain.llm.internal.ThinkingPolicy
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.ToolContext
+import app.hain.tools.api.ToolResult
 import app.hain.tools.api.ToolRouter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -38,6 +39,7 @@ sealed interface TurnUpdate {
         val thinkingMillis: Long?,
         val steps: List<ToolStep> = emptyList(),
         val sources: List<SourceRef> = emptyList(),
+        val trace: List<ToolTrace> = emptyList(),
     ) : TurnUpdate
 }
 
@@ -89,7 +91,8 @@ class ChatEngine(
     ): Flow<TurnUpdate> =
         flow {
             val lastUser = history.lastOrNull()?.content.orEmpty()
-            val ctx = toolContext()
+            val fast = mode == AnswerMode.FAST
+            val ctx = toolContext().let { if (fast) it.copy(pagesToRead = ToolContext.FAST_PAGES) else it }
             val quick = quickAnswer(history, ctx)
             if (quick != null) {
                 emit(quick)
@@ -121,13 +124,14 @@ class ChatEngine(
                             if (thinking) turn.thinkingMs else null,
                             turn.steps.toList(),
                             turn.sources.toList(),
+                            turn.trace.toList(),
                         ),
                     )
                     return@flow
                 }
                 result.output.reasoning?.let { turn.reasoning.append(it).append("\n\n") }
                 turn.messages += ChatMessage(Role.ASSISTANT, result.output.text, calls, result.output.reasoning)
-                calls.forEach { call -> runTool(router, call, ctx, turn, thinking) }
+                calls.forEach { call -> runTool(router, call, ctx, turn, thinking, mode == AnswerMode.FAST) }
                 round++
             }
         }
@@ -137,8 +141,10 @@ class ChatEngine(
         val messages = mutableListOf<ChatMessage>()
         val steps = mutableListOf<ToolStep>()
         val sources = mutableListOf<SourceRef>()
+        val trace = mutableListOf<ToolTrace>()
         val reasoning = StringBuilder()
         var thinkingMs = 0L
+        var searches = 0
     }
 
     private data class RoundResult(
@@ -147,28 +153,62 @@ class ChatEngine(
         val thinkingMs: Long?,
     )
 
+    @Suppress("LongParameterList") // one tool call needs the whole turn
     private suspend fun FlowCollector<TurnUpdate>.runTool(
         router: ToolRouter,
         call: ToolCall,
         ctx: ToolContext,
         turn: Turn,
         thinking: Boolean,
+        fast: Boolean,
     ) {
         val step = ToolStep(call.name, detailOf(call), StepState.RUNNING, router.isOnline(call.name))
         turn.steps += step
         emit(TurnUpdate.Streaming(turn.reasoning.toString().trim(), "", thinking, turn.steps.toList()))
-        val result = router.run(call, ctx)
+        val isSearch = call.name == SEARCH_TOOL
+        val result =
+            if (isSearch && turn.searches >= maxSearches(fast)) {
+                ToolRouter.failure("limit", "No more searches for this answer. Answer with what you found.")
+            } else {
+                router.run(call, ctx)
+            }
+        if (isSearch) turn.searches++
         turn.steps[turn.steps.lastIndex] =
             step.copy(
                 detail = result.label ?: step.detail,
                 state = if (result.error == null) StepState.DONE else StepState.FAILED,
                 error = result.error,
             )
-        result.sources.forEach { s ->
+        val pages = readPages(router, result, ctx, turn, thinking)
+        (pages?.sources ?: result.sources).forEach { s ->
             if (turn.sources.none { it.url == s.url }) turn.sources += SourceRef(s.title, s.url)
         }
-        turn.messages += ChatMessage(Role.TOOL, result.forModel, toolCallId = call.id)
+        val content = if (pages == null) result.forModel else combine(result.forModel, pages.forModel)
+        turn.messages += ChatMessage(Role.TOOL, content, toolCallId = call.id)
+        turn.trace += ToolTrace(call.name, call.arguments.mapValues { it.value?.toString().orEmpty() }, content)
         emit(TurnUpdate.Streaming(turn.reasoning.toString().trim(), "", thinking, turn.steps.toList()))
+    }
+
+    /** After a web search: read the best pages at once, shown as its own line ("Lese 3 Seiten"). */
+    private suspend fun FlowCollector<TurnUpdate>.readPages(
+        router: ToolRouter,
+        result: ToolResult,
+        ctx: ToolContext,
+        turn: Turn,
+        thinking: Boolean,
+    ): ToolResult? {
+        if (result.error != null || result.readUrls.isEmpty()) return null
+        val step = ToolStep(READ_STEP, result.readUrls.size.toString(), StepState.RUNNING, online = true)
+        turn.steps += step
+        emit(TurnUpdate.Streaming(turn.reasoning.toString().trim(), "", thinking, turn.steps.toList()))
+        val pages = router.readPages(result.readUrls, ctx)
+        turn.steps[turn.steps.lastIndex] =
+            if (pages == null) {
+                step.copy(state = StepState.FAILED, error = "failed")
+            } else {
+                step.copy(detail = pages.label, state = StepState.DONE)
+            }
+        return pages
     }
 
     @Suppress("LongParameterList", "CyclomaticComplexMethod") // one generation needs all of these
@@ -314,10 +354,29 @@ class ChatEngine(
     }
 
     companion object {
-        /** Tool rounds per user turn before the brain must answer (LLM.md §8). */
-        const val MAX_TOOL_ROUNDS = 3
+        /**
+         * Tool rounds per user turn before the brain must answer (LLM.md §8). Four, so a research
+         * can search, read, search again and still look something up (Werkzeuge II).
+         */
+        const val MAX_TOOL_ROUNDS = 4
+
+        /** Web searches per answer; the "Schnell" mode allows one (with one page read). */
+        private const val MAX_SEARCHES = 2
+        const val SEARCH_TOOL = "web_search"
+
+        /** Timeline line for the pages read after a search; its detail is the number of pages. */
+        const val READ_STEP = "read_pages"
+
+        private fun maxSearches(fast: Boolean) = if (fast) 1 else MAX_SEARCHES
+
+        /** Search hits and the pages read from them as one tool answer. */
+        internal fun combine(
+            search: String,
+            pages: String,
+        ): String = "{\"search\":$search,\"read\":$pages}"
+
         private const val MAX_CALLS_PER_ROUND = 3
-        private val DETAIL_KEYS = listOf("place", "topic", "expression", "query")
+        private val DETAIL_KEYS = listOf("place", "topic", "expression", "query", "url")
 
         /** A few words for the tool line while it runs: the place, topic or sum the brain asked for. */
         internal fun detailOf(call: ToolCall): String? =
