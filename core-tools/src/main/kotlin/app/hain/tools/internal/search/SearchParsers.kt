@@ -42,6 +42,19 @@ object SearchParsers {
     private const val MAX_SNIPPET = 240
 
     /** DuckDuckGo's HTML page (`html.duckduckgo.com/html/?q=`): result links with their snippets. */
+    private val BOT_MARKERS =
+        listOf("anomaly-modal", "anomaly.js", "challenge-form", "bots use DuckDuckGo too", "Unfortunately, bots")
+
+    /** DuckDuckGo's "are you a bot?" page (HTTP 202/403/429 or its anomaly page instead of hits). */
+    fun isBotCheck(
+        code: Int,
+        body: String,
+    ): Boolean = code in BOT_CODES || BOT_MARKERS.any { body.contains(it) }
+
+    /** 202 = DuckDuckGo's challenge page, 403 / 429 = blocked or too many requests. */
+    @Suppress("MagicNumber") // HTTP status codes
+    private val BOT_CODES = setOf(202, 403, 429)
+
     fun duckDuckGo(html: String): List<SearchHit> = ddg(html, DDG_LINK, DDG_SNIPPET)
 
     /** DuckDuckGo Lite (`lite.duckduckgo.com/lite/?q=`), a table; the fallback when the HTML page asks for a check. */

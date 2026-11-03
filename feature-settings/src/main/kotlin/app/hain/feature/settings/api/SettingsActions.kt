@@ -20,4 +20,5 @@ class SettingsActions(
     val onOfflineMode: (Boolean) -> Unit = {},
     val onNetworkLogDetail: (Boolean) -> Unit = {},
     val onClearNetworkLog: () -> Unit = {},
+    val onSearxUrl: (String) -> Unit = {},
 )
