@@ -202,4 +202,18 @@
         <item>sparkles|Give me a compliment</item>
         <item>recycle|Tips against food waste</item>
     </string-array>
+    <!-- T-098: the secret 2048 game behind Pim -->
+    <string name="game_close">Close game</string>
+    <string name="game_score">Score</string>
+    <string name="game_best">Best</string>
+    <string name="game_hint">Swipe to slide the tiles. Equal numbers merge.</string>
+    <string name="game_new">New game</string>
+    <string name="game_undo">Undo</string>
+    <string name="game_board">Game board, %1$d points</string>
+    <string name="game_won_title">You made 2048!</string>
+    <string name="game_won_body">Pim is really proud of you.</string>
+    <string name="game_keep">Keep playing</string>
+    <string name="game_lost_title">No more moves</string>
+    <string name="game_lost_body">Pim believes in you. One more round?</string>
+    <string name="game_try">Try again</string>
 </resources>

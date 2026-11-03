@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
@@ -25,6 +26,7 @@ import app.hain.common.api.SettingsRepository
 import app.hain.common.api.ThemeChoice
 import app.hain.common.api.net.NetworkGate
 import app.hain.feature.chat.api.ChatScreen
+import app.hain.feature.chat.game.Game2048Screen
 import app.hain.feature.chat.internal.ChatEngine
 import app.hain.feature.chat.internal.ChatStore
 import app.hain.feature.chat.internal.ChatViewModel
@@ -152,6 +154,7 @@ class MainActivity : ComponentActivity() {
             current = settings
             var showSettings by rememberSaveable { mutableStateOf(false) }
             var showPacks by rememberSaveable { mutableStateOf(false) }
+            var showGame by rememberSaveable { mutableStateOf(false) }
             HainTheme(
                 darkTheme =
                     when (settings.theme) {
@@ -184,7 +187,24 @@ class MainActivity : ComponentActivity() {
                             onGetBrain = { showPacks = true },
                             answerMode = settings.answerMode,
                             onAnswerMode = { mode -> lifecycleScope.launch { settingsRepository.setAnswerMode(mode) } },
+                            onOpenGame = { showGame = true },
                         )
+                        // T-098: the 2048 easter egg opens right after Pim's burst
+                        AnimatedVisibility(
+                            visible = showGame,
+                            enter =
+                                fadeIn(hainTween(HainMotion.PAGE_MS)) +
+                                    scaleIn(hainTween(HainMotion.PAGE_MS), GAME_FROM),
+                            exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+                        ) {
+                            Game2048Screen(
+                                best = settings.game2048Best,
+                                onScore = { score ->
+                                    lifecycleScope.launch { settingsRepository.recordGame2048(score) }
+                                },
+                                onClose = { showGame = false },
+                            )
+                        }
                         AnimatedVisibility(
                             visible = showSettings,
                             enter =
@@ -224,6 +244,7 @@ class MainActivity : ComponentActivity() {
 }
 
 private const val SLIDE_DIV = 6
+private const val GAME_FROM = 0.9f
 private const val BYTES_PER_GB = 1_000_000_000.0
 private const val START_PREFS = "hain_start"
 private const val KEY_SKIPPED = "onboarding_skipped"

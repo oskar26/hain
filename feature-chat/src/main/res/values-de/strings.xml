@@ -202,4 +202,18 @@
         <item>sparkles|Gib mir ein Kompliment</item>
         <item>recycle|Tipps gegen Lebensmittelmüll</item>
     </string-array>
+    <!-- T-098: das geheime 2048-Spiel hinter Pim -->
+    <string name="game_close">Spiel schließen</string>
+    <string name="game_score">Punkte</string>
+    <string name="game_best">Rekord</string>
+    <string name="game_hint">Wische, um die Kacheln zu schieben. Gleiche Zahlen verschmelzen.</string>
+    <string name="game_new">Neues Spiel</string>
+    <string name="game_undo">Rückgängig</string>
+    <string name="game_board">Spielfeld, %1$d Punkte</string>
+    <string name="game_won_title">Du hast 2048 geschafft!</string>
+    <string name="game_won_body">Pim ist richtig stolz auf dich.</string>
+    <string name="game_keep">Weiterspielen</string>
+    <string name="game_lost_title">Keine Züge mehr</string>
+    <string name="game_lost_body">Pim glaubt an dich. Noch eine Runde?</string>
+    <string name="game_try">Nochmal</string>
 </resources>
