@@ -85,7 +85,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-142 | Voice mode screen | ui | M | F | T-140,T-141,T-016 | todo |
 | T-143 | Default assistant + screen context | feature | M | F | T-052 | todo |
 | T-144 | Widget + quick settings tile + share target | feature | S | F | T-052 | todo |
-| T-100 | Settings DataStore + screens | feature | M | B | T-015 | review (level 1 subset) |
+| T-100 | Settings DataStore + screens | feature | M | B | T-015 | review (level 1 as icon tiles + sub pages, reduce-motion switch) |
 | T-101 | View/edit system prompt, custom instructions | ui | S | B | T-100,T-045 | review (custom instructions only) |
 | T-160 | Image edit kit | feature | M | D | T-082 | todo |
 | T-090 | German/English eval set + runner | test | M | H | T-042,T-062 | todo |
