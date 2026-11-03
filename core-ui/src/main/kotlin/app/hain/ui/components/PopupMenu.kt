@@ -24,10 +24,16 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.LocalReduceMotion
@@ -73,23 +79,89 @@ fun HainPopupMenu(
         onDismissRequest = onDismiss,
         properties = PopupProperties(focusable = true),
     ) {
-        Column(
-            modifier
-                // room for the soft shadow inside the popup window
-                .padding(SHADOW_ROOM.dp)
-                .graphicsLayer {
-                    val p = progress.value
-                    alpha = p
-                    val s = HainMotion.MENU_START_SCALE + (1f - HainMotion.MENU_START_SCALE) * p
-                    scaleX = s
-                    scaleY = s
-                    transformOrigin = growFrom
-                }.widthIn(min = MIN_WIDTH.dp, max = MAX_WIDTH.dp)
-                .hainSurface(HainLevel.FLOATING, LocalHainShapes.current.menu)
-                .padding(LocalHainSpacing.current.xs),
-            content = content,
-        )
+        MenuTile(modifier, { progress.value }, growFrom, content)
     }
+}
+
+/**
+ * Glass popover that opens *above* its anchor, start-aligned (T-084, like the model picker in
+ * Gemini or ChatGPT): put it in the same Box as the button. Scale + fade from the bottom-left corner
+ * in [HainMotion.MENU_MS]; it stays inside the window on small screens.
+ */
+@Composable
+fun HainPopover(
+    expanded: Boolean,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val reduce = LocalReduceMotion.current
+    val shown = remember { MutableTransitionState(false) }
+    shown.targetState = expanded
+    if (!shown.currentState && !shown.targetState) return
+    val transition = rememberTransition(shown, label = "popover")
+    val progress =
+        transition.animateFloat({ hainTween(HainMotion.MENU_MS, reduce) }, label = "popover-in") { open ->
+            if (open) 1f else 0f
+        }
+    val gap = with(LocalDensity.current) { POPOVER_GAP.dp.roundToPx() }
+    Popup(
+        popupPositionProvider = remember(gap) { AboveStartPosition(gap) },
+        onDismissRequest = onDismiss,
+        properties = PopupProperties(focusable = true),
+    ) {
+        MenuTile(modifier, { progress.value }, TransformOrigin(0f, 1f), content)
+    }
+}
+
+/** Places a popup right above the anchor, its left edge on the anchor's left edge, kept on screen. */
+internal class AboveStartPosition(
+    private val gap: Int,
+) : PopupPositionProvider {
+    override fun calculatePosition(
+        anchorBounds: IntRect,
+        windowSize: IntSize,
+        layoutDirection: LayoutDirection,
+        popupContentSize: IntSize,
+    ): IntOffset = popoverOffset(anchorBounds, windowSize, popupContentSize, gap)
+}
+
+/** Pure placement math (unit-tested): above the anchor, clamped into the window. */
+internal fun popoverOffset(
+    anchor: IntRect,
+    window: IntSize,
+    popup: IntSize,
+    gap: Int,
+): IntOffset {
+    val x = anchor.left.coerceAtMost(window.width - popup.width).coerceAtLeast(0)
+    val above = anchor.top - popup.height + gap
+    val y = if (above >= 0) above else (anchor.bottom - gap).coerceAtMost(window.height - popup.height)
+    return IntOffset(x, y.coerceAtLeast(0))
+}
+
+@Composable
+private fun MenuTile(
+    modifier: Modifier,
+    progress: () -> Float,
+    growFrom: TransformOrigin,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier
+            // room for the soft shadow inside the popup window
+            .padding(SHADOW_ROOM.dp)
+            .graphicsLayer {
+                val p = progress()
+                alpha = p
+                val s = HainMotion.MENU_START_SCALE + (1f - HainMotion.MENU_START_SCALE) * p
+                scaleX = s
+                scaleY = s
+                transformOrigin = growFrom
+            }.widthIn(min = MIN_WIDTH.dp, max = MAX_WIDTH.dp)
+            .hainSurface(HainLevel.FLOATING, LocalHainShapes.current.menu)
+            .padding(LocalHainSpacing.current.xs),
+        content = content,
+    )
 }
 
 /** One row of a [HainPopupMenu]: icon and label; [danger] paints it red. */
@@ -120,12 +192,19 @@ fun HainPopupItem(
             )
             Spacer(Modifier.width(spacing.md))
         }
-        BasicText(label, style = LocalHainTypography.current.body.copy(color = tint), maxLines = 1)
+        // T-085: long labels (German, big font) wrap to a second line instead of being cut off
+        BasicText(
+            label,
+            style = LocalHainTypography.current.body.copy(color = tint),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
 private const val MIN_WIDTH = 176
-private const val MAX_WIDTH = 260
+private const val MAX_WIDTH = 320
+private const val POPOVER_GAP = 8
 private const val ICON = 18
 private const val ITEM_VERTICAL = 10
 private const val SHADOW_ROOM = 12
