@@ -15,6 +15,8 @@ enum class Purpose { SEARCH, NEWS, WEATHER, WIKI, GEO, PAGE_READ, MODEL_DOWNLOAD
 - Single `OkHttpClient`: timeouts 10 s, `User-Agent: Hain/<ver>` for APIs (Wikipedia, Nominatim, news require it), browser UA only for DuckDuckGo html.
 - Cache: OkHttp disk cache 20 MB.
 
+**Stand Werkzeuge I (03.11.2026):** `NetworkGate` (API in `core-common/.../api/net`) is implemented as `HttpNetworkGate` in `core-tools` on plain `HttpURLConnection` (no new library; OkHttp + disk cache come with 3b if needed). Only https. The log is kept **in memory** (7 days / 500 entries, lost on app restart); the Room table `network_log` and routing the model download through the gate are part of 3b. Per-purpose switches: only the global `offline_mode` for now.
+
 ## 2. Tool list (v1) — schemas exactly as sent to the model
 
 Descriptions short (small model). English, the model answers in user language anyway.
@@ -66,8 +68,10 @@ Also used automatically: if user message is a pure expression, answer without LL
 ## 6. ToolContext
 
 ```kotlin
-data class ToolContext(val appLang: AppLang, val now: ZonedDateTime, val chatId: Long, val offline: Boolean)
+data class ToolContext(val lang: String /* de|en */, val now: ZonedDateTime, val offline: Boolean)
 ```
+(Werkzeuge I: `chatId` left out until a tool needs it.) While offline, the router leaves online tools out of the prompt; a call that still arrives gets `{"error":"offline"}`.
+Tool results also carry a short `label` ("Köln") and `sources` for the ToolTimeline/SourceChips (T-059); both are stored with the answer in `message.sources_json` (`{"steps":[…],"sources":[…]}`, no schema change).
 
 ## 7. Errors
 

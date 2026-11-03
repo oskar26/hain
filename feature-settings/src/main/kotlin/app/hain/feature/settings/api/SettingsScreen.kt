@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.hain.common.api.HainSettings
+import app.hain.common.api.net.NetworkLogEntry
 import app.hain.feature.settings.R
 import app.hain.ui.HainIcons
 import app.hain.ui.components.HainIconButton
@@ -47,6 +48,7 @@ fun SettingsScreen(
     settings: HainSettings,
     actions: SettingsActions,
     modifier: Modifier = Modifier,
+    networkLog: List<NetworkLogEntry> = emptyList(),
 ) {
     var page by rememberSaveable { mutableStateOf<SettingsPage?>(null) }
     BackHandler { if (page != null) page = null else actions.onBack() }
@@ -78,7 +80,7 @@ fun SettingsScreen(
             if (current == null) {
                 Hub(actions) { page = it }
             } else {
-                SettingsPageContent(current, settings, actions)
+                SettingsPageContent(current, settings, actions, networkLog)
             }
             Spacer(Modifier.height(LocalHainSpacing.current.xl))
         }

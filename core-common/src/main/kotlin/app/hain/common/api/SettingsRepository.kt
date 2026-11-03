@@ -22,6 +22,8 @@ class SettingsRepository(
                 answerMode = p[ANSWER_MODE].toEnum(AnswerMode.AUTO),
                 aboutMe = p[ABOUT_ME].orEmpty(),
                 style = p[STYLE].orEmpty(),
+                offlineMode = p[OFFLINE_MODE] ?: false,
+                networkLogDetail = p[NETWORK_LOG_DETAIL] ?: false,
             )
         }
 
@@ -39,6 +41,10 @@ class SettingsRepository(
 
     suspend fun setStyle(value: String) = store.edit { it[STYLE] = value }
 
+    suspend fun setOfflineMode(value: Boolean) = store.edit { it[OFFLINE_MODE] = value }
+
+    suspend fun setNetworkLogDetail(value: Boolean) = store.edit { it[NETWORK_LOG_DETAIL] = value }
+
     /** Back to the defaults. */
     suspend fun reset() = store.edit { it.clear() }
 
@@ -50,6 +56,8 @@ class SettingsRepository(
         val ANSWER_MODE = stringPreferencesKey("answer_mode")
         val ABOUT_ME = stringPreferencesKey("custom_about_me")
         val STYLE = stringPreferencesKey("custom_style")
+        val OFFLINE_MODE = booleanPreferencesKey("offline_mode")
+        val NETWORK_LOG_DETAIL = booleanPreferencesKey("network_log_detail")
     }
 }
 

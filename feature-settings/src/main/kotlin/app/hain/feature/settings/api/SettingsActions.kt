@@ -17,4 +17,7 @@ class SettingsActions(
     val onStyle: (String) -> Unit,
     val onReset: () -> Unit,
     val onOpenPacks: () -> Unit,
+    val onOfflineMode: (Boolean) -> Unit = {},
+    val onNetworkLogDetail: (Boolean) -> Unit = {},
+    val onClearNetworkLog: () -> Unit = {},
 )

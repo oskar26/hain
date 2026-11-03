@@ -56,4 +56,14 @@
     <string name="chat_edit">Bearbeiten</string>
     <string name="chat_editing">Du bearbeitest deine Nachricht</string>
     <string name="chat_edit_cancel">Bearbeiten abbrechen</string>
+    <string name="chat_tool_calculate">Rechner</string>
+    <string name="chat_tool_weather">Wetter</string>
+    <string name="chat_tool_wikipedia">Wikipedia</string>
+    <string name="chat_tool_other">Werkzeug</string>
+    <string name="chat_tool_failed">hat nicht geklappt</string>
+    <string name="chat_tool_offline">du bist offline</string>
+    <string name="chat_tool_running">schaut nach…</string>
+    <string name="chat_sources">Quellen</string>
+    <string name="chat_online">Online</string>
+    <string name="chat_online_hint">Hain holt gerade etwas aus dem Internet</string>
 </resources>

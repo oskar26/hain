@@ -57,8 +57,9 @@ class RoomChatPersistence(
 internal fun ChatEntity.toChat(messages: List<UiMessage>) =
     Chat(id = id, title = title, messages = messages, updatedAt = updatedAt, pinned = pinned, createdAt = createdAt)
 
-internal fun MessageEntity.toUi() =
-    UiMessage(
+internal fun MessageEntity.toUi(): UiMessage {
+    val (steps, sources) = ToolStepsJson.decode(sourcesJson)
+    return UiMessage(
         id = id,
         isUser = role == MessageEntity.ROLE_USER,
         text = content,
@@ -66,7 +67,10 @@ internal fun MessageEntity.toUi() =
         thinkingSeconds = thinkingMillis?.let { (it / MS_PER_S).toInt() },
         stopped = status == MessageEntity.STATUS_STOPPED,
         failed = status == MessageEntity.STATUS_FAILED,
+        steps = steps,
+        sources = sources,
     )
+}
 
 internal fun UiMessage.toEntity(
     chatId: Long,
@@ -77,6 +81,7 @@ internal fun UiMessage.toEntity(
     role = if (isUser) MessageEntity.ROLE_USER else MessageEntity.ROLE_ASSISTANT,
     content = text,
     reasoning = reasoning,
+    sourcesJson = ToolStepsJson.encode(steps, sources),
     createdAt = createdAt,
     thinkingMillis = thinkingSeconds?.let { it * MS_PER_S },
     status =

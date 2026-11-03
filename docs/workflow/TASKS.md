@@ -20,7 +20,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-011 | Components: HainText, HainSurface, HainButton, HainIconButton | ui | S | B | T-018,T-019 | review (subset) |
 | T-012 | Components: HainTextField, Composer | ui | S | B | T-018,T-019 | review (subset) |
 | T-013 | Components: UserBubble, AssistantBlock (markdown via renderer core), ReasoningBlock | ui | M | B | T-018,T-019 | review (subset) |
-| T-014 | Components: HainChip, ToolChip, HainCard, SegmentedControl | ui | S | B | T-018,T-019 | todo |
+| T-014 | Components: HainChip, ToolChip, HainCard, SegmentedControl | ui | S | B | T-018,T-019 | review |
 | T-015 | Components: SettingsRow, HainSwitch, TopBar, Drawer, BottomSheet, Toast, EmptyState, ProgressBar | ui | S | B | T-018,T-019 | review (subset) |
 | T-018 | Add UI libraries + thin wrappers | scaffold | S | B | T-010 | review |
 | T-019 | Motion system HainMotion + MotionGovernor | ui | S | B | T-018 | review |
@@ -42,7 +42,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-052 | Chat screen | ui | M | E | T-051,T-011,T-012,T-013 | review |
 | T-057 | Branches, message queue, stopped/error states | feature | M | E | T-051 | review (subset 2d-2: stop at once, edit own message, ask again on any answer; branches/queue open) |
 | T-058 | ChatViewport + scroll-to-bottom pill | ui | S | E | T-052 | todo |
-| T-059 | ToolTimeline + SourceChips | ui | S | E | T-052,T-062 | todo |
+| T-059 | ToolTimeline + SourceChips | ui | S | E | T-052,T-062 | review |
 | T-053 | Drawer: chat list, search, rename, delete, pin | ui | M | E | T-052,T-015 | review |
 | T-054 | Export & share chat | feature | S | E | T-053 | todo |
 | T-055 | Model picker in top bar | ui | S | E | T-052,T-081 | todo |
@@ -52,16 +52,16 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-082 | PackDownloader (WorkManager) | feature | M | F | T-081 | review |
 | T-083 | Onboarding (welcome, language, download brain) | ui | M | F | T-082,T-016 | review (tour + success + skip download; language → 2f) |
 | T-084 | Packs screen in settings | ui | S | F | T-082 | todo |
-| T-060 | NetworkGate + network log | feature | S | A | T-020 | todo |
+| T-060 | NetworkGate + network log | feature | S | A | T-020 | review |
 | T-061 | Pim launcher icon + VectorDrawable export | ui | S | B | T-016 | todo |
-| T-062 | ToolRouter + schemas | feature | S | A | T-040,T-060 | todo |
-| T-063 | Calculator + units | feature | S | A | T-062 | todo |
-| T-064 | Weather tool + WeatherCard | feature | M | A | T-062,T-014 | todo |
-| T-065 | Wikipedia tool + WikiCard | feature | S | A | T-062 | todo |
+| T-062 | ToolRouter + schemas | feature | S | A | T-040,T-060 | review |
+| T-063 | Calculator + units | feature | S | A | T-062 | review |
+| T-064 | Weather tool + WeatherCard | feature | M | A | T-062,T-014 | review |
+| T-065 | Wikipedia tool + WikiCard | feature | S | A | T-062 | review |
 | T-066 | SearchRouter: SearXNG + DDG html + fallback | feature | M | A | T-062 | todo |
 | T-067 | read_page with Readability4K | feature | S | A | T-066 | todo |
 | T-068 | Intent tools (alarm, timer, calendar, navigate) + ConfirmCard | feature | M | A | T-062,T-014 | todo |
-| T-069 | Online indicator & network log screen | ui | S | A | T-060 | todo |
+| T-069 | Online indicator & network log screen | ui | S | A | T-060 | review |
 | T-070 | Feed parser RSS2/Atom/RDF | feature | S | B | T-002 | review |
 | T-071 | Standard feed list + repository | feature | S | B | T-070,T-060 | todo |
 | T-072 | news tool + NewsCard | feature | S | B | T-071,T-062 | todo |
