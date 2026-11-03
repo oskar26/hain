@@ -66,5 +66,37 @@ internal object ToolStepsJson {
         return steps to sources
     }
 
+    /** Tool calls of an answer with short results, in `message.tool_calls_json` (T-062 fix). */
+    fun encodeTrace(trace: List<ToolTrace>): String? {
+        if (trace.isEmpty()) return null
+        return JsonArray(
+            trace.map { t ->
+                buildJsonObject {
+                    put("name", t.name)
+                    put("args", JsonObject(t.args.mapValues { JsonPrimitive(it.value) }))
+                    put("result", PromptHistory.cut(t.result, PromptHistory.STORED_RESULT_CHARS))
+                }
+            },
+        ).toString()
+    }
+
+    fun decodeTrace(json: String?): List<ToolTrace> {
+        val root =
+            json
+                ?.takeIf { it.isNotBlank() }
+                ?.let { runCatching { Json.parseToJsonElement(it) }.getOrNull() } as? JsonArray
+                ?: return emptyList()
+        return root.mapNotNull { el ->
+            val o = el as? JsonObject ?: return@mapNotNull null
+            val name = o.text("name") ?: return@mapNotNull null
+            val args =
+                (o["args"] as? JsonObject)
+                    .orEmpty()
+                    .mapNotNull { (k, v) -> (v as? JsonPrimitive)?.content?.let { k to it } }
+                    .toMap()
+            ToolTrace(name, args, o.text("result").orEmpty())
+        }
+    }
+
     private fun JsonObject.text(key: String): String? = (this[key] as? JsonPrimitive)?.takeIf { it.isString }?.content
 }

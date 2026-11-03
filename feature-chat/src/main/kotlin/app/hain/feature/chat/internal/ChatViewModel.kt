@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import app.hain.llm.api.ChatMessage
 import app.hain.llm.api.EngineState
 import app.hain.llm.api.LlmEngine
-import app.hain.llm.api.Role
 import app.hain.llm.api.StopReason
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -334,6 +333,7 @@ class ChatViewModel(
                 failed = update.reason == StopReason.ERROR && text.isBlank(),
                 steps = update.steps,
                 sources = update.sources,
+                trace = update.trace,
             ),
         )
         when (update.reason) {
@@ -358,9 +358,4 @@ class ChatViewModel(
     }
 }
 
-private fun List<UiMessage>.toPromptHistory(): List<ChatMessage> =
-    filter { it.isUser || (!it.failed && it.text.isNotBlank()) }
-        .takeLast(MAX_HISTORY_MESSAGES)
-        .map { ChatMessage(if (it.isUser) Role.USER else Role.ASSISTANT, it.text) }
-
-private const val MAX_HISTORY_MESSAGES = 24
+private fun List<UiMessage>.toPromptHistory(): List<ChatMessage> = PromptHistory.of(this)

@@ -23,6 +23,8 @@ data class UiMessage(
     val steps: List<ToolStep> = emptyList(),
     /** Pages the answer is based on, shown as chips. */
     val sources: List<SourceRef> = emptyList(),
+    /** Tool calls and short results, for the brain's view of later turns (T-062 fix). */
+    val trace: List<ToolTrace> = emptyList(),
 )
 
 data class Chat(

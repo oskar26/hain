@@ -59,6 +59,17 @@
     <string name="chat_tool_calculate">Calculator</string>
     <string name="chat_tool_weather">Weather</string>
     <string name="chat_tool_wikipedia">Wikipedia</string>
+    <string name="chat_tool_search">Search</string>
+    <string name="chat_tool_read_page">Page</string>
+    <string name="chat_tool_pages">Pages</string>
+    <plurals name="chat_tool_reading_pages">
+        <item quantity="one">reading %d page…</item>
+        <item quantity="other">reading %d pages…</item>
+    </plurals>
+    <plurals name="chat_tool_read_pages">
+        <item quantity="one">read %d page</item>
+        <item quantity="other">read %d pages</item>
+    </plurals>
     <string name="chat_tool_other">Tool</string>
     <string name="chat_tool_failed">didn’t work</string>
     <string name="chat_tool_offline">you’re offline</string>

@@ -66,11 +66,11 @@ class ChatEngineToolsTest {
         }
 
     @Test
-    fun afterThreeRoundsTheBrainMustAnswerWithoutTools() =
+    fun afterFourRoundsTheBrainMustAnswerWithoutTools() =
         runTest {
             val weather = FakeWeather()
             val loop = listOf(call("weather", "place", "Köln"))
-            val llm = FakeLlm(loop, loop, loop, listOf("Fertig."))
+            val llm = FakeLlm(loop, loop, loop, loop, listOf("Fertig."))
             val engine = ChatEngine(llm, { "SYS" }, tools = ToolRouter(listOf(weather)), toolContext = { ctx })
             val last = engine.respond(user("Wetter?"), AnswerMode.FAST).toList().last() as TurnUpdate.Finished
             assertEquals("Fertig.", last.output.text)

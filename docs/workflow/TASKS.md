@@ -58,8 +58,8 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-063 | Calculator + units | feature | S | A | T-062 | review |
 | T-064 | Weather tool + WeatherCard | feature | M | A | T-062,T-014 | review |
 | T-065 | Wikipedia tool + WikiCard | feature | S | A | T-062 | review |
-| T-066 | SearchRouter: SearXNG + DDG html + fallback | feature | M | A | T-062 | todo |
-| T-067 | read_page with Readability4K | feature | S | A | T-066 | todo |
+| T-066 | SearchRouter: SearXNG + DDG html + fallback | feature | M | A | T-062 | review |
+| T-067 | read_page (own HTML-to-text, no Readability4K) | feature | S | A | T-066 | review |
 | T-068 | Intent tools (alarm, timer, calendar, navigate) + ConfirmCard | feature | M | A | T-062,T-014 | todo |
 | T-069 | Online indicator & network log screen | ui | S | A | T-060 | review |
 | T-070 | Feed parser RSS2/Atom/RDF | feature | S | B | T-002 | review |

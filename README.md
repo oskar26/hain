@@ -84,7 +84,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | ✏️ Chat extras | Automatic chat titles; tap your own message to edit or copy it. Chat list: small glass menu at each chat (pin, rename, delete), smooth drawer | ✅ |
 | 📤 Export | Export a chat as Markdown or PDF | 🗓️ |
 | 🧭 Settings, part 2 | Clearer layout with icon tiles and sub pages, own "reduce motion" switch. Still open: pack picker, language step at first start, glossy 3D Pim and new first-start pictures | 🚧 |
-| 🔧 Tools | Calculator and units, weather (Open-Meteo), Wikipedia (German/English) – Pim shows each step and its sources under the answer. Still open: web search without API key, read web pages, weather card | 🚧 |
+| 🔧 Tools | Calculator and units, weather (Open-Meteo), Wikipedia (German/English), web search without API key that reads several pages, reading a link – Pim shows each step and its sources under the answer. Still open: alarm, timer, calendar and navigation with a confirm card, weather card | 🚧 |
 | ⏰ Phone actions | Alarm, timer, calendar entry, navigation, always confirmed by you | 🗓️ |
 | 🛡️ Network log | Every tool request goes through one gate: orange "Online" dot while it runs, offline mode, log of the last 7 days in Settings → Privacy. Still open: brain download through the gate, log kept across app restarts | 🚧 |
 | 📰 News | Standard mix (incl. junge Welt), standard + own feeds, or only own feeds | 🗓️ |
@@ -101,6 +101,10 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Tools in every message.** Before, Pim used a tool only once per chat and afterwards pretended to have "looked it up". Now Pim remembers which tools it really used, calls them again for every new question (weather, Wikipedia, search) and never claims to have looked something up without doing it.
+- **Pim searches the web – without an API key.** Ask "Recherchier mal: Wie viel Strom spart eine Wärmepumpe?" and Pim searches (DuckDuckGo, SearXNG or Wikipedia), reads the 3 best pages at the same time and answers from them. You watch every step above the answer ("Suche · Wärmepumpe ✓", "3 Seiten gelesen ✓"), the pages Pim really read are the source chips below. If it needs more, Pim searches a second time. In the answer mode **Schnell** Pim searches once and reads one page.
+- **Send Pim a link.** "Was steht hier: https://…" – Pim reads the page and sums it up.
+- Every search and page shows up in the network log (Settings → Privacy); offline mode switches all of it off.
 - **A calmer, more unified look.** Hain got one design for every screen: a new light font (Hanken Grotesk), soft white cards, the same rounded corners everywhere, small glass menus and the same gentle motion on every screen – in light and dark mode. Settings use real switches and one kind of choice buttons. "Reduce motion" in Settings → Look stops all of it.
 - **Message actions like in Gemini.** Tap one of your messages and "edit" and "copy" fade in below it. Under every answer there is a quiet row: copy (a green tick shows it worked), share, thumbs up or down (only saved on your phone, never sent) and ask again. The long-press menu is gone.
 - **Nicer chat list.** The ⋯ next to a chat opens a small glass menu right below it, which grows out of the button; the chat stays marked while it is open, and the highlight now covers the whole row. The side panel slides in and out smoothly, and the list glides when you pin or delete a chat.

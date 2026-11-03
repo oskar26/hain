@@ -69,6 +69,7 @@ internal fun MessageEntity.toUi(): UiMessage {
         failed = status == MessageEntity.STATUS_FAILED,
         steps = steps,
         sources = sources,
+        trace = ToolStepsJson.decodeTrace(toolCallsJson),
     )
 }
 
@@ -82,6 +83,7 @@ internal fun UiMessage.toEntity(
     content = text,
     reasoning = reasoning,
     sourcesJson = ToolStepsJson.encode(steps, sources),
+    toolCallsJson = ToolStepsJson.encodeTrace(trace),
     createdAt = createdAt,
     thinkingMillis = thinkingSeconds?.let { it * MS_PER_S },
     status =
