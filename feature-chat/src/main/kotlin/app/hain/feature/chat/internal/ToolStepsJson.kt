@@ -32,6 +32,7 @@ internal object ToolStepsJson {
                             put("state", s.state.name)
                             put("online", s.online)
                             s.error?.let { put("error", it) }
+                            s.via?.let { put("via", it) }
                         },
                     )
                 }
@@ -83,7 +84,7 @@ internal object ToolStepsJson {
                 val name = o.text("name") ?: return@mapNotNull null
                 val state = StepState.entries.firstOrNull { it.name == o.text("state") } ?: StepState.DONE
                 val online = (o["online"] as? JsonPrimitive)?.booleanOrNull == true
-                ToolStep(name, o.text("detail"), state, online, o.text("error"))
+                ToolStep(name, o.text("detail"), state, online, o.text("error"), o.text("via"))
             }
         val sources =
             (root["sources"] as? JsonArray).orEmpty().mapNotNull { el ->

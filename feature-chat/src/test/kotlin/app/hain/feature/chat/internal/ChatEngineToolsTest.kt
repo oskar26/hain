@@ -5,6 +5,7 @@ import app.hain.llm.api.Role
 import app.hain.llm.api.StopReason
 import app.hain.llm.api.ToolSchema
 import app.hain.llm.internal.AnswerMode
+import app.hain.tools.api.ResearchBudget
 import app.hain.tools.api.Tool
 import app.hain.tools.api.ToolContext
 import app.hain.tools.api.ToolResult
@@ -66,15 +67,15 @@ class ChatEngineToolsTest {
         }
 
     @Test
-    fun afterFourRoundsTheBrainMustAnswerWithoutTools() =
+    fun afterTheRoundBudgetTheBrainMustAnswerWithoutTools() =
         runTest {
             val weather = FakeWeather()
             val loop = listOf(call("weather", "place", "Köln"))
-            val llm = FakeLlm(loop, loop, loop, loop, listOf("Fertig."))
+            val llm = FakeLlm(loop, loop, listOf("Fertig."))
             val engine = ChatEngine(llm, { "SYS" }, tools = ToolRouter(listOf(weather)), toolContext = { ctx })
             val last = engine.respond(user("Wetter?"), AnswerMode.FAST).toList().last() as TurnUpdate.Finished
             assertEquals("Fertig.", last.output.text)
-            assertEquals(ChatEngine.MAX_TOOL_ROUNDS, weather.calls)
+            assertEquals(ResearchBudget.FAST.maxRounds, weather.calls)
             assertFalse(llm.lastPrompt.contains("<tools>"))
         }
 
