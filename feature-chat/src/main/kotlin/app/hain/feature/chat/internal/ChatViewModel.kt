@@ -124,6 +124,25 @@ class ChatViewModel(
         tap: Rating,
     ) = messageRatings.set(messageId, messageRatings.ratings.value[messageId].toggled(tap))
 
+    /**
+     * The user tapped a ConfirmCard (T-068): [event] is what happened (the intent started, the
+     * phone had no app for it, or "Abbrechen"). The card keeps its new state, also after a restart.
+     */
+    @Suppress("ReturnCount")
+    fun resolveAction(
+        messageId: Long,
+        index: Int,
+        event: ActionEvent,
+    ) {
+        val chatId = local.value.currentChatId ?: return
+        val message = store.chat(chatId)?.messages?.firstOrNull { it.id == messageId } ?: return
+        val card = message.actions.getOrNull(index) ?: return
+        val next = card.after(event)
+        if (next == card) return
+        val actions = message.actions.toMutableList().also { it[index] = next }
+        store.upsertMessage(chatId, message.copy(actions = actions))
+    }
+
     fun onInputChange(text: String) = local.update { it.copy(input = text, error = null) }
 
     fun newChat() {
@@ -334,6 +353,7 @@ class ChatViewModel(
                 steps = update.steps,
                 sources = update.sources,
                 trace = update.trace,
+                actions = update.actions,
             ),
         )
         when (update.reason) {

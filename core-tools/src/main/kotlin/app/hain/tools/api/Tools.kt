@@ -10,6 +10,8 @@ data class ToolContext(
     val offline: Boolean,
     /** How many search hits are read in full after a web search: 3, or 1 in the "Schnell" mode. */
     val pagesToRead: Int = DEFAULT_PAGES,
+    /** The user's own SearXNG address from the settings (asked first), or `null` (4b). */
+    val searxUrl: String? = null,
 ) {
     companion object {
         const val DEFAULT_PAGES = 3
@@ -30,6 +32,7 @@ data class ToolSource(
  * @property label a few words for the tool line in the chat ("Köln", "12 × 7"); `null` = none.
  * @property error short English code (`offline`, `timeout`, `not_found` …); `null` = it worked.
  * @property readUrls pages the chat engine should read next with [ToolRouter.readPages] (web search).
+ * @property action a phone action the user still has to confirm on a card (T-068); `null` = none.
  */
 data class ToolResult(
     val forModel: String,
@@ -37,6 +40,7 @@ data class ToolResult(
     val sources: List<ToolSource> = emptyList(),
     val error: String? = null,
     val readUrls: List<String> = emptyList(),
+    val action: PhoneAction? = null,
 )
 
 /** One tool the brain may call. [online] tools go through the NetworkGate. */

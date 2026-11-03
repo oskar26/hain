@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.hain.common.api.AnswerLanguage
 import app.hain.common.api.HainSettings
+import app.hain.common.api.SearxAddress
 import app.hain.common.api.SettingsRepository
 import app.hain.common.api.ThemeChoice
 import app.hain.common.api.net.NetworkGate
@@ -83,6 +84,7 @@ class MainActivity : ComponentActivity() {
             onOfflineMode = { write { repo.setOfflineMode(it) } },
             onNetworkLogDetail = { write { repo.setNetworkLogDetail(it) } },
             onClearNetworkLog = networkGate::clearLog,
+            onSearxUrl = { write { repo.setSearxUrl(it) } },
         )
     }
 
@@ -101,7 +103,13 @@ class MainActivity : ComponentActivity() {
                     turnHint = prompts::turnHint,
                     tools = HainTools.router(networkGate),
                     toolContext = {
-                        ToolContext(toolLanguage(settings()), ZonedDateTime.now(), settings().offlineMode)
+                        val cfg = settings()
+                        ToolContext(
+                            toolLanguage(cfg),
+                            ZonedDateTime.now(),
+                            cfg.offlineMode,
+                            searxUrl = SearxAddress.normalize(cfg.searxUrl),
+                        )
                     },
                 ),
             store = chatStore,

@@ -286,3 +286,13 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 
 - Screenshot tests live in `*/src/test/kotlin/**/screens/` and only run with `-Phain.screens` (Robolectric native graphics need x86): `.github/workflows/screens.yml` uploads them as artifact `screens`.
 - Next: 3b, 4b (ConfirmCard on `glassTile`), 5.
+## 2026-11-03 · Werkzeuge II Rest (4b) · review · harness: Hark · branch `hark/day-4b`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-068 | review | `TimeParserTest` (clock, durations, day words, weekdays, dates, ISO), `PhoneToolsTest` (4 tools, labels, whole day, bad time, JSON), `PhoneActionsTest` (engine → pending card, card states, stored), `ChatViewModelTest.confirmCardTapIsKeptOnTheMessage`; host test LFM3 (TOOLS.md §3c) | `ChatEngine`/`ChatStore`/`ToolStepsJson`/`RoomChatPersistence` (cards in `sources_json`), `ChatScreen`, `ToolTimeline`, `HainIcons` + 4 Lucide drawables, app manifest (`SET_ALARM`), `SystemPromptSource` (PHONE_DE/EN) | ConfirmCard lives in feature-chat (not core-cards, needs the chat state); intents not unit-tested (Robolectric missing on aarch64 sandbox); repeating alarms (`days`) + `confirm_actions` auto mode → 4c |
+| T-066 | review | `SearchBackoffTest` (bot check → 10 min pause with fake clock, own SearXNG first), `SearxAddressTest` | `HainSettings`/`SettingsRepository` (`searxng_url`), `SettingsPages` (Privacy), `MainActivity` | back-off kept in memory (resets on app start, fine) |
+
+- Notes: the brain answers phone requests with the right call in the host test; the tool result tells it that nothing is done yet, so it asks you to tap instead of claiming "eingestellt".
+- Next: 4c (rest), then the plan order 2e-2+2f, 3b, 5 …
+

@@ -99,6 +99,18 @@ class SystemPromptSource(
     }
 
     private companion object {
+        // T-068: phone actions only prepare a card; the user's tap does it (host test 03.11.)
+        const val PHONE_DE =
+            "Für einen Wecker rufe set_alarm, für einen Timer set_timer (seconds), für einen Termin " +
+                "add_calendar_event (start als 2026-11-04T15:00), für einen Weg navigate. " +
+                "Sie tun nichts selbst: erst wenn der Nutzer auf den Knopf der Karte tippt. " +
+                "Sag darum nie, es sei schon gestellt oder eingetragen."
+        const val PHONE_EN =
+            "For an alarm call set_alarm, for a timer set_timer (seconds), for an appointment " +
+                "add_calendar_event (start like 2026-11-04T15:00), for directions navigate. " +
+                "They do nothing by themselves, only when the user taps the card's button. " +
+                "So never say it is already set or added."
+
         // Werkzeuge I+II (T-062, T-066, T-067): calculator offline, the rest online. Rule against copied
         // "looked it up" answers: every new question calls the tool again (Oskar's test of #19).
         const val TOOLS_DE =
@@ -109,7 +121,8 @@ class SystemPromptSource(
                 "auch wenn du es vorher schon benutzt hast. " +
                 "Sag nie, dass du nachgeschaut hast, wenn du in dieser Antwort kein Werkzeug benutzt hast. " +
                 "Antworte danach aus dem Ergebnis und nenne die Quellen als [1], [2]. " +
-                "Klappt ein Werkzeug nicht, sag das ehrlich."
+                "Klappt ein Werkzeug nicht, sag das ehrlich. " +
+                PHONE_DE
         const val TOOLS_EN =
             "Tools: calculate for exact maths and units, weather for forecasts, " +
                 "wikipedia for facts about people, places and things, web_search for current news and details " +
@@ -117,16 +130,19 @@ class SystemPromptSource(
                 "For every new question that needs facts, weather or current events, call the tool again, " +
                 "even if you used it before. " +
                 "Never say you looked something up if you used no tool in this answer. " +
-                "Then answer from the result and cite the sources as [1], [2]. If a tool fails, say so plainly."
+                "Then answer from the result and cite the sources as [1], [2]. If a tool fails, say so plainly. " +
+                PHONE_EN
+
         const val TOOL_NUDGE_DE =
             "Für Fakten über Personen, Orte, Dinge, Wetter oder Aktuelles rufe zuerst ein Werkzeug auf."
         const val TOOL_NUDGE_EN =
             "For facts about people, places, things, weather or current events, call a tool first."
         const val TOOLS_OFFLINE_DE =
-            "Der Offline-Modus ist an: nur calculate geht. Für Wetter, Wikipedia oder die Suche sag, " +
-                "dass der Nutzer den Offline-Modus in den Einstellungen ausschalten kann."
+            "Der Offline-Modus ist an: nur calculate und die Handy-Aktionen gehen. " + PHONE_DE +
+                " Für Wetter, Wikipedia oder die Suche sag, dass der Nutzer den Offline-Modus " +
+                "in den Einstellungen ausschalten kann."
         const val TOOLS_OFFLINE_EN =
-            "Offline mode is on: only calculate works. For weather, Wikipedia or search, say the user can " +
-                "turn offline mode off in the settings."
+            "Offline mode is on: only calculate and the phone actions work. " + PHONE_EN +
+                " For weather, Wikipedia or search, say the user can turn offline mode off in the settings."
     }
 }

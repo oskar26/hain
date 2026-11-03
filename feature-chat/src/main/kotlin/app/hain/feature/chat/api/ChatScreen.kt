@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hain.common.api.AnswerMode
 import app.hain.feature.chat.R
+import app.hain.feature.chat.internal.ActionEvent
 import app.hain.feature.chat.internal.ChatError
 import app.hain.feature.chat.internal.ChatUiState
 import app.hain.feature.chat.internal.ChatViewModel
@@ -173,6 +174,7 @@ fun ChatScreen(
                             onRetry = { viewModel.regenerate(it) },
                             onEdit = viewModel::startEdit,
                             onRate = viewModel::rate,
+                            onAction = viewModel::resolveAction,
                         )
                     }
                 }
@@ -352,7 +354,7 @@ private fun SuggestionTile(
     }
 }
 
-@Suppress("LongMethod") // list, follow logic and the jump-down button belong together
+@Suppress("LongMethod", "LongParameterList") // list, follow logic, jump-down button; one callback per action
 @Composable
 internal fun MessageList(
     state: ChatUiState,
@@ -360,6 +362,7 @@ internal fun MessageList(
     onRetry: (Long) -> Unit,
     onEdit: (Long) -> Unit,
     onRate: (Long, Rating) -> Unit,
+    onAction: (Long, Int, ActionEvent) -> Unit,
 ) {
     val spacing = LocalHainSpacing.current
     val listState = rememberLazyListState()
@@ -411,6 +414,7 @@ internal fun MessageList(
                         canRetry = !state.isGenerating,
                         onRetry = { onRetry(message.id) },
                         onRate = { onRate(message.id, it) },
+                        onAction = { index, event -> onAction(message.id, index, event) },
                     )
                 }
             }
@@ -503,6 +507,7 @@ private fun CopyAction(text: String) {
     )
 }
 
+@Suppress("LongParameterList") // one callback per answer action
 @Composable
 private fun Answer(
     message: UiMessage,
@@ -510,6 +515,7 @@ private fun Answer(
     canRetry: Boolean,
     onRetry: () -> Unit,
     onRate: (Rating) -> Unit,
+    onAction: (Int, ActionEvent) -> Unit = { _, _ -> },
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
@@ -539,7 +545,10 @@ private fun Answer(
                         { AnswerActions(message.text, rating, canRetry, onRetry, onRate) }
                     },
             )
-            if (!message.streaming) SourceChips(message.sources)
+            if (!message.streaming) {
+                message.actions.forEachIndexed { index, card -> ConfirmCard(card, { onAction(index, it) }) }
+                SourceChips(message.sources)
+            }
             if (message.stopped) {
                 BasicText(stringResource(R.string.chat_stopped), style = type.label.copy(color = colors.textMuted))
             }

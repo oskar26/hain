@@ -42,6 +42,7 @@ import app.hain.feature.chat.internal.StepState
 import app.hain.feature.chat.internal.ToolStep
 import app.hain.ui.components.Hain3D
 import app.hain.ui.components.Hain3DIcon
+import app.hain.tools.api.PhoneAction
 import app.hain.ui.components.HainChip
 import app.hain.ui.components.PulsingDot
 import app.hain.ui.motion.LocalReduceMotion
@@ -84,6 +85,9 @@ internal fun toolIcon(name: String): Hain3D =
         "wikipedia" -> Hain3D.BOOK
         ChatEngine.SEARCH_TOOL -> Hain3D.SEARCH
         "read_page", ChatEngine.READ_STEP -> Hain3D.DOCUMENT
+        PhoneAction.ADD_EVENT -> Hain3D.CALENDAR
+        PhoneAction.NAVIGATE -> Hain3D.GLOBE
+        PhoneAction.SET_ALARM, PhoneAction.SET_TIMER -> Hain3D.PHONE
         else -> Hain3D.SPARKLES
     }
 
@@ -119,6 +123,10 @@ private fun toolName(name: String): Int =
         "wikipedia" -> R.string.chat_tool_wikipedia
         ChatEngine.SEARCH_TOOL -> R.string.chat_tool_search
         "read_page" -> R.string.chat_tool_read_page
+        PhoneAction.SET_ALARM -> R.string.chat_tool_alarm
+        PhoneAction.SET_TIMER -> R.string.chat_tool_timer
+        PhoneAction.ADD_EVENT -> R.string.chat_tool_event
+        PhoneAction.NAVIGATE -> R.string.chat_tool_route
         else -> R.string.chat_tool_other
     }
 

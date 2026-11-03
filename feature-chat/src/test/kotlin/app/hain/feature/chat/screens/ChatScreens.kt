@@ -205,7 +205,7 @@ private fun ChatFrame(
             if (state.messages.isEmpty()) {
                 Greeting(onSuggestion = {}, hour = 15)
             } else {
-                MessageList(state, emptyMap(), {}, {}, { _, _ -> })
+                MessageList(state, emptyMap(), {}, {}, { _, _ -> }, { _, _, _ -> })
             }
         }
         Composer(

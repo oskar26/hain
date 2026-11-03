@@ -25,6 +25,8 @@ data class UiMessage(
     val sources: List<SourceRef> = emptyList(),
     /** Tool calls and short results, for the brain's view of later turns (T-062 fix). */
     val trace: List<ToolTrace> = emptyList(),
+    /** Phone actions waiting for (or done after) the user's tap on their card (T-068). */
+    val actions: List<ActionCard> = emptyList(),
 )
 
 data class Chat(

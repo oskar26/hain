@@ -4,11 +4,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.hain.common.api.AnswerLanguage
 import app.hain.common.api.AnswerMode
 import app.hain.common.api.HainSettings
+import app.hain.common.api.SearxAddress
 import app.hain.common.api.ThemeChoice
 import app.hain.common.api.net.NetworkLogEntry
 import app.hain.feature.settings.R
@@ -97,10 +102,35 @@ internal fun SettingsPageContent(
                 settings.offlineMode,
                 actions.onOfflineMode,
             )
+            SearxSetting(settings.searxUrl, actions.onSearxUrl)
             NetworkLogSection(networkLog, settings.networkLogDetail, actions)
         }
         SettingsPage.ABOUT -> Info(R.string.settings_about_text)
     }
+}
+
+/**
+ * Own SearXNG address (4b): asked first when Pim searches the web. A quiet line below says whether
+ * Hain can use what you typed (only https).
+ */
+@Composable
+private fun SearxSetting(
+    value: String,
+    onChange: (String) -> Unit,
+) {
+    var typed by remember { mutableStateOf(value) }
+    TextSetting(R.string.settings_searx, R.string.settings_searx_placeholder, value) {
+        typed = it
+        onChange(it)
+    }
+    val colors = LocalHainColors.current
+    val (text, color) =
+        when {
+            typed.isBlank() -> R.string.settings_searx_hint to colors.textMuted
+            SearxAddress.normalize(typed) != null -> R.string.settings_searx_ok to colors.accent
+            else -> R.string.settings_searx_bad to colors.danger
+        }
+    BasicText(stringResource(text), style = LocalHainTypography.current.bodySmall.copy(color = color))
 }
 
 @Composable
