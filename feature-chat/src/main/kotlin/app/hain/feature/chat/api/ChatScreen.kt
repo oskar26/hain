@@ -4,7 +4,12 @@ package app.hain.feature.chat.api
 
 import android.content.Intent
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -49,6 +54,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.hain.common.api.AnswerMode
 import app.hain.feature.chat.R
 import app.hain.feature.chat.internal.ChatError
 import app.hain.feature.chat.internal.ChatUiState
@@ -68,7 +74,9 @@ import app.hain.ui.components.ReasoningBlock
 import app.hain.ui.components.TopBar
 import app.hain.ui.components.UserBubble
 import app.hain.ui.effects.ThinkingGlow
+import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.HainMotionMoment
+import app.hain.ui.motion.hainTween
 import app.hain.ui.motion.motionSpec
 import app.hain.ui.motion.rememberHainHaptics
 import app.hain.ui.pim.JuicyPim
@@ -83,13 +91,15 @@ import app.hain.ui.theme.hainSurface
 import kotlinx.coroutines.delay
 
 /** Chat screen (T-052) with the chat drawer (T-053, basic). */
-@Suppress("LongMethod") // screen scaffold: top bar, list, composer, drawer
+@Suppress("LongMethod", "LongParameterList") // screen scaffold: top bar, list, composer, drawer
 @Composable
 fun ChatScreen(
     viewModel: ChatViewModel,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
     onGetBrain: () -> Unit = {},
+    answerMode: AnswerMode = AnswerMode.AUTO,
+    onAnswerMode: (AnswerMode) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var drawerOpen by rememberSaveable { mutableStateOf(false) }
@@ -131,21 +141,31 @@ fun ChatScreen(
                 BrainBanner(onGet = onGetBrain, onLater = { bannerHidden = true })
             }
             Box(Modifier.weight(1f).fillMaxWidth()) {
-                if (state.messages.isEmpty()) {
-                    Greeting(onSuggestion = { viewModel.onInputChange(it) })
-                } else {
-                    val ratings by viewModel.ratings.collectAsStateWithLifecycle()
-                    MessageList(
-                        state,
-                        ratings = ratings,
-                        onRetry = { viewModel.regenerate(it) },
-                        onEdit = viewModel::startEdit,
-                        onRate = viewModel::rate,
-                    )
+                val pageIn = fadeIn(hainTween(HainMotion.PAGE_MS))
+                val pageSlide = slideInVertically(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV }
+                val pageOut = fadeOut(hainTween(HainMotion.FAST_MS))
+                AnimatedContent(
+                    targetState = state.messages.isEmpty(),
+                    transitionSpec = { (pageIn + pageSlide).togetherWith(pageOut) },
+                    label = "chat-start",
+                ) { empty ->
+                    if (empty) {
+                        Greeting(onSuggestion = { viewModel.onInputChange(it) })
+                    } else {
+                        val ratings by viewModel.ratings.collectAsStateWithLifecycle()
+                        MessageList(
+                            state,
+                            ratings = ratings,
+                            onRetry = { viewModel.regenerate(it) },
+                            onEdit = viewModel::startEdit,
+                            onRate = viewModel::rate,
+                        )
+                    }
                 }
             }
             ErrorLine(state, onGetBrain)
             if (state.editingId != null) EditBar(onCancel = viewModel::cancelEdit)
+            ModeSwitch(answerMode, onAnswerMode)
             Composer(
                 text = state.input,
                 onTextChange = viewModel::onInputChange,
@@ -565,3 +585,5 @@ private const val CHIP_WIDTH = 0.9f
 private const val PERCENT = 100
 private const val ROOMY_HEIGHT = 420
 private const val COPIED_MS = 1500L
+
+private const val SLIDE_DIV = 14

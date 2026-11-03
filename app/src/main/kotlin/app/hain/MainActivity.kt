@@ -4,6 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -33,7 +37,9 @@ import app.hain.models.api.DownloadState
 import app.hain.models.api.ModelRepository
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.ToolContext
+import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.LocalReduceMotion
+import app.hain.ui.motion.hainTween
 import app.hain.ui.theme.HainTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.map
@@ -123,6 +129,7 @@ class MainActivity : ComponentActivity() {
         return Math.round(info.totalMem / BYTES_PER_GB).toInt()
     }
 
+    @Suppress("LongMethod") // compose root: theme, onboarding, chat, settings overlays
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -161,8 +168,16 @@ class MainActivity : ComponentActivity() {
                             viewModel = chatViewModel,
                             onOpenSettings = { showSettings = true },
                             onGetBrain = { showPacks = true },
+                            answerMode = settings.answerMode,
+                            onAnswerMode = { mode -> lifecycleScope.launch { settingsRepository.setAnswerMode(mode) } },
                         )
-                        if (showSettings) {
+                        AnimatedVisibility(
+                            visible = showSettings,
+                            enter =
+                                fadeIn(hainTween(HainMotion.PAGE_MS)) +
+                                    slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
+                            exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+                        ) {
                             val log by networkGate.log.collectAsStateWithLifecycle()
                             SettingsScreen(
                                 settings,
@@ -170,7 +185,13 @@ class MainActivity : ComponentActivity() {
                                 networkLog = log,
                             )
                         }
-                        if (showPacks) {
+                        AnimatedVisibility(
+                            visible = showPacks,
+                            enter =
+                                fadeIn(hainTween(HainMotion.PAGE_MS)) +
+                                    slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
+                            exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+                        ) {
                             PacksScreen(models, deviceRamGb(), { showPacks = false })
                         }
                     }
@@ -188,6 +209,7 @@ class MainActivity : ComponentActivity() {
         ) == 0f
 }
 
+private const val SLIDE_DIV = 6
 private const val BYTES_PER_GB = 1_000_000_000.0
 private const val START_PREFS = "hain_start"
 private const val KEY_SKIPPED = "onboarding_skipped"
