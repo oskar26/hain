@@ -94,21 +94,30 @@ class SystemPromptSource(
     }
 
     private companion object {
-        // Werkzeuge I (T-062): calculator offline, weather + Wikipedia online. One rule per line.
+        // Werkzeuge I+II (T-062, T-066, T-067): calculator offline, the rest online. Rule against copied
+        // "looked it up" answers: every new question calls the tool again (Oskar's test of #19).
         const val TOOLS_DE =
             "Werkzeuge: calculate für genaues Rechnen und Einheiten, weather für Wetter, " +
-                "wikipedia für Fakten über Personen, Orte und Dinge. Nutze sie, wenn du unsicher bist. " +
-                "Antworte danach aus dem Ergebnis und nenne die Quelle als [1]. " +
+                "wikipedia für Fakten über Personen, Orte und Dinge, web_search für Aktuelles und Details " +
+                "(Hain liest dann die besten Seiten), read_page für einen Link. " +
+                "Für jede neue Frage, die Fakten, Wetter oder Aktuelles braucht, rufe das Werkzeug neu auf, " +
+                "auch wenn du es vorher schon benutzt hast. " +
+                "Sag nie, dass du nachgeschaut hast, wenn du in dieser Antwort kein Werkzeug benutzt hast. " +
+                "Antworte danach aus dem Ergebnis und nenne die Quellen als [1], [2]. " +
                 "Klappt ein Werkzeug nicht, sag das ehrlich."
         const val TOOLS_EN =
             "Tools: calculate for exact maths and units, weather for forecasts, " +
-                "wikipedia for facts about people, places and things. Use them when you are not sure. " +
-                "Then answer from the result and cite the source as [1]. If a tool fails, say so plainly."
+                "wikipedia for facts about people, places and things, web_search for current news and details " +
+                "(Hain then reads the best pages), read_page for a link. " +
+                "For every new question that needs facts, weather or current events, call the tool again, " +
+                "even if you used it before. " +
+                "Never say you looked something up if you used no tool in this answer. " +
+                "Then answer from the result and cite the sources as [1], [2]. If a tool fails, say so plainly."
         const val TOOLS_OFFLINE_DE =
-            "Der Offline-Modus ist an: nur calculate geht. Für Wetter oder Wikipedia sag, " +
+            "Der Offline-Modus ist an: nur calculate geht. Für Wetter, Wikipedia oder die Suche sag, " +
                 "dass der Nutzer den Offline-Modus in den Einstellungen ausschalten kann."
         const val TOOLS_OFFLINE_EN =
-            "Offline mode is on: only calculate works. For weather or Wikipedia, say the user can " +
+            "Offline mode is on: only calculate works. For weather, Wikipedia or search, say the user can " +
                 "turn offline mode off in the settings."
     }
 }

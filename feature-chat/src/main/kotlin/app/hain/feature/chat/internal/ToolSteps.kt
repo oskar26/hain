@@ -20,3 +20,14 @@ data class SourceRef(
     val title: String,
     val url: String,
 )
+
+/**
+ * One tool call of an answer as the brain saw it (T-062 fix): the call and a short copy of its result.
+ * Kept with the answer, so the next turns show the brain real calls instead of only the answer text,
+ * which it would otherwise copy ("laut Wikipedia …") without calling the tool again.
+ */
+data class ToolTrace(
+    val name: String,
+    val args: Map<String, String>,
+    val result: String,
+)
