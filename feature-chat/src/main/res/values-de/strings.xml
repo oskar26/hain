@@ -27,10 +27,6 @@
     <string name="chat_error_context">Dieser Chat ist zu lang für das Gehirn. Starte einen neuen Chat.</string>
     <string name="chat_error_generation">Da ist was schiefgegangen. Nochmal fragen?</string>
     <string name="chat_error_no_native">Diese Version hat keine KI-Engine.</string>
-    <string name="chat_suggestion_1">Erklär mir Photosynthese einfach</string>
-    <string name="chat_suggestion_2">Ideen für eine plastikfreie Woche</string>
-    <string name="chat_suggestion_3">Schreib ein kurzes Geburtstagsgedicht</string>
-    <string name="chat_suggestion_4">Hilf mir, meinen Tag zu planen</string>
     <string name="chat_search">Chats durchsuchen</string>
     <string name="chat_search_clear">Suche leeren</string>
     <string name="chat_search_empty">Kein Chat passt.</string>
@@ -136,4 +132,74 @@
     <string name="chat_show_more">Mehr anzeigen</string>
     <string name="chat_show_less">Weniger anzeigen</string>
     <string name="chat_scroll_down">Zur neuesten Nachricht</string>
+    <string name="chat_pim_label">Pim. Tipp ihn an, zieh ihn herum oder halt ihn fest.</string>
+    <!-- T-091: start page suggestions, "icon|text", one line each; shuffled on every start, rotating every 6 s -->
+    <string-array name="chat_suggestions">
+        <item>sparkles|Erzähl mir einen Witz</item>
+        <item>leaf|Fun Fact über Pilze</item>
+        <item>bubble|Hilf mir bei einer Mail</item>
+        <item>recycle|Gib mir einen Öko-Tipp</item>
+        <item>heart|Rezept mit drei Zutaten</item>
+        <item>bulb|Erklär mir Photosynthese</item>
+        <item>weather|Wie wird das Wetter morgen?</item>
+        <item>book|Wer war Ada Lovelace?</item>
+        <item>phone|Stell mir einen Wecker um 7</item>
+        <item>calendar|Hilf mir, meinen Tag zu planen</item>
+        <item>recycle|Ideen für weniger Plastik</item>
+        <item>sparkles|Schreib ein Mini-Gedicht</item>
+        <item>gift|Geschenkidee für Oma</item>
+        <item>calc|Wie viel sind 15 % von 80 €?</item>
+        <item>leaf|Warum sind Blätter grün?</item>
+        <item>heart|Was koche ich mit Linsen?</item>
+        <item>book|Erklär mir schwarze Löcher</item>
+        <item>bulb|Lerntipps für Mathe</item>
+        <item>bubble|Formuliere eine nette Absage</item>
+        <item>sparkles|Erfinde ein Fantasietier</item>
+        <item>leaf|Fun Fact über Bienen</item>
+        <item>weather|Brauche ich heute Schirm?</item>
+        <item>phone|Timer für 10 Minuten</item>
+        <item>book|Wikipedia über Eichen</item>
+        <item>recycle|Strom sparen im Haushalt</item>
+        <item>heart|Frühstücksidee ohne Zucker</item>
+        <item>bulb|Erklär mir Zinseszins</item>
+        <item>sparkles|Gib mir ein Rätsel</item>
+        <item>calendar|Plan für eine Lernwoche</item>
+        <item>bubble|Hilf mir bei einer Bewerbung</item>
+        <item>leaf|Wie lange lebt ein Baum?</item>
+        <item>globe|Was ist gerade in den News?</item>
+        <item>gift|Ideen für einen Spieleabend</item>
+        <item>heart|Veganes Rezept für heute</item>
+        <item>book|Erklär mir den Mond</item>
+        <item>bulb|Wie lerne ich Vokabeln?</item>
+        <item>recycle|Was gehört in den Biomüll?</item>
+        <item>sparkles|Schreib eine kurze Geschichte</item>
+        <item>calc|Rechne 2,5 Meilen in km um</item>
+        <item>leaf|Fun Fact über Kraken</item>
+        <item>weather|Wetter am Wochenende?</item>
+        <item>phone|Termin morgen um 15 Uhr</item>
+        <item>bubble|Schreib eine Dankeskarte</item>
+        <item>heart|Was hilft beim Einschlafen?</item>
+        <item>book|Wer hat das Fahrrad erfunden?</item>
+        <item>bulb|Erklär mir KI in einfach</item>
+        <item>recycle|Kleidung länger nutzen</item>
+        <item>sparkles|Wortspiel mit Kartoffel</item>
+        <item>calendar|Packliste für einen Ausflug</item>
+        <item>gift|Bastelidee mit Altpapier</item>
+        <item>leaf|Warum fallen Blätter ab?</item>
+        <item>heart|Snack-Idee fürs Büro</item>
+        <item>book|Erklär mir den Regenbogen</item>
+        <item>bulb|Merktrick für Planeten</item>
+        <item>recycle|Wasser sparen beim Duschen</item>
+        <item>sparkles|Erzähl einen Flachwitz</item>
+        <item>globe|Neues aus der Wissenschaft</item>
+        <item>phone|Route zum nächsten Park</item>
+        <item>calc|Wie viele Tage bis Weihnachten?</item>
+        <item>leaf|Fun Fact über Moos</item>
+        <item>bubble|Hilf mir, mich zu entschuldigen</item>
+        <item>heart|Ideen für ein Picknick</item>
+        <item>book|Wie funktioniert ein Vulkan?</item>
+        <item>bulb|Erklär mir Bruchrechnen</item>
+        <item>sparkles|Gib mir ein Kompliment</item>
+        <item>recycle|Tipps gegen Lebensmittelmüll</item>
+    </string-array>
 </resources>

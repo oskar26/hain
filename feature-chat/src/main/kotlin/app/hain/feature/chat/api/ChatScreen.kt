@@ -14,16 +14,13 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -33,10 +30,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,7 +44,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -59,7 +53,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hain.common.api.AnswerMode
@@ -74,8 +67,6 @@ import app.hain.llm.api.EngineState
 import app.hain.ui.HainIcons
 import app.hain.ui.components.AssistantBlock
 import app.hain.ui.components.Composer
-import app.hain.ui.components.Hain3D
-import app.hain.ui.components.Hain3DIcon
 import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.MessageAction
 import app.hain.ui.components.MessageActionKind
@@ -83,7 +74,6 @@ import app.hain.ui.components.PulsingDot
 import app.hain.ui.components.ReasoningBlock
 import app.hain.ui.components.TopBar
 import app.hain.ui.components.UserBubble
-import app.hain.ui.components.pressScale
 import app.hain.ui.effects.ThinkingGlow
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.HainMotionMoment
@@ -93,13 +83,11 @@ import app.hain.ui.motion.motionSpec
 import app.hain.ui.motion.rememberHainHaptics
 import app.hain.ui.pim.LivePim
 import app.hain.ui.pim.PimState
-import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
-import app.hain.ui.theme.glassTile
 import app.hain.ui.theme.hainSurface
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -114,6 +102,7 @@ fun ChatScreen(
     onGetBrain: () -> Unit = {},
     answerMode: AnswerMode = AnswerMode.AUTO,
     onAnswerMode: (AnswerMode) -> Unit = {},
+    onOpenGame: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var drawerOpen by rememberSaveable { mutableStateOf(false) }
@@ -172,7 +161,7 @@ fun ChatScreen(
                     label = "chat-start",
                 ) { empty ->
                     if (empty) {
-                        Greeting(onSuggestion = { viewModel.onInputChange(it) })
+                        Greeting(onSuggestion = { viewModel.onInputChange(it) }, onEgg = onOpenGame)
                     } else {
                         val ratings by viewModel.ratings.collectAsStateWithLifecycle()
                         MessageList(
@@ -270,96 +259,6 @@ private fun engineLine(state: ChatUiState): String? =
         state.engine is EngineState.Ready -> stringResource(R.string.chat_brain_ready)
         else -> null
     }
-
-/**
- * Empty chat (T-011, like Oskar's reference 6): a small glossy Pim, a big light greeting on the
- * left and three suggestion tiles of glass, each with its 3D icon and its own soft light. With the
- * keyboard open there is little room: then Pim gets smaller and the suggestions step aside, so
- * nothing slides under the status bar (2d-2).
- */
-@Composable
-internal fun Greeting(
-    onSuggestion: (String) -> Unit,
-    hour: Int =
-        remember {
-            java.time.LocalTime
-                .now()
-                .hour
-        },
-) {
-    val spacing = LocalHainSpacing.current
-    val colors = LocalHainColors.current
-    val type = LocalHainTypography.current
-    val suggestions =
-        listOf(
-            Triple(stringResource(R.string.chat_suggestion_1), Hain3D.LEAF, GlowHue.MINT),
-            Triple(stringResource(R.string.chat_suggestion_2), Hain3D.RECYCLE, GlowHue.TEAL),
-            Triple(stringResource(R.string.chat_suggestion_4), Hain3D.CALENDAR, GlowHue.PEACH),
-        )
-    val hello =
-        stringResource(
-            when (hour) {
-                in MORNING -> R.string.chat_hello_morning
-                in EVENING_FROM..LAST_HOUR, in 0 until MORNING.first -> R.string.chat_hello_evening
-                else -> R.string.chat_hello_day
-            },
-        )
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val roomy = maxHeight >= ROOMY_HEIGHT.dp
-        Column(
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = spacing.xl, vertical = spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(spacing.md, Alignment.CenterVertically),
-        ) {
-            LivePim(PimState.HAPPY, if (roomy) 140.dp else 64.dp)
-            BasicText(
-                "$hello\n" + stringResource(R.string.chat_hello_question),
-                style = type.display.copy(color = colors.text),
-            )
-            if (roomy) {
-                Spacer(Modifier.height(spacing.xs))
-                suggestions.forEach { (text, icon, hue) -> SuggestionTile(text, icon, hue) { onSuggestion(text) } }
-            }
-        }
-    }
-}
-
-/** One suggestion: a glass tile whose colour shines from its 3D icon on the left (T-011). */
-@Composable
-private fun SuggestionTile(
-    text: String,
-    icon: Hain3D,
-    hue: GlowHue,
-    onClick: () -> Unit,
-) {
-    val colors = LocalHainColors.current
-    val spacing = LocalHainSpacing.current
-    val interaction = remember { MutableInteractionSource() }
-    val scale = pressScale(interaction)
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .graphicsLayer {
-                scaleX = scale.value
-                scaleY = scale.value
-            }.glassTile(hue, elevation = 6.dp, lightAt = Offset(x = 0.06f, y = 0.5f))
-            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick)
-            .padding(horizontal = spacing.md, vertical = spacing.md),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Hain3DIcon(icon, size = 32.dp)
-        Spacer(Modifier.width(spacing.md))
-        BasicText(
-            text,
-            style = LocalHainTypography.current.body.copy(color = colors.text),
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
 
 @Suppress("LongMethod", "LongParameterList") // list, follow logic, jump-down button; one callback per action
 @Composable
@@ -732,13 +631,7 @@ private fun EditBar(onCancel: () -> Unit) {
 
 private const val OPEN_SCALE = 0.94f
 private const val QUARTER_TURN = 90f
-private const val MORNING_FROM = 5
-private const val MORNING_TO = 10
-private val MORNING = MORNING_FROM..MORNING_TO
-private const val EVENING_FROM = 18
-private const val LAST_HOUR = 23
 private const val PERCENT = 100
-private const val ROOMY_HEIGHT = 420
 private const val COPIED_MS = 1500L
 
 private const val SLIDE_DIV = 14

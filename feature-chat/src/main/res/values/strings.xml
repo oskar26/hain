@@ -27,10 +27,6 @@
     <string name="chat_error_context">This chat is too long for the brain. Start a new chat.</string>
     <string name="chat_error_generation">Something went wrong. Ask again?</string>
     <string name="chat_error_no_native">This build has no AI engine.</string>
-    <string name="chat_suggestion_1">Explain photosynthesis simply</string>
-    <string name="chat_suggestion_2">Ideas for a plastic-free week</string>
-    <string name="chat_suggestion_3">Write a short birthday poem</string>
-    <string name="chat_suggestion_4">Help me plan my day</string>
     <string name="chat_search">Search chats</string>
     <string name="chat_search_clear">Clear search</string>
     <string name="chat_search_empty">No chat matches.</string>
@@ -136,4 +132,74 @@
     <string name="chat_show_more">Show more</string>
     <string name="chat_show_less">Show less</string>
     <string name="chat_scroll_down">Jump to the newest message</string>
+    <string name="chat_pim_label">Pim. Tap him, drag him around or hold him.</string>
+    <!-- T-091: start page suggestions, "icon|text", one line each; shuffled on every start, rotating every 6 s -->
+    <string-array name="chat_suggestions">
+        <item>sparkles|Tell me a joke</item>
+        <item>leaf|Fun fact about mushrooms</item>
+        <item>bubble|Help me with an email</item>
+        <item>recycle|Give me an eco tip</item>
+        <item>heart|Recipe with three ingredients</item>
+        <item>bulb|Explain photosynthesis</item>
+        <item>weather|Weather tomorrow?</item>
+        <item>book|Who was Ada Lovelace?</item>
+        <item>phone|Set an alarm for 7</item>
+        <item>calendar|Help me plan my day</item>
+        <item>recycle|Ideas to use less plastic</item>
+        <item>sparkles|Write a tiny poem</item>
+        <item>gift|Gift idea for grandma</item>
+        <item>calc|What is 15 % of 80?</item>
+        <item>leaf|Why are leaves green?</item>
+        <item>heart|What can I cook with lentils?</item>
+        <item>book|Explain black holes</item>
+        <item>bulb|Study tips for maths</item>
+        <item>bubble|Write a kind no-thanks</item>
+        <item>sparkles|Invent a fantasy animal</item>
+        <item>leaf|Fun fact about bees</item>
+        <item>weather|Do I need an umbrella?</item>
+        <item>phone|Timer for 10 minutes</item>
+        <item>book|Wikipedia on oak trees</item>
+        <item>recycle|Save power at home</item>
+        <item>heart|Breakfast without sugar</item>
+        <item>bulb|Explain compound interest</item>
+        <item>sparkles|Give me a riddle</item>
+        <item>calendar|Plan a study week</item>
+        <item>bubble|Help with a job letter</item>
+        <item>leaf|How long do trees live?</item>
+        <item>globe|What\'s in the news?</item>
+        <item>gift|Ideas for a game night</item>
+        <item>heart|Vegan dinner idea</item>
+        <item>book|Explain the moon</item>
+        <item>bulb|How to learn vocabulary</item>
+        <item>recycle|What goes in compost?</item>
+        <item>sparkles|Write a short story</item>
+        <item>calc|2.5 miles in km</item>
+        <item>leaf|Fun fact about octopuses</item>
+        <item>weather|Weekend weather?</item>
+        <item>phone|Event tomorrow at 3 pm</item>
+        <item>bubble|Write a thank-you note</item>
+        <item>heart|Tips to fall asleep</item>
+        <item>book|Who invented the bicycle?</item>
+        <item>bulb|Explain AI simply</item>
+        <item>recycle|Make clothes last longer</item>
+        <item>sparkles|A pun about potatoes</item>
+        <item>calendar|Packing list for a trip</item>
+        <item>gift|Craft idea with old paper</item>
+        <item>leaf|Why do leaves fall?</item>
+        <item>heart|Snack idea for work</item>
+        <item>book|Explain rainbows</item>
+        <item>bulb|Trick to remember planets</item>
+        <item>recycle|Save water in the shower</item>
+        <item>sparkles|Tell me a dad joke</item>
+        <item>globe|New in science</item>
+        <item>phone|Directions to a park</item>
+        <item>calc|Days until Christmas?</item>
+        <item>leaf|Fun fact about moss</item>
+        <item>bubble|Help me say sorry</item>
+        <item>heart|Ideas for a picnic</item>
+        <item>book|How do volcanoes work?</item>
+        <item>bulb|Explain fractions</item>
+        <item>sparkles|Give me a compliment</item>
+        <item>recycle|Tips against food waste</item>
+    </string-array>
 </resources>

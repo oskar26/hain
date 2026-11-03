@@ -203,7 +203,7 @@ internal fun ChatFrame(
         )
         Box(Modifier.weight(1f)) {
             if (state.messages.isEmpty()) {
-                Greeting(onSuggestion = {}, hour = 15)
+                Greeting(onSuggestion = {}, hour = 15, seed = 3)
             } else {
                 MessageList(state, emptyMap(), {}, {}, { _, _ -> }, { _, _, _ -> })
             }
