@@ -17,7 +17,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-005 | Strings DE/EN + checker script | strings | S | A | T-002 | review |
 | T-006 | CI workflow | scaffold | XS | A | T-003,T-005 | review |
 | T-010 | Design tokens | ui | S | B | T-002 | review (redesign 03.11.: one design language — levels, radii, motion, Hanken Grotesk; docs/design/DESIGN_LANGUAGE.md) |
-| T-011 | Components: HainText, HainSurface, HainButton, HainIconButton | ui | S | B | T-018,T-019 | review (subset) |
+| T-011 | Components: HainText, HainSurface, HainButton, HainIconButton | ui | S | B | T-018,T-019 | review (3D design language 03.11.: glassTile, dome, Hain3DIcon, glossy Pim – DESIGN_LANGUAGE.md) |
 | T-012 | Components: HainTextField, Composer | ui | S | B | T-018,T-019 | review (subset) |
 | T-013 | Components: UserBubble, AssistantBlock (markdown via renderer core), ReasoningBlock | ui | M | B | T-018,T-019 | review (subset) |
 | T-014 | Components: HainChip, ToolChip, HainCard, SegmentedControl | ui | S | B | T-018,T-019 | review |
@@ -51,7 +51,8 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-081 | Catalog + DeviceCheck | feature | S | F | T-002 | review (DeviceCheck pure rules + Packs screen) |
 | T-082 | PackDownloader (WorkManager) | feature | M | F | T-081 | review |
 | T-083 | Onboarding (welcome, language, download brain) | ui | M | F | T-082,T-016 | review (tour + success + skip download; language → 2f) |
-| T-084 | Packs screen in settings | ui | S | F | T-082 | todo |
+| T-084 | Packs screen in settings | ui | S | F | T-082 | review (packs screen 2c; ID also used 03.11. for the thinking picker in the composer, see HANDOFF_LOG) |
+| T-085 | UI fixes for long texts (bubble fold, follow-scroll, ellipsis, composer 6 lines, 200 % font, 360 dp, landscape) | ui | S | E | T-052 | review (03.11., screenshots via screens.yml) |
 | T-060 | NetworkGate + network log | feature | S | A | T-020 | review |
 | T-061 | Pim launcher icon + VectorDrawable export | ui | S | B | T-016 | todo |
 | T-062 | ToolRouter + schemas | feature | S | A | T-040,T-060 | review |

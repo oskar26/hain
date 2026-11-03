@@ -275,3 +275,14 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - What: (1) soft screen changes: start page → chat fades + slides (300 ms, `HainMotion.PAGE_MS`), settings and packs slide/fade in and fade out; "reduce motion" = no motion. (2) Answer-depth switch (Auto / Fast / Thorough) above the message box (`ModeSwitch`), stored in the same DataStore setting as Settings → Answers, applies to the next message.
 - Stacked on `hark/day-4` (PR #21 open) + merged main (#20 redesign). Files: ChatScreen.kt, ModeSwitch.kt, MainActivity.kt, HainMotion.kt, strings EN/DE.
 - Next: 3b / 4b / 5.
+
+## 2026-11-03 · 3D redesign + thinking picker + long texts (2e-2) · review · harness: Hark · branch `hark/redesign-3d`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-011 | review | `HainSurfaceTest` (levels deeper, dark glass glows stronger), `HainShapesTest` (tile 24, composer 28); screenshots via `screens.yml` | `Buttons`, `Composer`, `PopupMenu` (HainPopover above anchor), `HainLevel`, `HainShapes`, `PimGloss`/`PimGeometry`, `ChatScreen`, `ChatListDrawer`, `ToolTimeline`, `SettingsScreen`/`SettingsPage`/`PacksScreen`, `WelcomeTour`/`SuccessScreen` + new `Bubbles.kt`, `GlassTile.kt`, `HainGlow.kt`, `Hain3DIcon.kt`, 22 `ic3d_*.webp` | 3D icons = own generation (LICENSES.md); no ConfirmCard/weather card yet (4b/3b) – they should use `glassTile` when they come |
+| T-084 | review | compiles; same `AnswerMode` DataStore value as Settings → Answers | `ModeSwitch.kt` removed | ID collides with "Packs screen" (2c) – Oskar named it T-084 |
+| T-085 | review | screenshot cases: long own message, long answer with table + code, composer 12 lines, long drawer titles, 200 % font, 360 dp, landscape | `Messages` (UserBubble fold + 85 % width), `Scaffolding` (TopBar ellipsis, min height), `PopupMenu` (2-line items) | horizontal scroll of tables/code is built into the markdown renderer (checked) |
+
+- Screenshot tests live in `*/src/test/kotlin/**/screens/` and only run with `-Phain.screens` (Robolectric native graphics need x86): `.github/workflows/screens.yml` uploads them as artifact `screens`.
+- Next: 3b, 4b (ConfirmCard on `glassTile`), 5.
