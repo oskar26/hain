@@ -31,7 +31,10 @@ class ChatStyleScreens(
     @get:Rule
     val compose = createComposeRule()
 
-    private fun shot(name: String) = captureScreenRoboImage("$OUT/styles/${styleShotName(style, dark, name)}.png")
+    private fun shot(name: String) {
+        compose.waitForIdle()
+        captureScreenRoboImage("$OUT/styles/${styleShotName(style, dark, name)}.png")
+    }
 
     @Test
     fun emptyChat() {

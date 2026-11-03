@@ -36,7 +36,7 @@ jobs:
         run: >
           ./gradlew :core-ui:testDebugUnitTest :feature-chat:testDebugUnitTest
           :feature-settings:testDebugUnitTest :feature-onboarding:testDebugUnitTest
-          --tests '*.screens.*' -Phain.native=false -Phain.screens=true -Proborazzi.test.record=true --stacktrace
+          --tests '*.screens.*' --continue -Phain.native=false -Phain.screens=true -Proborazzi.test.record=true --stacktrace
 
       - name: Upload screenshots
         if: always()
