@@ -74,16 +74,16 @@ class ChatEngineTest {
             val llm = FakeLlm(listOf("Gut!"))
             val system = "Sei nett.\n\n# Kontext\nJetzt: 07:00"
             val history = listOf(ChatMessage(Role.USER, "wie geht es dir"))
-            var askedFor = ""
-            val hint = { last: String ->
-                askedFor = last
+            var askedFor = emptyList<String>()
+            val hint = { messages: List<String> ->
+                askedFor = messages
                 "Antworte auf Deutsch."
             }
             ChatEngine(llm, { system }, turnHint = hint)
                 .respond(history, AnswerMode.FAST)
                 .toList()
             val prompt = llm.lastPrompt
-            assertEquals("wie geht es dir", askedFor)
+            assertEquals(listOf("wie geht es dir"), askedFor)
             assertTrue(
                 prompt,
                 prompt.endsWith(

@@ -2,6 +2,7 @@ package app.hain
 
 import android.content.Context
 import app.hain.common.api.HainSettings
+import app.hain.llm.internal.MessageLanguage
 import app.hain.llm.internal.ReplyLanguage
 import app.hain.llm.internal.ReplyLanguagePolicy
 import app.hain.llm.internal.SystemPromptFiller
@@ -54,15 +55,17 @@ class SystemPromptSource(
         return SystemPromptFiller.fill(template(language), vars)
     }
 
-    /** "Antworte auf Deutsch." / "Answer in English." for the answer to [lastUserMessage]. */
-    fun turnHint(lastUserMessage: String): String {
-        val language =
-            ReplyLanguagePolicy.replyLanguage(
-                settings().answerLanguage,
-                lastUserMessage,
-                ReplyLanguage.fromLocale(deviceLocale()),
-            )
-        return ReplyLanguagePolicy.turnHint(language)
+    /**
+     * "Antworte auf Türkisch." / "Answer in Turkish." for the next answer: the language of the newest
+     * clear user message in [userMessages] (oldest first), in the prompt's own language.
+     */
+    fun turnHint(userMessages: List<String>): String {
+        val current = settings()
+        val device = deviceLocale()
+        val prompt = ReplyLanguagePolicy.promptLanguage(current.answerLanguage, ReplyLanguage.fromLocale(device))
+        val target =
+            ReplyLanguagePolicy.replyLanguage(current.answerLanguage, userMessages, MessageLanguage.fromLocale(device))
+        return ReplyLanguagePolicy.turnHint(prompt, target)
     }
 
     private fun instructions(

@@ -140,6 +140,24 @@ States: `REASONING` (inside `<think>` … `</think>`), `TEXT`, `TOOL` (from `<to
 Missing values → empty string, then collapse triple newlines. `emergency_number`: `112` for EU locales, `911` US, `999` UK, else `112`.
 Date/time formatted in the **prompt language** with the device region (`Dienstag, 28. Oktober 2026` / `Tuesday, 28 October 2026`).
 
+**Any language (Oskar, 2026-11-03 09:17).** With "Same as my message" (setting AUTO, default) Pim answers in the language of the newest clear user message, whatever language it is, so everyone can use Hain. `ReplyLanguagePolicy.detectLanguage` guesses offline: script first (ja, ko, zh, uk, ru, ar, he, el, hi, th), then stop words and special letters (de, en, fr, es, it, nl, pt, tr, pl). Short messages ("Hi", "ok") keep the chat's language, else the device language. The system prompt stays German or English (device language, keeps the cache); the hint names the target in the prompt's language ("Antworte auf Türkisch." / "Answer in Turkish."). Fixed settings Deutsch/English still win.
+
+Host test (LFM3-1.7B Q4_0, temp 0.1, 2026-11-03), 9 messages × German and English prompt, answer language right in **18/18**:
+
+| Message | German prompt | English prompt |
+|---|---|---|
+| Salut, comment ça va ? | Salut ! Ça va bien, merci. Et toi ? … | Salut ! Je suis Pim … Et toi, comment ça va ? |
+| ¿Qué puedo cocinar con puerros? | ¡Claro! Con puerros … | Claro, puedo ayudarte … ensalada de puerro … |
+| Ciao, come stai? | Ciao! Sto bene, grazie. Come stai tu? … | Ciao! Sto bene, grazie per chiedere. … |
+| Merhaba, nasılsın? | Merhaba! Ben Pim … Nasılsın? … | Merhaba! Ben Pim … Sen nasılsın? |
+| Hoi, hoe gaat het met je? | Hey! Mijn naam is Pim. Hoe kan ik je helpen? | Hoi! Ik ben Pim … |
+| Cześć, jak się masz? | Cześć! Mam się dobrze … | Cześć! Mam się świetnie, dziękuję … |
+| Привет, как дела? | Привет! У меня всё отлично, спасибо. … | Привет! У меня всё отлично … |
+| wie geht es dir | Hey! Alles klar? Wie geht's dir? … | Hey! Wie geht's dir? Ich bin Pim … |
+| Hello, how are you? | Hey there! I'm doing great … | I'm doing great, thanks for asking! … |
+
+Limit: in smaller languages the 1.7B model makes word mistakes (e.g. Dutch "groefsprout", Spanish "puerros (cebollas)"); the language itself is right.
+
 **Language (T-080 fix, 2026-11-03).** LFM3-1.7B follows the language of its system prompt much more than a rule inside it:
 with the old English prompt, German messages got English or mixed answers ("Sure! Lauch (leek) eignet sich…").
 `ReplyLanguagePolicy` (`:core-llm`) therefore decides:

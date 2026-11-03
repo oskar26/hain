@@ -11,7 +11,7 @@
     <string name="settings_readable_hint">Nutzt eine besonders klare Schrift.</string>
     <string name="settings_group_answers">Antworten</string>
     <string name="settings_answer_language">Sprache der Antworten</string>
-    <string name="settings_lang_auto">Automatisch</string>
+    <string name="settings_lang_auto">Wie meine Nachricht</string>
     <string name="settings_lang_de">Deutsch</string>
     <string name="settings_lang_en">English</string>
     <string name="settings_answer_mode">Art der Antworten</string>

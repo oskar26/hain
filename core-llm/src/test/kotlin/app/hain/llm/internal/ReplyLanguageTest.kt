@@ -42,11 +42,11 @@ class ReplyLanguageTest {
         listOf("Hi", "ok", "Photosynthese", "", "123").forEach { assertNull(it, ReplyLanguagePolicy.detect(it)) }
         assertEquals(
             ReplyLanguage.DE,
-            ReplyLanguagePolicy.replyLanguage(AnswerLanguage.AUTO, "Hi", ReplyLanguage.DE),
+            ReplyLanguagePolicy.replyLanguage(AnswerLanguage.AUTO, listOf("Hi"), MessageLanguage.GERMAN).prompt,
         )
         assertEquals(
             ReplyLanguage.EN,
-            ReplyLanguagePolicy.replyLanguage(AnswerLanguage.AUTO, "Hi", ReplyLanguage.EN),
+            ReplyLanguagePolicy.replyLanguage(AnswerLanguage.AUTO, listOf("Hi"), MessageLanguage.ENGLISH).prompt,
         )
     }
 
@@ -54,15 +54,15 @@ class ReplyLanguageTest {
     fun fixedSettingWinsOverTheMessage() {
         assertEquals(
             ReplyLanguage.DE,
-            ReplyLanguagePolicy.replyLanguage(AnswerLanguage.DE, "How are you?", ReplyLanguage.EN),
+            target(AnswerLanguage.DE, "How are you?", MessageLanguage.ENGLISH),
         )
         assertEquals(
             ReplyLanguage.EN,
-            ReplyLanguagePolicy.replyLanguage(AnswerLanguage.EN, "wie geht es dir", ReplyLanguage.DE),
+            target(AnswerLanguage.EN, "wie geht es dir", MessageLanguage.GERMAN),
         )
         assertEquals(
             ReplyLanguage.EN,
-            ReplyLanguagePolicy.replyLanguage(AnswerLanguage.AUTO, "How are you?", ReplyLanguage.DE),
+            target(AnswerLanguage.AUTO, "How are you?", MessageLanguage.GERMAN),
         )
     }
 
@@ -84,8 +84,11 @@ class ReplyLanguageTest {
         assertTrue(ReplyLanguagePolicy.rule(ReplyLanguage.DE, AnswerLanguage.AUTO).contains("mische nie"))
         assertTrue(ReplyLanguagePolicy.rule(ReplyLanguage.EN, AnswerLanguage.EN).startsWith("Always answer in English"))
         assertTrue(ReplyLanguagePolicy.rule(ReplyLanguage.EN, AnswerLanguage.AUTO).contains("never mix"))
-        assertEquals("Antworte auf Deutsch.", ReplyLanguagePolicy.turnHint(ReplyLanguage.DE))
-        assertEquals("Answer in English.", ReplyLanguagePolicy.turnHint(ReplyLanguage.EN))
+        assertEquals("Antworte auf Deutsch.", ReplyLanguagePolicy.turnHint(ReplyLanguage.DE, MessageLanguage.GERMAN))
+        assertEquals("Answer in English.", ReplyLanguagePolicy.turnHint(ReplyLanguage.EN, MessageLanguage.ENGLISH))
+        val turkish = checkNotNull(ReplyLanguagePolicy.detectLanguage("Merhaba, nasılsın?"))
+        assertEquals("Antworte auf Türkisch.", ReplyLanguagePolicy.turnHint(ReplyLanguage.DE, turkish))
+        assertEquals("Answer in Turkish.", ReplyLanguagePolicy.turnHint(ReplyLanguage.EN, turkish))
     }
 
     @Test
@@ -107,4 +110,43 @@ class ReplyLanguageTest {
         assertTrue(filled, filled.trimEnd().endsWith("# Sprache\n$rule"))
         assertFalse("no English headings", filled.contains("# Context") || filled.contains("You are"))
     }
+
+    @Test
+    fun detectsOtherLanguages() {
+        mapOf(
+            "Salut, comment ça va ?" to "fr",
+            "¿Qué puedo cocinar con puerros?" to "es",
+            "Ciao, come stai?" to "it",
+            "Merhaba, nasılsın?" to "tr",
+            "Hoi, hoe gaat het met je?" to "nl",
+            "Cześć, jak się masz?" to "pl",
+            "Olá, tudo bem com você?" to "pt",
+            "Привет, как дела?" to "ru",
+            "Привіт, як справи? Їжак" to "uk",
+            "こんにちは、元気ですか" to "ja",
+            "你好，你好吗" to "zh",
+            "안녕하세요" to "ko",
+            "مرحبا كيف حالك" to "ar",
+        ).forEach { (text, tag) -> assertEquals(text, tag, ReplyLanguagePolicy.detectLanguage(text)?.tag) }
+    }
+
+    @Test
+    fun shortMessagesKeepTheLanguageOfTheChat() {
+        val target =
+            ReplyLanguagePolicy.replyLanguage(
+                AnswerLanguage.AUTO,
+                listOf("Salut, comment ça va ?", "ok"),
+                MessageLanguage.GERMAN,
+            )
+        assertEquals("fr", target.tag)
+        assertEquals("Französisch", target.nameDe)
+        assertEquals("fr", MessageLanguage.fromLocale(Locale.FRANCE).tag)
+        assertEquals("French", MessageLanguage.fromLocale(Locale.FRANCE).nameEn)
+    }
+
+    private fun target(
+        setting: AnswerLanguage,
+        message: String,
+        device: MessageLanguage,
+    ): ReplyLanguage = ReplyLanguagePolicy.replyLanguage(setting, listOf(message), device).prompt
 }

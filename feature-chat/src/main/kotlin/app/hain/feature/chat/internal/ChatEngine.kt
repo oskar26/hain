@@ -40,7 +40,7 @@ sealed interface TurnUpdate {
  * The prompt is sent with checkpoints (end of the fixed system text, of the system prompt, of the
  * history) where the next turn picks up.
  *
- * Language (T-080 fix): [turnHint] gives a short system line ("Antworte auf Deutsch.") that is put
+ * Language (T-080 fix): [turnHint] gives a short system line ("Antworte auf Türkisch.") that is put
  * after the history, right before the answer. It is never stored, so the cached start and the
  * checkpoint at the end of the history stay valid.
  */
@@ -50,7 +50,7 @@ class ChatEngine(
     private val promptBuilder: PromptBuilder = LfmPromptBuilder(),
     private val clock: () -> Long = System::currentTimeMillis,
     private val answerMode: () -> AnswerMode = { AnswerMode.AUTO },
-    private val turnHint: (lastUserMessage: String) -> String? = { null },
+    private val turnHint: (userMessages: List<String>) -> String? = { null },
 ) {
     private var anchor = 0L
 
@@ -157,7 +157,8 @@ class ChatEngine(
         history: List<ChatMessage>,
         lastUser: String,
     ): List<ChatMessage> {
-        val hint = turnHint(lastUser)?.takeIf { it.isNotBlank() } ?: return history
+        val userMessages = history.filter { it.role == Role.USER }.map { it.content }.ifEmpty { listOf(lastUser) }
+        val hint = turnHint(userMessages)?.takeIf { it.isNotBlank() } ?: return history
         return history + ChatMessage(Role.SYSTEM, hint)
     }
 
