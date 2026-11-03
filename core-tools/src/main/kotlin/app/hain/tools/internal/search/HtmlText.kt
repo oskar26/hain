@@ -61,7 +61,8 @@ object HtmlText {
             (OG_TITLE.find(html)?.groupValues?.get(1) ?: TITLE.find(html)?.groupValues?.get(1))
                 ?.let { decode(it).trim() }
                 .orEmpty()
-        val body = html.substringAfter("<body", html)
+        // after the <body …> tag itself (4c: its ">" used to stay in front of the first line)
+        val body = if (html.contains("<body")) html.substringAfter("<body").substringAfter('>') else html
         val cleaned =
             body
                 .replace(COMMENT, " ")

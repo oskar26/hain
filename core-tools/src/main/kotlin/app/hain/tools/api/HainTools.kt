@@ -32,8 +32,21 @@ object HainTools {
                 AddCalendarEventTool(),
                 NavigateTool(),
             )
-        return ToolRouter(tools, pages = reader)
+        return ToolRouter(tools, pages = reader, fallbacks = FALLBACKS)
     }
+
+    /**
+     * 4c: an empty Wikipedia answer becomes a web search with the same words. (The web search's
+     * own fallback, Wikipedia in German and English, lives inside [SearchTool].)
+     */
+    val FALLBACKS =
+        mapOf(
+            "wikipedia" to
+                Fallback(
+                    tool = SearchTool.NAME,
+                    note = "Wikipedia had nothing about this. Here is a web search instead.",
+                ) { args -> mapOf("query" to (args["topic"] ?: args["query"])) },
+        )
 
     /** A pure sum or conversion answered without the brain ("12 × 7 = 84"); `null` otherwise. */
     fun quickAnswer(
