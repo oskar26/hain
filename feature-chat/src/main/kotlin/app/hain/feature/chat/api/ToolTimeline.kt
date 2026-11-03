@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions") // the tool card: rows, texts, research clock, sources
+
 package app.hain.feature.chat.api
 
 import android.content.Intent
@@ -21,6 +23,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,12 +40,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.hain.feature.chat.R
 import app.hain.feature.chat.internal.ChatEngine
+import app.hain.feature.chat.internal.ResearchClock
 import app.hain.feature.chat.internal.SourceRef
 import app.hain.feature.chat.internal.StepState
 import app.hain.feature.chat.internal.ToolStep
+import app.hain.tools.api.PhoneAction
 import app.hain.ui.components.Hain3D
 import app.hain.ui.components.Hain3DIcon
-import app.hain.tools.api.PhoneAction
 import app.hain.ui.components.HainChip
 import app.hain.ui.components.PulsingDot
 import app.hain.ui.motion.LocalReduceMotion
@@ -51,6 +55,8 @@ import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 import app.hain.ui.theme.glassTile
+import kotlinx.coroutines.delay
+import java.util.Locale
 
 /**
  * What Pim did for an answer (T-059), since T-011 as one glass tool card that glows in the colour of
@@ -62,6 +68,7 @@ import app.hain.ui.theme.glassTile
 internal fun ToolTimeline(
     steps: List<ToolStep>,
     modifier: Modifier = Modifier,
+    research: ResearchClock? = null,
 ) {
     if (steps.isEmpty()) return
     val spacing = LocalHainSpacing.current
@@ -74,6 +81,7 @@ internal fun ToolTimeline(
         verticalArrangement = Arrangement.spacedBy(spacing.xs),
     ) {
         steps.forEach { ToolRow(it) }
+        if (research != null) ResearchTime(research)
     }
 }
 
@@ -85,6 +93,7 @@ internal fun toolIcon(name: String): Hain3D =
         "wikipedia" -> Hain3D.BOOK
         ChatEngine.SEARCH_TOOL -> Hain3D.SEARCH
         "read_page", ChatEngine.READ_STEP -> Hain3D.DOCUMENT
+        ChatEngine.NOTES_STEP -> Hain3D.SPARKLES
         PhoneAction.ADD_EVENT -> Hain3D.CALENDAR
         PhoneAction.NAVIGATE -> Hain3D.GLOBE
         PhoneAction.SET_ALARM, PhoneAction.SET_TIMER -> Hain3D.PHONE
@@ -102,18 +111,76 @@ internal fun toolHue(name: String): GlowHue =
         else -> GlowHue.MINT
     }
 
+/** Quiet "0:12 von 1:00" under the steps while a thorough research runs (T-069). */
+@Composable
+private fun ResearchTime(clock: ResearchClock) {
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(clock) {
+        while (true) {
+            now = System.currentTimeMillis()
+            delay(TICK_MS)
+        }
+    }
+    val spent = (now - clock.startedAt).coerceIn(0L, clock.budgetMs)
+    val label = stringResource(R.string.chat_research_clock_label)
+    BasicText(
+        stringResource(R.string.chat_research_clock, minutes(spent), minutes(clock.budgetMs)),
+        style = LocalHainTypography.current.label.copy(color = LocalHainColors.current.textMuted),
+        modifier = Modifier.padding(top = 2.dp).semantics { contentDescription = label },
+    )
+}
+
+private fun minutes(ms: Long): String {
+    val s = ms / MS_PER_S
+    return String.format(Locale.ROOT, "%d:%02d", s / S_PER_MIN, s % S_PER_MIN)
+}
+
+@Suppress("ReturnCount")
 @Composable
 private fun toolText(step: ToolStep): String {
     if (step.name == ChatEngine.READ_STEP) return readPagesText(step)
+    if (step.name == ChatEngine.NOTES_STEP) return notesText(step)
     val name = stringResource(toolName(step.name))
     val tail =
         when {
             step.state == StepState.RUNNING && step.detail == null -> stringResource(R.string.chat_tool_running)
-            step.state == StepState.FAILED && step.error == "offline" -> stringResource(R.string.chat_tool_offline)
-            step.state == StepState.FAILED -> stringResource(R.string.chat_tool_failed)
+            step.state == StepState.FAILED -> failureText(step.error)
             else -> step.detail
         }
-    return if (tail.isNullOrBlank()) name else "$name · $tail"
+    val fallback =
+        when (step.via) {
+            ChatEngine.SEARCH_TOOL -> stringResource(R.string.chat_tool_wiki_to_web)
+            "wikipedia" -> stringResource(R.string.chat_tool_web_to_wiki)
+            else -> null
+        }
+    val head = fallback ?: name
+    return if (tail.isNullOrBlank()) head else "$head · $tail"
+}
+
+@Composable
+private fun failureText(error: String?): String =
+    when (error) {
+        "offline" -> stringResource(R.string.chat_tool_offline)
+        "limit" -> stringResource(R.string.chat_tool_limit)
+        "time_up" -> stringResource(R.string.chat_tool_time_up)
+        "stopped" -> stringResource(R.string.chat_tool_stopped)
+        else -> stringResource(R.string.chat_tool_failed)
+    }
+
+/** "Notizen: 6 Fakten aus 4 Quellen" (detail "6/4"). */
+@Composable
+private fun notesText(step: ToolStep): String {
+    val (facts, sources) =
+        step.detail
+            .orEmpty()
+            .split('/')
+            .map { it.toIntOrNull() ?: 0 }
+            .let { it + listOf(0, 0) }
+    return stringResource(
+        R.string.chat_tool_notes,
+        pluralStringResource(R.plurals.chat_tool_facts, facts, facts),
+        pluralStringResource(R.plurals.chat_tool_sources, sources, sources),
+    )
 }
 
 private fun toolName(name: String): Int =
@@ -225,3 +292,6 @@ internal fun SourceChips(
 }
 
 private const val POP_START = 0.4f
+private const val TICK_MS = 1_000L
+private const val MS_PER_S = 1_000L
+private const val S_PER_MIN = 60

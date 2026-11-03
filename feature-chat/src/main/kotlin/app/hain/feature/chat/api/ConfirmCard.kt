@@ -1,8 +1,8 @@
 package app.hain.feature.chat.api
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,8 +13,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -28,19 +27,13 @@ import app.hain.feature.chat.internal.ActionState
 import app.hain.tools.api.PhoneAction
 import app.hain.ui.components.Hain3D
 import app.hain.ui.components.Hain3DIcon
-import app.hain.ui.theme.GlowHue
-import app.hain.ui.theme.glassTile
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.foundation.layout.FlowRow
-import app.hain.ui.HainIcons
 import app.hain.ui.components.HainButton
 import app.hain.ui.components.HainButtonStyle
-import app.hain.ui.theme.HainLevel
+import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.LocalHainColors
-import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
-import app.hain.ui.theme.hainSurface
+import app.hain.ui.theme.glassTile
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset

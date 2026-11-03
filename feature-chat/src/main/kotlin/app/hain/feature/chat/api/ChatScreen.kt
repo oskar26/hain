@@ -520,7 +520,7 @@ private fun Answer(
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     Column(Modifier.fillMaxWidth()) {
-        ToolTimeline(message.steps)
+        ToolTimeline(message.steps, research = message.research.takeIf { message.streaming })
         val reasoning = message.reasoning
         if (reasoning != null) {
             val title =
