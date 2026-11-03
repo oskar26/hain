@@ -65,12 +65,21 @@ class SystemPromptSource(
         val prompt = ReplyLanguagePolicy.promptLanguage(current.answerLanguage, ReplyLanguage.fromLocale(device))
         val target =
             ReplyLanguagePolicy.replyLanguage(current.answerLanguage, userMessages, MessageLanguage.fromLocale(device))
-        val hint = ReplyLanguagePolicy.turnHint(prompt, target)
+        // T-088: the clock lives here, right before the answer, and no longer in the system prompt:
+        // so the system prompt and the tool list stay the same all day and stay in the brain's memory
+        // (before, every half hour about 630 tokens were read again, ~3.6 s on Oskar's phone).
+        val hint = clockLine(prompt) + " " + ReplyLanguagePolicy.turnHint(prompt, target)
         // Host test 03.11.: without this nudge right before the answer the brain answered
         // "Wer war Ada Lovelace?" from memory in a long chat; with it, it calls the tool again.
         if (current.offlineMode) return hint
         val nudge = if (prompt == ReplyLanguage.DE) TOOL_NUDGE_DE else TOOL_NUDGE_EN
         return "$hint $nudge"
+    }
+
+    /** "Uhrzeit: 21:07." / "Time: 21:07." in the prompt's language. */
+    private fun clockLine(language: ReplyLanguage): String {
+        val time = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+        return if (language == ReplyLanguage.DE) "Uhrzeit: $time." else "Time: $time."
     }
 
     private fun instructions(

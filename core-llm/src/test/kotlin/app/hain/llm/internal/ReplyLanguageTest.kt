@@ -106,7 +106,7 @@ class ReplyLanguageTest {
             )
         assertFalse(filled, Regex("""\{[a-z_]+\}""").containsMatchIn(filled))
         assertTrue(filled.startsWith("Du bist Pim"))
-        assertTrue(filled.contains("Jetzt: Dienstag, 3. November 2026, 07:00 (Europe/Berlin)."))
+        assertTrue(filled.contains("Jetzt: Dienstag, 3. November 2026 (Europe/Berlin)."))
         assertTrue(filled, filled.trimEnd().endsWith("# Sprache\n$rule"))
         assertFalse("no English headings", filled.contains("# Context") || filled.contains("You are"))
     }

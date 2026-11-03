@@ -1,6 +1,7 @@
 package app.hain.llm.internal
 
 import android.content.Context
+import android.os.SystemClock
 import android.util.Log
 import app.hain.llm.api.EngineState
 import app.hain.llm.api.GenerationEvent
@@ -69,7 +70,7 @@ class LlamaEngine(
             val newHandle = NativeLlm.nativeLoad(path, contextSize, threadCount(), 0, progress)
             handle = newHandle
             if (newHandle != 0L) {
-                Log.i(TAG, "brain loaded in ${NativeLlm.nativeStats(newHandle)[0].toInt()} ms")
+                Log.i(TAG, "brain loaded in ${NativeLlm.nativeStats(newHandle)[0].toInt()} ms, context $contextSize")
             }
             mutableState.value = if (newHandle != 0L) EngineState.Ready(path) else EngineState.Failed("load failed")
             newHandle != 0L
@@ -100,6 +101,9 @@ class LlamaEngine(
             }
             val me = ++started
             NativeLlm.nativeSetCancel(h, false)
+            // T-088: time to the first token in logcat (`adb logcat -s HainLlm`)
+            val askedAt = SystemClock.elapsedRealtime()
+            var first = true
             val code =
                 NativeLlm.nativeGenerate(
                     h,
@@ -108,6 +112,10 @@ class LlamaEngine(
                     params.toArray(),
                     null,
                 ) { bytes ->
+                    if (first) {
+                        first = false
+                        Log.i(TAG, "first token after ${SystemClock.elapsedRealtime() - askedAt} ms")
+                    }
                     trySend(GenerationEvent.Token(bytes.decodeToString()))
                     me > cancelledUpTo && !isClosedForSend
                 }
