@@ -85,11 +85,11 @@ Intent tools **never fire directly**: they return a ConfirmCard; the user taps "
 |---|---|---|---|---|
 | 1 | Stell mir einen Wecker um 6:30 | `set_alarm(time=06:30)` | Wecker um 06:30 · Stellen | ✅ |
 | 2 | Timer 10 Minuten | `set_timer(seconds=600)` | Timer für 10 Min. · Starten | ✅ |
-| 3 | Trag Zahnarzt morgen um 15 Uhr ein | `add_calendar_event(title=Zahnarzt, start=2026-11-04T15:00)` | Zahnarzt · Mi. 4.11. 15:00–16:00 · Eintragen | ✅ |
+| 3 | Trag Zahnarzt morgen um 15 Uhr ein | `add_calendar_event(title=Zahnarzt, start=2026-11-04T15:00)` | Zahnarzt · 04.11.2026 · 15:00–16:00 · Eintragen | ✅ |
 | 4 | Navigier mich zum Kölner Dom | `navigate(destination=Kölner Dom)` | Kölner Dom · Starten | ✅ |
 | 5 | Set an alarm for 7 am | `set_alarm(time=07:00)` | Alarm at 07:00 · Set | ✅ |
 | 6 | Remind me with a timer in 25 minutes | `set_timer(seconds=1500, label=Reminder)` | Timer for 25 min · Start | ✅ |
-| 7 | Put dinner with Lea on Friday at 7 pm in my calendar | `add_calendar_event(title=Dinner with Lea, start=2026-11-06T19:00)` | Dinner with Lea · Fri 6 Nov 19:00–20:00 · Add | ✅ |
+| 7 | Put dinner with Lea on Friday at 7 pm in my calendar | `add_calendar_event(title=Dinner with Lea, start=2026-11-06T19:00)` | Dinner with Lea · Nov 6, 2026 · 7:00 PM–8:00 PM · Add | ✅ |
 
 All 7 requests (the 4 from the plan + 3 English ones) → the right tool with the right arguments, answers in the language of the message (the 8th, "Take me to Cologne Central Station", stopped because the sandbox ran out of memory). Weak spot: the answer text still often says "eingestellt"/"I've set" although nothing is set yet, even with the hint in the tool result and the rule in the system prompt (2 of 7 say "vorbereitet"/"prepared"). The card makes it clear (green button, nothing happens before the tap); sharpening the wording → 4c.
 
