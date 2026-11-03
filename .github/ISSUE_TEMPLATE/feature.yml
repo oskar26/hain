@@ -1,0 +1,38 @@
+name: "✨ Funktionswunsch / Feature request"
+description: Eine Idee, was Hain können sollte. / An idea for something Hain should do.
+title: "[Wunsch] "
+labels: ["feature-wunsch", "triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Was möchtest du machen? / What do you want to do?
+      description: Beschreib die Situation, nicht nur die Lösung.
+      placeholder: Wenn ich …, möchte ich …, damit …
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Deine Idee / Your idea
+  - type: dropdown
+    id: area
+    attributes:
+      label: Bereich / Area
+      options:
+        - Chat und Antworten
+        - Werkzeuge (Wetter, Suche, Rechner, …)
+        - Mini-Apps
+        - Design und Pim
+        - Einstellungen
+        - Sprache und Übersetzung
+        - Datenschutz
+        - Sonstiges
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Datenschutz / Privacy
+      options:
+        - label: Die Idee kommt ohne Konto, Tracking und API-Schlüssel aus (wenn möglich). / Works without account, tracking or API key (if possible).
