@@ -62,8 +62,8 @@ internal fun PimCanvas(
         val fit = this.size.minDimension / PimGeometry.VIEW_BOX_SIZE
         scale(fit, fit, Offset.Zero) {
             if (shadowLift != null) drawContactShadow(-now.y + shadowLift, now.sx)
-            // style proposals (STYLE_OPTIONS.md): flat and calm in both styles, no glossy jelly
-            drawPim(now, colors, showVein, gloss = false)
+            // Lichtung (STYLE_OPTIONS.md): flat and calm, no glossy jelly
+            drawPim(now, colors, showVein)
         }
     }
 }
@@ -228,3 +228,26 @@ internal const val EYE_CLOSED_MID_Y = 2.5f
 internal const val EYE_SQUEEZE_HALF_W = 6f
 internal const val EYE_SQUEEZE_INNER_X = 1f
 internal const val EYE_SQUEEZE_HALF_H = 4f
+
+/** Flat contact shadow under Pim (Lichtung: a quiet grey oval); shrinks while he is in the air. */
+internal fun DrawScope.drawContactShadow(
+    lift: Float,
+    widthScale: Float,
+) {
+    val fade = (1f - lift * SHADOW_LIFT_FADE).coerceIn(0f, 1f)
+    val w = SHADOW_W * widthScale * fade
+    val h = SHADOW_H * fade
+    translate(-PimGeometry.VIEW_BOX_X, -PimGeometry.VIEW_BOX_Y) {
+        drawOval(
+            color = Color.Black.copy(alpha = SHADOW_ALPHA * fade),
+            topLeft = SHADOW_CENTRE - Offset(w / 2, h / 2),
+            size = Size(w, h),
+        )
+    }
+}
+
+private val SHADOW_CENTRE = Offset(x = 60f, y = 109f)
+private const val SHADOW_W = 44f
+private const val SHADOW_H = 5f
+private const val SHADOW_ALPHA = 0.07f
+private const val SHADOW_LIFT_FADE = 0.03f

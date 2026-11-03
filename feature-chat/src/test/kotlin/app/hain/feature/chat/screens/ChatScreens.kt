@@ -32,7 +32,6 @@ import app.hain.ui.components.Composer
 import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.TopBar
 import app.hain.ui.motion.LocalReduceMotion
-import app.hain.ui.theme.HainStyle
 import app.hain.ui.theme.HainTheme
 import app.hain.ui.theme.LocalHainColors
 import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
@@ -176,10 +175,9 @@ internal const val OUT = "build/outputs/roborazzi"
 internal fun Frame(
     dark: Boolean,
     fontScale: Float = 1f,
-    style: HainStyle = HainStyle.A,
     content: @Composable () -> Unit,
 ) {
-    HainTheme(darkTheme = dark, style = style) {
+    HainTheme(darkTheme = dark) {
         val density = LocalDensity.current
         CompositionLocalProvider(
             LocalReduceMotion provides true,

@@ -3,7 +3,6 @@ package app.hain.feature.settings.api
 import app.hain.common.api.AnswerLanguage
 import app.hain.common.api.AnswerMode
 import app.hain.common.api.ThemeChoice
-import app.hain.common.api.UiStyle
 
 /** What the settings screen can change; every callback writes one value (T-101). */
 @Suppress("LongParameterList") // one callback per setting
@@ -22,5 +21,4 @@ class SettingsActions(
     val onNetworkLogDetail: (Boolean) -> Unit = {},
     val onClearNetworkLog: () -> Unit = {},
     val onSearxUrl: (String) -> Unit = {},
-    val onUiStyle: (UiStyle) -> Unit = {},
 )

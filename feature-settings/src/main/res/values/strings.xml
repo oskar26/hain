@@ -7,9 +7,6 @@
     <string name="settings_theme_system">Like my phone</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
-    <string name="settings_ui_style">Style (test)</string>
-    <string name="settings_ui_style_a">A · Clearing</string>
-    <string name="settings_ui_style_b">B · Morning mist</string>
     <string name="settings_readable">Easy to read</string>
     <string name="settings_readable_hint">Uses a clearer font.</string>
     <string name="settings_group_answers">Answers</string>

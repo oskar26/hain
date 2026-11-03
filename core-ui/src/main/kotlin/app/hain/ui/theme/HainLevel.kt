@@ -38,12 +38,11 @@ fun Modifier.hainSurface(
     fill: Color? = null,
 ): Modifier {
     val c = LocalHainColors.current
-    val look = LocalHainStyle.current.look()
     return when (level) {
         HainLevel.FLAT -> clip(shape).background(fill ?: c.surface, shape)
-        // style proposals: a calm card with a hairline (A) or soft mist (B), never a thick shadow
-        HainLevel.RAISED -> calmTile(shape, shadow = look.tileShadowDp.dp, fill = fill)
-        HainLevel.FLOATING -> calmTile(shape, shadow = look.floatingShadowDp.dp, fill = fill)
+        // Lichtung: a calm card with a hairline, never a thick shadow
+        HainLevel.RAISED -> calmTile(shape, shadow = Lichtung.TILE_SHADOW_DP.dp, fill = fill)
+        HainLevel.FLOATING -> calmTile(shape, shadow = Lichtung.FLOATING_SHADOW_DP.dp, fill = fill)
     }
 }
 

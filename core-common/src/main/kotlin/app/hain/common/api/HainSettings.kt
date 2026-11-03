@@ -3,9 +3,6 @@ package app.hain.common.api
 /** Colour scheme choice (SETTINGS.md `theme`). */
 enum class ThemeChoice { SYSTEM, LIGHT, DARK }
 
-/** Style proposal under test (docs/design/STYLE_OPTIONS.md): A "Lichtung" or B "Morgennebel". */
-enum class UiStyle { A, B }
-
 /** Language Hain answers in (SETTINGS.md `answer_language`). */
 enum class AnswerLanguage { AUTO, DE, EN }
 
@@ -27,8 +24,6 @@ data class HainSettings(
     val networkLogDetail: Boolean = false,
     /** Own SearXNG address, asked first by the web search (SETTINGS.md `searxng_url`); empty = none. */
     val searxUrl: String = "",
-    /** Style proposal under test, Settings → Look → "Style (test)" (SETTINGS.md `ui_style`). */
-    val uiStyle: UiStyle = UiStyle.A,
 ) {
     /** Text for the "user instructions" slot of the system prompt; empty if nothing is set. */
     fun customInstructions(deviceLanguage: String = "English"): String =

@@ -15,7 +15,6 @@ import app.hain.common.api.AnswerMode
 import app.hain.common.api.HainSettings
 import app.hain.common.api.SearxAddress
 import app.hain.common.api.ThemeChoice
-import app.hain.common.api.UiStyle
 import app.hain.common.api.net.NetworkLogEntry
 import app.hain.feature.settings.R
 import app.hain.ui.theme.LocalHainColors
@@ -42,15 +41,6 @@ internal fun SettingsPageContent(
                     ThemeChoice.DARK to R.string.settings_theme_dark,
                 ),
                 actions.onTheme,
-            )
-            Choice(
-                R.string.settings_ui_style,
-                settings.uiStyle,
-                listOf(
-                    UiStyle.A to R.string.settings_ui_style_a,
-                    UiStyle.B to R.string.settings_ui_style_b,
-                ),
-                actions.onUiStyle,
             )
             Toggle(
                 R.string.settings_readable,

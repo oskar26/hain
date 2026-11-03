@@ -19,8 +19,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.rememberHainHaptics
-import app.hain.ui.theme.HainStyle
-import app.hain.ui.theme.LocalHainStyle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.PI
@@ -41,8 +39,8 @@ fun JuicyPim(
 ) {
     val reduce = LocalReduceMotion.current
     val base = poseFor(state)
-    // style proposals: a grown-up Pim. A stays still and only blinks; B breathes gently. No jelly squish.
-    val breathes = LocalHainStyle.current == HainStyle.B || state == PimState.CELEBRATE
+    // Lichtung: a grown-up Pim that stays calm and only blinks; he hops when he celebrates.
+    val breathes = state == PimState.CELEBRATE
     if (reduce) {
         PimCanvas(pose = { base }, size = size, modifier = modifier, shadowLift = 0f)
         return

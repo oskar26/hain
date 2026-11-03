@@ -7,9 +7,6 @@
     <string name="settings_theme_system">Wie mein Handy</string>
     <string name="settings_theme_light">Hell</string>
     <string name="settings_theme_dark">Dunkel</string>
-    <string name="settings_ui_style">Stil (Test)</string>
-    <string name="settings_ui_style_a">A · Lichtung</string>
-    <string name="settings_ui_style_b">B · Morgennebel</string>
     <string name="settings_readable">Gut lesbar</string>
     <string name="settings_readable_hint">Nutzt eine besonders klare Schrift.</string>
     <string name="settings_group_answers">Antworten</string>

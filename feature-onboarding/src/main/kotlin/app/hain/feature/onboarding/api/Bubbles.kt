@@ -23,8 +23,6 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -35,18 +33,13 @@ import app.hain.ui.components.Hain3D
 import app.hain.ui.components.Hain3DIcon
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.theme.GlowHue
-import app.hain.ui.theme.HainStyle
 import app.hain.ui.theme.LocalHainColors
-import app.hain.ui.theme.LocalHainStyle
 import kotlin.math.PI
 import kotlin.math.sin
 
 /**
- * A round motif surface (formerly the shiny Wabi bubble). Calm since the style proposals
- * (docs/design/STYLE_OPTIONS.md), [hue] is kept for the call sites:
- * - Stil A "Lichtung": a soft grey disc with a hairline edge.
- * - Stil B "Morgennebel": a pale green disc that fades out at its edge, with a blurred green halo.
- * [content] sits in the middle.
+ * A round motif surface (formerly the shiny Wabi bubble): a soft grey disc with a hairline edge
+ * (Lichtung, docs/design/STYLE_OPTIONS.md). [hue] is kept for the call sites; [content] sits in the middle.
  */
 @Suppress("UnusedParameter", "UNUSED_PARAMETER")
 @Composable
@@ -57,11 +50,8 @@ internal fun GlassBubble(
     content: @Composable () -> Unit = {},
 ) {
     val c = LocalHainColors.current
-    val mist = LocalHainStyle.current == HainStyle.B
     Box(modifier.size(size), contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxSize()) {
-            if (mist) drawMistDisc(c.accentSoft, c.accent, c.bg) else drawClearDisc(c.surface, c.border)
-        }
+        Canvas(Modifier.fillMaxSize()) { drawClearDisc(c.surface, c.border) }
         content()
     }
 }
@@ -73,35 +63,6 @@ private fun DrawScope.drawClearDisc(
     val r = size.minDimension / 2
     drawCircle(fill, r, center)
     drawCircle(edge, r - 0.5f, center, style = Stroke(width = 1f))
-}
-
-private fun DrawScope.drawMistDisc(
-    soft: Color,
-    accent: Color,
-    page: Color,
-) {
-    val r = size.minDimension / 2
-    drawCircle(
-        Brush.radialGradient(
-            0f to accent.copy(alpha = 0.10f),
-            1f to Color.Transparent,
-            center = center,
-            radius = r,
-        ),
-        r,
-        center,
-    )
-    drawCircle(
-        Brush.radialGradient(
-            0f to page,
-            0.55f to soft,
-            1f to soft.copy(alpha = 0f),
-            center = center - Offset(0f, r * 0.2f),
-            radius = r * 0.92f,
-        ),
-        r * 0.92f,
-        center,
-    )
 }
 
 /** One bubble in the cloud: where (fractions of the cloud), how big, what floats inside. */

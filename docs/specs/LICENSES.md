@@ -59,7 +59,6 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | Showkase (debug only) | Apache-2.0 | ok |
 | Roborazzi (screenshot testing) | Apache-2.0 | ok |
 | Roborazzi compose + junit-rule, Robolectric, compose ui-test-junit4/-manifest (test only, T-011 screenshots in feature modules) | Apache-2.0 / MIT | ok |
-| 3D icons `core-ui/src/main/res/drawable-nodpi/ic3d_*.webp` (+ copies in `assets/illustrations/3d/icons/`) | **eigene Erzeugung** (own work: generated for Hain on 03.11.2026 with an image model, cut out and converted in the sandbox; no third-party artwork) | ok, part of the app under GPL-3.0 |
 | Lucide (icon SVG sources) | ISC | ok |
 
 **Added in T-018 (2026-10-30).** All licences verified against the artifacts' POMs on Maven Central.

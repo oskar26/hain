@@ -26,7 +26,6 @@ class SettingsRepository(
                 offlineMode = p[OFFLINE_MODE] ?: false,
                 networkLogDetail = p[NETWORK_LOG_DETAIL] ?: false,
                 searxUrl = p[SEARXNG_URL].orEmpty(),
-                uiStyle = p[UI_STYLE].toEnum(UiStyle.A),
             )
         }
 
@@ -50,8 +49,6 @@ class SettingsRepository(
 
     suspend fun setSearxUrl(value: String) = store.edit { it[SEARXNG_URL] = value.trim() }
 
-    suspend fun setUiStyle(value: UiStyle) = store.edit { it[UI_STYLE] = value.name }
-
     /** Back to the defaults. */
     suspend fun reset() = store.edit { it.clear() }
 
@@ -66,7 +63,6 @@ class SettingsRepository(
         val OFFLINE_MODE = booleanPreferencesKey("offline_mode")
         val NETWORK_LOG_DETAIL = booleanPreferencesKey("network_log_detail")
         val SEARXNG_URL = stringPreferencesKey("searxng_url")
-        val UI_STYLE = stringPreferencesKey("ui_style")
     }
 }
 
