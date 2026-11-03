@@ -65,7 +65,12 @@ class SystemPromptSource(
         val prompt = ReplyLanguagePolicy.promptLanguage(current.answerLanguage, ReplyLanguage.fromLocale(device))
         val target =
             ReplyLanguagePolicy.replyLanguage(current.answerLanguage, userMessages, MessageLanguage.fromLocale(device))
-        return ReplyLanguagePolicy.turnHint(prompt, target)
+        val hint = ReplyLanguagePolicy.turnHint(prompt, target)
+        // Host test 03.11.: without this nudge right before the answer the brain answered
+        // "Wer war Ada Lovelace?" from memory in a long chat; with it, it calls the tool again.
+        if (current.offlineMode) return hint
+        val nudge = if (prompt == ReplyLanguage.DE) TOOL_NUDGE_DE else TOOL_NUDGE_EN
+        return "$hint $nudge"
     }
 
     private fun instructions(
@@ -113,6 +118,10 @@ class SystemPromptSource(
                 "even if you used it before. " +
                 "Never say you looked something up if you used no tool in this answer. " +
                 "Then answer from the result and cite the sources as [1], [2]. If a tool fails, say so plainly."
+        const val TOOL_NUDGE_DE =
+            "Für Fakten über Personen, Orte, Dinge, Wetter oder Aktuelles rufe zuerst ein Werkzeug auf."
+        const val TOOL_NUDGE_EN =
+            "For facts about people, places, things, weather or current events, call a tool first."
         const val TOOLS_OFFLINE_DE =
             "Der Offline-Modus ist an: nur calculate geht. Für Wetter, Wikipedia oder die Suche sag, " +
                 "dass der Nutzer den Offline-Modus in den Einstellungen ausschalten kann."
