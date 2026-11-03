@@ -39,6 +39,8 @@ import app.hain.models.api.ModelRepository
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.ToolContext
 import app.hain.ui.motion.HainMotion
+import app.hain.ui.motion.HapticLevel
+import app.hain.ui.motion.LocalHapticLevel
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainTween
 import app.hain.ui.theme.HainTheme
@@ -85,6 +87,7 @@ class MainActivity : ComponentActivity() {
             onNetworkLogDetail = { write { repo.setNetworkLogDetail(it) } },
             onClearNetworkLog = networkGate::clearLog,
             onSearxUrl = { write { repo.setSearxUrl(it) } },
+            onHaptics = { write { repo.setHaptics(it) } },
         )
     }
 
@@ -158,7 +161,10 @@ class MainActivity : ComponentActivity() {
                     },
                 highLegibility = settings.readableFont,
             ) {
-                CompositionLocalProvider(LocalReduceMotion provides (settings.reduceMotion || systemReducesMotion())) {
+                CompositionLocalProvider(
+                    LocalReduceMotion provides (settings.reduceMotion || systemReducesMotion()),
+                    LocalHapticLevel provides HapticLevel.entries[settings.haptics.ordinal],
+                ) {
                     var installed by remember { mutableStateOf(models.isInstalled(brain)) }
                     var skipped by remember { mutableStateOf(startPrefs.getBoolean(KEY_SKIPPED, false)) }
                     if (!installed && !skipped) {

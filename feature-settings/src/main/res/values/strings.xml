@@ -11,7 +11,7 @@
     <string name="settings_readable_hint">Uses a clearer font.</string>
     <string name="settings_group_answers">Answers</string>
     <string name="settings_answer_language">Answer language</string>
-    <string name="settings_lang_auto">Same as my message</string>
+    <string name="settings_lang_auto">Automatic</string>
     <string name="settings_lang_de">Deutsch</string>
     <string name="settings_lang_en">English</string>
     <string name="settings_answer_mode">Answer style</string>
@@ -68,4 +68,10 @@
     <string name="settings_log_detail">Show full addresses</string>
     <string name="settings_log_detail_hint">Keeps what was looked up, too. Off by default.</string>
     <string name="settings_log_clear">Clear log</string>
+    <string name="settings_haptics">Vibration</string>
+    <string name="settings_haptics_off">Off</string>
+    <string name="settings_haptics_subtle">Subtle</string>
+    <string name="settings_haptics_normal">Normal</string>
+    <string name="settings_haptics_strong">Strong</string>
+    <string name="settings_haptics_hint">Short taps instead of a buzz. If touch vibration is off on your phone, Hain stays quiet too.</string>
 </resources>

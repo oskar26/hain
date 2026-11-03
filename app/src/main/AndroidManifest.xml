@@ -3,6 +3,8 @@
 
     <!-- T-068: lets Hain hand an alarm or timer to the clock app after you tap "Stellen" (normal permission, no prompt) -->
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
+    <!-- T-096: short, crisp haptic primitives (VibrationEffect.Composition); normal permission, no prompt -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:name=".HainApp"

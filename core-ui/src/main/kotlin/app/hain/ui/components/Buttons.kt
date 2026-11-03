@@ -88,7 +88,7 @@ fun HainButton(
                     enabled = enabled,
                     role = Role.Button,
                     onClick = {
-                        if (style != HainButtonStyle.GHOST) haptics.send()
+                        if (style != HainButtonStyle.GHOST) haptics.tick()
                         onClick()
                     },
                 ).padding(horizontal = spacing.lg, vertical = spacing.md),

@@ -122,6 +122,14 @@ fun ChatScreen(
     val haptics = rememberHainHaptics()
 
     BackHandler(enabled = drawerOpen) { drawerOpen = false }
+    // T-096: a soft double tick when an answer is done, a short "no" on an error; never while streaming
+    var wasGenerating by remember { mutableStateOf(false) }
+    LaunchedEffect(state.isGenerating, state.error) {
+        if (wasGenerating && !state.isGenerating) {
+            if (state.error != null && state.error != ChatError.NO_BRAIN) haptics.error() else haptics.done()
+        }
+        wasGenerating = state.isGenerating
+    }
 
     Box(modifier.fillMaxSize().background(colors.bg)) {
         val chatScale by animateFloatAsState(

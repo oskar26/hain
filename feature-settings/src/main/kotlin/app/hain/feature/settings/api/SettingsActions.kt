@@ -2,6 +2,7 @@ package app.hain.feature.settings.api
 
 import app.hain.common.api.AnswerLanguage
 import app.hain.common.api.AnswerMode
+import app.hain.common.api.HapticStrength
 import app.hain.common.api.ThemeChoice
 
 /** What the settings screen can change; every callback writes one value (T-101). */
@@ -21,4 +22,5 @@ class SettingsActions(
     val onNetworkLogDetail: (Boolean) -> Unit = {},
     val onClearNetworkLog: () -> Unit = {},
     val onSearxUrl: (String) -> Unit = {},
+    val onHaptics: (HapticStrength) -> Unit = {},
 )
