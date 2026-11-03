@@ -54,6 +54,8 @@ class ChatViewModel(
     /** Minimum time between two UI updates while an answer streams (fewer recompositions). */
     private val streamThrottleMs: Long = STREAM_THROTTLE_MS,
     networkActive: Flow<Boolean> = flowOf(false),
+    /** Thumbs up/down on answers, kept on the phone (T-057). */
+    private val messageRatings: MessageRatings = InMemoryRatings(),
 ) : ViewModel() {
     private val local = MutableStateFlow(LocalState())
     private var job: Job? = null
@@ -113,6 +115,15 @@ class ChatViewModel(
             }
         }
     }
+
+    /** Thumb per answer id; read by the action row under each answer. */
+    val ratings: StateFlow<Map<Long, Rating>> = messageRatings.ratings
+
+    /** Thumb tapped under an answer: the same thumb again takes it back. */
+    fun rate(
+        messageId: Long,
+        tap: Rating,
+    ) = messageRatings.set(messageId, messageRatings.ratings.value[messageId].toggled(tap))
 
     fun onInputChange(text: String) = local.update { it.copy(input = text, error = null) }
 
