@@ -74,7 +74,14 @@ class SystemPromptSource(
     ): String {
         val german = language == ReplyLanguage.DE
         return buildList {
-            add(if (german) NO_TOOLS_YET_DE else NO_TOOLS_YET_EN)
+            add(
+                when {
+                    current.offlineMode && german -> TOOLS_OFFLINE_DE
+                    current.offlineMode -> TOOLS_OFFLINE_EN
+                    german -> TOOLS_DE
+                    else -> TOOLS_EN
+                },
+            )
             if (current.aboutMe.isNotBlank()) {
                 val label = if (german) "Der Nutzer über sich: " else "The user about themselves: "
                 add(label + current.aboutMe.trim())
@@ -87,10 +94,21 @@ class SystemPromptSource(
     }
 
     private companion object {
-        // MVP: the tool loop (T-062) is not wired yet, so tell the model it has no tools.
-        const val NO_TOOLS_YET_DE =
-            "Du hast in dieser Version kein Internet und keine Werkzeuge. Antworte aus deinem Wissen."
-        const val NO_TOOLS_YET_EN =
-            "In this version you have no internet and no tools. Answer from your own knowledge."
+        // Werkzeuge I (T-062): calculator offline, weather + Wikipedia online. One rule per line.
+        const val TOOLS_DE =
+            "Werkzeuge: calculate für genaues Rechnen und Einheiten, weather für Wetter, " +
+                "wikipedia für Fakten über Personen, Orte und Dinge. Nutze sie, wenn du unsicher bist. " +
+                "Antworte danach aus dem Ergebnis und nenne die Quelle als [1]. " +
+                "Klappt ein Werkzeug nicht, sag das ehrlich."
+        const val TOOLS_EN =
+            "Tools: calculate for exact maths and units, weather for forecasts, " +
+                "wikipedia for facts about people, places and things. Use them when you are not sure. " +
+                "Then answer from the result and cite the source as [1]. If a tool fails, say so plainly."
+        const val TOOLS_OFFLINE_DE =
+            "Der Offline-Modus ist an: nur calculate geht. Für Wetter oder Wikipedia sag, " +
+                "dass der Nutzer den Offline-Modus in den Einstellungen ausschalten kann."
+        const val TOOLS_OFFLINE_EN =
+            "Offline mode is on: only calculate works. For weather or Wikipedia, say the user can " +
+                "turn offline mode off in the settings."
     }
 }

@@ -8,13 +8,20 @@ import app.hain.llm.api.PromptBuilder
 import app.hain.llm.api.Role
 import app.hain.llm.api.SamplingParams
 import app.hain.llm.api.StopReason
+import app.hain.llm.api.ToolCall
+import app.hain.llm.api.ToolSchema
 import app.hain.llm.api.UiDelta
 import app.hain.llm.internal.AnswerMode
 import app.hain.llm.internal.LfmPromptBuilder
 import app.hain.llm.internal.StreamSplitter
 import app.hain.llm.internal.ThinkingPolicy
+import app.hain.tools.api.HainTools
+import app.hain.tools.api.ToolContext
+import app.hain.tools.api.ToolRouter
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
+import java.time.ZonedDateTime
 
 /** What the UI sees while one answer is produced. Text fields hold everything so far. */
 sealed interface TurnUpdate {
@@ -22,18 +29,23 @@ sealed interface TurnUpdate {
         val reasoning: String,
         val text: String,
         val thinking: Boolean,
+        val steps: List<ToolStep> = emptyList(),
     ) : TurnUpdate
 
     data class Finished(
         val output: ParsedOutput,
         val reason: StopReason,
         val thinkingMillis: Long?,
+        val steps: List<ToolStep> = emptyList(),
+        val sources: List<SourceRef> = emptyList(),
     ) : TurnUpdate
 }
 
 /**
- * One user turn without tools (T-050, MVP slice): system prompt + history → prompt → stream →
- * [StreamSplitter] for the live view → strict parse at the end. The tool loop comes with T-062.
+ * One user turn: system prompt + history → prompt → stream → [StreamSplitter] for the live view →
+ * strict parse at the end. With [tools] the brain may call tools (T-062, LLM.md §8): at most
+ * [MAX_TOOL_ROUNDS] rounds, then one last round without tools so it has to answer. A message that is
+ * only a sum ("12*7") is answered by the calculator at once, without the brain.
  *
  * Speed (2d-2): the system prompt is filled with the time of [promptAnchor], which only moves on
  * every [ANCHOR_MS], so the prompt start stays the same and the brain does not re-read the chat.
@@ -44,6 +56,7 @@ sealed interface TurnUpdate {
  * after the history, right before the answer. It is never stored, so the cached start and the
  * checkpoint at the end of the history stay valid.
  */
+@Suppress("LongParameterList", "TooManyFunctions") // test hooks; one function per step of a turn
 class ChatEngine(
     private val llm: LlmEngine,
     private val systemPrompt: (atMillis: Long) -> String,
@@ -51,6 +64,8 @@ class ChatEngine(
     private val clock: () -> Long = System::currentTimeMillis,
     private val answerMode: () -> AnswerMode = { AnswerMode.AUTO },
     private val turnHint: (userMessages: List<String>) -> String? = { null },
+    private val tools: ToolRouter? = null,
+    private val toolContext: () -> ToolContext = { ToolContext("en", ZonedDateTime.now(), offline = false) },
 ) {
     private var anchor = 0L
 
@@ -64,7 +79,7 @@ class ChatEngine(
     /** Reads the system prompt into the brain's memory, so the first answer starts sooner. */
     suspend fun warmUp(): Boolean {
         val system = systemPrompt(promptAnchor())
-        val prompt = promptBuilder.build(system, emptyList(), emptyList(), false, false)
+        val prompt = promptBuilder.build(system, schemas(), emptyList(), false, false)
         return llm.prefill(prompt, listOfNotNull(fixedSystemEnd(prompt, system)))
     }
 
@@ -74,59 +89,178 @@ class ChatEngine(
     ): Flow<TurnUpdate> =
         flow {
             val lastUser = history.lastOrNull()?.content.orEmpty()
+            val ctx = toolContext()
+            val quick = quickAnswer(history, ctx)
+            if (quick != null) {
+                emit(quick)
+                return@flow
+            }
             val thinking = ThinkingPolicy.decide(lastUser, mode)
             val system = systemPrompt(promptAnchor())
-            val prompt =
-                promptBuilder.build(
-                    system = system,
-                    tools = emptyList(),
-                    history = withLanguageHint(history, lastUser),
-                    addGenerationPrompt = true,
-                    enableThinking = thinking,
-                )
-            val params = SamplingParams.CHAT.copy(maxTokens = if (thinking) MAX_TOKENS_THINKING else MAX_TOKENS)
-            val checkpoints = checkpointsFor(prompt, system, history)
-            val splitter = StreamSplitter(thinkingEnabled = thinking)
-            val reasoning = StringBuilder()
-            val text = StringBuilder()
-            val start = clock()
-            var thinkingEnd: Long? = null
-            var reason = StopReason.ERROR
-
-            fun apply(deltas: List<UiDelta>) {
-                deltas.forEach { d ->
-                    when (d) {
-                        is UiDelta.Reasoning -> reasoning.append(d.text)
-                        is UiDelta.Text -> {
-                            if (thinking && thinkingEnd == null) thinkingEnd = clock()
-                            text.append(d.text)
-                        }
-                        is UiDelta.ToolCallStarted -> Unit
-                    }
+            val schemas = tools?.schemas(ctx.offline).orEmpty()
+            val base = withLanguageHint(history, lastUser)
+            val turn = Turn()
+            var round = 0
+            while (true) {
+                val roundTools = if (round < MAX_TOOL_ROUNDS) schemas else emptyList()
+                val result = generateRound(system, roundTools, base + turn.messages, history, thinking, turn)
+                turn.thinkingMs += result.thinkingMs ?: 0L
+                val calls = result.output.toolCalls.take(MAX_CALLS_PER_ROUND)
+                val router = tools
+                val answered = calls.isEmpty() || roundTools.isEmpty() || result.reason != StopReason.END
+                if (router == null || answered) {
+                    val earlier = turn.reasoning.toString().trim()
+                    val reasoning =
+                        listOfNotNull(earlier.ifBlank { null }, result.output.reasoning?.ifBlank { null })
+                            .joinToString("\n\n")
+                            .ifBlank { null }
+                    emit(
+                        TurnUpdate.Finished(
+                            result.output.copy(reasoning = reasoning),
+                            result.reason,
+                            if (thinking) turn.thinkingMs else null,
+                            turn.steps.toList(),
+                            turn.sources.toList(),
+                        ),
+                    )
+                    return@flow
                 }
+                result.output.reasoning?.let { turn.reasoning.append(it).append("\n\n") }
+                turn.messages += ChatMessage(Role.ASSISTANT, result.output.text, calls, result.output.reasoning)
+                calls.forEach { call -> runTool(router, call, ctx, turn, thinking) }
+                round++
             }
-
-            llm.generate(prompt, params, checkpoints).collect { event ->
-                when (event) {
-                    is GenerationEvent.Token -> {
-                        apply(splitter.feed(event.text))
-                        emit(TurnUpdate.Streaming(reasoning.toString(), text.toString(), thinking))
-                    }
-                    is GenerationEvent.Done -> reason = event.reason
-                }
-            }
-            val (rest, parsed) = splitter.finish()
-            apply(rest)
-            val thoughtFor = if (thinking) (thinkingEnd ?: clock()) - start else null
-            // A stopped answer keeps what was shown live: thinking stays thinking, never becomes the answer.
-            val output =
-                if (reason == StopReason.CANCELLED) {
-                    parsed.copy(reasoning = reasoning.toString().ifBlank { null }, text = text.toString())
-                } else {
-                    parsed
-                }
-            emit(TurnUpdate.Finished(output, reason, thoughtFor))
         }
+
+    /** What one user turn collected so far across tool rounds. */
+    private class Turn {
+        val messages = mutableListOf<ChatMessage>()
+        val steps = mutableListOf<ToolStep>()
+        val sources = mutableListOf<SourceRef>()
+        val reasoning = StringBuilder()
+        var thinkingMs = 0L
+    }
+
+    private data class RoundResult(
+        val output: ParsedOutput,
+        val reason: StopReason,
+        val thinkingMs: Long?,
+    )
+
+    private suspend fun FlowCollector<TurnUpdate>.runTool(
+        router: ToolRouter,
+        call: ToolCall,
+        ctx: ToolContext,
+        turn: Turn,
+        thinking: Boolean,
+    ) {
+        val step = ToolStep(call.name, detailOf(call), StepState.RUNNING, router.isOnline(call.name))
+        turn.steps += step
+        emit(TurnUpdate.Streaming(turn.reasoning.toString().trim(), "", thinking, turn.steps.toList()))
+        val result = router.run(call, ctx)
+        turn.steps[turn.steps.lastIndex] =
+            step.copy(
+                detail = result.label ?: step.detail,
+                state = if (result.error == null) StepState.DONE else StepState.FAILED,
+                error = result.error,
+            )
+        result.sources.forEach { s ->
+            if (turn.sources.none { it.url == s.url }) turn.sources += SourceRef(s.title, s.url)
+        }
+        turn.messages += ChatMessage(Role.TOOL, result.forModel, toolCallId = call.id)
+        emit(TurnUpdate.Streaming(turn.reasoning.toString().trim(), "", thinking, turn.steps.toList()))
+    }
+
+    @Suppress("LongParameterList", "CyclomaticComplexMethod") // one generation needs all of these
+    private suspend fun FlowCollector<TurnUpdate>.generateRound(
+        system: String,
+        roundTools: List<ToolSchema>,
+        messages: List<ChatMessage>,
+        history: List<ChatMessage>,
+        thinking: Boolean,
+        turn: Turn,
+    ): RoundResult {
+        val prompt =
+            promptBuilder.build(
+                system = system,
+                tools = roundTools,
+                history = messages,
+                addGenerationPrompt = true,
+                enableThinking = thinking,
+            )
+        val params = SamplingParams.CHAT.copy(maxTokens = if (thinking) MAX_TOKENS_THINKING else MAX_TOKENS)
+        val checkpoints = checkpointsFor(prompt, system, history, roundTools)
+        val splitter = StreamSplitter(thinkingEnabled = thinking)
+        val reasoning = StringBuilder()
+        val text = StringBuilder()
+        val start = clock()
+        var thinkingEnd: Long? = null
+        var reason = StopReason.ERROR
+        var pending: ToolStep? = null
+        val earlier = turn.reasoning.toString()
+
+        fun apply(deltas: List<UiDelta>) {
+            deltas.forEach { d ->
+                when (d) {
+                    is UiDelta.Reasoning -> reasoning.append(d.text)
+                    is UiDelta.Text -> {
+                        if (thinking && thinkingEnd == null) thinkingEnd = clock()
+                        text.append(d.text)
+                    }
+                    is UiDelta.ToolCallStarted -> {
+                        if (thinking && thinkingEnd == null) thinkingEnd = clock()
+                        val name = d.name ?: ""
+                        pending = ToolStep(name, null, StepState.RUNNING, tools?.isOnline(name) == true)
+                    }
+                }
+            }
+        }
+
+        llm.generate(prompt, params, checkpoints).collect { event ->
+            when (event) {
+                is GenerationEvent.Token -> {
+                    apply(splitter.feed(event.text))
+                    val steps = turn.steps + listOfNotNull(pending)
+                    emit(TurnUpdate.Streaming((earlier + reasoning).trim(), text.toString(), thinking, steps))
+                }
+                is GenerationEvent.Done -> reason = event.reason
+            }
+        }
+        val (rest, parsed) = splitter.finish()
+        apply(rest)
+        val thoughtFor = if (thinking) (thinkingEnd ?: clock()) - start else null
+        // A stopped answer keeps what was shown live: thinking stays thinking, never becomes the answer.
+        val output =
+            if (reason == StopReason.CANCELLED) {
+                parsed.copy(
+                    reasoning = reasoning.toString().ifBlank { null },
+                    text = text.toString(),
+                    toolCalls = emptyList(),
+                )
+            } else {
+                parsed
+            }
+        return RoundResult(output, reason, thoughtFor)
+    }
+
+    /** "12*7" → answered by the calculator right away (TOOLS.md §5). */
+    @Suppress("ReturnCount")
+    private fun quickAnswer(
+        history: List<ChatMessage>,
+        ctx: ToolContext,
+    ): TurnUpdate.Finished? {
+        if (tools == null) return null
+        val last = history.lastOrNull()?.takeIf { it.role == Role.USER } ?: return null
+        val answer = HainTools.quickAnswer(last.content, ctx.lang) ?: return null
+        return TurnUpdate.Finished(
+            ParsedOutput(null, answer, emptyList()),
+            StopReason.END,
+            null,
+            listOf(ToolStep("calculate", answer, StepState.DONE, online = false)),
+        )
+    }
+
+    private fun schemas(): List<ToolSchema> = tools?.schemas(toolContext().offline).orEmpty()
 
     /**
      * Short chat title (2d-2): asks the brain right after the history, thinking off, so the chat is
@@ -136,8 +270,9 @@ class ChatEngine(
     suspend fun title(history: List<ChatMessage>): String? {
         val system = systemPrompt(promptAnchor())
         val ask = history + ChatMessage(Role.USER, TITLE_REQUEST)
-        val prompt = promptBuilder.build(system, emptyList(), ask, true, false)
-        val historyEnd = promptBuilder.build(system, emptyList(), history, false, false)
+        val tools = schemas()
+        val prompt = promptBuilder.build(system, tools, ask, true, false)
+        val historyEnd = promptBuilder.build(system, tools, history, false, false)
         val checkpoints =
             listOfNotNull(fixedSystemEnd(prompt, system), historyEnd.length.takeIf { prompt.startsWith(historyEnd) })
         val out = StringBuilder()
@@ -166,8 +301,9 @@ class ChatEngine(
         prompt: String,
         system: String,
         history: List<ChatMessage>,
+        tools: List<ToolSchema>,
     ): List<Int> {
-        val build = { h: List<ChatMessage> -> promptBuilder.build(system, emptyList(), h, false, false) }
+        val build = { h: List<ChatMessage> -> promptBuilder.build(system, tools, h, false, false) }
         val beforeLastUser = history.dropLastWhile { it.role != Role.USER }.dropLast(1)
         return listOfNotNull(
             fixedSystemEnd(prompt, system),
@@ -178,6 +314,15 @@ class ChatEngine(
     }
 
     companion object {
+        /** Tool rounds per user turn before the brain must answer (LLM.md §8). */
+        const val MAX_TOOL_ROUNDS = 3
+        private const val MAX_CALLS_PER_ROUND = 3
+        private val DETAIL_KEYS = listOf("place", "topic", "expression", "query")
+
+        /** A few words for the tool line while it runs: the place, topic or sum the brain asked for. */
+        internal fun detailOf(call: ToolCall): String? =
+            DETAIL_KEYS.firstNotNullOfOrNull { call.arguments[it]?.toString()?.takeIf { v -> v.isNotBlank() } }
+
         private const val MAX_TOKENS = 1024
         private const val MAX_TOKENS_THINKING = 4096
         private const val MAX_TITLE_WORDS = 6
