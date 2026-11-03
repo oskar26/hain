@@ -22,6 +22,8 @@ class HainColorsTest {
         assertEquals(Color(0xFFE3F5EC), LightHainColors.accentSoft)
         assertEquals(Color(0xFFE8833A), LightHainColors.online)
         assertEquals(Color(0xFFD14343), LightHainColors.danger)
+        assertEquals(Color(0xFF7A817D), LightHainColors.icon)
+        assertEquals(Color(0xF5FFFFFF), LightHainColors.glass)
     }
 
     @Test
@@ -37,5 +39,7 @@ class HainColorsTest {
         assertEquals(Color(0xFF173326), DarkHainColors.accentSoft)
         assertEquals(Color(0xFFF0964F), DarkHainColors.online)
         assertEquals(Color(0xFFF07070), DarkHainColors.danger)
+        assertEquals(Color(0xFF8B948F), DarkHainColors.icon)
+        assertEquals(Color(0xF21E2420), DarkHainColors.glass)
     }
 }

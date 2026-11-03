@@ -4,7 +4,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -29,14 +28,21 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.hain.ui.motion.LocalReduceMotion
+import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
+import app.hain.ui.theme.hainSurface
 
-/** Text button (DESIGN_SYSTEM.md §3): primary = green, secondary = outlined, ghost = text only. */
+/**
+ * Text button (T-010): a capsule. Primary = Hain green with a very light dome, secondary = raised
+ * white pill with a hairline and a soft shadow, ghost = text only. All press in a little.
+ */
 @Composable
 fun HainButton(
     text: String,
@@ -77,10 +83,13 @@ fun HainButton(
                     scaleY = scale
                 }.defaultMinSize(minHeight = 48.dp)
                 .alpha(if (enabled) 1f else DISABLED_ALPHA)
-                .clip(shape)
-                .background(fill, shape)
-                .then(if (style == HainButtonStyle.SECONDARY) Modifier.border(1.dp, colors.border, shape) else Modifier)
-                .clickable(
+                .then(
+                    if (style == HainButtonStyle.SECONDARY) {
+                        Modifier.hainSurface(HainLevel.RAISED, shape)
+                    } else {
+                        Modifier.clip(shape).background(fill, shape)
+                    },
+                ).clickable(
                     interactionSource = interaction,
                     indication = null,
                     enabled = enabled,
@@ -89,7 +98,7 @@ fun HainButton(
                 ).padding(horizontal = spacing.lg, vertical = spacing.md),
         contentAlignment = Alignment.Center,
     ) {
-        BasicText(text, style = LocalHainTypography.current.label.copy(color = fg))
+        BasicText(text, style = LocalHainTypography.current.button.copy(color = fg))
     }
 }
 
@@ -104,6 +113,7 @@ fun HainIconButton(
     tint: Color = LocalHainColors.current.text,
     background: Color = Color.Transparent,
     enabled: Boolean = true,
+    iconSize: Dp = 20.dp,
 ) {
     Box(
         modifier =
@@ -119,12 +129,12 @@ fun HainIconButton(
             painter = icon,
             contentDescription = contentDescription,
             colorFilter = ColorFilter.tint(tint),
-            modifier = Modifier.size(20.dp),
+            modifier = Modifier.size(iconSize),
         )
     }
 }
 
-/** Small row helper used by menus and drawers: icon + label, full width, clickable. */
+/** Row used by drawers and lists: icon + label, rounded row shape, [selected] = soft grey fill. */
 @Composable
 fun HainMenuRow(
     icon: Painter?,
@@ -138,17 +148,22 @@ fun HainMenuRow(
     Row(
         modifier =
             modifier
-                .clip(LocalHainShapes.current.button)
-                .background(if (selected) colors.surfaceHigh else Color.Transparent)
+                .clip(LocalHainShapes.current.row)
+                .background(if (selected) colors.surface else Color.Transparent)
                 .clickable(onClick = onClick)
                 .padding(horizontal = spacing.md, vertical = spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (icon != null) {
-            Image(icon, null, colorFilter = ColorFilter.tint(colors.textMuted), modifier = Modifier.size(20.dp))
+            Image(icon, null, colorFilter = ColorFilter.tint(colors.icon), modifier = Modifier.size(20.dp))
             Box(Modifier.size(spacing.md))
         }
-        BasicText(label, style = LocalHainTypography.current.bodySmall.copy(color = colors.text), maxLines = 1)
+        BasicText(
+            label,
+            style = LocalHainTypography.current.body.copy(color = colors.text),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -157,5 +172,5 @@ internal const val DISABLED_ALPHA = 0.4f
 private const val PRESSED_SCALE = 0.96f
 private const val PRESS_DAMPING = 0.5f
 private const val PRESS_STIFFNESS = 600f
-private const val DOME_LIGHT = 0.14f
-private const val DOME_SHADE = 0.08f
+private const val DOME_LIGHT = 0.08f
+private const val DOME_SHADE = 0.05f

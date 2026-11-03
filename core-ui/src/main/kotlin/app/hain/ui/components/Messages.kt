@@ -1,14 +1,17 @@
 package app.hain.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.BasicText
@@ -21,17 +24,21 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import app.hain.ui.HainIcons
+import app.hain.ui.motion.HainMotion
+import app.hain.ui.motion.LocalReduceMotion
+import app.hain.ui.motion.hainTween
+import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
+import app.hain.ui.theme.hainSurface
 import com.mikepenz.markdown.compose.Markdown
 import com.mikepenz.markdown.model.DefaultMarkdownColors
 import com.mikepenz.markdown.model.DefaultMarkdownTypography
@@ -39,26 +46,27 @@ import com.mikepenz.markdown.model.MarkdownColors
 import com.mikepenz.markdown.model.MarkdownTypography
 
 /**
- * User message: grey bubble on the right (DESIGN_SYSTEM.md §1). With [onLongPress] a long press
- * opens the message menu (copy, edit); [menu] is shown anchored below the bubble.
+ * User message: soft grey bubble on the right (DESIGN_SYSTEM.md §1). Like Gemini (T-057), a short
+ * tap ([onTap]) reveals [actions] below the bubble on the right — no long-press popup. The row
+ * fades and unfolds in [HainMotion.FAST_MS]; with reduced motion it simply appears.
  */
 @Composable
 fun UserBubble(
     text: String,
     modifier: Modifier = Modifier,
-    onLongPress: (() -> Unit)? = null,
-    menu: @Composable () -> Unit = {},
+    actionsVisible: Boolean = false,
+    onTap: (() -> Unit)? = null,
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = LocalHainColors.current
     val spacing = LocalHainSpacing.current
     val shape = LocalHainShapes.current.userBubble
-    Box(modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+    Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
         val bubble =
             Modifier
                 .widthIn(max = 320.dp)
-                .clip(shape)
-                .background(colors.surface, shape)
-        if (onLongPress == null) {
+                .hainSurface(HainLevel.FLAT, shape)
+        if (onTap == null) {
             SelectionContainer {
                 BasicText(
                     text = text,
@@ -67,22 +75,35 @@ fun UserBubble(
                 )
             }
         } else {
-            Box {
-                BasicText(
-                    text = text,
-                    style = LocalHainTypography.current.body.copy(color = colors.text),
-                    modifier =
-                        bubble
-                            .combinedClickable(onClick = {}, onLongClick = onLongPress)
-                            .padding(horizontal = spacing.lg, vertical = spacing.md),
-                )
-                menu()
-            }
+            BasicText(
+                text = text,
+                style = LocalHainTypography.current.body.copy(color = colors.text),
+                modifier =
+                    bubble
+                        .clickable(onClick = onTap)
+                        .padding(horizontal = spacing.lg, vertical = spacing.md),
+            )
+        }
+        val reduce = LocalReduceMotion.current
+        AnimatedVisibility(
+            visible = actionsVisible,
+            enter =
+                fadeIn(hainTween(HainMotion.FAST_MS, reduce)) +
+                    expandVertically(hainTween(HainMotion.FAST_MS, reduce), expandFrom = Alignment.Top),
+            exit =
+                fadeOut(hainTween(HainMotion.FAST_MS, reduce)) +
+                    shrinkVertically(hainTween(HainMotion.FAST_MS, reduce), shrinkTowards = Alignment.Top),
+        ) {
+            Row(
+                Modifier.padding(top = spacing.xs).offset(x = ICON_INSET.dp),
+                horizontalArrangement = Arrangement.spacedBy(ACTION_GAP.dp),
+                content = actions,
+            )
         }
     }
 }
 
-/** Assistant answer: plain markdown text without bubble, actions row below when finished. */
+/** Assistant answer: plain markdown text without bubble, the action row (T-057) below when finished. */
 @Composable
 fun AssistantBlock(
     markdown: String,
@@ -100,7 +121,12 @@ fun AssistantBlock(
             )
         }
         if (actions != null) {
-            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) { actions() }
+            // quiet grey row, evenly spaced; shifted so the first icon lines up with the text
+            Row(
+                Modifier.padding(top = LocalHainSpacing.current.xs).offset(x = -ICON_INSET.dp),
+                horizontalArrangement = Arrangement.spacedBy(ACTION_GAP.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) { actions() }
         }
     }
 }
@@ -137,23 +163,51 @@ fun ReasoningBlock(
     }
 }
 
-/** Small round action under an answer (copy, regenerate, share). */
+/**
+ * One quiet grey icon under a message (T-057): copy, share, thumbs, speak, retry, edit.
+ * [selected] tints it green (a given thumb); [done] swaps in a check for a moment (copied).
+ */
+@Suppress("LongParameterList") // all optional states with defaults
 @Composable
 fun MessageAction(
     kind: MessageActionKind,
     label: String,
     onClick: () -> Unit,
+    selected: Boolean = false,
+    done: Boolean = false,
+    enabled: Boolean = true,
 ) {
+    val colors = LocalHainColors.current
     val icon =
-        when (kind) {
-            MessageActionKind.COPY -> HainIcons.copy
-            MessageActionKind.RETRY -> HainIcons.retry
-            MessageActionKind.SHARE -> HainIcons.share
+        when {
+            done -> HainIcons.check
+            else ->
+                when (kind) {
+                    MessageActionKind.COPY -> HainIcons.copy
+                    MessageActionKind.SHARE -> HainIcons.share
+                    MessageActionKind.THUMB_UP -> HainIcons.thumbUp
+                    MessageActionKind.THUMB_DOWN -> HainIcons.thumbDown
+                    MessageActionKind.SPEAK -> HainIcons.volume
+                    MessageActionKind.RETRY -> HainIcons.retry
+                    MessageActionKind.EDIT -> HainIcons.edit
+                }
         }
-    HainIconButton(icon, label, onClick, tint = LocalHainColors.current.textMuted)
+    HainIconButton(
+        icon = icon,
+        contentDescription = label,
+        onClick = onClick,
+        tint = if (selected || done) colors.accent else colors.icon,
+        enabled = enabled,
+        iconSize = ACTION_ICON.dp,
+    )
 }
 
-enum class MessageActionKind { COPY, RETRY, SHARE }
+enum class MessageActionKind { COPY, SHARE, THUMB_UP, THUMB_DOWN, SPEAK, RETRY, EDIT }
+
+/** Icon buttons are 40 dp with a centred 18 dp icon: this much empty room on each side. */
+private const val ICON_INSET = 11
+private const val ACTION_GAP = 2
+private const val ACTION_ICON = 18
 
 @Composable
 fun hainMarkdownColors(): MarkdownColors {

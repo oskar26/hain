@@ -16,8 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -27,25 +25,25 @@ import app.hain.ui.effects.Celebration
 import app.hain.ui.motion.rememberHainHaptics
 import app.hain.ui.pim.JuicyPim
 import app.hain.ui.pim.PimState
+import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 
-private val FOREST_TOP = Color(color = 0xFF0B3D2A)
-private val FOREST_BOTTOM = Color(color = 0xFF0F1311)
-private val ON_FOREST = Color(color = 0xFFECEFED)
-private val ON_FOREST_MUTED = Color(color = 0xFFB5D9C6)
-
-/** Download done (2e, Phantom style): dark forest, Pim hops, confetti, a happy buzz. */
+/**
+ * Download done (2e): Pim hops, confetti, a happy buzz. Since T-010 on the same calm wash as the
+ * tour, so the whole start feels like one piece instead of a dark island.
+ */
 @Composable
 internal fun SuccessScreen(
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val type = LocalHainTypography.current
+    val colors = LocalHainColors.current
     val spacing = LocalHainSpacing.current
     val haptics = rememberHainHaptics()
     LaunchedEffect(Unit) { haptics.toolConfirm() }
-    Box(modifier.fillMaxSize().background(Brush.verticalGradient(listOf(FOREST_TOP, FOREST_BOTTOM)))) {
+    Box(modifier.fillMaxSize().background(tourBackground())) {
         Column(
             Modifier
                 .fillMaxSize()
@@ -60,12 +58,12 @@ internal fun SuccessScreen(
             Spacer(Modifier.height(spacing.xl))
             BasicText(
                 stringResource(R.string.onboarding_done),
-                style = type.display.copy(color = ON_FOREST, textAlign = TextAlign.Center),
+                style = type.display.copy(color = colors.text, textAlign = TextAlign.Center),
             )
             Spacer(Modifier.height(spacing.md))
             BasicText(
                 stringResource(R.string.onboarding_done_body),
-                style = type.body.copy(color = ON_FOREST_MUTED, textAlign = TextAlign.Center),
+                style = type.body.copy(color = colors.textMuted, textAlign = TextAlign.Center),
             )
             Spacer(Modifier.weight(1f))
             HainButton(stringResource(R.string.onboarding_start), onDone, Modifier.fillMaxWidth())

@@ -10,7 +10,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.tooling.preview.Preview
 
 val LocalHainColors = staticCompositionLocalOf { LightHainColors }
-val LocalHainTypography = staticCompositionLocalOf { HainType.inter() }
+val LocalHainTypography = staticCompositionLocalOf { HainType.hanken() }
 val LocalHainShapes = staticCompositionLocalOf { StandardHainShapes }
 val LocalHainSpacing = staticCompositionLocalOf { StandardHainSpacing }
 
@@ -30,7 +30,7 @@ fun HainTheme(
 ) {
     CompositionLocalProvider(
         LocalHainColors provides if (darkTheme) DarkHainColors else LightHainColors,
-        LocalHainTypography provides if (highLegibility) HainType.atkinson() else HainType.inter(),
+        LocalHainTypography provides if (highLegibility) HainType.atkinson() else HainType.hanken(),
         LocalHainShapes provides StandardHainShapes,
         LocalHainSpacing provides StandardHainSpacing,
         content = content,

@@ -153,4 +153,15 @@ class ChatViewModelTest {
         assertEquals("Hallo", vm.state.value.input)
         assertEquals(0, llm.prompts.size)
     }
+
+    @Test
+    fun thumbsToggleAndStayPerAnswer() {
+        val vm = viewModel(FakeLlm(listOf("A1")))
+        vm.rate(5L, Rating.UP)
+        assertEquals(Rating.UP, vm.ratings.value[5L])
+        vm.rate(5L, Rating.DOWN)
+        assertEquals(Rating.DOWN, vm.ratings.value[5L])
+        vm.rate(5L, Rating.DOWN)
+        assertEquals(null, vm.ratings.value[5L])
+    }
 }

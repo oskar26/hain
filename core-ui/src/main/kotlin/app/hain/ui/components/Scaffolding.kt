@@ -38,7 +38,7 @@ fun TopBar(
     ) {
         leading()
         Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-            BasicText(title, style = type.label.copy(color = colors.text), maxLines = 1)
+            BasicText(title, style = type.button.copy(color = colors.text), maxLines = 1)
             if (subtitle != null) {
                 BasicText(
                     subtitle,
@@ -68,9 +68,9 @@ fun EmptyState(
         verticalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.md),
     ) {
         art()
-        BasicText(title, style = type.title.copy(color = colors.text, textAlign = TextAlign.Center))
+        BasicText(title, style = type.display.copy(color = colors.text, textAlign = TextAlign.Center))
         if (body != null) {
-            BasicText(body, style = type.bodySmall.copy(color = colors.textMuted, textAlign = TextAlign.Center))
+            BasicText(body, style = type.body.copy(color = colors.textMuted, textAlign = TextAlign.Center))
         }
     }
 }

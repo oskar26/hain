@@ -77,4 +77,6 @@
     <string name="chat_sources">Quellen</string>
     <string name="chat_online">Online</string>
     <string name="chat_online_hint">Hain holt gerade etwas aus dem Internet</string>
+    <string name="chat_good_answer">Gute Antwort</string>
+    <string name="chat_bad_answer">Keine gute Antwort</string>
 </resources>

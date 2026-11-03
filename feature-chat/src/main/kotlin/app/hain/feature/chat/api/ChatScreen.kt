@@ -7,7 +7,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,18 +43,17 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hain.feature.chat.R
 import app.hain.feature.chat.internal.ChatError
 import app.hain.feature.chat.internal.ChatUiState
 import app.hain.feature.chat.internal.ChatViewModel
+import app.hain.feature.chat.internal.Rating
 import app.hain.feature.chat.internal.UiMessage
 import app.hain.llm.api.EngineState
 import app.hain.ui.HainIcons
@@ -63,8 +61,6 @@ import app.hain.ui.components.AssistantBlock
 import app.hain.ui.components.Composer
 import app.hain.ui.components.EmptyState
 import app.hain.ui.components.HainIconButton
-import app.hain.ui.components.HainPopupItem
-import app.hain.ui.components.HainPopupMenu
 import app.hain.ui.components.MessageAction
 import app.hain.ui.components.MessageActionKind
 import app.hain.ui.components.PulsingDot
@@ -72,14 +68,19 @@ import app.hain.ui.components.ReasoningBlock
 import app.hain.ui.components.TopBar
 import app.hain.ui.components.UserBubble
 import app.hain.ui.effects.ThinkingGlow
+import app.hain.ui.motion.HainMotionMoment
+import app.hain.ui.motion.motionSpec
 import app.hain.ui.motion.rememberHainHaptics
 import app.hain.ui.pim.JuicyPim
 import app.hain.ui.pim.Pim
 import app.hain.ui.pim.PimState
+import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
+import app.hain.ui.theme.hainSurface
+import kotlinx.coroutines.delay
 
 /** Chat screen (T-052) with the chat drawer (T-053, basic). */
 @Suppress("LongMethod") // screen scaffold: top bar, list, composer, drawer
@@ -98,7 +99,11 @@ fun ChatScreen(
     BackHandler(enabled = drawerOpen) { drawerOpen = false }
 
     Box(modifier.fillMaxSize().background(colors.bg)) {
-        val chatScale by animateFloatAsState(if (drawerOpen) OPEN_SCALE else 1f, label = "chat-scale")
+        val chatScale by animateFloatAsState(
+            if (drawerOpen) OPEN_SCALE else 1f,
+            motionSpec(HainMotionMoment.DRAWER),
+            label = "chat-scale",
+        )
         ThinkingGlow(visible = state.isGenerating, modifier = Modifier.fillMaxSize())
         Column(
             Modifier
@@ -129,10 +134,13 @@ fun ChatScreen(
                 if (state.messages.isEmpty()) {
                     Greeting(onSuggestion = { viewModel.onInputChange(it) })
                 } else {
+                    val ratings by viewModel.ratings.collectAsStateWithLifecycle()
                     MessageList(
                         state,
+                        ratings = ratings,
                         onRetry = { viewModel.regenerate(it) },
                         onEdit = viewModel::startEdit,
+                        onRate = viewModel::rate,
                     )
                 }
             }
@@ -264,27 +272,32 @@ private fun SuggestionChip(
     onClick: () -> Unit,
 ) {
     val colors = LocalHainColors.current
-    val shape = LocalHainShapes.current.chip
+    val spacing = LocalHainSpacing.current
+    // same raised card as everywhere else (T-010), all suggestions equally wide
     BasicText(
         text,
-        style = LocalHainTypography.current.bodySmall.copy(color = colors.text),
+        style = LocalHainTypography.current.body.copy(color = colors.text),
         modifier =
             Modifier
                 .fillMaxWidth(CHIP_WIDTH)
-                .border(1.dp, colors.border, shape)
+                .hainSurface(HainLevel.RAISED, LocalHainShapes.current.card)
                 .clickable(onClick = onClick)
-                .padding(horizontal = 14.dp, vertical = 10.dp),
+                .padding(horizontal = spacing.lg, vertical = spacing.md),
     )
 }
 
 @Composable
 private fun MessageList(
     state: ChatUiState,
+    ratings: Map<Long, Rating>,
     onRetry: (Long) -> Unit,
     onEdit: (Long) -> Unit,
+    onRate: (Long, Rating) -> Unit,
 ) {
     val spacing = LocalHainSpacing.current
     val listState = rememberLazyListState()
+    // the one own message whose actions are showing (tap again or tap another to switch)
+    var openId by rememberSaveable { mutableStateOf<Long?>(null) }
     val last = state.messages.lastOrNull()
     LaunchedEffect(state.messages.size, last?.text?.length, last?.reasoning?.length) {
         if (state.messages.isNotEmpty()) listState.scrollToItem(state.messages.lastIndex, Int.MAX_VALUE / 2)
@@ -299,63 +312,81 @@ private fun MessageList(
     ) {
         items(state.messages, key = { it.id }) { message ->
             if (message.isUser) {
-                UserMessage(message, canEdit = !state.isGenerating, onEdit = { onEdit(message.id) })
+                UserMessage(
+                    message,
+                    open = openId == message.id,
+                    onTap = { openId = if (openId == message.id) null else message.id },
+                    canEdit = !state.isGenerating,
+                    onEdit = {
+                        openId = null
+                        onEdit(message.id)
+                    },
+                )
             } else {
-                Answer(message, canRetry = !state.isGenerating, onRetry = { onRetry(message.id) })
+                Answer(
+                    message,
+                    rating = ratings[message.id],
+                    canRetry = !state.isGenerating,
+                    onRetry = { onRetry(message.id) },
+                    onRate = { onRate(message.id, it) },
+                )
             }
         }
     }
 }
 
-/** Own message: long press → small menu with copy and edit. */
+/** Own message: a short tap shows edit and copy below it, on the right (T-057, like Gemini). */
 @Composable
 private fun UserMessage(
     message: UiMessage,
+    open: Boolean,
+    onTap: () -> Unit,
     canEdit: Boolean,
     onEdit: () -> Unit,
 ) {
-    val clipboard = LocalClipboardManager.current
-    val haptics = rememberHainHaptics()
-    var menu by remember { mutableStateOf(false) }
     UserBubble(
         message.text,
-        onLongPress = {
-            haptics.toolConfirm()
-            menu = true
+        actionsVisible = open,
+        onTap = onTap,
+        actions = {
+            if (canEdit) MessageAction(MessageActionKind.EDIT, stringResource(R.string.chat_edit), onEdit)
+            CopyAction(message.text)
         },
-        menu = {
-            if (menu) {
-                HainPopupMenu(
-                    onDismiss = { menu = false },
-                    alignment = Alignment.BottomEnd,
-                    offset = IntOffset(0, with(LocalDensity.current) { MENU_GAP.dp.roundToPx() }),
-                ) {
-                    HainPopupItem(HainIcons.copy, stringResource(R.string.chat_copy), {
-                        clipboard.setText(AnnotatedString(message.text))
-                        menu = false
-                    })
-                    if (canEdit) {
-                        HainPopupItem(HainIcons.edit, stringResource(R.string.chat_edit), {
-                            menu = false
-                            onEdit()
-                        })
-                    }
-                }
-            }
+    )
+}
+
+/** Copy, then a short green check so you know it worked. */
+@Composable
+private fun CopyAction(text: String) {
+    val clipboard = LocalClipboardManager.current
+    var copied by remember { mutableStateOf(false) }
+    LaunchedEffect(copied) {
+        if (copied) {
+            delay(COPIED_MS)
+            copied = false
+        }
+    }
+    MessageAction(
+        MessageActionKind.COPY,
+        stringResource(if (copied) R.string.chat_copied else R.string.chat_copy),
+        onClick = {
+            clipboard.setText(AnnotatedString(text))
+            copied = true
         },
+        done = copied,
     )
 }
 
 @Composable
 private fun Answer(
     message: UiMessage,
+    rating: Rating?,
     canRetry: Boolean,
     onRetry: () -> Unit,
+    onRate: (Rating) -> Unit,
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
-    val clipboard = LocalClipboardManager.current
-    val context = LocalContext.current
     Column(Modifier.fillMaxWidth()) {
         ToolTimeline(message.steps)
         val reasoning = message.reasoning
@@ -373,28 +404,13 @@ private fun Answer(
                 BasicText(stringResource(R.string.chat_thinking), style = type.bodySmall.copy(color = colors.textMuted))
             }
         } else {
-            val shareLabel = stringResource(R.string.chat_share)
             AssistantBlock(
                 markdown = message.text,
                 actions =
                     if (message.streaming) {
                         null
                     } else {
-                        {
-                            MessageAction(MessageActionKind.COPY, stringResource(R.string.chat_copy)) {
-                                clipboard.setText(AnnotatedString(message.text))
-                            }
-                            if (canRetry) {
-                                MessageAction(MessageActionKind.RETRY, stringResource(R.string.chat_retry), onRetry)
-                            }
-                            MessageAction(MessageActionKind.SHARE, shareLabel) {
-                                val send =
-                                    Intent(Intent.ACTION_SEND)
-                                        .setType("text/plain")
-                                        .putExtra(Intent.EXTRA_TEXT, message.text)
-                                context.startActivity(Intent.createChooser(send, shareLabel))
-                            }
-                        }
+                        { AnswerActions(message.text, rating, canRetry, onRetry, onRate) }
                     },
             )
             if (!message.streaming) SourceChips(message.sources)
@@ -403,6 +419,43 @@ private fun Answer(
             }
         }
     }
+}
+
+/**
+ * The quiet row under a finished answer (T-057): copy, share, thumbs, ask again — evenly spaced,
+ * grey. "Read aloud" joins here once Hain can speak (Häppchen 10).
+ */
+@Composable
+private fun AnswerActions(
+    text: String,
+    rating: Rating?,
+    canRetry: Boolean,
+    onRetry: () -> Unit,
+    onRate: (Rating) -> Unit,
+) {
+    val context = LocalContext.current
+    val shareLabel = stringResource(R.string.chat_share)
+    CopyAction(text)
+    MessageAction(MessageActionKind.SHARE, shareLabel, onClick = {
+        val send =
+            Intent(Intent.ACTION_SEND)
+                .setType("text/plain")
+                .putExtra(Intent.EXTRA_TEXT, text)
+        context.startActivity(Intent.createChooser(send, shareLabel))
+    })
+    MessageAction(
+        MessageActionKind.THUMB_UP,
+        stringResource(R.string.chat_good_answer),
+        onClick = { onRate(Rating.UP) },
+        selected = rating == Rating.UP,
+    )
+    MessageAction(
+        MessageActionKind.THUMB_DOWN,
+        stringResource(R.string.chat_bad_answer),
+        onClick = { onRate(Rating.DOWN) },
+        selected = rating == Rating.DOWN,
+    )
+    MessageAction(MessageActionKind.RETRY, stringResource(R.string.chat_retry), onRetry, enabled = canRetry)
 }
 
 @Composable
@@ -511,4 +564,4 @@ private const val OPEN_SCALE = 0.94f
 private const val CHIP_WIDTH = 0.9f
 private const val PERCENT = 100
 private const val ROOMY_HEIGHT = 420
-private const val MENU_GAP = 6
+private const val COPIED_MS = 1500L

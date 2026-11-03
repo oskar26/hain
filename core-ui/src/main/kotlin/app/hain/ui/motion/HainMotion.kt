@@ -1,5 +1,7 @@
 package app.hain.ui.motion
 
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.snap
@@ -50,7 +52,47 @@ object HainMotion {
 
     /** Suggestion chips / card children enter staggered by this much. */
     const val STAGGER_MS = 40
+
+    // ---- shared language for the whole app (T-010, docs/design/DESIGN_LANGUAGE.md) ----
+
+    /** Small things appear or leave: icons, hints, the actions under a message. */
+    const val FAST_MS = 150
+
+    /** Menus open (scale + fade from their anchor). */
+    const val MENU_MS = 180
+
+    /** Pages and larger blocks cross-fade. */
+    const val BASE_MS = 240
+
+    /** The menu starts this small and grows to full size. */
+    const val MENU_START_SCALE = 0.9f
+
+    /** Calm spring for everything that moves position (drawer, list items). */
+    const val CALM_DAMPING = 0.92f
+    const val CALM_STIFFNESS = 500f
 }
+
+/** The one easing curve for tweens: quick start, soft landing. */
+val HainEase: Easing = CubicBezierEasing(EASE_X1, 0f, 0f, 1f)
+
+private const val EASE_X1 = 0.2f
+
+/** A tween of [ms] on [HainEase], or [snap] when motion is reduced. */
+fun <T> hainTween(
+    ms: Int,
+    reduceMotion: Boolean,
+): FiniteAnimationSpec<T> = if (reduceMotion) snap() else tween(durationMillis = ms, easing = HainEase)
+
+/** The calm spring, or [snap] when motion is reduced. */
+fun <T> hainSpring(reduceMotion: Boolean): FiniteAnimationSpec<T> =
+    if (reduceMotion) snap() else spring(dampingRatio = HainMotion.CALM_DAMPING, stiffness = HainMotion.CALM_STIFFNESS)
+
+/** Composition variants that read [LocalReduceMotion]. */
+@Composable
+fun <T> hainTween(ms: Int): FiniteAnimationSpec<T> = hainTween(ms, LocalReduceMotion.current)
+
+@Composable
+fun <T> hainSpring(): FiniteAnimationSpec<T> = hainSpring(LocalReduceMotion.current)
 
 /** The animated moments named in UI_LIBRARIES.md §3. */
 enum class HainMotionMoment {
