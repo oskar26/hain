@@ -23,6 +23,7 @@ import app.hain.feature.chat.api.ChatScreen
 import app.hain.feature.chat.internal.ChatEngine
 import app.hain.feature.chat.internal.ChatStore
 import app.hain.feature.chat.internal.ChatViewModel
+import app.hain.feature.chat.internal.PrefsRatings
 import app.hain.feature.onboarding.api.OnboardingScreen
 import app.hain.feature.settings.api.PacksScreen
 import app.hain.feature.settings.api.SettingsActions
@@ -101,6 +102,7 @@ class MainActivity : ComponentActivity() {
             modelPath = { models.mainFile(brain).absolutePath },
             brainInstalled = models.downloadState(brain).map { it is DownloadState.Installed },
             networkActive = networkGate.active.map { it > 0 },
+            messageRatings = PrefsRatings(getSharedPreferences(RATINGS_PREFS, MODE_PRIVATE)),
         )
     }
 
@@ -189,3 +191,4 @@ class MainActivity : ComponentActivity() {
 private const val BYTES_PER_GB = 1_000_000_000.0
 private const val START_PREFS = "hain_start"
 private const val KEY_SKIPPED = "onboarding_skipped"
+private const val RATINGS_PREFS = "hain_ratings"

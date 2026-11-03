@@ -38,7 +38,7 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | net.zetetic:sqlcipher-android 4.10.0 | BSD-style (zetetic.net/sqlcipher/license) | ok (T-020, encrypted `hain.db`) |
 | Robolectric 4.16 + androidx.test:core 1.7.0 (test only) | MIT / Apache-2.0 | ok (T-020 DAO tests) |
 | multiplatform-markdown-renderer | Apache-2.0 | ok |
-| Inter, Atkinson Hyperlegible, JetBrains Mono | OFL-1.1 | ok |
+| Hanken Grotesk 3.014 (Light, Regular, Medium, SemiBold; app font since 03.11.2026, text in `docs/specs/licenses/HankenGrotesk-OFL.txt`), Atkinson Hyperlegible, JetBrains Mono | OFL-1.1 | ok |
 | Lucide icons | ISC | ok |
 | Compose Unstyled | MIT | ok |
 | Haze | Apache-2.0 | ok |

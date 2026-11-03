@@ -32,10 +32,12 @@ import app.hain.models.api.ModelRepository
 import app.hain.ui.HainIcons
 import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.TopBar
+import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
+import app.hain.ui.theme.hainSurface
 
 private const val MB = 1_000_000L
 private const val GB = 1_000_000_000L
@@ -88,7 +90,10 @@ private fun PackRow(
     val state by flow.collectAsStateWithLifecycle(DownloadState.Idle)
     val installed = state is DownloadState.Installed || models.isInstalled(pack)
     Column(
-        Modifier.fillMaxWidth().background(colors.surface, LocalHainShapes.current.card).padding(spacing.md),
+        Modifier
+            .fillMaxWidth()
+            .hainSurface(HainLevel.RAISED, LocalHainShapes.current.card)
+            .padding(spacing.lg),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
         BasicText(pack.name, style = type.body.copy(color = colors.text))
@@ -141,7 +146,7 @@ private fun ActionButton(
     val colors = LocalHainColors.current
     Box(
         Modifier
-            .background(colors.surfaceHigh, LocalHainShapes.current.button)
+            .hainSurface(HainLevel.FLAT, LocalHainShapes.current.button)
             .clickable(onClick = onClick)
             .padding(horizontal = LocalHainSpacing.current.md, vertical = LocalHainSpacing.current.sm),
     ) {

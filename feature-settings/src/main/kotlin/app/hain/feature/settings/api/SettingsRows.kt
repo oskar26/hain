@@ -1,6 +1,5 @@
 package app.hain.feature.settings.api
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,7 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
@@ -18,12 +17,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import app.hain.ui.components.HainSwitch
+import app.hain.ui.components.SegmentedControl
+import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
+import app.hain.ui.theme.hainSurface
 
 @Composable
 internal fun Group(label: Int) {
@@ -44,23 +49,13 @@ internal fun <T> Choice(
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     Column(verticalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.sm)) {
-        BasicText(stringResource(label), style = type.bodySmall.copy(color = colors.text))
-        Row(horizontalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.sm)) {
-            options.forEach { (value, name) ->
-                val on = value == selected
-                Box(
-                    Modifier
-                        .background(if (on) colors.accent else colors.surfaceHigh, LocalHainShapes.current.button)
-                        .clickable { onSelect(value) }
-                        .padding(horizontal = LocalHainSpacing.current.md, vertical = LocalHainSpacing.current.sm),
-                ) {
-                    BasicText(
-                        stringResource(name),
-                        style = type.label.copy(color = if (on) colors.onAccent else colors.text),
-                    )
-                }
-            }
-        }
+        BasicText(stringResource(label), style = type.body.copy(color = colors.text))
+        // one shared either-or control for the whole app (T-010)
+        SegmentedControl(
+            options = options.map { stringResource(it.second) },
+            selected = options.indexOfFirst { it.first == selected }.coerceAtLeast(0),
+            onSelect = { onSelect(options[it].first) },
+        )
     }
 }
 
@@ -74,23 +69,18 @@ internal fun Toggle(
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     Row(
-        Modifier.fillMaxWidth().clickable { onChange(!checked) },
+        Modifier
+            .fillMaxWidth()
+            .clip(LocalHainShapes.current.row)
+            .toggleable(value = checked, role = Role.Switch, onValueChange = onChange)
+            .padding(vertical = LocalHainSpacing.current.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f)) {
-            BasicText(stringResource(label), style = type.bodySmall.copy(color = colors.text))
-            BasicText(stringResource(hint), style = type.label.copy(color = colors.textMuted))
+        Column(Modifier.weight(1f).padding(end = LocalHainSpacing.current.md)) {
+            BasicText(stringResource(label), style = type.body.copy(color = colors.text))
+            BasicText(stringResource(hint), style = type.bodySmall.copy(color = colors.textMuted))
         }
-        Box(
-            Modifier
-                .background(if (checked) colors.accent else colors.surfaceHigh, RoundedCornerShape(percent = 50))
-                .padding(horizontal = LocalHainSpacing.current.md, vertical = LocalHainSpacing.current.xs),
-        ) {
-            BasicText(
-                if (checked) "●" else "○",
-                style = type.label.copy(color = if (checked) colors.onAccent else colors.textMuted),
-            )
-        }
+        HainSwitch(checked)
     }
 }
 
@@ -105,21 +95,21 @@ internal fun TextSetting(
     val type = LocalHainTypography.current
     var text by rememberSaveable { mutableStateOf(value) }
     Column(verticalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.sm)) {
-        BasicText(stringResource(label), style = type.bodySmall.copy(color = colors.text))
+        BasicText(stringResource(label), style = type.body.copy(color = colors.text))
         Box(
             Modifier
                 .fillMaxWidth()
-                .background(colors.surfaceHigh, LocalHainShapes.current.button)
+                .hainSurface(HainLevel.FLAT, LocalHainShapes.current.card)
                 .padding(LocalHainSpacing.current.md),
         ) {
-            if (text.isEmpty()) BasicText(stringResource(hint), style = type.bodySmall.copy(color = colors.textMuted))
+            if (text.isEmpty()) BasicText(stringResource(hint), style = type.body.copy(color = colors.textMuted))
             BasicTextField(
                 value = text,
                 onValueChange = {
                     text = it
                     onChange(it)
                 },
-                textStyle = type.bodySmall.copy(color = colors.text),
+                textStyle = type.body.copy(color = colors.text),
                 cursorBrush = SolidColor(colors.accent),
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -135,8 +125,14 @@ internal fun Link(
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
-    Column(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
-        BasicText(stringResource(label), style = type.bodySmall.copy(color = colors.text))
-        BasicText(stringResource(hint), style = type.label.copy(color = colors.textMuted))
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(LocalHainShapes.current.row)
+            .clickable(onClick = onClick)
+            .padding(vertical = LocalHainSpacing.current.sm),
+    ) {
+        BasicText(stringResource(label), style = type.body.copy(color = colors.text))
+        BasicText(stringResource(hint), style = type.bodySmall.copy(color = colors.textMuted))
     }
 }

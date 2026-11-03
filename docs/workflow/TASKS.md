@@ -16,7 +16,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-004 | Hilt + App class + MainActivity | scaffold | S | A | T-002 | done |
 | T-005 | Strings DE/EN + checker script | strings | S | A | T-002 | review |
 | T-006 | CI workflow | scaffold | XS | A | T-003,T-005 | review |
-| T-010 | Design tokens | ui | S | B | T-002 | review |
+| T-010 | Design tokens | ui | S | B | T-002 | review (redesign 03.11.: one design language — levels, radii, motion, Hanken Grotesk; docs/design/DESIGN_LANGUAGE.md) |
 | T-011 | Components: HainText, HainSurface, HainButton, HainIconButton | ui | S | B | T-018,T-019 | review (subset) |
 | T-012 | Components: HainTextField, Composer | ui | S | B | T-018,T-019 | review (subset) |
 | T-013 | Components: UserBubble, AssistantBlock (markdown via renderer core), ReasoningBlock | ui | M | B | T-018,T-019 | review (subset) |
@@ -40,10 +40,10 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-050 | ChatEngine turn loop | feature | M | E | T-032,T-042,T-044,T-045,T-020 | review (no tools yet) |
 | T-051 | ChatViewModel + UI state | feature | S | E | T-050 | review |
 | T-052 | Chat screen | ui | M | E | T-051,T-011,T-012,T-013 | review |
-| T-057 | Branches, message queue, stopped/error states | feature | M | E | T-051 | review (subset 2d-2: stop at once, edit own message, ask again on any answer; branches/queue open) |
+| T-057 | Branches, message queue, stopped/error states | feature | M | E | T-051 | review (subset 2d-2: stop at once, edit own message, ask again on any answer; redesign 03.11.: Gemini-style actions — tap own message → edit/copy, answer row copy/share/thumbs/again; branches/queue/follow-up suggestions open) |
 | T-058 | ChatViewport + scroll-to-bottom pill | ui | S | E | T-052 | todo |
 | T-059 | ToolTimeline + SourceChips | ui | S | E | T-052,T-062 | review |
-| T-053 | Drawer: chat list, search, rename, delete, pin | ui | M | E | T-052,T-015 | review |
+| T-053 | Drawer: chat list, search, rename, delete, pin | ui | M | E | T-052,T-015 | review (redesign 03.11.: glass context menu with scale+fade, marked row, spring drawer + list motion) |
 | T-054 | Export & share chat | feature | S | E | T-053 | todo |
 | T-055 | Model picker in top bar | ui | S | E | T-052,T-081 | todo |
 | T-056 | Private chat + app lock | feature | S | E | T-053 | todo |

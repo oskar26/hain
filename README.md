@@ -73,15 +73,15 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 
 | Area | What Hain does | Status |
 |---|---|---|
-| 💬 Chat | Streaming answers, Markdown and code, collapsible "thinking" block, stop (reacts at once), ask again on any answer, copy, share | ✅ |
+| 💬 Chat | Streaming answers, Markdown and code, collapsible "thinking" block, stop (reacts at once). Under every answer a quiet row: copy, share, thumbs up/down (stays on your phone), ask again | ✅ |
 | ⚡ Speed | Faster test build, brain loads in the background with progress, remembers the chat between answers instead of re-reading it, system prompt read ahead | ✅ |
 | 🌍 Answer language | Pim answers in the language you write in (German, English, French, Turkish, Russian, …), or always in German or English if you want | ✅ |
 | 🌱 First start | Playful welcome tour with Pim, brain download (LFM3-1.7B, 1.0 GB) with resume and checksum, celebration screen; the download can wait or run in the background | ✅ |
 | 🗂️ Saved chats | Stored encrypted on the phone; search, rename, pin, delete, grouped by day | ✅ |
 | ⚙️ Settings | Theme, easy-to-read font, answer mode (fast / auto / thorough), answer language, "about me" and answer style | ✅ |
 | 📦 Knowledge packs | See, download and remove packs, with hints on what fits your phone | ✅ |
-| 🎨 Personality | Living Pim, green "thinking" glow, soft 3D buttons | ✅ |
-| ✏️ Chat extras | Automatic chat titles, copy or edit your own message (long press) | ✅ |
+| 🎨 Look | One calm design everywhere: new light font (Hanken Grotesk), soft cards and glass menus, the same gentle motion on every screen, dark mode to match; "Reduce motion" stops it all. Living Pim, green "thinking" glow | ✅ |
+| ✏️ Chat extras | Automatic chat titles; tap your own message to edit or copy it. Chat list: small glass menu at each chat (pin, rename, delete), smooth drawer | ✅ |
 | 📤 Export | Export a chat as Markdown or PDF | 🗓️ |
 | 🧭 Settings, part 2 | Clearer layout with icon tiles and sub pages, own "reduce motion" switch. Still open: pack picker, language step at first start, glossy 3D Pim and new first-start pictures | 🚧 |
 | 🔧 Tools | Calculator and units, weather (Open-Meteo), Wikipedia (German/English) – Pim shows each step and its sources under the answer. Still open: web search without API key, read web pages, weather card | 🚧 |
@@ -101,6 +101,9 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **A calmer, more unified look.** Hain got one design for every screen: a new light font (Hanken Grotesk), soft white cards, the same rounded corners everywhere, small glass menus and the same gentle motion on every screen – in light and dark mode. Settings use real switches and one kind of choice buttons. "Reduce motion" in Settings → Look stops all of it.
+- **Message actions like in Gemini.** Tap one of your messages and "edit" and "copy" fade in below it. Under every answer there is a quiet row: copy (a green tick shows it worked), share, thumbs up or down (only saved on your phone, never sent) and ask again. The long-press menu is gone.
+- **Nicer chat list.** The ⋯ next to a chat opens a small glass menu right below it, which grows out of the button; the chat stays marked while it is open, and the highlight now covers the whole row. The side panel slides in and out smoothly, and the list glides when you pin or delete a chat.
 - **Pim can look things up now.** Ask "Wie wird das Wetter morgen in Köln?" or "Wer war Ada Lovelace?" and Pim fetches the weather (Open-Meteo) or a Wikipedia summary, then answers from it. Above the answer you see what Pim did ("Wetter · Köln ✓"), below it the sources as chips – tap one to open the page.
 - **Exact maths.** Pim calculates with a real calculator instead of guessing: "15% von 80", "sqrt(2)", "5 km in Meilen", "100 °F in °C". Type only a sum like "12*7" and the result is there at once, without waiting for the brain.
 - **You see when Hain goes online.** While a request runs, an orange "Online" dot shows in the top bar. Settings → Privacy lists every request of the last 7 days (when, where to, why, how big) – without what you asked, unless you switch on "Show full addresses". **Offline mode** there stops all of it.
@@ -109,10 +112,9 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 - **The brain remembers the chat.** Before, every answer made the brain read the whole chat again. Now it continues where it stopped, so answers in longer chats start sooner. While it wakes up, the top bar shows how far it is (in %).
 - **Stop means stop.** Tapping stop ends the answer at once, even while Pim is still reading your message.
 - **Chat titles by themselves.** After the first answer Pim gives the chat a short title. A name you typed yourself is never changed.
-- **Your own messages.** Long-press one of your messages to copy it or to edit it: Pim then answers again from there. "Ask again" works on every answer, also the first one.
+- **Your own messages.** Tap one of your messages to copy it or to edit it: Pim then answers again from there. "Ask again" works on every answer, also the first one.
 - **Brain later.** At the first start you can skip the download (or let it run in the background) and look around first. The chat then shows a small, quiet reminder instead of an error.
 - **Keyboard fixed.** With the keyboard open in an empty chat the top bar stays put and Pim simply gets smaller.
-- **Small menu in the chat list.** The ⋯ button opens a compact menu right at the chat (pin, rename, delete).
 
 ## Install in 3 steps
 
@@ -294,7 +296,7 @@ Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Ger
 
 - [llama.cpp](https://github.com/ggml-org/llama.cpp) by ggml-org: runs the AI on the phone (MIT).
 - [Liquid AI](https://www.liquid.ai/) for the LFM3 models ([LiquidAI/LFM3-1.7B-GGUF](https://huggingface.co/LiquidAI/LFM3-1.7B-GGUF), LFM Open License v1.0).
-- [Lucide](https://lucide.dev/) icons, the Inter and Atkinson Hyperlegible fonts, and all other libraries listed in [LICENSES.md](docs/specs/LICENSES.md).
+- [Lucide](https://lucide.dev/) icons, the Hanken Grotesk and Atkinson Hyperlegible fonts, and all other libraries listed in [LICENSES.md](docs/specs/LICENSES.md).
 
 <div align="center">
 <sub>Made with 💚 · <a href="#hain">Back to top ↑</a></sub>
