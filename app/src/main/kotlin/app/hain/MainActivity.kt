@@ -59,6 +59,7 @@ class MainActivity : ComponentActivity() {
             onBack = onBack,
             onTheme = { write { repo.setTheme(it) } },
             onReadableFont = { write { repo.setReadableFont(it) } },
+            onReduceMotion = { write { repo.setReduceMotion(it) } },
             onAnswerLanguage = { write { repo.setAnswerLanguage(it) } },
             onAnswerMode = { write { repo.setAnswerMode(it) } },
             onAboutMe = { write { repo.setAboutMe(it) } },
@@ -116,7 +117,7 @@ class MainActivity : ComponentActivity() {
                     },
                 highLegibility = settings.readableFont,
             ) {
-                CompositionLocalProvider(LocalReduceMotion provides systemReducesMotion()) {
+                CompositionLocalProvider(LocalReduceMotion provides (settings.reduceMotion || systemReducesMotion())) {
                     var installed by remember { mutableStateOf(models.isInstalled(brain)) }
                     var skipped by remember { mutableStateOf(startPrefs.getBoolean(KEY_SKIPPED, false)) }
                     if (!installed && !skipped) {

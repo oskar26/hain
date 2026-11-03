@@ -13,6 +13,7 @@ enum class AnswerMode { AUTO, FAST, THOROUGH }
 data class HainSettings(
     val theme: ThemeChoice = ThemeChoice.SYSTEM,
     val readableFont: Boolean = false,
+    val reduceMotion: Boolean = false,
     val answerLanguage: AnswerLanguage = AnswerLanguage.AUTO,
     val answerMode: AnswerMode = AnswerMode.AUTO,
     val aboutMe: String = "",

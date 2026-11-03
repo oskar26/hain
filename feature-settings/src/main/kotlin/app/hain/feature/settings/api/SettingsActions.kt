@@ -10,6 +10,7 @@ class SettingsActions(
     val onBack: () -> Unit,
     val onTheme: (ThemeChoice) -> Unit,
     val onReadableFont: (Boolean) -> Unit,
+    val onReduceMotion: (Boolean) -> Unit,
     val onAnswerLanguage: (AnswerLanguage) -> Unit,
     val onAnswerMode: (AnswerMode) -> Unit,
     val onAboutMe: (String) -> Unit,
