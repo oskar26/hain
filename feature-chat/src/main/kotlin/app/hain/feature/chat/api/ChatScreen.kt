@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,6 +41,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -52,14 +54,17 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hain.common.api.AnswerMode
@@ -85,6 +90,9 @@ import app.hain.ui.components.TopBar
 import app.hain.ui.components.UserBubble
 import app.hain.ui.components.pressScale
 import app.hain.ui.effects.ThinkingGlow
+import app.hain.ui.effects.hainBottomFade
+import app.hain.ui.effects.hainGlassSource
+import app.hain.ui.effects.rememberHainGlassState
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.HainMotionMoment
 import app.hain.ui.motion.LocalReduceMotion
@@ -101,6 +109,8 @@ import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 import app.hain.ui.theme.glassTile
+import app.hain.ui.theme.hainAmbientGlow
+import app.hain.ui.theme.hainBackdrop
 import app.hain.ui.theme.hainSurface
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -129,75 +139,76 @@ fun ChatScreen(
             motionSpec(HainMotionMoment.DRAWER),
             label = "chat-scale",
         )
-        ThinkingGlow(visible = state.isGenerating, modifier = Modifier.fillMaxSize())
-        Column(
-            Modifier
-                .fillMaxSize()
-                .graphicsLayer {
+        var bannerHidden by rememberSaveable { mutableStateOf(false) }
+        ChatSurface(
+            thinking = state.isGenerating,
+            empty = state.messages.isEmpty(),
+            modifier =
+                Modifier.graphicsLayer {
                     scaleX = chatScale
                     scaleY = chatScale
-                }.statusBarsPadding()
-                .navigationBarsPadding()
-                .imePadding(),
-        ) {
-            TopBar(
-                title = stringResource(R.string.chat_title),
-                subtitle = engineLine(state),
-                leading = {
-                    HainIconButton(HainIcons.menu, stringResource(R.string.chat_menu), { drawerOpen = true })
                 },
-                trailing = {
-                    if (state.online) OnlineDot()
-                    HainIconButton(HainIcons.plus, stringResource(R.string.chat_new), viewModel::newChat)
-                },
-            )
-            var bannerHidden by rememberSaveable { mutableStateOf(false) }
-            if (!state.brainInstalled && !bannerHidden) {
-                BrainBanner(onGet = onGetBrain, onLater = { bannerHidden = true })
-            }
-            Box(Modifier.weight(1f).fillMaxWidth()) {
-                val pageIn = fadeIn(hainTween(HainMotion.PAGE_MS))
-                val pageSlide = slideInVertically(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV }
-                val pageOut = fadeOut(hainTween(HainMotion.FAST_MS))
-                AnimatedContent(
-                    targetState = state.messages.isEmpty(),
-                    transitionSpec = { (pageIn + pageSlide).togetherWith(pageOut) },
-                    label = "chat-start",
-                ) { empty ->
-                    if (empty) {
-                        Greeting(onSuggestion = { viewModel.onInputChange(it) })
-                    } else {
-                        val ratings by viewModel.ratings.collectAsStateWithLifecycle()
-                        MessageList(
-                            state,
-                            ratings = ratings,
-                            onRetry = { viewModel.regenerate(it) },
-                            onEdit = viewModel::startEdit,
-                            onRate = viewModel::rate,
-                            onAction = viewModel::resolveAction,
-                        )
-                    }
+            topBar = {
+                TopBar(
+                    title = stringResource(R.string.chat_title),
+                    subtitle = engineLine(state),
+                    leading = {
+                        HainIconButton(HainIcons.menu, stringResource(R.string.chat_menu), { drawerOpen = true })
+                    },
+                    trailing = {
+                        if (state.online) OnlineDot()
+                        HainIconButton(HainIcons.plus, stringResource(R.string.chat_new), viewModel::newChat)
+                    },
+                )
+                if (!state.brainInstalled && !bannerHidden) {
+                    BrainBanner(onGet = onGetBrain, onLater = { bannerHidden = true })
+                }
+            },
+            bottomBar = {
+                ErrorLine(state, onGetBrain)
+                if (state.editingId != null) EditBar(onCancel = viewModel::cancelEdit)
+                Composer(
+                    text = state.input,
+                    onTextChange = viewModel::onInputChange,
+                    placeholder = stringResource(R.string.chat_placeholder),
+                    isGenerating = state.isGenerating,
+                    onSend = {
+                        haptics.send()
+                        viewModel.send()
+                    },
+                    onStop = viewModel::stop,
+                    sendLabel = stringResource(R.string.chat_send),
+                    stopLabel = stringResource(R.string.chat_stop),
+                    enabled = state.engineAvailable,
+                    modifier = Modifier.padding(LocalHainSpacing.current.md),
+                    // T-084: the thinking level lives inside the message box (brain + popover)
+                    leading = { ThinkingPicker(answerMode, onAnswerMode) },
+                )
+            },
+        ) { bottomInset ->
+            val pageIn = fadeIn(hainTween(HainMotion.PAGE_MS))
+            val pageSlide = slideInVertically(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV }
+            val pageOut = fadeOut(hainTween(HainMotion.FAST_MS))
+            AnimatedContent(
+                targetState = state.messages.isEmpty(),
+                transitionSpec = { (pageIn + pageSlide).togetherWith(pageOut) },
+                label = "chat-start",
+            ) { empty ->
+                if (empty) {
+                    Greeting(onSuggestion = { viewModel.onInputChange(it) }, bottomInset = bottomInset)
+                } else {
+                    val ratings by viewModel.ratings.collectAsStateWithLifecycle()
+                    MessageList(
+                        state,
+                        ratings = ratings,
+                        onRetry = { viewModel.regenerate(it) },
+                        onEdit = viewModel::startEdit,
+                        onRate = viewModel::rate,
+                        onAction = viewModel::resolveAction,
+                        bottomInset = bottomInset,
+                    )
                 }
             }
-            ErrorLine(state, onGetBrain)
-            if (state.editingId != null) EditBar(onCancel = viewModel::cancelEdit)
-            Composer(
-                text = state.input,
-                onTextChange = viewModel::onInputChange,
-                placeholder = stringResource(R.string.chat_placeholder),
-                isGenerating = state.isGenerating,
-                onSend = {
-                    haptics.send()
-                    viewModel.send()
-                },
-                onStop = viewModel::stop,
-                sendLabel = stringResource(R.string.chat_send),
-                stopLabel = stringResource(R.string.chat_stop),
-                enabled = state.engineAvailable,
-                modifier = Modifier.padding(LocalHainSpacing.current.md),
-                // T-084: the thinking level lives inside the message box (brain + popover)
-                leading = { ThinkingPicker(answerMode, onAnswerMode) },
-            )
         }
         ChatListDrawer(
             open = drawerOpen,
@@ -226,6 +237,51 @@ fun ChatScreen(
                     },
                 ),
         )
+    }
+}
+
+/**
+ * The chat page without its logic (STYLE_OPTIONS.md): the style's backdrop, the thinking glow, the
+ * top bar and the content; the message box floats over the content at the bottom. There is no solid
+ * bar behind the box: the chat scrolls under it, blurs (Android 12+) and fades into the page colour.
+ * [content] gets the height of the floating part, so the last message can scroll above it.
+ */
+@Composable
+internal fun ChatSurface(
+    thinking: Boolean,
+    empty: Boolean,
+    topBar: @Composable ColumnScope.() -> Unit,
+    bottomBar: @Composable ColumnScope.() -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable (bottomInset: Dp) -> Unit,
+) {
+    val glass = rememberHainGlassState()
+    val density = LocalDensity.current
+    var bottomPx by remember { mutableIntStateOf(0) }
+    Box(modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().hainBackdrop().hainGlassSource(glass)) {
+            // style A: one soft green glow in the empty chat; the thinking glow takes over while Pim works
+            Box(Modifier.fillMaxSize().hainAmbientGlow(if (empty && !thinking) 1f else 0f))
+            ThinkingGlow(visible = thinking, modifier = Modifier.fillMaxSize())
+            Column(Modifier.fillMaxSize().statusBarsPadding()) {
+                topBar()
+                Box(Modifier.weight(1f).fillMaxWidth()) {
+                    content(with(density) { bottomPx.toDp() })
+                }
+            }
+        }
+        Column(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .onSizeChanged { bottomPx = it.height }
+                .hainBottomFade(glass)
+                .padding(top = FADE_ROOM.dp)
+                .navigationBarsPadding()
+                .imePadding(),
+        ) {
+            bottomBar()
+        }
     }
 }
 
@@ -273,6 +329,7 @@ private fun engineLine(state: ChatUiState): String? =
 @Composable
 internal fun Greeting(
     onSuggestion: (String) -> Unit,
+    bottomInset: Dp = 0.dp,
     hour: Int =
         remember {
             java.time.LocalTime
@@ -298,12 +355,13 @@ internal fun Greeting(
             },
         )
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val roomy = maxHeight >= ROOMY_HEIGHT.dp
+        val roomy = maxHeight - bottomInset >= ROOMY_HEIGHT.dp
         Column(
             Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = spacing.xl, vertical = spacing.lg),
+                .padding(horizontal = spacing.xl, vertical = spacing.lg)
+                .padding(bottom = bottomInset),
             verticalArrangement = Arrangement.spacedBy(spacing.md, Alignment.CenterVertically),
         ) {
             JuicyPim(PimState.HAPPY, if (roomy) 64.dp else 48.dp)
@@ -342,7 +400,7 @@ private fun SuggestionTile(
             .padding(horizontal = spacing.md, vertical = spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Hain3DIcon(icon, size = 32.dp)
+        Hain3DIcon(icon, size = 24.dp, tint = colors.textMuted)
         Spacer(Modifier.width(spacing.md))
         BasicText(
             text,
@@ -363,6 +421,7 @@ internal fun MessageList(
     onEdit: (Long) -> Unit,
     onRate: (Long, Rating) -> Unit,
     onAction: (Long, Int, ActionEvent) -> Unit,
+    bottomInset: Dp = 0.dp,
 ) {
     val spacing = LocalHainSpacing.current
     val listState = rememberLazyListState()
@@ -391,8 +450,12 @@ internal fun MessageList(
             state = listState,
             modifier = Modifier.fillMaxSize(),
             contentPadding =
-                androidx.compose.foundation.layout
-                    .PaddingValues(spacing.lg),
+                androidx.compose.foundation.layout.PaddingValues(
+                    start = spacing.lg,
+                    end = spacing.lg,
+                    top = spacing.lg,
+                    bottom = spacing.lg + bottomInset,
+                ),
             verticalArrangement = Arrangement.spacedBy(spacing.lg),
         ) {
             items(state.messages, key = { it.id }) { message ->
@@ -425,7 +488,11 @@ internal fun MessageList(
                 follow = true
                 scope.launch { listState.animateScrollToItem(state.messages.lastIndex, Int.MAX_VALUE / 2) }
             },
-            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = spacing.sm),
+            modifier =
+                Modifier.align(Alignment.BottomCenter).padding(
+                    bottom =
+                        spacing.sm + bottomInset,
+                ),
         )
     }
 }
@@ -707,3 +774,5 @@ private const val ROOMY_HEIGHT = 420
 private const val COPIED_MS = 1500L
 
 private const val SLIDE_DIV = 14
+
+private const val FADE_ROOM = 28

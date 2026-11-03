@@ -2,7 +2,6 @@ package app.hain.feature.settings.api
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +47,7 @@ import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 import app.hain.ui.theme.glassTile
+import app.hain.ui.theme.hainBackdrop
 
 /** Settings hub: a few tiles with an icon, each opens its own page. Plain words, no jargon. */
 @Composable
@@ -75,7 +75,7 @@ internal fun SettingsBody(
     Column(
         modifier
             .fillMaxSize()
-            .background(LocalHainColors.current.bg)
+            .hainBackdrop()
             .statusBarsPadding()
             .navigationBarsPadding(),
     ) {

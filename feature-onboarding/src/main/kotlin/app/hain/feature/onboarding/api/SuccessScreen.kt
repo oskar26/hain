@@ -1,6 +1,5 @@
 package app.hain.feature.onboarding.api
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,7 +43,7 @@ internal fun SuccessScreen(
     val spacing = LocalHainSpacing.current
     val haptics = rememberHainHaptics()
     LaunchedEffect(Unit) { haptics.toolConfirm() }
-    Box(modifier.fillMaxSize().background(tourBackground())) {
+    Box(modifier.fillMaxSize().tourBackground()) {
         Column(
             Modifier
                 .fillMaxSize()

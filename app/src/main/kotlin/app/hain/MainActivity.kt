@@ -41,6 +41,7 @@ import app.hain.tools.api.ToolContext
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainTween
+import app.hain.ui.theme.HainStyle
 import app.hain.ui.theme.HainTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.map
@@ -85,6 +86,7 @@ class MainActivity : ComponentActivity() {
             onNetworkLogDetail = { write { repo.setNetworkLogDetail(it) } },
             onClearNetworkLog = networkGate::clearLog,
             onSearxUrl = { write { repo.setSearxUrl(it) } },
+            onVisualStyle = { write { repo.setVisualStyle(it) } },
         )
     }
 
@@ -157,6 +159,7 @@ class MainActivity : ComponentActivity() {
                         ThemeChoice.DARK -> true
                     },
                 highLegibility = settings.readableFont,
+                style = HainStyle.fromKey(settings.visualStyle),
             ) {
                 CompositionLocalProvider(LocalReduceMotion provides (settings.reduceMotion || systemReducesMotion())) {
                     var installed by remember { mutableStateOf(models.isInstalled(brain)) }

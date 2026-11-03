@@ -68,4 +68,7 @@
     <string name="settings_log_detail">Show full addresses</string>
     <string name="settings_log_detail_hint">Keeps what was looked up, too. Off by default.</string>
     <string name="settings_log_clear">Clear log</string>
+    <string name="settings_style_test">Style (test)</string>
+    <string name="settings_style_a">A · Clean</string>
+    <string name="settings_style_b">B · Soft</string>
 </resources>

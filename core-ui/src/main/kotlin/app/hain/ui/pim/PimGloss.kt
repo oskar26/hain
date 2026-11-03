@@ -20,6 +20,8 @@ private val BODY_PALE = Color(color = 0xFFDDF9EA)
 private val BODY_MID = Color(color = 0xFF86DDAC)
 private val BODY_DEEP = Color(color = 0xFF27A56C)
 private const val MID_STOP = 0.42f
+private val SOFT_PALE = Color(color = 0xFFB8EBCF)
+private val SOFT_DEEP = Color(color = 0xFF4DBE88)
 private val GLOW_CENTRE = Offset(x = 62f, y = 92f)
 private const val GLOW_RADIUS = 30f
 private const val GLOW_ALPHA = 0.38f
@@ -30,7 +32,23 @@ private val SPEC_SIZE = Size(width = 12f, height = 7f)
 private const val SPEC_ALPHA = 0.9f
 
 /** Paints the glossy body (replaces the flat fill when Pim is big enough to show it). */
-internal fun DrawScope.drawGlossyBody(body: Path) {
+internal fun DrawScope.drawGlossyBody(
+    body: Path,
+    soft: Boolean = false,
+) {
+    if (soft) {
+        // style B (STYLE_OPTIONS.md): a calm matte gradient, no jelly glow, no spot, no rim
+        drawPath(
+            body,
+            Brush.radialGradient(
+                0f to SOFT_PALE,
+                1f to SOFT_DEEP,
+                center = LIGHT_CENTRE,
+                radius = BODY_RADIUS,
+            ),
+        )
+        return
+    }
     drawPath(
         body,
         Brush.radialGradient(
@@ -64,7 +82,7 @@ internal fun DrawScope.drawGlossyBody(body: Path) {
 
 /** Glossy eyes are white ovals with a soft green shadow (reference 7). */
 internal val GLOSSY_EYE = Color.White
-internal val GLOSSY_EYE_SHADOW = Color(color = 0x55125C3B)
+internal val GLOSSY_EYE_SHADOW = Color(color = 0x33125C3B)
 internal val GLOSSY_EYE_OFFSET = Offset(x = 0.6f, y = 1.4f)
 internal const val GLOSSY_EYE_SCALE = 1.22f
 

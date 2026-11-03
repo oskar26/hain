@@ -5,7 +5,6 @@ import android.os.Build
 import android.text.format.Formatter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -85,7 +84,7 @@ fun OnboardingScreen(
     Column(
         modifier
             .fillMaxSize()
-            .background(tourBackground())
+            .tourBackground()
             .statusBarsPadding()
             .navigationBarsPadding()
             .padding(spacing.xl),

@@ -17,26 +17,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.hain.ui.HainIcons
+import app.hain.ui.theme.HainStyle
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
+import app.hain.ui.theme.LocalHainStyle
 import app.hain.ui.theme.LocalHainTypography
-import app.hain.ui.theme.drawFloorGlow
-import app.hain.ui.theme.glowStrength
 import app.hain.ui.theme.isHainDark
 
 /**
- * The message box (T-011, like Oskar's reference 6): a big white card with a soft shadow and a
- * gentle green glow around its edge. The text grows up to [MAX_LINES] lines and then scrolls
- * inside; below it a row with [leading] controls (the thinking picker) on the left and the round
+ * The message box (STYLE_OPTIONS.md): a calm card with a hairline (A) or a translucent layer (B).
+ * The text grows up to [MAX_LINES] lines and then scrolls inside; below it a row with [leading] controls (the thinking picker) on the left and the round
  * domed send button on the right, which turns into stop while an answer streams. The buttons never
  * scroll away, however long the text gets (T-085).
  */
@@ -99,6 +95,7 @@ fun Composer(
                         onClick = onStop,
                         color = colors.text,
                         tint = colors.bg,
+                        size = SEND_SIZE.dp,
                     )
                 } else {
                     DomeIconButton(
@@ -106,6 +103,24 @@ fun Composer(
                         contentDescription = sendLabel,
                         onClick = onSend,
                         enabled = enabled && text.isNotBlank(),
+                        // A: ink button, B: Hain green
+                        color =
+                            if (LocalHainStyle.current ==
+                                HainStyle.A
+                            ) {
+                                colors.text
+                            } else {
+                                colors.accent
+                            },
+                        tint =
+                            if (LocalHainStyle.current ==
+                                HainStyle.A
+                            ) {
+                                colors.bg
+                            } else {
+                                colors.onAccent
+                            },
+                        size = SEND_SIZE.dp,
                     )
                 }
             }
@@ -113,26 +128,26 @@ fun Composer(
     }
 }
 
-/** White card, soft shadow, a gentle green glow on the floor and a green rim that is brightest below. */
+/**
+ * The message box surface (STYLE_OPTIONS.md). A: opaque page colour with a hairline, no shadow, no
+ * glow. B: a translucent white layer with a faint edge, so the mesh and the blurred chat behind
+ * shimmer through. The chat itself scrolls under the box (see ChatScreen's bottom fade).
+ */
 @Composable
 private fun Modifier.composerCard(shape: Shape): Modifier {
     val colors = LocalHainColors.current
-    val s = glowStrength(isHainDark())
-    val rim =
-        Brush.verticalGradient(
-            listOf(colors.accent.copy(alpha = RIM_TOP), colors.accent.copy(alpha = RIM_BOTTOM)),
-        )
-    return this
-        .drawBehind { drawFloorGlow(colors.accent.copy(alpha = s.shadow * FLOOR_SHARE)) }
-        .shadow(CARD_ELEVATION.dp, shape, clip = false, ambientColor = colors.shadow, spotColor = colors.shadow)
-        .clip(shape)
-        .background(colors.bg, shape)
-        .border(RIM_WIDTH.dp, rim, shape)
+    val dark = isHainDark()
+    return when (LocalHainStyle.current) {
+        HainStyle.A ->
+            clip(shape)
+                .background(if (dark) colors.surface else colors.bg, shape)
+                .border(1.dp, colors.border, shape)
+        HainStyle.B ->
+            clip(shape)
+                .background(colors.glass, shape)
+                .border(1.dp, if (dark) colors.border else colors.glassEdge, shape)
+    }
 }
 
 private const val MAX_LINES = 6
-private const val CARD_ELEVATION = 12
-private const val RIM_WIDTH = 1.5f
-private const val RIM_TOP = 0.22f
-private const val RIM_BOTTOM = 0.5f
-private const val FLOOR_SHARE = 0.55f
+private const val SEND_SIZE = 36

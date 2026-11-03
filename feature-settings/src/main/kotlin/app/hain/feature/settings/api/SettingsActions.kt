@@ -21,4 +21,6 @@ class SettingsActions(
     val onNetworkLogDetail: (Boolean) -> Unit = {},
     val onClearNetworkLog: () -> Unit = {},
     val onSearxUrl: (String) -> Unit = {},
+    /** Style under test, "a" or "b" (STYLE_OPTIONS.md); goes away once Oskar has chosen. */
+    val onVisualStyle: (String) -> Unit = {},
 )

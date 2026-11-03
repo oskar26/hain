@@ -24,6 +24,8 @@ data class HainSettings(
     val networkLogDetail: Boolean = false,
     /** Own SearXNG address, asked first by the web search (SETTINGS.md `searxng_url`); empty = none. */
     val searxUrl: String = "",
+    /** Visual style under test (03.11.2026, STYLE_OPTIONS.md): "a" Nothing Clean, "b" Soft Gradient. */
+    val visualStyle: String = "a",
 ) {
     /** Text for the "user instructions" slot of the system prompt; empty if nothing is set. */
     fun customInstructions(deviceLanguage: String = "English"): String =

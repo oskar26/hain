@@ -221,6 +221,7 @@ fun DrawScope.drawPim(
     colors: PimColors,
     showVein: Boolean,
     gloss: Boolean = false,
+    soft: Boolean = false,
 ) {
     translate(-PimGeometry.VIEW_BOX_X, -PimGeometry.VIEW_BOX_Y) {
         // body group: squash + tilt around the bottom centre, then position offset
@@ -229,7 +230,7 @@ fun DrawScope.drawPim(
             rotate(pose.tilt, PimGeometry.BODY_BOTTOM_CENTRE)
             scale(pose.sx, pose.sy, PimGeometry.BODY_BOTTOM_CENTRE)
         }) {
-            drawBodyAndEyes(pose, colors, gloss)
+            drawBodyAndEyes(pose, colors, gloss, soft)
         }
         // stem + leaf group: bend around the stem base, leaf around its own tip
         withTransform({
@@ -246,13 +247,14 @@ private fun DrawScope.drawBodyAndEyes(
     pose: PimPose,
     colors: PimColors,
     gloss: Boolean,
+    soft: Boolean = false,
 ) {
     val body = svgPathToPathPublic(PimGeometry.BODY_PATH)
     val left = PimGeometry.EYE_L + Offset(pose.eyeDX, pose.eyeDY)
     val right = PimGeometry.EYE_R + Offset(pose.eyeDX, pose.eyeDY)
     if (gloss) {
         // T-011: glossy jelly body with white oval eyes and their soft shadow (reference 7)
-        drawGlossyBody(body)
+        drawGlossyBody(body, soft)
         val shadow = colors.copy(eye = GLOSSY_EYE_SHADOW)
         val white = colors.copy(eye = GLOSSY_EYE)
         drawEye(left + GLOSSY_EYE_OFFSET, pose, shadow, pose.eyeLS * GLOSSY_EYE_SCALE)

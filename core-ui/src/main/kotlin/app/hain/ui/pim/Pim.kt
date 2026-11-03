@@ -22,7 +22,9 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.hain.ui.theme.HainStyle
 import app.hain.ui.theme.LocalHainColors
+import app.hain.ui.theme.LocalHainStyle
 
 /** Pim counts as "dark" below this background luminance (dark eye #0E1513). */
 private const val DARK_BG_LUMINANCE = 0.5f
@@ -55,15 +57,17 @@ internal fun PimCanvas(
 ) {
     val colors = if (LocalHainColors.current.bg.luminance() < DARK_BG_LUMINANCE) DarkPimColors else LightPimColors
     val showVein = size >= 64.dp
-    val gloss = size >= GLOSS_MIN_SIZE
+    // STYLE_OPTIONS.md: A draws the flat Pim v2.1, B a calm matte gradient; no glossy jelly any more
+    val style = LocalHainStyle.current
+    val gloss = style == HainStyle.B && size >= GLOSS_MIN_SIZE
     // [pose] is read while drawing, so an animated Pim only redraws and never recomposes.
     Canvas(modifier = modifier.size(size)) {
         val now = pose()
         // viewBox -12 -18 144 144 → fit the 144-unit box into the canvas
         val fit = this.size.minDimension / PimGeometry.VIEW_BOX_SIZE
         scale(fit, fit, Offset.Zero) {
-            if (shadowLift != null) drawContactShadow(-now.y + shadowLift, now.sx)
-            drawPim(now, colors, showVein, gloss)
+            if (shadowLift != null && gloss) drawContactShadow(-now.y + shadowLift, now.sx)
+            drawPim(now, colors, showVein, gloss, soft = true)
         }
     }
 }

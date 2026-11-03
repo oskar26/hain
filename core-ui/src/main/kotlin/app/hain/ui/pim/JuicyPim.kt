@@ -129,7 +129,7 @@ private fun periodFor(state: PimState): Int = if (state == PimState.CELEBRATE) H
 
 private const val BREATHE_PERIOD_MS = 2600
 private const val HOP_PERIOD_MS = 900
-private const val BREATHE = 0.03f
+private const val BREATHE = 0.015f
 private const val LANDING_SQUASH = 0.12f
 private const val HOP_STRETCH = 0.08f
 private const val HOP_HEIGHT = 16f

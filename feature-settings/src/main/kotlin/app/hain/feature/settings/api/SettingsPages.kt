@@ -42,6 +42,16 @@ internal fun SettingsPageContent(
                 ),
                 actions.onTheme,
             )
+            // test switch for the style decision (03.11.2026), removed once Oskar has chosen
+            Choice(
+                R.string.settings_style_test,
+                settings.visualStyle,
+                listOf(
+                    "a" to R.string.settings_style_a,
+                    "b" to R.string.settings_style_b,
+                ),
+                actions.onVisualStyle,
+            )
             Toggle(
                 R.string.settings_readable,
                 R.string.settings_readable_hint,

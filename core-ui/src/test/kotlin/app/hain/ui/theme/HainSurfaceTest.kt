@@ -9,8 +9,8 @@ class HainSurfaceTest {
     @Test
     fun `levels get deeper step by step and stay soft`() {
         assertEquals(0.dp, HainLevel.FLAT.shadowDp())
-        assertEquals(6.dp, HainLevel.RAISED.shadowDp())
-        assertEquals(18.dp, HainLevel.FLOATING.shadowDp())
+        assertEquals(1.dp, HainLevel.RAISED.shadowDp())
+        assertEquals(12.dp, HainLevel.FLOATING.shadowDp())
         val all = HainLevel.entries.map { it.shadowDp().value }
         assertTrue(all.zipWithNext().all { (a, b) -> a < b })
     }

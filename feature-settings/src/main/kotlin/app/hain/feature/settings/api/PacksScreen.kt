@@ -1,7 +1,6 @@
 package app.hain.feature.settings.api
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,6 +42,7 @@ import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 import app.hain.ui.theme.glassTile
+import app.hain.ui.theme.hainBackdrop
 import app.hain.ui.theme.hainSurface
 
 private const val MB = 1_000_000L
@@ -62,7 +62,7 @@ fun PacksScreen(
     Column(
         modifier
             .fillMaxSize()
-            .background(LocalHainColors.current.bg)
+            .hainBackdrop()
             .statusBarsPadding()
             .navigationBarsPadding(),
     ) {

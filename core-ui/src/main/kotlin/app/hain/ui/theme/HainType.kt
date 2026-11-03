@@ -23,6 +23,16 @@ private val HankenFamily =
         Font(R.font.hankengrotesk_semibold, FontWeight.Bold),
     )
 
+// Geist (style A, 03.11.2026): precise, technical grotesk; Nothing's own site loads it too.
+private val GeistFamily =
+    FontFamily(
+        Font(R.font.geist_light, FontWeight.Light),
+        Font(R.font.geist_regular, FontWeight.Normal),
+        Font(R.font.geist_medium, FontWeight.Medium),
+        Font(R.font.geist_semibold, FontWeight.SemiBold),
+        Font(R.font.geist_semibold, FontWeight.Bold),
+    )
+
 private val AtkinsonFamily =
     FontFamily(
         Font(R.font.atkinsonhyperlegible_regular, FontWeight.Normal),
@@ -55,6 +65,21 @@ object HainType {
             // a thin font reads better with a hair more room between letters
             tracking = 0.1.sp,
         )
+
+    /** Style A: Geist, regular-weight headings with tight tracking, slightly tighter text. */
+    fun geist(): HainTypography {
+        val base =
+            scale(
+                family = GeistFamily,
+                heading = FontWeight.Normal,
+                strong = FontWeight.Medium,
+                tracking = 0.sp,
+            )
+        return base.copy(
+            display = base.display.copy(letterSpacing = DISPLAY_TRACKING_A.sp),
+            title = base.title.copy(letterSpacing = TITLE_TRACKING_A.sp),
+        )
+    }
 
     /** "Gut lesbar" option: Atkinson Hyperlegible, same sizes, bolder headings. */
     fun atkinson(): HainTypography =
@@ -101,3 +126,6 @@ object HainType {
                 ),
         )
 }
+
+private const val DISPLAY_TRACKING_A = -0.9
+private const val TITLE_TRACKING_A = -0.3

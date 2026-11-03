@@ -4,7 +4,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -23,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -40,9 +38,11 @@ import androidx.compose.ui.unit.dp
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.rememberHainHaptics
 import app.hain.ui.theme.HainLevel
+import app.hain.ui.theme.HainStyle
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
+import app.hain.ui.theme.LocalHainStyle
 import app.hain.ui.theme.LocalHainTypography
 import app.hain.ui.theme.hainSurface
 
@@ -62,9 +62,11 @@ fun HainButton(
     val colors = LocalHainColors.current
     val shape = LocalHainShapes.current.button
     val spacing = LocalHainSpacing.current
+    // style A: the main action is ink (black / white), green stays the accent only
+    val inkPrimary = LocalHainStyle.current == HainStyle.A
     val fg =
         when (style) {
-            HainButtonStyle.PRIMARY -> colors.onAccent
+            HainButtonStyle.PRIMARY -> if (inkPrimary) colors.bg else colors.onAccent
             HainButtonStyle.DARK -> colors.bg
             HainButtonStyle.SECONDARY -> colors.text
             HainButtonStyle.GHOST -> colors.accent
@@ -78,11 +80,15 @@ fun HainButton(
                 .graphicsLayer {
                     scaleX = scale.value
                     scaleY = scale.value
-                }.defaultMinSize(minHeight = 52.dp)
+                }.defaultMinSize(minHeight = 48.dp)
                 .alpha(if (enabled) 1f else DISABLED_ALPHA)
                 .then(
                     when (style) {
-                        HainButtonStyle.PRIMARY -> Modifier.dome(colors.accent, shape)
+                        HainButtonStyle.PRIMARY ->
+                            Modifier.dome(
+                                if (inkPrimary) colors.text else colors.accent,
+                                shape,
+                            )
                         HainButtonStyle.DARK -> Modifier.dome(colors.text, shape)
                         HainButtonStyle.SECONDARY -> Modifier.hainSurface(HainLevel.RAISED, shape)
                         HainButtonStyle.GHOST -> Modifier.clip(shape)
@@ -107,8 +113,9 @@ fun HainButton(
 }
 
 /**
- * The dome of the app (T-011): [color] with a light top and a deeper bottom, a white sheen on the
- * upper half, a bright top edge and a soft shadow in the same colour. Buttons, send, the Pim knob.
+ * The filled surface of buttons, send and the Pim knob (STYLE_OPTIONS.md). No gloss, no glass edge
+ * any more: style A paints [color] flat; style B adds a whisper of vertical gradient and a small,
+ * soft shadow in the same colour. [elevation] 0 = never a shadow (disabled).
  */
 @Composable
 fun Modifier.dome(
@@ -116,29 +123,23 @@ fun Modifier.dome(
     shape: Shape,
     elevation: Dp = DOME_ELEVATION.dp,
 ): Modifier {
+    if (LocalHainStyle.current == HainStyle.A) return clip(shape).background(color, shape)
     val top = lerp(color, Color.White, DOME_LIGHT)
-    val bottom = lerp(color, Color.Black, DOME_SHADE)
     return this
-        .shadow(
-            elevation,
-            shape,
-            clip = false,
-            ambientColor = color.copy(alpha = DOME_SHADOW),
-            spotColor = color.copy(alpha = DOME_SHADOW),
+        .then(
+            if (elevation > 0.dp && color.alpha == 1f) {
+                Modifier.shadow(
+                    elevation,
+                    shape,
+                    clip = false,
+                    ambientColor = color.copy(alpha = DOME_SHADOW),
+                    spotColor = color.copy(alpha = DOME_SHADOW),
+                )
+            } else {
+                Modifier
+            },
         ).clip(shape)
-        .background(Brush.verticalGradient(listOf(top, color, bottom)), shape)
-        .drawBehind {
-            drawRect(
-                Brush.verticalGradient(
-                    0f to Color.White.copy(alpha = DOME_SHEEN),
-                    DOME_SHEEN_END to Color.White.copy(alpha = 0f),
-                ),
-            )
-        }.border(
-            1.dp,
-            Brush.verticalGradient(listOf(Color.White.copy(alpha = DOME_EDGE), Color.White.copy(alpha = 0f))),
-            shape,
-        )
+        .background(Brush.verticalGradient(listOf(top, color)), shape)
 }
 
 /** Press-in spring (scale 0.96) shared by every tappable dome; still with reduced motion. */
@@ -164,7 +165,7 @@ fun DomeIconButton(
     color: Color = LocalHainColors.current.accent,
     tint: Color = LocalHainColors.current.onAccent,
     enabled: Boolean = true,
-    size: Dp = 44.dp,
+    size: Dp = 40.dp,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val scale = pressScale(interaction)
@@ -271,11 +272,7 @@ internal const val DISABLED_ALPHA = 0.4f
 private const val PRESSED_SCALE = 0.96f
 private const val PRESS_DAMPING = 0.5f
 private const val PRESS_STIFFNESS = 600f
-private const val DOME_LIGHT = 0.28f
-private const val DOME_SHADE = 0.14f
-private const val DOME_SHEEN = 0.32f
-private const val DOME_SHEEN_END = 0.48f
-private const val DOME_EDGE = 0.55f
-private const val DOME_SHADOW = 0.45f
-private const val DOME_ELEVATION = 8
+private const val DOME_LIGHT = 0.08f
+private const val DOME_SHADOW = 0.25f
+private const val DOME_ELEVATION = 4
 private const val ICON_SHARE = 0.45f

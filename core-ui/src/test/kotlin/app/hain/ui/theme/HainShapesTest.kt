@@ -15,18 +15,46 @@ class HainShapesTest {
     private fun radius(shape: ContinuousRoundedRectangle) = shape.topStart.toPx(anySize, density)
 
     @Test
-    fun `corner radii match spec`() {
-        val s = StandardHainShapes
-        // buttons are full capsules (no fixed radius), all others are squircles
-        assertEquals(20f, radius(s.userBubble as ContinuousRoundedRectangle))
-        assertEquals(20f, radius(s.card as ContinuousRoundedRectangle))
-        assertEquals(20f, radius(s.menu as ContinuousRoundedRectangle))
-        assertEquals(12f, radius(s.chip as ContinuousRoundedRectangle))
-        assertEquals(12f, radius(s.row as ContinuousRoundedRectangle))
-        assertEquals(28f, radius(s.sheet as ContinuousRoundedRectangle))
-        // T-011: the composer is a big rounded card, glass tiles are strongly rounded
-        assertEquals(28f, radius(s.composer as ContinuousRoundedRectangle))
-        assertEquals(24f, radius(s.tile as ContinuousRoundedRectangle))
+    fun `corner radii are small and calm in both styles`() {
+        val a = NothingShapes
+        assertEquals(12f, radius(a.userBubble as ContinuousRoundedRectangle))
+        assertEquals(12f, radius(a.card as ContinuousRoundedRectangle))
+        assertEquals(12f, radius(a.menu as ContinuousRoundedRectangle))
+        assertEquals(8f, radius(a.chip as ContinuousRoundedRectangle))
+        assertEquals(10f, radius(a.row as ContinuousRoundedRectangle))
+        assertEquals(16f, radius(a.sheet as ContinuousRoundedRectangle))
+        assertEquals(14f, radius(a.composer as ContinuousRoundedRectangle))
+        assertEquals(12f, radius(a.tile as ContinuousRoundedRectangle))
+        assertEquals(12f, radius(a.button as ContinuousRoundedRectangle))
+        val b = SoftShapes
+        assertEquals(16f, radius(b.card as ContinuousRoundedRectangle))
+        assertEquals(16f, radius(b.composer as ContinuousRoundedRectangle))
+        assertEquals(20f, radius(b.sheet as ContinuousRoundedRectangle))
+        // nothing is a candy: no squircle above 20 dp
+        listOf(a, b).forEach { s ->
+            listOf(
+                s.composer,
+                s.userBubble,
+                s.card,
+                s.chip,
+                s.row,
+                s.menu,
+                s.sheet,
+                s.tile,
+            ).forEach {
+                assertTrue(radius(it as ContinuousRoundedRectangle) <= 20f)
+            }
+        }
+    }
+
+    @Test
+    fun `style A is the default`() {
+        assertEquals(NothingShapes, StandardHainShapes)
+        assertEquals(HainStyle.A, HainStyle.fromKey(null))
+        assertEquals(HainStyle.A, HainStyle.fromKey("x"))
+        assertEquals(HainStyle.B, HainStyle.fromKey("b"))
+        assertEquals(NothingLight, hainColors(HainStyle.A, dark = false))
+        assertEquals(SoftDark, hainColors(HainStyle.B, dark = true))
     }
 
     @Test
@@ -37,5 +65,6 @@ class HainShapesTest {
         assertTrue(s.card is ContinuousRoundedRectangle)
         assertTrue(s.chip is ContinuousRoundedRectangle)
         assertTrue(s.button is ContinuousRoundedRectangle)
+        assertTrue(hainShapes(HainStyle.B).button is com.kyant.capsule.ContinuousCapsule)
     }
 }

@@ -9,7 +9,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.tooling.preview.Preview
 
-val LocalHainColors = staticCompositionLocalOf { LightHainColors }
+val LocalHainColors = staticCompositionLocalOf { NothingLight }
 val LocalHainTypography = staticCompositionLocalOf { HainType.hanken() }
 val LocalHainShapes = staticCompositionLocalOf { StandardHainShapes }
 val LocalHainSpacing = staticCompositionLocalOf { StandardHainSpacing }
@@ -21,17 +21,25 @@ val LocalHainSpacing = staticCompositionLocalOf { StandardHainSpacing }
  *
  * @param darkTheme     dark palette (follows the system by default)
  * @param highLegibility "Gut lesbar" setting → Atkinson Hyperlegible type
+ * @param style         visual style A "Nothing Clean" (default) or B "Soft Gradient" (STYLE_OPTIONS.md)
  */
 @Composable
 fun HainTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     highLegibility: Boolean = false,
+    style: HainStyle = HainStyle.A,
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(
-        LocalHainColors provides if (darkTheme) DarkHainColors else LightHainColors,
-        LocalHainTypography provides if (highLegibility) HainType.atkinson() else HainType.hanken(),
-        LocalHainShapes provides StandardHainShapes,
+        LocalHainStyle provides style,
+        LocalHainColors provides hainColors(style, darkTheme),
+        LocalHainTypography provides
+            when {
+                highLegibility -> HainType.atkinson()
+                style == HainStyle.A -> HainType.geist()
+                else -> HainType.hanken()
+            },
+        LocalHainShapes provides hainShapes(style),
         LocalHainSpacing provides StandardHainSpacing,
         content = content,
     )

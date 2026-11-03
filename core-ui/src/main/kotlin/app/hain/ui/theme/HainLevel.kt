@@ -6,19 +6,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * The three depth levels of the whole app (T-010, docs/design/DESIGN_LANGUAGE.md). Every surface
- * picks one of these instead of its own shadow or border, so Hain feels like one calm piece.
+ * The three depth levels of the whole app (docs/design/STYLE_OPTIONS.md). Every surface picks one of
+ * these instead of its own shadow or border, so Hain feels like one calm piece.
  * - [FLAT]: soft grey fill, no edge (bubbles, search field, chips at rest)
- * - [RAISED]: page-coloured card with a light top edge and a soft shadow (secondary pills, cards)
- * - [FLOATING]: clear glass tile ([glassTile]) with sheen, light edge and a deep soft shadow (menus, popovers)
- * Coloured glass tiles with inner light use [glassTile] directly (T-011).
+ * - [RAISED]: a panel ([hainPanel]): hairline in style A, translucent layer in style B
+ * - [FLOATING]: menus and popovers: opaque, hairline, one wide and very soft shadow
  */
 enum class HainLevel { FLAT, RAISED, FLOATING }
 
@@ -43,24 +41,30 @@ fun Modifier.hainSurface(
     val c = LocalHainColors.current
     return when (level) {
         HainLevel.FLAT -> clip(shape).background(fill ?: c.surface, shape)
-        // T-011 "calm, but with depth": a real soft shadow and a light top edge instead of a flat hairline
-        HainLevel.RAISED ->
-            shadow(level.shadowDp(), shape, clip = false, ambientColor = c.shadow, spotColor = c.shadow)
-                .clip(shape)
-                .background(fill ?: c.bg, shape)
-                .border(HAIRLINE.dp, Brush.verticalGradient(listOf(c.glassEdge, c.border)), shape)
-        HainLevel.FLOATING ->
-            if (fill == null) {
-                glassTile(GlowHue.CLEAR, shape, level.shadowDp(), floorGlow = false)
-            } else {
-                shadow(level.shadowDp(), shape, clip = false, ambientColor = c.shadow, spotColor = c.shadow)
-                    .clip(shape)
-                    .background(fill, shape)
-                    .border(HAIRLINE.dp, Brush.verticalGradient(listOf(c.glassEdge, c.border)), shape)
-            }
+        HainLevel.RAISED -> hainPanel(shape, fill = fill)
+        HainLevel.FLOATING -> {
+            val dark = isHainDark()
+            val opaque =
+                when {
+                    !dark -> Color.White
+                    LocalHainStyle.current == HainStyle.A -> FLOAT_DARK_A
+                    else -> FLOAT_DARK_B
+                }
+            shadow(
+                level.shadowDp(),
+                shape,
+                clip = false,
+                ambientColor = c.shadow,
+                spotColor = c.shadow,
+            ).clip(shape)
+                .background(fill ?: opaque, shape)
+                .border(HAIRLINE.dp, c.border, shape)
+        }
     }
 }
 
+private val FLOAT_DARK_A = Color(color = 0xFF141414)
+private val FLOAT_DARK_B = Color(color = 0xFF161C19)
 private const val HAIRLINE = 1
-private const val RAISED_SHADOW = 6
-private const val FLOATING_SHADOW = 18
+private const val RAISED_SHADOW = 1
+private const val FLOATING_SHADOW = 12
