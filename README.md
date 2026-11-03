@@ -58,10 +58,10 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 
 <table>
   <tr>
-    <td align="center"><img src="docs/readme/screenshot-welcome.png" alt="Welcome tour (screenshot coming soon)" width="190"><br><sub>Welcome tour</sub></td>
-    <td align="center"><img src="docs/readme/screenshot-chat.png" alt="Chat (screenshot coming soon)" width="190"><br><sub>Chat</sub></td>
-    <td align="center"><img src="docs/readme/screenshot-chats.png" alt="Saved chats (screenshot coming soon)" width="190"><br><sub>Saved chats</sub></td>
-    <td align="center"><img src="docs/readme/screenshot-settings.png" alt="Settings and knowledge packs (screenshot coming soon)" width="190"><br><sub>Settings &amp; packs</sub></td>
+    <td align="center"><img src="docs/design/screens/3d_onboarding_light.png" alt="Welcome tour with glossy bubbles and Pim" width="190"><br><sub>Welcome tour</sub></td>
+    <td align="center"><img src="docs/design/screens/3d_chat_empty_light.png" alt="Empty chat with glass suggestion tiles" width="190"><br><sub>Chat</sub></td>
+    <td align="center"><img src="docs/design/screens/3d_chat_thinking_picker_light.png" alt="Thinking level picker behind the brain button" width="190"><br><sub>Thinking level</sub></td>
+    <td align="center"><img src="docs/design/screens/3d_settings_light.png" alt="Settings as glass tiles with 3D icons" width="190"><br><sub>Settings &amp; packs</sub></td>
   </tr>
 </table>
 
