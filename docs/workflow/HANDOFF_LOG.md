@@ -237,6 +237,9 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 |---|---|---|---|---|
 | T-080 | review | `ReplyLanguageTest` (detector, setting/device rules, German prompt ends with the rule), `ChatEngineTest` (hint after history, checkpoints kept, no hint), `PromptAssetsTest`; host run with llama.cpp `39febd2` + `LFM3-1.7B-QAD-Q4_0.gguf` (14 prompts auto + 5 extra cases, all in the right language, no mixing) | `SystemPromptSource` (template per language, settings instead of `customInstructions`), `MainActivity` (2 lines), `ChatEngine` (`turnHint`, `# Kontext` heading), `SystemPromptFiller` (`{language_rule}`) | **Cause:** the system prompt was English with the language rule in the middle; LFM3-1.7B follows the prompt language → "I'm doing great" / "Sure! Lauch (leek) …". `HainSettings.customInstructions()` is no longer used by the app (left in place, settings files belong to the parallel settings run). Content quality of the 1.7B model stays limited (e.g. invented leek dishes) – not a language issue. Sampling unchanged. Device check on the phone still open. |
 
+## 2026-11-03 – Issue-Formulare (Hark)
+- `.github/ISSUE_TEMPLATE/`: Bug, Funktionswunsch, Antwortqualität, Übersetzung, Frage (zweisprachig), leere Issues aus. Labels im Repo angelegt. README-Abschnitt Contributing verlinkt die Auswahl.
+
 ## 2026-11-03 · day 3 "Werkzeuge I" · review · harness: Hark · branch `hark/day-3`
 
 | task | status | check result | files outside list (reason) | open issues |

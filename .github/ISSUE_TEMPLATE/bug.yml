@@ -1,0 +1,48 @@
+name: "🐞 Fehler / Bug"
+description: Etwas funktioniert nicht wie erwartet. / Something does not work as expected.
+title: "[Bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke fürs Melden! Bitte schreib keine privaten Chats oder persönlichen Daten hier rein.
+        Thanks for reporting! Please do not paste private chats or personal data.
+  - type: textarea
+    id: what
+    attributes:
+      label: Was ist passiert? / What happened?
+      placeholder: Kurz beschreiben, was falsch lief.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Schritte zum Nachstellen / Steps to reproduce
+      placeholder: |
+        1. App öffnen
+        2. …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Was hast du erwartet? / What did you expect?
+  - type: input
+    id: version
+    attributes:
+      label: App-Version / App version
+      placeholder: z. B. nightly vom 03.11.2026 oder 0.2.0
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Handy und Android-Version / Phone and Android version
+      placeholder: z. B. Pixel 8, Android 15, 12 GB RAM
+  - type: textarea
+    id: logs
+    attributes:
+      label: Screenshots oder Logs (optional)
+      description: "Logcat z. B. mit: adb logcat -s HainLlm"
+      render: text

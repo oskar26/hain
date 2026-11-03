@@ -253,7 +253,7 @@ Please [open an issue](https://github.com/oskar26/hain/issues): what you did, wh
 
 ## Contributing
 
-Ideas, bug reports, translations and pull requests are welcome. Start with **[CONTRIBUTING.md](CONTRIBUTING.md)**. The easiest way to help: install the nightly, use it, and [open an issue](https://github.com/oskar26/hain/issues) with what broke or what you'd like.
+Ideas, bug reports, translations and pull requests are welcome. Start with **[CONTRIBUTING.md](CONTRIBUTING.md)**. The easiest way to help: install the nightly, use it, and [open an issue](https://github.com/oskar26/hain/issues/new/choose) with what broke or what you'd like. Pick a form: 🐞 bug, ✨ feature request, 🌱 answer quality, 🌍 translation and texts, or 💬 question (German or English, both fine).
 
 **Working on the code:** humans and coding agents start with **[AGENTS.md](AGENTS.md)**: one task from [TASKS.md](docs/workflow/TASKS.md) per session, one commit per task (`T-XXX: title`), all checks green, status and handoff log updated.
 

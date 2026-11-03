@@ -1,0 +1,36 @@
+name: "🌱 Antwortqualität / Answer quality"
+description: Pim hat falsch, komisch oder in der falschen Sprache geantwortet. / Pim answered wrong, oddly or in the wrong language.
+title: "[Antwort] "
+labels: ["antwortqualitaet", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: Bitte nur Nachrichten teilen, die nichts Privates enthalten. / Only share messages without private content.
+  - type: textarea
+    id: prompt
+    attributes:
+      label: Deine Nachricht / Your message
+    validations:
+      required: true
+  - type: textarea
+    id: answer
+    attributes:
+      label: Pims Antwort / Pim's answer
+    validations:
+      required: true
+  - type: textarea
+    id: better
+    attributes:
+      label: Was wäre besser gewesen? / What would have been better?
+  - type: dropdown
+    id: settings
+    attributes:
+      label: Antwortsprache / Answer language
+      options:
+        - Wie meine Nachricht
+        - Deutsch
+        - English
+  - type: input
+    id: version
+    attributes:
+      label: App-Version / App version
