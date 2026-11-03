@@ -71,7 +71,7 @@ Java_app_hain_llm_internal_NativeLlm_nativeLoad(JNIEnv *env, jobject, jstring pa
     if (progress != nullptr) lp.method = env->GetMethodID(env->GetObjectClass(progress), "onProgress", "(F)Z");
     auto mparams = llama_model_default_params();
     mparams.n_gpu_layers = nGpuLayers;
-    mparams.use_mmap = true;
+    mparams.load_mode = LLAMA_LOAD_MODE_MMAP;
     mparams.progress_callback = onLoadProgress;
     mparams.progress_callback_user_data = &lp;
     llama_model *model = llama_model_load_from_file(cpath, mparams);
