@@ -75,7 +75,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 |---|---|---|
 | 💬 Chat | Streaming answers, Markdown and code, collapsible "thinking" block, stop (reacts at once), ask again on any answer, copy, share | ✅ |
 | ⚡ Speed | Faster test build, brain loads in the background with progress, remembers the chat between answers instead of re-reading it, system prompt read ahead | ✅ |
-| 🌍 Answer language | Answers in your language automatically, or always in German or English | ✅ |
+| 🌍 Answer language | Pim answers in the language you write in (German, English, French, Turkish, Russian, …), or always in German or English if you want | ✅ |
 | 🌱 First start | Playful welcome tour with Pim, brain download (LFM3-1.7B, 1.0 GB) with resume and checksum, celebration screen; the download can wait or run in the background | ✅ |
 | 🗂️ Saved chats | Stored encrypted on the phone; search, rename, pin, delete, grouped by day | ✅ |
 | ⚙️ Settings | Theme, easy-to-read font, answer mode (fast / auto / thorough), answer language, "about me" and answer style | ✅ |
@@ -101,6 +101,7 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Pim answers in German when you write German.** Pim's instructions are now fully in German on a German phone (or with answer language "Deutsch"), end with a clear language rule, and every answer gets a tiny "answer in German/English" note. No more English or half-English replies to "wie geht es dir". And it works for every language: write French, Spanish, Turkish, Polish, Russian or Arabic, and Pim answers in that language (the small brain is best in German and English). Pim also sounds more natural: a few warm sentences instead of one generic line, no "Hallo!" in front of every answer, and honest when something is uncertain.
 - **Faster.** The test APK is now built like a real release (not "debuggable"), so screens and scrolling should feel clearly smoother. Pim and the green thinking glow move without slowing the rest of the screen down.
 - **The brain remembers the chat.** Before, every answer made the brain read the whole chat again. Now it continues where it stopped, so answers in longer chats start sooner. While it wakes up, the top bar shows how far it is (in %).
 - **Stop means stop.** Tapping stop ends the answer at once, even while Pim is still reading your message.

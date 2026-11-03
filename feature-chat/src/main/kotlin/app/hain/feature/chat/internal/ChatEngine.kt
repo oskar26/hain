@@ -39,6 +39,10 @@ sealed interface TurnUpdate {
  * every [ANCHOR_MS], so the prompt start stays the same and the brain does not re-read the chat.
  * The prompt is sent with checkpoints (end of the fixed system text, of the system prompt, of the
  * history) where the next turn picks up.
+ *
+ * Language (T-080 fix): [turnHint] gives a short system line ("Antworte auf Türkisch.") that is put
+ * after the history, right before the answer. It is never stored, so the cached start and the
+ * checkpoint at the end of the history stay valid.
  */
 class ChatEngine(
     private val llm: LlmEngine,
@@ -46,6 +50,7 @@ class ChatEngine(
     private val promptBuilder: PromptBuilder = LfmPromptBuilder(),
     private val clock: () -> Long = System::currentTimeMillis,
     private val answerMode: () -> AnswerMode = { AnswerMode.AUTO },
+    private val turnHint: (userMessages: List<String>) -> String? = { null },
 ) {
     private var anchor = 0L
 
@@ -75,7 +80,7 @@ class ChatEngine(
                 promptBuilder.build(
                     system = system,
                     tools = emptyList(),
-                    history = history,
+                    history = withLanguageHint(history, lastUser),
                     addGenerationPrompt = true,
                     enableThinking = thinking,
                 )
@@ -147,6 +152,16 @@ class ChatEngine(
         return cleanTitle(out.toString())
     }
 
+    /** History plus the one-line language hint (not stored, after the cached part of the prompt). */
+    private fun withLanguageHint(
+        history: List<ChatMessage>,
+        lastUser: String,
+    ): List<ChatMessage> {
+        val userMessages = history.filter { it.role == Role.USER }.map { it.content }.ifEmpty { listOf(lastUser) }
+        val hint = turnHint(userMessages)?.takeIf { it.isNotBlank() } ?: return history
+        return history + ChatMessage(Role.SYSTEM, hint)
+    }
+
     private fun checkpointsFor(
         prompt: String,
         system: String,
@@ -171,8 +186,8 @@ class ChatEngine(
         /** The system prompt's time moves on at most every 30 minutes (one re-read per half hour). */
         const val ANCHOR_MS = 30 * 60 * 1000L
 
-        /** Heading in the system prompt after which the per-day values (time, place) follow. */
-        private const val CONTEXT_HEADING = "# Context"
+        /** Headings (EN / DE prompt) after which the per-day values (time, place) follow. */
+        private val CONTEXT_HEADINGS = listOf("# Context", "# Kontext")
         private const val TITLE_REQUEST =
             "Give this chat a short title: at most 6 words, in the language of the chat. " +
                 "Reply with the title only, no quotes, no full stop."
@@ -185,7 +200,7 @@ class ChatEngine(
             system: String,
         ): Int? {
             val start = prompt.indexOf(system)
-            val heading = system.indexOf(CONTEXT_HEADING)
+            val heading = CONTEXT_HEADINGS.map { system.indexOf(it) }.filter { it > 0 }.minOrNull() ?: -1
             return if (start < 0 || heading <= 0) null else start + heading
         }
 

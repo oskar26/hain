@@ -11,7 +11,7 @@
     <string name="settings_readable_hint">Uses a clearer font.</string>
     <string name="settings_group_answers">Answers</string>
     <string name="settings_answer_language">Answer language</string>
-    <string name="settings_lang_auto">Automatic</string>
+    <string name="settings_lang_auto">Same as my message</string>
     <string name="settings_lang_de">Deutsch</string>
     <string name="settings_lang_en">English</string>
     <string name="settings_answer_mode">Answer style</string>
