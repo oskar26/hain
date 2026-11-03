@@ -4,7 +4,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -23,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -43,8 +41,10 @@ import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
+import app.hain.ui.theme.LocalHainStyle
 import app.hain.ui.theme.LocalHainTypography
 import app.hain.ui.theme.hainSurface
+import app.hain.ui.theme.look
 
 /**
  * Text button (T-011): a domed capsule. Primary = Hain green with a clear inner gradient, a light
@@ -107,8 +107,11 @@ fun HainButton(
 }
 
 /**
- * The dome of the app (T-011): [color] with a light top and a deeper bottom, a white sheen on the
- * upper half, a bright top edge and a soft shadow in the same colour. Buttons, send, the Pim knob.
+ * Filled button surface in [color] (buttons, send, the Pim knob), calm since the style proposals
+ * (docs/design/STYLE_OPTIONS.md): no sheen and no glossy edge any more.
+ * - Stil A "Lichtung": flat [color], no shadow.
+ * - Stil B "Morgennebel": a gentle gradient (a touch lighter on top) and a soft shadow in [color].
+ * [elevation] 0 turns the shadow off (disabled buttons).
  */
 @Composable
 fun Modifier.dome(
@@ -116,29 +119,20 @@ fun Modifier.dome(
     shape: Shape,
     elevation: Dp = DOME_ELEVATION.dp,
 ): Modifier {
+    val look = LocalHainStyle.current.look()
+    if (!look.buttonGradient) return clip(shape).background(color, shape)
+    val lift = if (elevation > 0.dp) look.buttonShadowDp.dp else 0.dp
     val top = lerp(color, Color.White, DOME_LIGHT)
     val bottom = lerp(color, Color.Black, DOME_SHADE)
     return this
         .shadow(
-            elevation,
+            lift,
             shape,
             clip = false,
             ambientColor = color.copy(alpha = DOME_SHADOW),
             spotColor = color.copy(alpha = DOME_SHADOW),
         ).clip(shape)
         .background(Brush.verticalGradient(listOf(top, color, bottom)), shape)
-        .drawBehind {
-            drawRect(
-                Brush.verticalGradient(
-                    0f to Color.White.copy(alpha = DOME_SHEEN),
-                    DOME_SHEEN_END to Color.White.copy(alpha = 0f),
-                ),
-            )
-        }.border(
-            1.dp,
-            Brush.verticalGradient(listOf(Color.White.copy(alpha = DOME_EDGE), Color.White.copy(alpha = 0f))),
-            shape,
-        )
 }
 
 /** Press-in spring (scale 0.96) shared by every tappable dome; still with reduced motion. */
@@ -271,11 +265,8 @@ internal const val DISABLED_ALPHA = 0.4f
 private const val PRESSED_SCALE = 0.96f
 private const val PRESS_DAMPING = 0.5f
 private const val PRESS_STIFFNESS = 600f
-private const val DOME_LIGHT = 0.28f
-private const val DOME_SHADE = 0.14f
-private const val DOME_SHEEN = 0.32f
-private const val DOME_SHEEN_END = 0.48f
-private const val DOME_EDGE = 0.55f
-private const val DOME_SHADOW = 0.45f
+private const val DOME_LIGHT = 0.10f
+private const val DOME_SHADE = 0.06f
+private const val DOME_SHADOW = 0.30f
 private const val DOME_ELEVATION = 8
 private const val ICON_SHARE = 0.45f

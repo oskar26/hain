@@ -1,0 +1,90 @@
+package app.hain.feature.chat.screens
+
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.performClick
+import app.hain.common.api.AnswerMode
+import app.hain.feature.chat.internal.ChatUiState
+import app.hain.feature.chat.internal.UiMessage
+import app.hain.ui.theme.HainStyle
+import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
+import com.github.takahirom.roborazzi.captureScreenRoboImage
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.ParameterizedRobolectricTestRunner
+import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
+
+/**
+ * The style proposals A and B (docs/design/STYLE_OPTIONS.md) on the same chat screens, light and
+ * dark. Only run via CI workflow screens.yml; files land in build/outputs/roborazzi/styles/.
+ */
+@OptIn(ExperimentalRoborazziApi::class)
+@RunWith(ParameterizedRobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk = [35], qualifiers = "de-w392dp-h850dp-xxhdpi")
+class ChatStyleScreens(
+    private val style: HainStyle,
+    private val dark: Boolean,
+) {
+    @get:Rule
+    val compose = createComposeRule()
+
+    private fun shot(name: String) = captureScreenRoboImage("$OUT/styles/${styleShotName(style, dark, name)}.png")
+
+    @Test
+    fun emptyChat() {
+        compose.setContent { Frame(dark, style = style) { ChatFrame(ChatUiState()) } }
+        shot("chat_empty")
+    }
+
+    @Test
+    fun longAnswer() {
+        val question = UiMessage(1, true, "Vergleich bitte Fahrrad, Bus und Auto")
+        val state = ChatUiState(messages = listOf(question, UiMessage(2, false, LONG_MD)))
+        compose.setContent { Frame(dark, style = style) { ChatFrame(state, AnswerMode.THOROUGH) } }
+        shot("chat_long_answer")
+    }
+
+    @Test
+    fun composerWithBrainPicker() {
+        val input = List(5) { "Zeile ${it + 1}: noch ein Gedanke für die Frage" }.joinToString("\n")
+        compose.setContent {
+            Frame(dark, style = style) { ChatFrame(answerState().copy(input = input), AnswerMode.FAST) }
+        }
+        compose.onNodeWithContentDescription("Denk-Stufe", substring = true).performClick()
+        compose.waitForIdle()
+        shot("chat_composer_picker")
+    }
+
+    @Test
+    fun drawer() {
+        compose.setContent {
+            Frame(dark, style = style) {
+                ChatFrame(answerState())
+                Drawer()
+            }
+        }
+        shot("drawer")
+    }
+
+    companion object {
+        @JvmStatic
+        @ParameterizedRobolectricTestRunner.Parameters(name = "{0}-dark={1}")
+        fun params(): List<Array<Any>> = styleParams()
+    }
+}
+
+/** A × B × light/dark. */
+internal fun styleParams(): List<Array<Any>> {
+    val modes = listOf(false, true)
+    return HainStyle.entries.flatMap { s -> modes.map { d -> arrayOf<Any>(s, d) } }
+}
+
+/** e.g. "a_chat_empty_light". */
+internal fun styleShotName(
+    style: HainStyle,
+    dark: Boolean,
+    screen: String,
+): String = "${style.name.lowercase()}_${screen}_${if (dark) "dark" else "light"}"

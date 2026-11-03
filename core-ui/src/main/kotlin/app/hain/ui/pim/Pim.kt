@@ -45,7 +45,7 @@ fun Pim(
     PimCanvas(pose = { pose }, size = size, modifier = modifier)
 }
 
-/** Draws the pose [pose] returns; glossy 3D look from 48 dp, contact shadow when [shadowLift] is set. */
+/** Draws the pose [pose] returns, flat and calm; contact shadow when [shadowLift] is set. */
 @Composable
 internal fun PimCanvas(
     pose: () -> PimPose,
@@ -55,7 +55,6 @@ internal fun PimCanvas(
 ) {
     val colors = if (LocalHainColors.current.bg.luminance() < DARK_BG_LUMINANCE) DarkPimColors else LightPimColors
     val showVein = size >= 64.dp
-    val gloss = size >= GLOSS_MIN_SIZE
     // [pose] is read while drawing, so an animated Pim only redraws and never recomposes.
     Canvas(modifier = modifier.size(size)) {
         val now = pose()
@@ -63,12 +62,11 @@ internal fun PimCanvas(
         val fit = this.size.minDimension / PimGeometry.VIEW_BOX_SIZE
         scale(fit, fit, Offset.Zero) {
             if (shadowLift != null) drawContactShadow(-now.y + shadowLift, now.sx)
-            drawPim(now, colors, showVein, gloss)
+            // style proposals (STYLE_OPTIONS.md): flat and calm in both styles, no glossy jelly
+            drawPim(now, colors, showVein, gloss = false)
         }
     }
 }
-
-private val GLOSS_MIN_SIZE = 48.dp
 
 @Preview(name = "Light — 4 poses")
 @Preview(name = "Dark — 4 poses", uiMode = Configuration.UI_MODE_NIGHT_YES)

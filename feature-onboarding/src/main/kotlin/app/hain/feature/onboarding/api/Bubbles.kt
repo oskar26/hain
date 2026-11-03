@@ -24,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -36,13 +35,20 @@ import app.hain.ui.components.Hain3D
 import app.hain.ui.components.Hain3DIcon
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.theme.GlowHue
+import app.hain.ui.theme.HainStyle
+import app.hain.ui.theme.LocalHainColors
+import app.hain.ui.theme.LocalHainStyle
 import kotlin.math.PI
 import kotlin.math.sin
 
 /**
- * A shiny, see-through 3D bubble (T-011, Wabi reference): faint tint inside, a rainbow shimmer on
- * the rim, a bright light edge top left and a crisp highlight. [content] floats inside.
+ * A round motif surface (formerly the shiny Wabi bubble). Calm since the style proposals
+ * (docs/design/STYLE_OPTIONS.md), [hue] is kept for the call sites:
+ * - Stil A "Lichtung": a soft grey disc with a hairline edge.
+ * - Stil B "Morgennebel": a pale green disc that fades out at its edge, with a blurred green halo.
+ * [content] sits in the middle.
  */
+@Suppress("UnusedParameter", "UNUSED_PARAMETER")
 @Composable
 internal fun GlassBubble(
     size: Dp,
@@ -50,73 +56,53 @@ internal fun GlassBubble(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {},
 ) {
+    val c = LocalHainColors.current
+    val mist = LocalHainStyle.current == HainStyle.B
     Box(modifier.size(size), contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxSize()) { drawBubbleBack(hue) }
+        Canvas(Modifier.fillMaxSize()) {
+            if (mist) drawMistDisc(c.accentSoft, c.accent, c.bg) else drawClearDisc(c.surface, c.border)
+        }
         content()
-        Canvas(Modifier.fillMaxSize()) { drawBubbleFront(hue) }
     }
 }
 
-/** Behind the motif: the tinted inside and a soft shadow-side. */
-private fun DrawScope.drawBubbleBack(hue: GlowHue) {
+private fun DrawScope.drawClearDisc(
+    fill: Color,
+    edge: Color,
+) {
     val r = size.minDimension / 2
-    val c = center
+    drawCircle(fill, r, center)
+    drawCircle(edge, r - 0.5f, center, style = Stroke(width = 1f))
+}
+
+private fun DrawScope.drawMistDisc(
+    soft: Color,
+    accent: Color,
+    page: Color,
+) {
+    val r = size.minDimension / 2
     drawCircle(
         Brush.radialGradient(
-            0f to Color.White.copy(alpha = 0.10f),
-            0.7f to hue.light.copy(alpha = 0.35f),
-            1f to hue.core.copy(alpha = 0.32f),
-            center = c - Offset(r * 0.25f, r * 0.3f),
-            radius = r * 1.25f,
+            0f to accent.copy(alpha = 0.10f),
+            1f to Color.Transparent,
+            center = center,
+            radius = r,
         ),
         r,
-        c,
+        center,
+    )
+    drawCircle(
+        Brush.radialGradient(
+            0f to page,
+            0.55f to soft,
+            1f to soft.copy(alpha = 0f),
+            center = center - Offset(0f, r * 0.2f),
+            radius = r * 0.92f,
+        ),
+        r * 0.92f,
+        center,
     )
 }
-
-/** In front of the motif: rainbow rim, light edge and the specular highlight. */
-private fun DrawScope.drawBubbleFront(hue: GlowHue) {
-    val r = size.minDimension / 2
-    val c = center
-    // iridescent rim like a soap bubble
-    drawCircle(
-        Brush.sweepGradient(
-            listOf(
-                IRIS_PINK.copy(alpha = 0.55f),
-                IRIS_CYAN.copy(alpha = 0.45f),
-                IRIS_LIME.copy(alpha = 0.35f),
-                hue.core.copy(alpha = 0.45f),
-                IRIS_PINK.copy(alpha = 0.55f),
-            ),
-            c,
-        ),
-        r - r * 0.04f,
-        c,
-        style = Stroke(width = r * 0.08f),
-    )
-    // bright edge top left, fading round to the bottom right
-    drawCircle(
-        Brush.linearGradient(
-            listOf(Color.White.copy(alpha = 0.95f), Color.White.copy(alpha = 0f)),
-            start = c - Offset(r, r),
-            end = c + Offset(r * 0.3f, r * 0.3f),
-        ),
-        r - 1f,
-        c,
-        style = Stroke(width = r * 0.05f),
-    )
-    // specular highlight
-    drawOval(
-        Color.White.copy(alpha = 0.85f),
-        topLeft = c - Offset(r * 0.62f, r * 0.66f),
-        size = Size(r * 0.42f, r * 0.24f),
-    )
-    drawCircle(Color.White.copy(alpha = 0.7f), r * 0.05f, c - Offset(r * 0.18f, r * 0.72f))
-}
-
-private val IRIS_PINK = Color(color = 0xFFFF8FC8)
-private val IRIS_CYAN = Color(color = 0xFF7FE3FF)
-private val IRIS_LIME = Color(color = 0xFFD9FF8A)
 
 /** One bubble in the cloud: where (fractions of the cloud), how big, what floats inside. */
 private data class CloudBubble(

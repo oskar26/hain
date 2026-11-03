@@ -32,6 +32,7 @@ import app.hain.ui.components.Composer
 import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.TopBar
 import app.hain.ui.motion.LocalReduceMotion
+import app.hain.ui.theme.HainStyle
 import app.hain.ui.theme.HainTheme
 import app.hain.ui.theme.LocalHainColors
 import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
@@ -175,9 +176,10 @@ internal const val OUT = "build/outputs/roborazzi"
 internal fun Frame(
     dark: Boolean,
     fontScale: Float = 1f,
+    style: HainStyle = HainStyle.A,
     content: @Composable () -> Unit,
 ) {
-    HainTheme(darkTheme = dark) {
+    HainTheme(darkTheme = dark, style = style) {
         val density = LocalDensity.current
         CompositionLocalProvider(
             LocalReduceMotion provides true,
@@ -190,7 +192,7 @@ internal fun Frame(
 
 /** The chat screen without its view model: top bar, list or greeting, the message box. */
 @Composable
-private fun ChatFrame(
+internal fun ChatFrame(
     state: ChatUiState,
     mode: AnswerMode = AnswerMode.AUTO,
 ) {
@@ -224,7 +226,7 @@ private fun ChatFrame(
 }
 
 @Composable
-private fun Drawer(longTitles: Boolean = false) {
+internal fun Drawer(longTitles: Boolean = false) {
     val today =
         if (longTitles) {
             listOf(
@@ -252,7 +254,7 @@ private fun Drawer(longTitles: Boolean = false) {
     )
 }
 
-private fun answerState(): ChatUiState =
+internal fun answerState(): ChatUiState =
     ChatUiState(
         messages =
             listOf(
@@ -279,7 +281,7 @@ private fun answerState(): ChatUiState =
 private const val LONG_TITLE = "Wie plane ich eine plastikfreie Woche mit Kindern, Hund und wenig Geld im Winter?"
 private const val NO_SPACE_TITLE = "Ein_sehr_langer_Titel_ohne_Leerzeichen_der_nicht_umbrechen_kann"
 
-private val LONG_MD =
+internal val LONG_MD =
     listOf(
         "## Vergleich",
         "",

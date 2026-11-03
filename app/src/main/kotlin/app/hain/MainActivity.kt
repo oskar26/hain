@@ -23,6 +23,7 @@ import app.hain.common.api.HainSettings
 import app.hain.common.api.SearxAddress
 import app.hain.common.api.SettingsRepository
 import app.hain.common.api.ThemeChoice
+import app.hain.common.api.UiStyle
 import app.hain.common.api.net.NetworkGate
 import app.hain.feature.chat.api.ChatScreen
 import app.hain.feature.chat.internal.ChatEngine
@@ -41,6 +42,7 @@ import app.hain.tools.api.ToolContext
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainTween
+import app.hain.ui.theme.HainStyle
 import app.hain.ui.theme.HainTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.map
@@ -85,6 +87,7 @@ class MainActivity : ComponentActivity() {
             onNetworkLogDetail = { write { repo.setNetworkLogDetail(it) } },
             onClearNetworkLog = networkGate::clearLog,
             onSearxUrl = { write { repo.setSearxUrl(it) } },
+            onUiStyle = { write { repo.setUiStyle(it) } },
         )
     }
 
@@ -157,6 +160,7 @@ class MainActivity : ComponentActivity() {
                         ThemeChoice.DARK -> true
                     },
                 highLegibility = settings.readableFont,
+                style = if (settings.uiStyle == UiStyle.B) HainStyle.B else HainStyle.A,
             ) {
                 CompositionLocalProvider(LocalReduceMotion provides (settings.reduceMotion || systemReducesMotion())) {
                     var installed by remember { mutableStateOf(models.isInstalled(brain)) }

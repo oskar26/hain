@@ -1,12 +1,10 @@
 package app.hain.ui.pim
 
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
@@ -21,6 +19,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.rememberHainHaptics
+import app.hain.ui.theme.HainStyle
+import app.hain.ui.theme.LocalHainStyle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.PI
@@ -30,7 +30,7 @@ import kotlin.random.Random
 
 /**
  * Pim, alive (2e, "juicy"): breathes like jelly, blinks now and then, hops when
- * he celebrates and squishes when you tap him. With reduce motion he stays still.
+ * he celebrates. Calm since the style proposals: no squish on tap; with reduce motion he stays still.
  */
 @Composable
 fun JuicyPim(
@@ -41,6 +41,8 @@ fun JuicyPim(
 ) {
     val reduce = LocalReduceMotion.current
     val base = poseFor(state)
+    // style proposals: a grown-up Pim. A stays still and only blinks; B breathes gently. No jelly squish.
+    val breathes = LocalHainStyle.current == HainStyle.B || state == PimState.CELEBRATE
     if (reduce) {
         PimCanvas(pose = { base }, size = size, modifier = modifier, shadowLift = 0f)
         return
@@ -53,7 +55,6 @@ fun JuicyPim(
             animationSpec = infiniteRepeatable(tween(periodFor(state), easing = LinearEasing), RepeatMode.Restart),
             label = "pim-phase",
         )
-    val squish = remember { Animatable(0f) }
     var blinking by remember { mutableStateOf(false) }
     var delighted by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -75,15 +76,13 @@ fun JuicyPim(
                 onTap?.invoke()
                 scope.launch {
                     delighted = true
-                    squish.snapTo(1f)
-                    squish.animateTo(0f, spring(dampingRatio = JELLY_DAMPING, stiffness = JELLY_STIFFNESS))
                     delay(DELIGHT_MS)
                     delighted = false
                 }
             }
         }
     PimCanvas(
-        pose = { livePose(base, state, phase.value, squish.value, blinking, delighted) },
+        pose = { livePose(base, state, if (breathes) phase.value else 0f, 0f, blinking, delighted) },
         size = size,
         modifier = modifier.then(tap),
         shadowLift = 0f,
@@ -137,8 +136,6 @@ private const val HOP_TILT = 4f
 private const val LEAF_SWAY = 6f
 private const val LEAF_LAG = 0.8f
 private const val TAP_SQUASH = 0.16f
-private const val JELLY_DAMPING = 0.3f
-private const val JELLY_STIFFNESS = 260f
 private const val DELIGHT_MS = 600L
 private const val BLINK_MS = 200L
 private const val BLINK_MIN_MS = 2400L
