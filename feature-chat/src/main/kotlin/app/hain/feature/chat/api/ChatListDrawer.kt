@@ -72,6 +72,7 @@ import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainSpring
 import app.hain.ui.motion.hainTween
 import app.hain.ui.motion.motionSpec
+import app.hain.ui.motion.rememberHainHaptics
 import app.hain.ui.pim.LivePim
 import app.hain.ui.pim.PimState
 import app.hain.ui.pim.PullPim
@@ -131,7 +132,7 @@ internal fun ChatListDrawer(
                 Modifier.padding(horizontal = spacing.xs, vertical = spacing.sm),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                LivePim(PimState.HAPPY, 40.dp)
+                LivePim(PimState.HAPPY, 32.dp)
                 Spacer(Modifier.width(spacing.sm))
                 BasicText(
                     stringResource(R.string.chat_title),
@@ -452,6 +453,7 @@ private fun ConfirmDelete(
 ) {
     val spacing = LocalHainSpacing.current
     val type = LocalHainTypography.current
+    val haptics = rememberHainHaptics()
     Column(Modifier.widthIn(max = CONFIRM_WIDTH.dp).padding(spacing.md)) {
         BasicText(
             stringResource(R.string.chat_delete_confirm),
@@ -465,7 +467,14 @@ private fun ConfirmDelete(
             horizontalArrangement = Arrangement.spacedBy(spacing.sm),
             verticalArrangement = Arrangement.spacedBy(spacing.sm),
         ) {
-            HainButton(stringResource(R.string.chat_delete_yes), onDelete, style = HainButtonStyle.SECONDARY)
+            HainButton(
+                stringResource(R.string.chat_delete_yes),
+                {
+                    haptics.confirm()
+                    onDelete()
+                },
+                style = HainButtonStyle.SECONDARY,
+            )
             HainButton(stringResource(R.string.chat_cancel), onCancel, style = HainButtonStyle.GHOST)
         }
     }

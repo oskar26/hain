@@ -8,8 +8,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -22,6 +27,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import app.hain.ui.motion.LocalReduceMotion
+import app.hain.ui.motion.rememberHainHaptics
 import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -40,6 +46,15 @@ fun PullPim(
     val maxPull = with(LocalDensity.current) { MAX_PULL.dp.toPx() }
     val pull = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
+    val haptics = rememberHainHaptics()
+    // one soft tick when the pull goes past the point where Pim looks surprised, not on every pixel
+    var armed by remember { mutableStateOf(false) }
+    LaunchedEffect(pull, maxPull) {
+        snapshotFlow { pull.value / maxPull > WIDE_FROM }.collect { past ->
+            if (past && !armed) haptics.pull()
+            armed = past
+        }
+    }
     val connection =
         remember(maxPull) {
             object : NestedScrollConnection {

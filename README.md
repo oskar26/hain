@@ -80,7 +80,10 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🗂️ Saved chats | Stored encrypted on the phone; search, rename, pin, delete, grouped by day | ✅ |
 | ⚙️ Settings | Theme, easy-to-read font, answer mode (fast / auto / thorough), answer language, "about me" and answer style. Thinking level also right in the message box (brain button) | ✅ |
 | 📦 Knowledge packs | See, download and remove packs, with hints on what fits your phone | ✅ |
-| 🎨 Look | One design everywhere, calm but with depth: glass tiles that glow from inside, small glossy 3D icons, domed buttons that press in, a glossy 3D Pim, a welcome tour with shiny bubbles; light font (Hanken Grotesk), dark mode with glowing glass; "Reduce motion" stops all movement | ✅ |
+| 🎨 Look | One calm design "Lichtung": lots of white, fine hairlines, Hain green only as an accent, radii 12–16 dp, quiet line icons; light font (Hanken Grotesk), dark mode; "Reduce motion" stops all movement | ✅ |
+| 🌱 Pim | Lives everywhere (start page, thinking, done, errors, empty search, pull gestures) and the leaf always stays on his head. Tap him for a different little reaction each time, drag him around on the start page and he springs back | ✅ |
+| 📳 Haptics | Fine, crisp clicks instead of buzzing – send, switches, thinking level, answer done, menus, confirming a delete, pull gestures, errors. Never while text streams. Settings → Look → Vibration: Off / Subtle (default) / Normal / Strong | ✅ |
+| 🎮 Secret | Hold Pim on the start page for 5 seconds without letting go … (hint: 2048) | ✅ |
 | ✏️ Chat extras | Automatic chat titles; tap your own message to edit or copy it. Chat list: small glass menu at each chat (pin, rename, delete), smooth drawer | ✅ |
 | 📤 Export | Export a chat as Markdown or PDF | 🗓️ |
 | 🧭 Settings, part 2 | Glass tiles with their own colour and 3D icon, sub pages, own "reduce motion" switch, glossy 3D Pim, new first start. Still open: pack picker, language step at first start | 🚧 |
