@@ -36,6 +36,8 @@ data class ChatUiState(
     val brainInstalled: Boolean = true,
     /** Id of the user message being edited; [input] holds its text. */
     val editingId: Long? = null,
+    /** `true` while a request is on its way to the internet (orange dot, T-069). */
+    val online: Boolean = false,
 )
 
 enum class ChatError { MODEL_LOAD, CONTEXT_FULL, GENERATION, NO_BRAIN }
@@ -51,6 +53,7 @@ class ChatViewModel(
     brainInstalled: Flow<Boolean> = flowOf(true),
     /** Minimum time between two UI updates while an answer streams (fewer recompositions). */
     private val streamThrottleMs: Long = STREAM_THROTTLE_MS,
+    networkActive: Flow<Boolean> = flowOf(false),
 ) : ViewModel() {
     private val local = MutableStateFlow(LocalState())
     private var job: Job? = null
@@ -73,7 +76,7 @@ class ChatViewModel(
     )
 
     val state: StateFlow<ChatUiState> =
-        combine(store.chats, local, llm.state, installed) { chats, l, engineState, hasBrain ->
+        combine(store.chats, local, llm.state, installed, networkActive) { chats, l, engineState, hasBrain, online ->
             val visible = chats.filter { it.messages.isNotEmpty() }
             val hits = l.searchHits
             ChatUiState(
@@ -89,6 +92,7 @@ class ChatViewModel(
                 error = l.error,
                 brainInstalled = hasBrain,
                 editingId = l.editingId,
+                online = online,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT), ChatUiState())
 
@@ -255,6 +259,7 @@ class ChatViewModel(
                                         text = update.text,
                                         reasoning = update.reasoning.ifBlank { null },
                                         streaming = true,
+                                        steps = update.steps,
                                     )
                                 live = chatId to message
                                 val now = clock()
@@ -316,6 +321,8 @@ class ChatViewModel(
                 streaming = false,
                 stopped = update.reason == StopReason.CANCELLED,
                 failed = update.reason == StopReason.ERROR && text.isBlank(),
+                steps = update.steps,
+                sources = update.sources,
             ),
         )
         when (update.reason) {

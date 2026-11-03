@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions") // one small composable per part of the chat
+
 package app.hain.feature.chat.api
 
 import android.content.Intent
@@ -44,6 +46,8 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -63,6 +67,7 @@ import app.hain.ui.components.HainPopupItem
 import app.hain.ui.components.HainPopupMenu
 import app.hain.ui.components.MessageAction
 import app.hain.ui.components.MessageActionKind
+import app.hain.ui.components.PulsingDot
 import app.hain.ui.components.ReasoningBlock
 import app.hain.ui.components.TopBar
 import app.hain.ui.components.UserBubble
@@ -112,6 +117,7 @@ fun ChatScreen(
                     HainIconButton(HainIcons.menu, stringResource(R.string.chat_menu), { drawerOpen = true })
                 },
                 trailing = {
+                    if (state.online) OnlineDot()
                     HainIconButton(HainIcons.plus, stringResource(R.string.chat_new), viewModel::newChat)
                 },
             )
@@ -174,6 +180,24 @@ fun ChatScreen(
                         onOpenSettings()
                     },
                 ),
+        )
+    }
+}
+
+/** Orange point while Hain is online (T-069); the network log in Privacy shows every request. */
+@Composable
+private fun OnlineDot() {
+    val colors = LocalHainColors.current
+    val hint = stringResource(R.string.chat_online_hint)
+    Row(
+        Modifier.padding(end = 4.dp).semantics { contentDescription = hint },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        PulsingDot(colors.online)
+        Spacer(Modifier.width(4.dp))
+        BasicText(
+            stringResource(R.string.chat_online),
+            style = LocalHainTypography.current.label.copy(color = colors.online),
         )
     }
 }
@@ -333,6 +357,7 @@ private fun Answer(
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
     Column(Modifier.fillMaxWidth()) {
+        ToolTimeline(message.steps)
         val reasoning = message.reasoning
         if (reasoning != null) {
             val title =
@@ -340,7 +365,8 @@ private fun Answer(
                     ?: stringResource(R.string.chat_thinking)
             ReasoningBlock(title = title, reasoning = reasoning)
         }
-        if (message.streaming && message.text.isEmpty() && message.reasoning == null) {
+        val waiting = message.text.isEmpty() && message.reasoning == null && message.steps.isEmpty()
+        if (message.streaming && waiting) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Pim(PimState.THINKING, 28.dp)
                 Spacer(Modifier.width(8.dp))
@@ -371,6 +397,7 @@ private fun Answer(
                         }
                     },
             )
+            if (!message.streaming) SourceChips(message.sources)
             if (message.stopped) {
                 BasicText(stringResource(R.string.chat_stopped), style = type.label.copy(color = colors.textMuted))
             }

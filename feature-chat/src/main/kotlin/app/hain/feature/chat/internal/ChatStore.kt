@@ -19,6 +19,10 @@ data class UiMessage(
     val streaming: Boolean = false,
     val stopped: Boolean = false,
     val failed: Boolean = false,
+    /** Tools this answer used, in order (T-059). */
+    val steps: List<ToolStep> = emptyList(),
+    /** Pages the answer is based on, shown as chips. */
+    val sources: List<SourceRef> = emptyList(),
 )
 
 data class Chat(
