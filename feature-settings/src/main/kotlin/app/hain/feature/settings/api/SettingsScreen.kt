@@ -37,10 +37,12 @@ import app.hain.feature.settings.R
 import app.hain.ui.HainIcons
 import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.TopBar
+import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
+import app.hain.ui.theme.hainSurface
 
 /** Settings hub: a few tiles with an icon, each opens its own page. Plain words, no jargon. */
 @Composable
@@ -117,24 +119,25 @@ private fun Tile(
     Row(
         Modifier
             .fillMaxWidth()
-            .background(colors.surfaceHigh, LocalHainShapes.current.card)
+            .hainSurface(HainLevel.RAISED, LocalHainShapes.current.card)
             .clickable(onClick = onClick)
             .padding(spacing.md),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
-        Box(Modifier.size(44.dp).background(colors.accent, CircleShape), contentAlignment = Alignment.Center) {
-            Image(icon, null, Modifier.size(22.dp), colorFilter = ColorFilter.tint(colors.onAccent))
+        // calm icon dot: soft green with a green icon, the same on every tile (T-010)
+        Box(Modifier.size(40.dp).background(colors.accentSoft, CircleShape), contentAlignment = Alignment.Center) {
+            Image(icon, null, Modifier.size(20.dp), colorFilter = ColorFilter.tint(colors.accent))
         }
         Column(Modifier.weight(1f)) {
-            BasicText(stringResource(title), style = type.bodySmall.copy(color = colors.text))
-            BasicText(stringResource(hint), style = type.label.copy(color = colors.textMuted))
+            BasicText(stringResource(title), style = type.body.copy(color = colors.text))
+            BasicText(stringResource(hint), style = type.bodySmall.copy(color = colors.textMuted))
         }
         Image(
             HainIcons.chevronRight,
             null,
-            Modifier.size(22.dp),
-            colorFilter = ColorFilter.tint(colors.textMuted),
+            Modifier.size(20.dp),
+            colorFilter = ColorFilter.tint(colors.icon),
         )
     }
 }

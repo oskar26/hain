@@ -1,8 +1,6 @@
 package app.hain.ui.components
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,13 +14,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 import app.hain.ui.HainIcons
+import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
+import app.hain.ui.theme.hainSurface
 
 /**
- * The pill-shaped message box (DESIGN_SYSTEM.md §3): text, then send — which morphs into stop
+ * The pill-shaped message box (DESIGN_SYSTEM.md §3), a raised white capsule (T-010 redesign):
+ * text, then send — which morphs into stop
  * while an answer is streaming.
  */
 @Suppress("LongParameterList") // slot-free composable: every label/callback is a parameter
@@ -47,8 +48,7 @@ fun Composer(
         modifier =
             modifier
                 .fillMaxWidth()
-                .background(colors.surface, shape)
-                .border(1.dp, colors.border, shape)
+                .hainSurface(HainLevel.RAISED, shape)
                 .padding(start = spacing.lg, end = spacing.xs, top = spacing.xs, bottom = spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {

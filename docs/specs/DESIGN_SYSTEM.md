@@ -7,7 +7,7 @@ Use 1 (dark) + 2 (light) for the app, 5 for voice mode, 4 for the optional home 
 
 - Built on `androidx.compose.foundation` + **Compose Unstyled** primitives (behaviour/a11y), styled by us. Our components live in `:core-ui` (`app.hain.ui`). **No `androidx.compose.material3` components on screen.** Libraries and the full motion table: `UI_LIBRARIES.md`.
 - Looks like ChatGPT/Claude: lots of white space, assistant answers as plain text without bubble, user messages in a grey bubble on the right, pill-shaped composer at the bottom, side drawer for chats.
-- No shadows. Thin 1 dp borders. No gradients except Pim and the voice ring.
+- Since the 03.11.2026 redesign: **one design language** for every screen — `docs/design/DESIGN_LANGUAGE.md` (three depth levels FLAT / RAISED / FLOATING, three radii + capsule, one motion language). No other shadows, thin 1 dp hairlines, no gradients except Pim, the welcome-tour wash, the thinking glow and the voice ring.
 
 ## 2. Tokens (`HainColors`, `HainType`, `HainShapes`, `HainSpacing`)
 
@@ -25,7 +25,7 @@ Use 1 (dark) + 2 (light) for the app, 5 for voice mode, 4 for the optional home 
 | `online` (internet used indicator) | #E8833A | #F0964F |
 | `danger` | #D14343 | #F07070 |
 
-Typography: font **Inter** (bundled, OFL) — option "Gut lesbar" switches to **Atkinson Hyperlegible** (OFL).
+Typography: font **Hanken Grotesk** (bundled, OFL; replaced Inter on 03.11.2026, see `docs/design/DESIGN_LANGUAGE.md` §1 for the current scale) — option "Gut lesbar" switches to **Atkinson Hyperlegible** (OFL).
 | Style | size/line | weight |
 |---|---|---|
 | `display` | 28/34 | 600 |
