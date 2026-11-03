@@ -47,6 +47,20 @@
     <string name="settings_about_hint">Version und worum es geht.</string>
     <string name="settings_reduce_motion">Weniger Bewegung</string>
     <string name="settings_reduce_motion_hint">Pim und die Effekte bleiben ruhig.</string>
-    <string name="settings_privacy_text">Alles bleibt auf deinem Handy. Deine Chats sind mit einem Schlüssel gesperrt, der dein Handy nie verlässt. Hain schickt nichts an andere und verfolgt dich nicht.</string>
+    <string name="settings_privacy_text">Alles bleibt auf deinem Handy. Deine Chats sind mit einem Schlüssel gesperrt, der dein Handy nie verlässt. Hain verfolgt dich nicht. Nur wenn Pim etwas nachschaut (Wetter, Wikipedia), geht eine kurze Frage an diesen Dienst – du siehst sie unten.</string>
     <string name="settings_about_text">Hain ist ein kleiner Helfer, der auf deinem Handy denkt, ohne Cloud. Pim ist der kleine Tropfen, der dich begleitet. Hain ist frei und quelloffen (GPL-3.0).</string>
+    <string name="settings_offline">Offline-Modus</string>
+    <string name="settings_offline_hint">Pim geht nie ins Internet. Wetter und Wikipedia machen Pause.</string>
+    <string name="settings_log_title">Netzwerk-Protokoll</string>
+    <string name="settings_log_hint">Jedes Mal, wenn Hain in den letzten 7 Tagen online war. Deine Chats werden nie verschickt.</string>
+    <string name="settings_log_all">Alle</string>
+    <string name="settings_log_weather">Wetter</string>
+    <string name="settings_log_wiki">Wikipedia</string>
+    <string name="settings_log_other">Andere</string>
+    <string name="settings_log_place">Ortssuche</string>
+    <string name="settings_log_download">Download</string>
+    <string name="settings_log_empty">Noch nichts. Hain war noch nicht online.</string>
+    <string name="settings_log_detail">Ganze Adressen zeigen</string>
+    <string name="settings_log_detail_hint">Speichert auch, wonach gesucht wurde. Standard: aus.</string>
+    <string name="settings_log_clear">Protokoll löschen</string>
 </resources>

@@ -10,6 +10,7 @@ import app.hain.common.api.AnswerLanguage
 import app.hain.common.api.AnswerMode
 import app.hain.common.api.HainSettings
 import app.hain.common.api.ThemeChoice
+import app.hain.common.api.net.NetworkLogEntry
 import app.hain.feature.settings.R
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
@@ -22,6 +23,7 @@ internal fun SettingsPageContent(
     page: SettingsPage,
     settings: HainSettings,
     actions: SettingsActions,
+    networkLog: List<NetworkLogEntry> = emptyList(),
 ) {
     when (page) {
         SettingsPage.LOOK -> {
@@ -87,7 +89,16 @@ internal fun SettingsPageContent(
                         .padding(vertical = LocalHainSpacing.current.md),
             )
         }
-        SettingsPage.PRIVACY -> Info(R.string.settings_privacy_text)
+        SettingsPage.PRIVACY -> {
+            Info(R.string.settings_privacy_text)
+            Toggle(
+                R.string.settings_offline,
+                R.string.settings_offline_hint,
+                settings.offlineMode,
+                actions.onOfflineMode,
+            )
+            NetworkLogSection(networkLog, settings.networkLogDetail, actions)
+        }
         SettingsPage.ABOUT -> Info(R.string.settings_about_text)
     }
 }

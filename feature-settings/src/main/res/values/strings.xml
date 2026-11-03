@@ -47,6 +47,20 @@
     <string name="settings_about_hint">Version and what Hain is.</string>
     <string name="settings_reduce_motion">Reduce motion</string>
     <string name="settings_reduce_motion_hint">Pim and the effects stay calm.</string>
-    <string name="settings_privacy_text">Everything stays on your phone. Your chats are locked with a key that never leaves your phone. Hain sends nothing to anyone and has no tracking.</string>
+    <string name="settings_privacy_text">Everything stays on your phone. Your chats are locked with a key that never leaves your phone. Hain has no tracking. Only when Pim looks something up (weather, Wikipedia) does a short question go to that service, and you see it below.</string>
     <string name="settings_about_text">Hain is a small helper that thinks on your phone, without the cloud. Pim is the little drop that keeps you company. Hain is free and open source (GPL-3.0).</string>
+    <string name="settings_offline">Offline mode</string>
+    <string name="settings_offline_hint">Pim never goes online. Weather and Wikipedia pause.</string>
+    <string name="settings_log_title">Network log</string>
+    <string name="settings_log_hint">Every time Hain went online in the last 7 days. Your chats are never sent.</string>
+    <string name="settings_log_all">All</string>
+    <string name="settings_log_weather">Weather</string>
+    <string name="settings_log_wiki">Wikipedia</string>
+    <string name="settings_log_other">Other</string>
+    <string name="settings_log_place">Place search</string>
+    <string name="settings_log_download">Download</string>
+    <string name="settings_log_empty">Nothing yet. Hain has not been online.</string>
+    <string name="settings_log_detail">Show full addresses</string>
+    <string name="settings_log_detail_hint">Keeps what was looked up, too. Off by default.</string>
+    <string name="settings_log_clear">Clear log</string>
 </resources>

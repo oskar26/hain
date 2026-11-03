@@ -14,9 +14,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.hain.common.api.AnswerLanguage
 import app.hain.common.api.HainSettings
 import app.hain.common.api.SettingsRepository
 import app.hain.common.api.ThemeChoice
+import app.hain.common.api.net.NetworkGate
 import app.hain.feature.chat.api.ChatScreen
 import app.hain.feature.chat.internal.ChatEngine
 import app.hain.feature.chat.internal.ChatStore
@@ -28,11 +30,14 @@ import app.hain.feature.settings.api.SettingsScreen
 import app.hain.llm.api.LlmEngine
 import app.hain.models.api.DownloadState
 import app.hain.models.api.ModelRepository
+import app.hain.tools.api.HainTools
+import app.hain.tools.api.ToolContext
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.theme.HainTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.time.ZonedDateTime
 import javax.inject.Inject
 import app.hain.llm.internal.AnswerMode as LlmAnswerMode
 
@@ -45,6 +50,8 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var chatStore: ChatStore
 
     @Inject lateinit var settingsRepository: SettingsRepository
+
+    @Inject lateinit var networkGate: NetworkGate
 
     private fun settingsActions(
         onBack: () -> Unit,
@@ -66,6 +73,9 @@ class MainActivity : ComponentActivity() {
             onStyle = { write { repo.setStyle(it) } },
             onReset = { write { repo.reset() } },
             onOpenPacks = onOpenPacks,
+            onOfflineMode = { write { repo.setOfflineMode(it) } },
+            onNetworkLogDetail = { write { repo.setNetworkLogDetail(it) } },
+            onClearNetworkLog = networkGate::clearLog,
         )
     }
 
@@ -82,12 +92,25 @@ class MainActivity : ComponentActivity() {
                     prompts::current,
                     answerMode = { LlmAnswerMode.fromKey(settings().answerMode.name.lowercase()) },
                     turnHint = prompts::turnHint,
+                    tools = HainTools.router(networkGate),
+                    toolContext = {
+                        ToolContext(toolLanguage(settings()), ZonedDateTime.now(), settings().offlineMode)
+                    },
                 ),
             store = chatStore,
             modelPath = { models.mainFile(brain).absolutePath },
             brainInstalled = models.downloadState(brain).map { it is DownloadState.Installed },
+            networkActive = networkGate.active.map { it > 0 },
         )
     }
+
+    /** Language for Wikipedia and weather words: the answer language, or the phone's on "Automatisch". */
+    private fun toolLanguage(settings: HainSettings): String =
+        when (settings.answerLanguage) {
+            AnswerLanguage.DE -> "de"
+            AnswerLanguage.EN -> "en"
+            AnswerLanguage.AUTO -> if (resources.configuration.locales[0]?.language == "de") "de" else "en"
+        }
 
     /** Small start flags (read on the main thread, so no flash of the wrong screen). */
     private val startPrefs by lazy { getSharedPreferences(START_PREFS, MODE_PRIVATE) }
@@ -138,7 +161,12 @@ class MainActivity : ComponentActivity() {
                             onGetBrain = { showPacks = true },
                         )
                         if (showSettings) {
-                            SettingsScreen(settings, settingsActions({ showSettings = false }, { showPacks = true }))
+                            val log by networkGate.log.collectAsStateWithLifecycle()
+                            SettingsScreen(
+                                settings,
+                                settingsActions({ showSettings = false }, { showPacks = true }),
+                                networkLog = log,
+                            )
                         }
                         if (showPacks) {
                             PacksScreen(models, deviceRamGb(), { showPacks = false })
