@@ -95,6 +95,10 @@ internal fun DrawScope.drawFloorGlow(color: Color) {
 }
 
 private const val TILE_ELEVATION = 10
+private const val MIST_SHARE = 0.55f
+private const val DARK_GLOW = 1.6f
+private const val DARK_EDGE = 0.08f
+private const val GLOW_RADIUS = 0.9f
 private const val EDGE_WIDTH = 1
 private const val FLOOR_RADIUS = 0.42f
 private const val FLOOR_EXTRA = 14
