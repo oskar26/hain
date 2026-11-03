@@ -84,7 +84,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | ✏️ Chat extras | Automatic chat titles, copy or edit your own message (long press) | ✅ |
 | 📤 Export | Export a chat as Markdown or PDF | 🗓️ |
 | 🧭 Settings, part 2 | Clearer layout with icon tiles and sub pages, own "reduce motion" switch. Still open: pack picker, language step at first start, glossy 3D Pim and new first-start pictures | 🚧 |
-| 🔧 Tools | Calculator and units, weather (Open-Meteo), Wikipedia (German/English) – Pim shows each step and its sources under the answer. Still open: web search without API key, read web pages, weather card | 🚧 |
+| 🔧 Tools | Calculator and units, weather (Open-Meteo), Wikipedia (German/English), web search without API key that reads several pages, reading a link – Pim shows each step and its sources under the answer. Still open: alarm, timer, calendar and navigation with a confirm card, weather card | 🚧 |
 | ⏰ Phone actions | Alarm, timer, calendar entry, navigation, always confirmed by you | 🗓️ |
 | 🛡️ Network log | Every tool request goes through one gate: orange "Online" dot while it runs, offline mode, log of the last 7 days in Settings → Privacy. Still open: brain download through the gate, log kept across app restarts | 🚧 |
 | 📰 News | Standard mix (incl. junge Welt), standard + own feeds, or only own feeds | 🗓️ |
@@ -101,6 +101,10 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Tools in every message.** Before, Pim used a tool only once per chat and afterwards pretended to have "looked it up". Now Pim remembers which tools it really used, calls them again for every new question (weather, Wikipedia, search) and never claims to have looked something up without doing it.
+- **Pim searches the web – without an API key.** Ask "Recherchier mal: Wie viel Strom spart eine Wärmepumpe?" and Pim searches (DuckDuckGo, SearXNG or Wikipedia), reads the 3 best pages at the same time and answers from them. You watch every step above the answer ("Suche · Wärmepumpe ✓", "3 Seiten gelesen ✓"), the pages Pim really read are the source chips below. If it needs more, Pim searches a second time. In the answer mode **Schnell** Pim searches once and reads one page.
+- **Send Pim a link.** "Was steht hier: https://…" – Pim reads the page and sums it up.
+- Every search and page shows up in the network log (Settings → Privacy); offline mode switches all of it off.
 - **Pim can look things up now.** Ask "Wie wird das Wetter morgen in Köln?" or "Wer war Ada Lovelace?" and Pim fetches the weather (Open-Meteo) or a Wikipedia summary, then answers from it. Above the answer you see what Pim did ("Wetter · Köln ✓"), below it the sources as chips – tap one to open the page.
 - **Exact maths.** Pim calculates with a real calculator instead of guessing: "15% von 80", "sqrt(2)", "5 km in Meilen", "100 °F in °C". Type only a sum like "12*7" and the result is there at once, without waiting for the brain.
 - **You see when Hain goes online.** While a request runs, an orange "Online" dot shows in the top bar. Settings → Privacy lists every request of the last 7 days (when, where to, why, how big) – without what you asked, unless you switch on "Show full addresses". **Offline mode** there stops all of it.

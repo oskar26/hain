@@ -255,3 +255,10 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 
 **Host check** (llama.cpp `39febd2`, `LFM3-1.7B-QAD-Q4_0.gguf`, temp 0.1, our prompt + tools block): "Wetter morgen in Köln" → `weather(place=Köln)`, "Wer war Ada Lovelace" → `wikipedia(topic, lang=de)`, "15 % von 80" → `calculate(15% * 80)`, Berlin weather (EN) and "mayor of Paris" → right tools, small talk and jokes → no tool. With a weather result the brain answered in German from the data but mixed up today/tomorrow → days in the result are now named (`"day":"morgen"`). "42 km in Meilen" came as `42 km in m` → example in the tool description now uses `mi`.
 
+## 2026-11-03 · Werkzeuge II (day 4) · review · harness: Hark · model: Hark
+- What: T-062 fix "tools in every message" (Oskar's device test of #19: tools only once per chat, then "laut Wikipedia …" hallucinated): tool calls + short results stored per answer and replayed in the prompt, new system-prompt rule DE+EN + short tool nudge in the language hint (host: 5 of 5 questions in a row call a real tool, before only the first). T-066 `web_search` (SearXNG/DDG HTML/DDG Lite/Wikipedia, no key) + T-067 `read_page`/`readPages` (3 pages in parallel, cut) → research in several steps with timeline steps and source chips; tool rounds 3 → 4, Schnell = 1 search + 1 page.
+- Files: core-tools (internal/search/*, api/Tools.kt, ToolRouter.readPages, HainTools), feature-chat (ChatEngine, PromptHistory, ToolSteps/ToolStepsJson, ToolTimeline, strings EN+DE), app/SystemPromptSource, docs/specs/TOOLS.md §3a/§3b.
+- Checks: unit tests (SearchToolTest, ToolsEveryTurnTest, ChatEngineToolsTest), ktlint, detekt, check_strings; host test with LFM3-1.7B-Q4_0 (table in TOOLS.md §3b); CI + APK on the PR.
+- Notes/risks: DuckDuckGo HTML sometimes shows a bot check from server IPs → Lite fallback; public SearXNG instances often block JSON. No back-off timer yet. T-068 phone actions not started.
+- Next: 4b (T-068 alarm/timer/calendar/navigation + ConfirmCard, DDG back-off, own SearXNG URL setting), then 3b.
+
