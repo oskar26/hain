@@ -11,6 +11,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,6 +41,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import app.hain.ui.motion.LocalReduceMotion
+import app.hain.ui.motion.chargeGapMs
 import app.hain.ui.motion.rememberHainHaptics
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -52,10 +54,12 @@ import kotlin.random.Random
 
 /**
  * The big Pim of the start page (T-091, T-092): tap him for a reaction, drag him anywhere (he looks
- * surprised, the leaf swings, and on release he springs home relieved), or keep pressing: he grows,
- * shakes, glows greener and the haptics build up until, after about 2.5 s, he bursts into leaves and
- * confetti and [onEgg] opens the secret game. Letting go earlier calms him down again.
- * With "reduce motion" only the tap and [onEgg] via a long press are left, without movement.
+ * surprised, the leaf swings, and on release he springs home relieved), or keep pressing without a
+ * break (T-097): he slowly grows to up to 5×, trembles more and more, glows greener and the haptics
+ * get denser and firmer until, after 5 s ([PimEgg.HOLD_MS]), he bursts into leaves with a thud and
+ * [onEgg] opens the secret game. Letting go earlier springs him gently back. The whole Pim is scaled
+ * as one layer, so the leaf always stays on his head.
+ * With "reduce motion" only the tap and [onEgg] via a 5 s press are left, without movement.
  */
 @Suppress("LongMethod", "CyclomaticComplexMethod") // one gesture with three outcomes
 @Composable
@@ -80,7 +84,7 @@ fun HeroPim(
     val pieces = remember { burstPieces(Random(seed = 26)) }
 
     fun startBurst() {
-        haptics.longPress()
+        haptics.burst()
         if (reduce) {
             onEgg()
             return
@@ -104,23 +108,28 @@ fun HeroPim(
                 val tracker = VelocityTracker()
                 var moved = false
                 var charging: Job? = null
+                val pressedAt = System.currentTimeMillis()
                 charging =
                     scope.launch {
-                        delay(CHARGE_DELAY_MS)
                         if (reduce) {
-                            // no growing and shaking: the long press alone opens the game
+                            // no growing and shaking: holding 5 s alone opens the game
+                            delay(PimEgg.HOLD_MS)
                             startBurst()
                             return@launch
                         }
+                        delay(PimEgg.ARM_MS)
                         mood = HeroMood.CHARGING
                         launch {
+                            // short primitives, denser and firmer as he grows (never one long buzz)
                             while (charge.value < 1f && mood == HeroMood.CHARGING) {
                                 haptics.charge(charge.value)
-                                val gap = CHARGE_TICK_SLOW - (CHARGE_TICK_SLOW - CHARGE_TICK_FAST) * charge.value
-                                delay(gap.toLong())
+                                delay(chargeGapMs(charge.value))
                             }
                         }
-                        charge.animateTo(1f, tween(CHARGE_MS, easing = LinearEasing))
+                        charge.animateTo(1f, tween(PimEgg.CHARGE_MS, easing = LinearEasing))
+                        // never earlier than 5 s after the finger went down
+                        val held = System.currentTimeMillis() - pressedAt
+                        if (!PimEgg.shouldBurst(held)) delay(PimEgg.HOLD_MS - held)
                         if (mood == HeroMood.CHARGING) startBurst()
                     }
                 while (true) {
@@ -158,9 +167,11 @@ fun HeroPim(
                         }
                     }
                     mood == HeroMood.CHARGING -> {
-                        // let go too early: he calms down
+                        // let go too early: he springs gently back to his normal size
                         mood = HeroMood.CALM
-                        scope.launch { charge.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy)) }
+                        scope.launch {
+                            charge.animateTo(0f, releaseSpring())
+                        }
                     }
                     else -> {
                         haptics.tick()
@@ -198,11 +209,17 @@ fun HeroPim(
                     Modifier
                         .offset { IntOffset(drag.value.x.roundToInt(), drag.value.y.roundToInt()) }
                         .graphicsLayer {
-                            val c = charge.value
-                            val s = 1f + GROW * c
-                            scaleX = s
-                            scaleY = s
-                            translationX = sin(driver.now * SHAKE_SPEED) * SHAKE * c * c * density
+                            // one layer for body, face and leaf: the leaf can never come loose
+                            val c = charge.value.coerceAtLeast(0f)
+                            val tense = 1f + sin(driver.now * TENSE_SPEED) * TENSE * c
+                            val s = PimEgg.scale(c)
+                            scaleX = s / tense
+                            scaleY = s * tense
+                            val shake = PimEgg.shakeDp(c) * density
+                            val t = driver.now.toFloat()
+                            translationX = (sin(t * SHAKE_A) + SHAKE_MIX * sin(t * SHAKE_B)) * shake
+                            translationY = sin(t * SHAKE_C) * shake * SHAKE_MIX
+                            rotationZ = sin(t * SHAKE_B) * TREMBLE_DEG * c * c
                             transformOrigin = TransformOrigin(0.5f, GROW_FROM)
                         }.then(gestures),
                 overlay = { base ->
@@ -210,7 +227,7 @@ fun HeroPim(
                     heroPose(base, mood, charge.value, velocity, driver.now - moodSince)
                 },
                 colors = {
-                    val c = charge.value
+                    val c = charge.value.coerceIn(0f, 1f)
                     LightPimColors.copy(
                         body = lerp(LightPimColors.body, GLOW_BODY, c),
                         leaf = lerp(LightPimColors.leaf, GLOW_LEAF, c),
@@ -219,10 +236,14 @@ fun HeroPim(
             )
         }
         if (bursting) {
-            Canvas(Modifier.size(size)) { drawBurst(pieces, burst.value) }
+            // the burst starts as big as Pim was at the end, so leaves fly over the whole page
+            Canvas(Modifier.requiredSize(size * BURST_SPREAD)) { drawBurst(pieces, burst.value) }
         }
     }
 }
+
+/** Soft, slightly bouncy way back to normal size when the finger lets go early. */
+private fun releaseSpring() = spring<Float>(dampingRatio = RELEASE_DAMPING, stiffness = Spring.StiffnessMediumLow)
 
 /** What the big Pim is going through right now. */
 internal enum class HeroMood { CALM, DRAGGED, RELIEVED, CHARGING }
@@ -353,16 +374,18 @@ private val BURST_COLORS =
         Color(color = 0xFFDCF3E6),
         Color.White,
     )
-private const val CHARGE_DELAY_MS = 350L
-private const val CHARGE_MS = 2150
-private const val CHARGE_TICK_SLOW = 220f
-private const val CHARGE_TICK_FAST = 55f
-private const val BURST_MS = 850
+private const val BURST_MS = 900
+private const val BURST_SPREAD = 4
 private const val RETURN_DELAY_MS = 600L
-private const val GROW = 0.55f
-private const val GROW_FROM = 0.8f
-private const val SHAKE = 3.5f
-private const val SHAKE_SPEED = 0.09f
+private const val GROW_FROM = 0.5f
+private const val RELEASE_DAMPING = 0.55f
+private const val TENSE = 0.035f
+private const val TENSE_SPEED = 0.012f
+private const val SHAKE_A = 0.11f
+private const val SHAKE_B = 0.23f
+private const val SHAKE_C = 0.17f
+private const val SHAKE_MIX = 0.45f
+private const val TREMBLE_DEG = 2.5f
 private const val HOME_DAMPING = 0.42f
 private const val RELIEF_MS = 1100L
 private const val RELIEF_BLUSH = 0.5f

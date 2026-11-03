@@ -57,6 +57,18 @@ enum class HainHaptic {
 
     /** Two tiles merge in 2048. */
     MERGE,
+
+    /** A long-press or context menu opens (the ⋯ menus). */
+    MENU,
+
+    /** A destructive choice is confirmed (delete a chat): one firm click. */
+    CONFIRM,
+
+    /** A pull gesture passes the point where letting go does something: the softest tick. */
+    PULL,
+
+    /** Pim's easter egg bursts: a deep thud with a light tick after it. */
+    BURST,
 }
 
 /** One primitive of a pattern: [primitive] = a VibrationEffect.Composition primitive id. */
@@ -88,17 +100,28 @@ fun HainHaptic.pattern(): List<HapticStep> =
         HainHaptic.ERROR -> listOf(HapticStep(P_CLICK, 0.6f), HapticStep(P_QUICK_FALL, 0.5f, delayMs = 50))
         HainHaptic.TICK -> listOf(HapticStep(P_TICK, 0.5f))
         HainHaptic.MERGE -> listOf(HapticStep(P_CLICK, 0.5f))
+        HainHaptic.MENU -> listOf(HapticStep(P_TICK, 0.55f))
+        HainHaptic.CONFIRM -> listOf(HapticStep(P_CLICK, 0.8f))
+        HainHaptic.PULL -> listOf(HapticStep(P_LOW_TICK, 0.7f))
+        HainHaptic.BURST -> listOf(HapticStep(P_THUD, 1f), HapticStep(P_TICK, 0.5f, delayMs = 60))
     }
 
 /** The framework constant used when the phone cannot play the primitives (pure, unit-tested). */
 fun HainHaptic.fallback(): Int =
     when (this) {
         HainHaptic.SEND -> HapticFeedbackConstants.KEYBOARD_TAP
-        HainHaptic.TOGGLE, HainHaptic.SELECT, HainHaptic.TICK, HainHaptic.MERGE -> HapticFeedbackConstants.CLOCK_TICK
+        HainHaptic.TOGGLE, HainHaptic.SELECT, HainHaptic.TICK, HainHaptic.MERGE, HainHaptic.PULL ->
+            HapticFeedbackConstants.CLOCK_TICK
+        HainHaptic.MENU, HainHaptic.BURST -> HapticFeedbackConstants.LONG_PRESS
+        HainHaptic.CONFIRM -> HapticFeedbackConstants.VIRTUAL_KEY
         HainHaptic.DONE -> HapticFeedbackConstants.CONTEXT_CLICK
         HainHaptic.LONG_PRESS -> HapticFeedbackConstants.LONG_PRESS
         HainHaptic.ERROR ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) HapticFeedbackConstants.REJECT else HapticFeedbackConstants.LONG_PRESS
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                HapticFeedbackConstants.REJECT
+            } else {
+                HapticFeedbackConstants.LONG_PRESS
+            }
     }
 
 /** [steps] scaled for [level]; empty when off. Strength stays within 0..1. */
@@ -154,16 +177,24 @@ class HainHaptics(
 
     fun toolConfirm() = perform(HainHaptic.TOGGLE)
 
+    fun menu() = perform(HainHaptic.MENU)
+
+    fun confirm() = perform(HainHaptic.CONFIRM)
+
+    fun pull() = perform(HainHaptic.PULL)
+
+    fun burst() = perform(HainHaptic.BURST)
+
     /** 2048: bigger tiles merge a little firmer. */
     fun merge(value: Int) = perform(HainHaptic.MERGE, mergeStrength(value))
 
-    /** Easter egg charge, [progress] 0–1: ticks that grow into a thud. */
+    /**
+     * Easter egg charge, [progress] 0–1: short primitives that get firmer (LOW_TICK → TICK → CLICK);
+     * the caller makes them denser ([chargeGapMs]). Never one long vibration.
+     */
     fun charge(progress: Float) {
-        when {
-            progress < CHARGE_LOW -> perform(HainHaptic.SELECT, CHARGE_BASE + progress)
-            progress < CHARGE_MID -> perform(HainHaptic.TICK, CHARGE_BASE + progress)
-            else -> perform(HainHaptic.SEND, CHARGE_BASE + progress)
-        }
+        val p = progress.coerceIn(0f, 1f)
+        perform(chargeMoment(p), chargeStrength(p))
     }
 
     private fun touchFeedbackOn(): Boolean =
@@ -200,10 +231,6 @@ class HainHaptics(
     }
 
     private companion object {
-        const val CHARGE_LOW = 0.35f
-        const val CHARGE_MID = 0.7f
-        const val CHARGE_BASE = 0.3f
-
         fun vibratorOf(context: Context): Vibrator? =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 context.getSystemService(VibratorManager::class.java)?.defaultVibrator
@@ -225,6 +252,31 @@ fun mergeStrength(value: Int): Float {
     return (MERGE_BASE + bits * MERGE_STEP).coerceIn(MERGE_BASE, 1f)
 }
 
+/** Which short primitive the easter egg charge plays at [progress] (pure). */
+fun chargeMoment(progress: Float): HainHaptic =
+    when {
+        progress < CHARGE_LOW -> HainHaptic.SELECT
+        progress < CHARGE_MID -> HainHaptic.TICK
+        else -> HainHaptic.SEND
+    }
+
+/** Charge strength, rising with [progress] from 0.3 to 1 (pure). */
+fun chargeStrength(progress: Float): Float {
+    val p = progress.coerceIn(0f, 1f)
+    return CHARGE_BASE + (1f - CHARGE_BASE) * p
+}
+
+/** Gap between two charge pulses: from 260 ms down to 45 ms, so they get denser (pure). */
+fun chargeGapMs(progress: Float): Long {
+    val p = progress.coerceIn(0f, 1f)
+    return (CHARGE_GAP_SLOW - (CHARGE_GAP_SLOW - CHARGE_GAP_FAST) * p * p).toLong()
+}
+
+private const val CHARGE_LOW = 0.35f
+private const val CHARGE_MID = 0.7f
+private const val CHARGE_BASE = 0.3f
+private const val CHARGE_GAP_SLOW = 260f
+private const val CHARGE_GAP_FAST = 45f
 private const val MIN_SCALE = 0.05f
 private const val MERGE_BASE = 0.45f
 private const val MERGE_STEP = 0.05f

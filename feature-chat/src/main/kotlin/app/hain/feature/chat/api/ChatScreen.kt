@@ -453,7 +453,7 @@ private fun Answer(
         if (message.streaming && waiting) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // T-089: a real Pim, 30 dp, the leaf wiggling while he thinks
-                LivePim(PimState.THINKING, 30.dp, tappable = false)
+                LivePim(PimState.THINKING, 28.dp, tappable = false)
                 Spacer(Modifier.width(10.dp))
                 BasicText(stringResource(R.string.chat_thinking), style = type.bodySmall.copy(color = colors.textMuted))
             }

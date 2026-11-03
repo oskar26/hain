@@ -73,4 +73,47 @@ class HapticsTest {
         assertTrue(mergeStrength(4) < mergeStrength(64))
         assertEquals(1f, mergeStrength(2048), 0.001f)
     }
+
+    @Test
+    fun `the easter egg charge gets denser and firmer`() {
+        assertTrue(chargeGapMs(0f) > chargeGapMs(0.5f))
+        assertTrue(chargeGapMs(0.5f) > chargeGapMs(1f))
+        assertTrue(chargeGapMs(1f) >= 40L)
+        assertTrue(chargeStrength(0f) < chargeStrength(0.5f))
+        assertEquals(1f, chargeStrength(1f), 0.0001f)
+        assertEquals(HainHaptic.SELECT, chargeMoment(0.1f))
+        assertEquals(HainHaptic.SEND, chargeMoment(0.95f))
+    }
+
+    @Test
+    fun `menus, confirm, pull and burst are short primitives`() {
+        assertEquals(
+            P_TICK,
+            HainHaptic.MENU
+                .pattern()
+                .single()
+                .primitive,
+        )
+        assertEquals(
+            P_CLICK,
+            HainHaptic.CONFIRM
+                .pattern()
+                .single()
+                .primitive,
+        )
+        assertEquals(
+            P_LOW_TICK,
+            HainHaptic.PULL
+                .pattern()
+                .single()
+                .primitive,
+        )
+        assertEquals(
+            P_THUD,
+            HainHaptic.BURST
+                .pattern()
+                .first()
+                .primitive,
+        )
+    }
 }
