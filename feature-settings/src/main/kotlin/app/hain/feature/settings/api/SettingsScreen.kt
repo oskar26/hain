@@ -43,6 +43,8 @@ import app.hain.ui.components.Hain3DIcon
 import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.TopBar
 import app.hain.ui.components.pressScale
+import app.hain.ui.pim.LivePim
+import app.hain.ui.pim.PimState
 import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
@@ -121,7 +123,19 @@ private fun Hub(
     actions: SettingsActions,
     open: (SettingsPage) -> Unit,
 ) {
-    Spacer(Modifier.height(LocalHainSpacing.current.xs))
+    // T-089: Pim greets you at the top of the settings
+    Row(
+        Modifier.fillMaxWidth().padding(top = LocalHainSpacing.current.xs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.md),
+    ) {
+        LivePim(PimState.IDLE, HEADER_PIM.dp)
+        BasicText(
+            stringResource(R.string.settings_hub_hello),
+            style = LocalHainTypography.current.body.copy(color = LocalHainColors.current.textMuted),
+            modifier = Modifier.weight(1f),
+        )
+    }
     Tile(SettingsPage.LOOK.icon, SettingsPage.LOOK.hue, R.string.settings_group_look, R.string.settings_look_hint) {
         open(SettingsPage.LOOK)
     }
@@ -200,3 +214,5 @@ private fun Tile(
         )
     }
 }
+
+private const val HEADER_PIM = 56

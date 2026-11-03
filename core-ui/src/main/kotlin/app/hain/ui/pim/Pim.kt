@@ -45,25 +45,32 @@ fun Pim(
     PimCanvas(pose = { pose }, size = size, modifier = modifier)
 }
 
-/** Draws the pose [pose] returns, flat and calm; contact shadow when [shadowLift] is set. */
+/**
+ * Draws the pose [pose] returns, flat and calm; contact shadow when [shadowLift] is set. [size] is
+ * Pim's own size (T-089): the canvas shows the 108-unit frame around him, not the old 144-unit
+ * viewBox, so a 30 dp Pim really looks 30 dp. Hops and fx may draw a little outside the canvas.
+ * [colors] overrides the palette (the 2048 easter egg makes him glow).
+ */
 @Composable
 internal fun PimCanvas(
     pose: () -> PimPose,
     size: Dp,
     modifier: Modifier = Modifier,
     shadowLift: Float? = null,
+    colors: (() -> PimColors)? = null,
 ) {
-    val colors = if (LocalHainColors.current.bg.luminance() < DARK_BG_LUMINANCE) DarkPimColors else LightPimColors
+    val palette = if (LocalHainColors.current.bg.luminance() < DARK_BG_LUMINANCE) DarkPimColors else LightPimColors
     val showVein = size >= 64.dp
     // [pose] is read while drawing, so an animated Pim only redraws and never recomposes.
     Canvas(modifier = modifier.size(size)) {
         val now = pose()
-        // viewBox -12 -18 144 144 → fit the 144-unit box into the canvas
-        val fit = this.size.minDimension / PimGeometry.VIEW_BOX_SIZE
+        val fit = this.size.minDimension / PimGeometry.FRAME_SIZE
+        val origin = PimGeometry.FRAME_TOP_LEFT - Offset(PimGeometry.VIEW_BOX_X, PimGeometry.VIEW_BOX_Y)
         scale(fit, fit, Offset.Zero) {
-            if (shadowLift != null) drawContactShadow(-now.y + shadowLift, now.sx)
-            // Lichtung (STYLE_OPTIONS.md): flat and calm, no glossy jelly
-            drawPim(now, colors, showVein)
+            translate(-origin.x, -origin.y) {
+                if (shadowLift != null) drawContactShadow(-now.y + shadowLift, now.sx)
+                drawPim(now, colors?.invoke() ?: palette, showVein)
+            }
         }
     }
 }
@@ -251,3 +258,12 @@ private const val SHADOW_W = 44f
 private const val SHADOW_H = 5f
 private const val SHADOW_ALPHA = 0.07f
 private const val SHADOW_LIFT_FADE = 0.03f
+
+/** A still frame of [pose] for the screenshot frame tests. */
+@Composable
+internal fun PimCanvasForTest(
+    pose: PimPose,
+    size: Dp,
+) {
+    PimCanvas(pose = { pose }, size = size, shadowLift = 0f)
+}

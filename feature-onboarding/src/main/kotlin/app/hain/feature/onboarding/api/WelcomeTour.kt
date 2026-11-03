@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.sp
 import app.hain.feature.onboarding.R
 import app.hain.ui.components.HainButton
 import app.hain.ui.components.HainButtonStyle
-import app.hain.ui.pim.JuicyPim
+import app.hain.ui.pim.LivePim
 import app.hain.ui.pim.PimState
 import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.LocalHainColors
@@ -107,7 +107,7 @@ fun WelcomeTour(
                             .calmTile(CircleShape, shadow = KNOB_ELEVATION),
                         contentAlignment = Alignment.Center,
                     ) {
-                        JuicyPim(PimState.HAPPY, KNOB * PIM_SHARE)
+                        LivePim(PimState.HAPPY, KNOB * PIM_SHARE * TIGHT)
                     }
                 } else {
                     GlassBubble(HERO_BUBBLE, page.glow) { HeroObject(page.hero, HERO_SIZE) }
@@ -173,3 +173,6 @@ private const val PIM_SHARE = 0.72f
 private val TITLE_SIZE = 32.sp
 private val DOT = 8.dp
 private val DOT_ACTIVE = 22.dp
+
+/** Pim now fills his canvas (T-089), so the same knob needs a smaller one. */
+private const val TIGHT = 0.75f

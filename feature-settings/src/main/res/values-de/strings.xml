@@ -74,4 +74,5 @@
     <string name="settings_haptics_normal">Normal</string>
     <string name="settings_haptics_strong">Kräftig</string>
     <string name="settings_haptics_hint">Kurze, feine Klicks statt Brummen. Ist die Berührungsvibration am Handy aus, bleibt auch Hain still.</string>
+    <string name="settings_hub_hello">Hier stellst du Hain so ein, wie du es magst.</string>
 </resources>

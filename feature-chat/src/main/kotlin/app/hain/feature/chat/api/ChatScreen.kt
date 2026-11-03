@@ -91,8 +91,7 @@ import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainTween
 import app.hain.ui.motion.motionSpec
 import app.hain.ui.motion.rememberHainHaptics
-import app.hain.ui.pim.JuicyPim
-import app.hain.ui.pim.Pim
+import app.hain.ui.pim.LivePim
 import app.hain.ui.pim.PimState
 import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.HainLevel
@@ -314,7 +313,7 @@ internal fun Greeting(
                 .padding(horizontal = spacing.xl, vertical = spacing.lg),
             verticalArrangement = Arrangement.spacedBy(spacing.md, Alignment.CenterVertically),
         ) {
-            JuicyPim(PimState.HAPPY, if (roomy) 64.dp else 48.dp)
+            LivePim(PimState.HAPPY, if (roomy) 140.dp else 64.dp)
             BasicText(
                 "$hello\n" + stringResource(R.string.chat_hello_question),
                 style = type.display.copy(color = colors.text),
@@ -393,6 +392,19 @@ internal fun MessageList(
             listState.scrollToItem(state.messages.lastIndex, Int.MAX_VALUE / 2)
         }
     }
+    // T-089: the answer that just finished gets a happy Pim for two seconds (not after an error or stop)
+    var cheerId by remember { mutableStateOf<Long?>(null) }
+    var wasGenerating by remember { mutableStateOf(state.isGenerating) }
+    LaunchedEffect(state.isGenerating) {
+        val done = wasGenerating && !state.isGenerating
+        wasGenerating = state.isGenerating
+        val answer = state.messages.lastOrNull()
+        if (done && answer != null && !answer.isUser && state.error == null && !answer.stopped) {
+            cheerId = answer.id
+            delay(CHEER_MS)
+            cheerId = null
+        }
+    }
     val scope = rememberCoroutineScope()
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -418,6 +430,7 @@ internal fun MessageList(
                 } else {
                     Answer(
                         message,
+                        cheer = cheerId == message.id,
                         rating = ratings[message.id],
                         canRetry = !state.isGenerating,
                         onRetry = { onRetry(message.id) },
@@ -524,6 +537,7 @@ private fun Answer(
     onRetry: () -> Unit,
     onRate: (Rating) -> Unit,
     onAction: (Int, ActionEvent) -> Unit = { _, _ -> },
+    cheer: Boolean = false,
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
@@ -539,8 +553,9 @@ private fun Answer(
         val waiting = message.text.isEmpty() && message.reasoning == null && message.steps.isEmpty()
         if (message.streaming && waiting) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Pim(PimState.THINKING, 28.dp)
-                Spacer(Modifier.width(8.dp))
+                // T-089: a real Pim, 30 dp, the leaf wiggling while he thinks
+                LivePim(PimState.THINKING, 30.dp, tappable = false)
+                Spacer(Modifier.width(10.dp))
                 BasicText(stringResource(R.string.chat_thinking), style = type.bodySmall.copy(color = colors.textMuted))
             }
         } else {
@@ -559,6 +574,14 @@ private fun Answer(
             }
             if (message.stopped) {
                 BasicText(stringResource(R.string.chat_stopped), style = type.label.copy(color = colors.textMuted))
+            }
+            // T-089: Pim jumps for joy for a moment when the answer is done
+            AnimatedVisibility(
+                cheer,
+                enter = fadeIn(hainTween(HainMotion.FAST_MS)),
+                exit = fadeOut(hainTween(HainMotion.PAGE_MS)),
+            ) {
+                LivePim(PimState.HAPPY, CHEER_PIM.dp, Modifier.padding(top = 4.dp), tappable = false)
             }
         }
     }
@@ -635,11 +658,15 @@ private fun ErrorLine(
             ChatError.CONTEXT_FULL -> stringResource(R.string.chat_error_context)
             else -> stringResource(R.string.chat_error_generation)
         }
-    BasicText(
-        text,
-        style = LocalHainTypography.current.bodySmall.copy(color = colors.danger),
-        modifier = Modifier.padding(horizontal = LocalHainSpacing.current.lg),
-    )
+    // T-089: Pim gets a fright next to the error
+    Row(
+        Modifier.padding(horizontal = LocalHainSpacing.current.lg),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        LivePim(PimState.ERROR, ERROR_PIM.dp, tappable = false)
+        Spacer(Modifier.width(LocalHainSpacing.current.sm))
+        BasicText(text, style = LocalHainTypography.current.bodySmall.copy(color = colors.danger))
+    }
 }
 
 /** Quiet reminder while the brain is missing: one line, a button, "later" hides it until next start. */
@@ -659,7 +686,7 @@ private fun BrainBanner(
             .padding(start = spacing.md, top = spacing.sm, bottom = spacing.sm, end = spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Pim(PimState.SLEEPING, 32.dp)
+        LivePim(PimState.SLEEPING, 32.dp, tappable = false)
         Spacer(Modifier.width(spacing.sm))
         BasicText(
             stringResource(R.string.chat_brain_banner),
@@ -715,3 +742,6 @@ private const val ROOMY_HEIGHT = 420
 private const val COPIED_MS = 1500L
 
 private const val SLIDE_DIV = 14
+private const val CHEER_PIM = 28
+private const val CHEER_MS = 2_200L
+private const val ERROR_PIM = 28
