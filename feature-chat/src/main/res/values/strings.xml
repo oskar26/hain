@@ -82,4 +82,19 @@
     <string name="chat_mode_auto">Auto</string>
     <string name="chat_mode_fast">Fast</string>
     <string name="chat_mode_thorough">Thorough</string>
+    <!-- T-084 thinking picker in the message box -->
+    <string name="chat_mode_auto_hint">Pim decides for himself</string>
+    <string name="chat_mode_fast_hint">Answers right away, without thinking</string>
+    <string name="chat_mode_thorough_hint">Thinks longer, for hard questions</string>
+    <string name="chat_mode_button">Thinking: %1$s. Tap to change</string>
+    <string name="chat_mode_selected">%1$s, selected</string>
+    <!-- T-011 empty chat -->
+    <string name="chat_hello_morning">Good morning,</string>
+    <string name="chat_hello_day">Hello,</string>
+    <string name="chat_hello_evening">Good evening,</string>
+    <string name="chat_hello_question">what can I do for you?</string>
+    <!-- T-085 long texts -->
+    <string name="chat_show_more">Show more</string>
+    <string name="chat_show_less">Show less</string>
+    <string name="chat_scroll_down">Jump to the newest message</string>
 </resources>

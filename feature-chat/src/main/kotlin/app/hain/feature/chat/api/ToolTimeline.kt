@@ -5,12 +5,18 @@ import android.net.Uri
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,27 +27,35 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.hain.feature.chat.R
 import app.hain.feature.chat.internal.ChatEngine
 import app.hain.feature.chat.internal.SourceRef
 import app.hain.feature.chat.internal.StepState
 import app.hain.feature.chat.internal.ToolStep
+import app.hain.ui.components.Hain3D
+import app.hain.ui.components.Hain3DIcon
 import app.hain.ui.components.HainChip
 import app.hain.ui.components.PulsingDot
 import app.hain.ui.motion.LocalReduceMotion
+import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
+import app.hain.ui.theme.glassTile
 
 /**
- * What Pim did for an answer (T-059): one chip per tool call — pulsing while it runs, a ✓ that pops
- * in when done, ✕ when it failed — and an orange dot when it went online.
+ * What Pim did for an answer (T-059), since T-011 as one glass tool card that glows in the colour of
+ * the first tool: a row per tool call with its small 3D icon — pulsing while it runs, a ✓ that pops
+ * in when done, ✕ when it failed — and an orange dot when it went online. Long rows wrap onto a
+ * second line instead of running off the card (T-085).
  */
 @Composable
 internal fun ToolTimeline(
@@ -49,14 +63,40 @@ internal fun ToolTimeline(
     modifier: Modifier = Modifier,
 ) {
     if (steps.isEmpty()) return
-    FlowRow(
-        modifier.fillMaxWidth().padding(bottom = LocalHainSpacing.current.sm),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+    val spacing = LocalHainSpacing.current
+    Column(
+        modifier
+            .padding(bottom = spacing.md)
+            .fillMaxWidth()
+            .glassTile(toolHue(steps.first().name), elevation = 6.dp, lightAt = Offset(x = 0.08f, y = 0.5f))
+            .padding(horizontal = spacing.md, vertical = spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(spacing.xs),
     ) {
-        steps.forEach { ToolChip(it) }
+        steps.forEach { ToolRow(it) }
     }
 }
+
+/** The 3D icon of a tool. */
+internal fun toolIcon(name: String): Hain3D =
+    when (name) {
+        "calculate" -> Hain3D.CALCULATOR
+        "weather" -> Hain3D.WEATHER
+        "wikipedia" -> Hain3D.BOOK
+        ChatEngine.SEARCH_TOOL -> Hain3D.SEARCH
+        "read_page", ChatEngine.READ_STEP -> Hain3D.DOCUMENT
+        else -> Hain3D.SPARKLES
+    }
+
+/** The colour that glows inside a tool's card. */
+internal fun toolHue(name: String): GlowHue =
+    when (name) {
+        "calculate" -> GlowHue.PEACH
+        "weather" -> GlowHue.SUN
+        "wikipedia" -> GlowHue.SKY
+        ChatEngine.SEARCH_TOOL -> GlowHue.LILAC
+        "read_page", ChatEngine.READ_STEP -> GlowHue.TEAL
+        else -> GlowHue.MINT
+    }
 
 @Composable
 private fun toolText(step: ToolStep): String {
@@ -94,8 +134,9 @@ private fun readPagesText(step: ToolStep): String {
 }
 
 @Composable
-private fun ToolChip(step: ToolStep) {
+private fun ToolRow(step: ToolStep) {
     val colors = LocalHainColors.current
+    val spacing = LocalHainSpacing.current
     val text = toolText(step)
     // The ✓ pops in only when a step finishes while you watch, not for old answers.
     val reduce = LocalReduceMotion.current
@@ -108,24 +149,36 @@ private fun ToolChip(step: ToolStep) {
         }
         seen = step.state
     }
-    HainChip(
-        text = text,
-        dot = if (step.online && step.state != StepState.RUNNING) colors.online else null,
-        leading = {
-            when (step.state) {
-                StepState.RUNNING -> PulsingDot(if (step.online) colors.online else colors.accent)
-                StepState.DONE ->
-                    BasicText(
-                        "✓",
-                        style = LocalHainTypography.current.label.copy(color = colors.accent),
-                        modifier = Modifier.scale(pop.value),
-                    )
-                StepState.FAILED ->
-                    BasicText("✕", style = LocalHainTypography.current.label.copy(color = colors.danger))
-            }
-        },
-        modifier = Modifier.semantics { contentDescription = text },
-    )
+    Row(
+        Modifier.fillMaxWidth().semantics(mergeDescendants = true) { contentDescription = text },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Hain3DIcon(toolIcon(step.name), size = 28.dp)
+        Spacer(Modifier.width(spacing.sm))
+        BasicText(
+            text,
+            style = LocalHainTypography.current.bodySmall.copy(color = colors.text),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(Modifier.width(spacing.sm))
+        if (step.online && step.state != StepState.RUNNING) {
+            Box(Modifier.size(7.dp).background(colors.online, CircleShape))
+            Spacer(Modifier.width(6.dp))
+        }
+        when (step.state) {
+            StepState.RUNNING -> PulsingDot(if (step.online) colors.online else colors.accent)
+            StepState.DONE ->
+                BasicText(
+                    "✓",
+                    style = LocalHainTypography.current.label.copy(color = colors.accent),
+                    modifier = Modifier.scale(pop.value),
+                )
+            StepState.FAILED ->
+                BasicText("✕", style = LocalHainTypography.current.label.copy(color = colors.danger))
+        }
+    }
 }
 
 /** The pages an answer is based on; tap one to open it in the browser. */

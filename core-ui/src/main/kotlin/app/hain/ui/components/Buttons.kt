@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -12,26 +13,32 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.hain.ui.motion.LocalReduceMotion
+import app.hain.ui.motion.rememberHainHaptics
 import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
@@ -40,8 +47,9 @@ import app.hain.ui.theme.LocalHainTypography
 import app.hain.ui.theme.hainSurface
 
 /**
- * Text button (T-010): a capsule. Primary = Hain green with a very light dome, secondary = raised
- * white pill with a hairline and a soft shadow, ghost = text only. All press in a little.
+ * Text button (T-011): a domed capsule. Primary = Hain green with a clear inner gradient, a light
+ * top edge and a soft green shadow; dark = the same dome in almost black; secondary = raised white
+ * pill; ghost = text only. All press in (scale 0.96) with a light tick.
  */
 @Composable
 fun HainButton(
@@ -54,51 +62,142 @@ fun HainButton(
     val colors = LocalHainColors.current
     val shape = LocalHainShapes.current.button
     val spacing = LocalHainSpacing.current
-    val (bg, fg) =
+    val fg =
         when (style) {
-            HainButtonStyle.PRIMARY -> colors.accent to colors.onAccent
-            HainButtonStyle.SECONDARY -> Color.Transparent to colors.text
-            HainButtonStyle.GHOST -> Color.Transparent to colors.accent
-        }
-    // light 3D touch (2e): primary pills are slightly domed and press in on tap
-    val fill =
-        if (style == HainButtonStyle.PRIMARY) {
-            Brush.verticalGradient(listOf(lerp(bg, Color.White, DOME_LIGHT), bg, lerp(bg, Color.Black, DOME_SHADE)))
-        } else {
-            SolidColor(bg)
+            HainButtonStyle.PRIMARY -> colors.onAccent
+            HainButtonStyle.DARK -> colors.bg
+            HainButtonStyle.SECONDARY -> colors.text
+            HainButtonStyle.GHOST -> colors.accent
         }
     val interaction = remember { MutableInteractionSource() }
-    val pressed by interaction.collectIsPressedAsState()
-    val reduce = LocalReduceMotion.current
-    val scale by animateFloatAsState(
-        if (pressed && !reduce) PRESSED_SCALE else 1f,
-        spring(dampingRatio = PRESS_DAMPING, stiffness = PRESS_STIFFNESS),
-        label = "button-press",
-    )
+    val scale = pressScale(interaction)
+    val haptics = rememberHainHaptics()
     Box(
         modifier =
             modifier
                 .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                }.defaultMinSize(minHeight = 48.dp)
+                    scaleX = scale.value
+                    scaleY = scale.value
+                }.defaultMinSize(minHeight = 52.dp)
                 .alpha(if (enabled) 1f else DISABLED_ALPHA)
                 .then(
-                    if (style == HainButtonStyle.SECONDARY) {
-                        Modifier.hainSurface(HainLevel.RAISED, shape)
-                    } else {
-                        Modifier.clip(shape).background(fill, shape)
+                    when (style) {
+                        HainButtonStyle.PRIMARY -> Modifier.dome(colors.accent, shape)
+                        HainButtonStyle.DARK -> Modifier.dome(colors.text, shape)
+                        HainButtonStyle.SECONDARY -> Modifier.hainSurface(HainLevel.RAISED, shape)
+                        HainButtonStyle.GHOST -> Modifier.clip(shape)
                     },
                 ).clickable(
                     interactionSource = interaction,
                     indication = null,
                     enabled = enabled,
                     role = Role.Button,
-                    onClick = onClick,
+                    onClick = {
+                        if (style != HainButtonStyle.GHOST) haptics.send()
+                        onClick()
+                    },
                 ).padding(horizontal = spacing.lg, vertical = spacing.md),
         contentAlignment = Alignment.Center,
     ) {
-        BasicText(text, style = LocalHainTypography.current.button.copy(color = fg))
+        BasicText(
+            text,
+            style = LocalHainTypography.current.button.copy(color = fg, textAlign = TextAlign.Center),
+        )
+    }
+}
+
+/**
+ * The dome of the app (T-011): [color] with a light top and a deeper bottom, a white sheen on the
+ * upper half, a bright top edge and a soft shadow in the same colour. Buttons, send, the Pim knob.
+ */
+@Composable
+fun Modifier.dome(
+    color: Color,
+    shape: Shape,
+    elevation: Dp = DOME_ELEVATION.dp,
+): Modifier {
+    val top = lerp(color, Color.White, DOME_LIGHT)
+    val bottom = lerp(color, Color.Black, DOME_SHADE)
+    return this
+        .shadow(
+            elevation,
+            shape,
+            clip = false,
+            ambientColor = color.copy(alpha = DOME_SHADOW),
+            spotColor = color.copy(alpha = DOME_SHADOW),
+        ).clip(shape)
+        .background(Brush.verticalGradient(listOf(top, color, bottom)), shape)
+        .drawBehind {
+            drawRect(
+                Brush.verticalGradient(
+                    0f to Color.White.copy(alpha = DOME_SHEEN),
+                    DOME_SHEEN_END to Color.White.copy(alpha = 0f),
+                ),
+            )
+        }.border(
+            1.dp,
+            Brush.verticalGradient(listOf(Color.White.copy(alpha = DOME_EDGE), Color.White.copy(alpha = 0f))),
+            shape,
+        )
+}
+
+/** Press-in spring (scale 0.96) shared by every tappable dome; still with reduced motion. */
+@Composable
+fun pressScale(interaction: MutableInteractionSource): State<Float> {
+    val pressed by interaction.collectIsPressedAsState()
+    val reduce = LocalReduceMotion.current
+    return animateFloatAsState(
+        if (pressed && !reduce) PRESSED_SCALE else 1f,
+        spring(dampingRatio = PRESS_DAMPING, stiffness = PRESS_STIFFNESS),
+        label = "press",
+    )
+}
+
+/** Round domed icon button (send, Pim knob): [color] dome, white icon, presses in with a tick. */
+@Suppress("LongParameterList") // optional styling parameters with defaults
+@Composable
+fun DomeIconButton(
+    icon: Painter,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    color: Color = LocalHainColors.current.accent,
+    tint: Color = LocalHainColors.current.onAccent,
+    enabled: Boolean = true,
+    size: Dp = 44.dp,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val scale = pressScale(interaction)
+    val haptics = rememberHainHaptics()
+    val c = LocalHainColors.current
+    // disabled: a quiet grey dome instead of a washed-out green one
+    val fill = if (enabled) color else c.surfaceHigh
+    Box(
+        modifier
+            .graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+            }.size(size)
+            .dome(fill, CircleShape, if (enabled) DOME_ELEVATION.dp else 0.dp)
+            .clickable(
+                interactionSource = interaction,
+                indication = null,
+                enabled = enabled,
+                role = Role.Button,
+                onClickLabel = contentDescription,
+                onClick = {
+                    haptics.send()
+                    onClick()
+                },
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Image(
+            icon,
+            contentDescription,
+            colorFilter = ColorFilter.tint(if (enabled) tint else c.icon),
+            modifier = Modifier.size(size * ICON_SHARE),
+        )
     }
 }
 
@@ -172,5 +271,11 @@ internal const val DISABLED_ALPHA = 0.4f
 private const val PRESSED_SCALE = 0.96f
 private const val PRESS_DAMPING = 0.5f
 private const val PRESS_STIFFNESS = 600f
-private const val DOME_LIGHT = 0.08f
-private const val DOME_SHADE = 0.05f
+private const val DOME_LIGHT = 0.28f
+private const val DOME_SHADE = 0.14f
+private const val DOME_SHEEN = 0.32f
+private const val DOME_SHEEN_END = 0.48f
+private const val DOME_EDGE = 0.55f
+private const val DOME_SHADOW = 0.45f
+private const val DOME_ELEVATION = 8
+private const val ICON_SHARE = 0.45f

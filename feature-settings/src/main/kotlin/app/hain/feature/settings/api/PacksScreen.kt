@@ -20,7 +20,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hain.feature.settings.R
 import app.hain.models.api.DeviceCheck
@@ -30,13 +32,17 @@ import app.hain.models.api.Fit
 import app.hain.models.api.ModelInfo
 import app.hain.models.api.ModelRepository
 import app.hain.ui.HainIcons
+import app.hain.ui.components.Hain3D
+import app.hain.ui.components.Hain3DIcon
 import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.TopBar
+import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
+import app.hain.ui.theme.glassTile
 import app.hain.ui.theme.hainSurface
 
 private const val MB = 1_000_000L
@@ -89,15 +95,22 @@ private fun PackRow(
     val flow = remember(pack.id) { models.downloadState(pack) }
     val state by flow.collectAsStateWithLifecycle(DownloadState.Idle)
     val installed = state is DownloadState.Installed || models.isInstalled(pack)
+    // T-011: every knowledge pack is a glass tile; the brain glows blue, the other packs warm yellow
+    val hue = if (pack.isDefault) GlowHue.SKY else GlowHue.SUN
     Column(
         Modifier
             .fillMaxWidth()
-            .hainSurface(HainLevel.RAISED, LocalHainShapes.current.card)
+            .glassTile(hue, lightAt = Offset(x = 0.12f, y = 0.2f))
             .padding(spacing.lg),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
-        BasicText(pack.name, style = type.body.copy(color = colors.text))
-        BasicText(sizeText(pack.totalSize), style = type.label.copy(color = colors.textMuted))
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(spacing.md)) {
+            Hain3DIcon(if (pack.isDefault) Hain3D.HEAD else Hain3D.PARCEL, size = 40.dp)
+            Column(Modifier.weight(1f)) {
+                BasicText(pack.name, style = type.button.copy(color = colors.text))
+                BasicText(sizeText(pack.totalSize), style = type.label.copy(color = colors.textMuted))
+            }
+        }
         val fit = DeviceCheck.fit(pack, device)
         fitText(fit)?.let { BasicText(stringResource(it), style = type.label.copy(color = colors.danger)) }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(spacing.md)) {
