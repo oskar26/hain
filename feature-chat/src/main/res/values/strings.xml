@@ -79,4 +79,7 @@
     <string name="chat_online_hint">Hain is fetching something from the internet</string>
     <string name="chat_good_answer">Good answer</string>
     <string name="chat_bad_answer">Not a good answer</string>
+    <string name="chat_mode_auto">Auto</string>
+    <string name="chat_mode_fast">Fast</string>
+    <string name="chat_mode_thorough">Thorough</string>
 </resources>

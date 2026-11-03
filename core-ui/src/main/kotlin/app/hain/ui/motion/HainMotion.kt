@@ -64,6 +64,9 @@ object HainMotion {
     /** Pages and larger blocks cross-fade. */
     const val BASE_MS = 240
 
+    /** Screen changes (start page → chat, settings): fade + slide. */
+    const val PAGE_MS = 300
+
     /** The menu starts this small and grows to full size. */
     const val MENU_START_SCALE = 0.9f
 
