@@ -1,12 +1,9 @@
 package app.hain.ui.theme
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
@@ -41,26 +38,14 @@ fun Modifier.hainSurface(
     fill: Color? = null,
 ): Modifier {
     val c = LocalHainColors.current
+    val look = LocalHainStyle.current.look()
     return when (level) {
         HainLevel.FLAT -> clip(shape).background(fill ?: c.surface, shape)
-        // T-011 "calm, but with depth": a real soft shadow and a light top edge instead of a flat hairline
-        HainLevel.RAISED ->
-            shadow(level.shadowDp(), shape, clip = false, ambientColor = c.shadow, spotColor = c.shadow)
-                .clip(shape)
-                .background(fill ?: c.bg, shape)
-                .border(HAIRLINE.dp, Brush.verticalGradient(listOf(c.glassEdge, c.border)), shape)
-        HainLevel.FLOATING ->
-            if (fill == null) {
-                glassTile(GlowHue.CLEAR, shape, level.shadowDp(), floorGlow = false)
-            } else {
-                shadow(level.shadowDp(), shape, clip = false, ambientColor = c.shadow, spotColor = c.shadow)
-                    .clip(shape)
-                    .background(fill, shape)
-                    .border(HAIRLINE.dp, Brush.verticalGradient(listOf(c.glassEdge, c.border)), shape)
-            }
+        // style proposals: a calm card with a hairline (A) or soft mist (B), never a thick shadow
+        HainLevel.RAISED -> calmTile(shape, shadow = look.tileShadowDp.dp, fill = fill)
+        HainLevel.FLOATING -> calmTile(shape, shadow = look.floatingShadowDp.dp, fill = fill)
     }
 }
 
-private const val HAIRLINE = 1
 private const val RAISED_SHADOW = 6
 private const val FLOATING_SHADOW = 18

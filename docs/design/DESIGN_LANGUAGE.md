@@ -1,5 +1,9 @@
 # DESIGN_LANGUAGE.md — one design for the whole app: calm, but with depth (T-011, 03.11.2026)
 
+> **03.11.2026 late: superseded in parts by [STYLE_OPTIONS.md](STYLE_OPTIONS.md).** Oskar found the
+> 3D look too childish. Two calm proposals (A "Lichtung", B "Morgennebel") replace the coloured glass,
+> glossy icons, glossy Pim and Wabi bubbles until he picks one. Font, spacing and motion below stay.
+
 Owner brief (Oskar, 03.11.2026, after #20): *"Where is my 3D redesign? Where are my good design
 decisions?"* — #20 took *"don't overdo it"* too literally and made the app almost flat. This
 version keeps #20's calm order (one font, three radii, one motion language) and adds the **depth**

@@ -13,19 +13,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.max
 
 /**
- * Glass tile with an inner coloured light (T-011, DESIGN_LANGUAGE.md §4): strongly rounded, white
- * (or dark) glass, the [hue] shines from inside around [lightAt] (fractions of the tile, default
- * bottom centre), a bright light edge along the top, a glossy sheen over the upper half and a soft
- * shadow in the same colour below. Light always comes from the top left.
- *
- * Use it for every "object" of the app: settings groups, tool and answer cards, packs, the composer,
- * menus. The chat text itself never sits on one. [floorGlow] off for popups, whose window would cut it.
+ * Every "object" of the app (settings groups, tool and answer cards, packs, menus) sits on one of
+ * these. Since the style proposals (docs/design/STYLE_OPTIONS.md) there is no coloured glass any
+ * more: [hue] and [floorGlow] stay for the call sites, but every tile is lit the calm way of the
+ * active [HainStyle] (see [calmTile]). The chat text itself never sits on one.
  */
+@Suppress("UnusedParameter", "UNUSED_PARAMETER") // hue/elevation/floorGlow: kept so call sites stay stable
 @Composable
 fun Modifier.glassTile(
     hue: GlowHue = GlowHue.CLEAR,
@@ -33,30 +32,49 @@ fun Modifier.glassTile(
     elevation: Dp = TILE_ELEVATION.dp,
     lightAt: Offset = Offset(x = 0.5f, y = 1f),
     floorGlow: Boolean = true,
+): Modifier = calmTile(shape, lightAt)
+
+/**
+ * A calm surface in the active style.
+ * - Stil A "Lichtung": page-coloured (dark: surface) fill, one hairline edge, a 1 dp shadow.
+ * - Stil B "Morgennebel": a soft vertical gradient into pale green, a blurred green light around
+ *   [lightAt] (fractions of the tile), a faint light edge on top and a soft green-grey shadow.
+ */
+@Composable
+fun Modifier.calmTile(
+    shape: Shape = LocalHainShapes.current.tile,
+    lightAt: Offset = Offset(x = 0.5f, y = 0f),
+    shadow: Dp? = null,
+    fill: Color? = null,
 ): Modifier {
+    val c = LocalHainColors.current
+    val look = LocalHainStyle.current.look()
     val dark = isHainDark()
-    val s = glowStrength(dark)
-    val base = if (dark) DARK_GLASS else Color.White
+    val lift = shadow ?: look.tileShadowDp.dp
+    val base =
+        this
+            .shadow(lift, shape, clip = false, ambientColor = c.shadow, spotColor = c.shadow)
+            .clip(shape)
+    if (!look.mist) {
+        return base.background(fill ?: if (dark) c.surface else c.bg, shape).border(EDGE_WIDTH.dp, c.border, shape)
+    }
+    val top = fill ?: if (dark) c.surface else Color.White
+    val bottom = lerp(top, c.accentSoft, MIST_SHARE)
+    val glow = c.accent.copy(alpha = look.glowAlpha * if (dark) DARK_GLOW else 1f)
     val edge =
         Brush.verticalGradient(
-            listOf(
-                Color.White.copy(alpha = s.edge),
-                hue.core.copy(alpha = EDGE_TINT),
-            ),
+            listOf(c.glassEdge.copy(alpha = if (dark) DARK_EDGE else 1f), c.border),
         )
-    return this
-        .then(if (floorGlow) Modifier.drawBehind { drawFloorGlow(hue.core.copy(alpha = s.shadow)) } else Modifier)
-        .shadow(
-            elevation,
-            shape,
-            clip = false,
-            ambientColor = hue.core.copy(alpha = s.shadow),
-            spotColor = hue.core.copy(alpha = s.shadow),
-        ).clip(shape)
-        .background(base, shape)
+    return base
+        .background(Brush.verticalGradient(listOf(top, bottom)), shape)
         .drawBehind {
-            drawInnerLight(hue, s, dark, lightAt)
-            drawSheen(s.sheen)
+            drawRect(
+                Brush.radialGradient(
+                    listOf(glow, Color.Transparent),
+                    center = Offset(size.width * lightAt.x, size.height * lightAt.y),
+                    radius = max(size.width, size.height) * GLOW_RADIUS,
+                ),
+            )
         }.border(EDGE_WIDTH.dp, edge, shape)
 }
 
@@ -76,57 +94,13 @@ internal fun DrawScope.drawFloorGlow(color: Color) {
     }
 }
 
-/** The coloured light inside the glass: a saturated core that fades through the pale halo. */
-internal fun DrawScope.drawInnerLight(
-    hue: GlowHue,
-    s: GlowStrength,
-    dark: Boolean,
-    lightAt: Offset,
-) {
-    val centre = Offset(size.width * lightAt.x, size.height * lightAt.y)
-    val radius = max(size.width, size.height) * INNER_RADIUS
-    val brush =
-        if (dark) {
-            Brush.radialGradient(
-                0f to hue.core.copy(alpha = s.inner),
-                HALO_STOP to hue.core.copy(alpha = s.inner * DARK_HALO),
-                1f to Color.Transparent,
-                center = centre,
-                radius = radius,
-            )
-        } else {
-            Brush.radialGradient(
-                0f to hue.core.copy(alpha = s.inner * CORE_ON_WHITE),
-                HALO_STOP to hue.light.copy(alpha = s.inner),
-                1f to hue.light.copy(alpha = 0f),
-                center = centre,
-                radius = radius,
-            )
-        }
-    drawRect(brush)
-}
-
-/** Glossy sheen: white fading out over the upper part, like light on a glass dome. */
-internal fun DrawScope.drawSheen(alpha: Float) {
-    if (alpha <= 0f) return
-    drawRect(
-        Brush.verticalGradient(
-            0f to Color.White.copy(alpha = alpha),
-            SHEEN_END to Color.White.copy(alpha = 0f),
-        ),
-    )
-}
-
-private val DARK_GLASS = Color(color = 0xF51A211D)
 private const val TILE_ELEVATION = 10
+private const val MIST_SHARE = 0.55f
+private const val DARK_GLOW = 1.6f
+private const val DARK_EDGE = 0.08f
+private const val GLOW_RADIUS = 0.9f
 private const val EDGE_WIDTH = 1
-private const val EDGE_TINT = 0.16f
 private const val FLOOR_RADIUS = 0.42f
 private const val FLOOR_EXTRA = 14
 private const val FLOOR_CENTRE = 0.72f
 private const val FLOOR_WIDTH = 0.56f
-private const val INNER_RADIUS = 0.85f
-private const val HALO_STOP = 0.38f
-private const val CORE_ON_WHITE = 0.38f
-private const val DARK_HALO = 0.35f
-private const val SHEEN_END = 0.5f

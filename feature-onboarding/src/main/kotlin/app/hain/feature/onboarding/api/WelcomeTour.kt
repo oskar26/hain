@@ -27,9 +27,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -38,13 +38,15 @@ import androidx.compose.ui.unit.sp
 import app.hain.feature.onboarding.R
 import app.hain.ui.components.HainButton
 import app.hain.ui.components.HainButtonStyle
-import app.hain.ui.components.dome
 import app.hain.ui.pim.JuicyPim
 import app.hain.ui.pim.PimState
 import app.hain.ui.theme.GlowHue
+import app.hain.ui.theme.HainStyle
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
+import app.hain.ui.theme.LocalHainStyle
 import app.hain.ui.theme.LocalHainTypography
+import app.hain.ui.theme.calmTile
 import kotlinx.coroutines.launch
 
 private data class TourPage(
@@ -63,16 +65,17 @@ private val PAGES =
     )
 
 /**
- * The welcome background (T-011, Wabi reference): plain white (or almost black) with one faint mint
- * glow behind the bubbles at the top. Chat stays plain.
+ * The welcome background per style (docs/design/STYLE_OPTIONS.md): Stil A plain page colour, Stil B
+ * a soft mint morning mist that fades into the page from the top (Copilot welcome reference).
+ * Chat stays plain.
  */
 @Composable
 internal fun tourBackground(): Brush {
     val colors = LocalHainColors.current
-    return Brush.radialGradient(
-        listOf(lerp(colors.bg, MINT_WASH, WASH_TOP), colors.bg),
-        center = Offset(x = WASH_CENTRE_X, y = 0f),
-        radius = WASH_RADIUS,
+    if (LocalHainStyle.current == HainStyle.A) return SolidColor(colors.bg)
+    return Brush.verticalGradient(
+        0f to lerp(colors.bg, MINT_WASH, WASH_TOP),
+        WASH_END to colors.bg,
     )
 }
 
@@ -116,7 +119,7 @@ fun WelcomeTour(
                         Modifier
                             .offset(y = -KNOB_OVERLAP)
                             .size(KNOB)
-                            .dome(colors.bg, CircleShape, KNOB_ELEVATION),
+                            .calmTile(CircleShape, shadow = KNOB_ELEVATION),
                         contentAlignment = Alignment.Center,
                     ) {
                         JuicyPim(PimState.HAPPY, KNOB * PIM_SHARE)
@@ -180,12 +183,11 @@ private val HERO_SIZE = 150.dp
 private val HERO_BUBBLE = 230.dp
 private val KNOB = 76.dp
 private val KNOB_OVERLAP = 30.dp
-private val KNOB_ELEVATION = 14.dp
+private val KNOB_ELEVATION = 3.dp
 private const val PIM_SHARE = 0.72f
 private val TITLE_SIZE = 32.sp
 private val DOT = 8.dp
 private val DOT_ACTIVE = 22.dp
 private val MINT_WASH = Color(color = 0xFF7FD6A4)
 private const val WASH_TOP = 0.22f
-private const val WASH_CENTRE_X = 540f
-private const val WASH_RADIUS = 1400f
+private const val WASH_END = 0.6f

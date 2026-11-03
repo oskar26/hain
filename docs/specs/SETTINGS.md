@@ -31,6 +31,7 @@ Level 1 = visible directly; level 2 = under "Erweitert / Advanced".
 | Internet | offline_mode | bool | false | 1 |
 | | web_search | on/ask/off | on | 1 |
 | | searxng_url | url? | null | 2 |
+| | ui_style | enum(A, B) | A | 2 |
 | | ddg_enabled | bool | true (marked experimental) | 2 |
 | | search_region | de-de/us-en/auto | auto | 2 |
 | | read_full_pages | bool | true | 2 |

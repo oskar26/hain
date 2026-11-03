@@ -21,17 +21,20 @@ val LocalHainSpacing = staticCompositionLocalOf { StandardHainSpacing }
  *
  * @param darkTheme     dark palette (follows the system by default)
  * @param highLegibility "Gut lesbar" setting → Atkinson Hyperlegible type
+ * @param style         style proposal A or B (docs/design/STYLE_OPTIONS.md, "Stil (Test)")
  */
 @Composable
 fun HainTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     highLegibility: Boolean = false,
+    style: HainStyle = HainStyle.A,
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(
-        LocalHainColors provides if (darkTheme) DarkHainColors else LightHainColors,
+        LocalHainStyle provides style,
+        LocalHainColors provides colorsFor(style, darkTheme),
         LocalHainTypography provides if (highLegibility) HainType.atkinson() else HainType.hanken(),
-        LocalHainShapes provides StandardHainShapes,
+        LocalHainShapes provides shapesFor(style),
         LocalHainSpacing provides StandardHainSpacing,
         content = content,
     )

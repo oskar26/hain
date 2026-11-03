@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
@@ -28,17 +29,18 @@ import app.hain.ui.HainIcons
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
+import app.hain.ui.theme.LocalHainStyle
 import app.hain.ui.theme.LocalHainTypography
+import app.hain.ui.theme.calmTile
 import app.hain.ui.theme.drawFloorGlow
-import app.hain.ui.theme.glowStrength
 import app.hain.ui.theme.isHainDark
+import app.hain.ui.theme.look
 
 /**
- * The message box (T-011, like Oskar's reference 6): a big white card with a soft shadow and a
- * gentle green glow around its edge. The text grows up to [MAX_LINES] lines and then scrolls
- * inside; below it a row with [leading] controls (the thinking picker) on the left and the round
- * domed send button on the right, which turns into stop while an answer streams. The buttons never
- * scroll away, however long the text gets (T-085).
+ * The message box (T-011): a calm card in the active style (see composerCard). The text grows up
+ * to [MAX_LINES] lines and then scrolls inside; below it a row with [leading] controls (the thinking
+ * picker) on the left and the round send button on the right, which turns into stop while an
+ * answer streams. The buttons never scroll away, however long the text gets (T-085).
  */
 @Suppress("LongParameterList") // slot-light composable: every label/callback is a parameter
 @Composable
@@ -113,26 +115,37 @@ fun Composer(
     }
 }
 
-/** White card, soft shadow, a gentle green glow on the floor and a green rim that is brightest below. */
+/**
+ * The message box surface per style (docs/design/STYLE_OPTIONS.md):
+ * - Stil A "Lichtung": page-coloured card, hairline edge, a faint 2 dp shadow. No glow.
+ * - Stil B "Morgennebel": misty card ([calmTile] lit from below) with a soft green rim and a
+ *   blurred green light on the floor under it.
+ */
 @Composable
 private fun Modifier.composerCard(shape: Shape): Modifier {
     val colors = LocalHainColors.current
-    val s = glowStrength(isHainDark())
+    val look = LocalHainStyle.current.look()
+    if (!look.mist) {
+        return this
+            .shadow(A_ELEVATION.dp, shape, clip = false, ambientColor = colors.shadow, spotColor = colors.shadow)
+            .clip(shape)
+            .background(if (isHainDark()) colors.surface else colors.bg, shape)
+            .border(1.dp, colors.border, shape)
+    }
     val rim =
         Brush.verticalGradient(
             listOf(colors.accent.copy(alpha = RIM_TOP), colors.accent.copy(alpha = RIM_BOTTOM)),
         )
     return this
-        .drawBehind { drawFloorGlow(colors.accent.copy(alpha = s.shadow * FLOOR_SHARE)) }
-        .shadow(CARD_ELEVATION.dp, shape, clip = false, ambientColor = colors.shadow, spotColor = colors.shadow)
-        .clip(shape)
-        .background(colors.bg, shape)
+        .drawBehind { drawFloorGlow(colors.accent.copy(alpha = FLOOR_ALPHA)) }
+        .calmTile(shape, lightAt = Offset(x = 0.5f, y = 1f), shadow = B_ELEVATION.dp)
         .border(RIM_WIDTH.dp, rim, shape)
 }
 
 private const val MAX_LINES = 6
-private const val CARD_ELEVATION = 12
-private const val RIM_WIDTH = 1.5f
-private const val RIM_TOP = 0.22f
-private const val RIM_BOTTOM = 0.5f
-private const val FLOOR_SHARE = 0.55f
+private const val A_ELEVATION = 2
+private const val B_ELEVATION = 6
+private const val RIM_WIDTH = 1f
+private const val RIM_TOP = 0.10f
+private const val RIM_BOTTOM = 0.28f
+private const val FLOOR_ALPHA = 0.10f

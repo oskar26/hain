@@ -13,8 +13,8 @@ import nl.dionsegijn.konfetti.core.Position
 import nl.dionsegijn.konfetti.core.emitter.Emitter
 import java.util.concurrent.TimeUnit
 
-/** Hain greens plus a warm leaf yellow and a soft sky blue. */
-private val CONFETTI_COLORS = listOf(0x16A36B, 0x7FD6A4, 0x3FAF77, 0xF4D35E, 0x9AD1F5, 0xFFFFFF)
+/** Only Hain greens and white (style proposals: fewer colours). */
+private val CONFETTI_COLORS = listOf(0x16A36B, 0x7FD6A4, 0x3FAF77, 0xDDF1E6, 0xFFFFFF)
 
 /** One burst of confetti from the upper middle (download done, 2e). Off with reduce motion. */
 @Composable
@@ -41,6 +41,6 @@ private const val MAX_SPEED = 32f
 private const val DAMPING = 0.9f
 private const val FULL_SPREAD = 360
 private const val BURST_MS = 120L
-private const val PIECES = 120
+private const val PIECES = 70
 private const val CENTRE_X = 0.5
 private const val BURST_Y = 0.3
