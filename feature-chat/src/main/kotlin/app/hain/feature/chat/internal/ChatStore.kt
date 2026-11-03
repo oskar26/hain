@@ -27,6 +27,8 @@ data class UiMessage(
     val trace: List<ToolTrace> = emptyList(),
     /** Phone actions waiting for (or done after) the user's tap on their card (T-068). */
     val actions: List<ActionCard> = emptyList(),
+    /** Research clock while a thorough answer is still looking things up (T-069; not stored). */
+    val research: ResearchClock? = null,
 )
 
 data class Chat(

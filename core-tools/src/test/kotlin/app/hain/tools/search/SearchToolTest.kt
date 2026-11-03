@@ -111,7 +111,9 @@ class SearchToolTest {
             assertNull(result.error)
             assertEquals("Photosynthese", result.label)
             assertEquals(listOf("https://de.wikipedia.org/wiki/Photosynthese"), result.readUrls)
-            assertTrue(result.forModel.contains("\"n\":1"))
+            assertTrue(result.forModel.contains("\"title\":\"Photosynthese – Wikipedia\""))
+            assertNull(result.via)
+            assertEquals(2, result.hits.size)
             assertEquals(2, asked.size)
             assertTrue(gate.log.value.all { it.purpose == Purpose.SEARCH })
         }
@@ -122,7 +124,8 @@ class SearchToolTest {
             val gate = HttpNetworkGate(transport = { GateResponse(503, "") })
             val result = SearchTool(gate, emptyList()).run(mapOf("query" to "xyz"), ctx)
             assertEquals("not_found", result.error)
-            assertEquals(3, gate.log.value.size) // DuckDuckGo, DuckDuckGo Lite, Wikipedia
+            // DuckDuckGo, DuckDuckGo Lite, then Wikipedia in German and in English (4c)
+            assertEquals(4, gate.log.value.size)
         }
 
     @Test

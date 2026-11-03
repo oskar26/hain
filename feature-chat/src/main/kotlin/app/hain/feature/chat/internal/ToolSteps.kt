@@ -15,6 +15,8 @@ data class ToolStep(
     val state: StepState,
     val online: Boolean,
     val error: String? = null,
+    /** The tool that answered instead when this one had nothing (4c): "Wikipedia hatte nichts → Web". */
+    val via: String? = null,
 )
 
 /** A page an answer is based on; shown as a source chip. */
