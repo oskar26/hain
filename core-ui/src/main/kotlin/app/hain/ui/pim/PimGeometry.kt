@@ -248,11 +248,20 @@ private fun DrawScope.drawBodyAndEyes(
     gloss: Boolean,
 ) {
     val body = svgPathToPathPublic(PimGeometry.BODY_PATH)
-    drawPath(body, colors.body)
-    if (gloss) drawBodyGloss(body)
-
     val left = PimGeometry.EYE_L + Offset(pose.eyeDX, pose.eyeDY)
     val right = PimGeometry.EYE_R + Offset(pose.eyeDX, pose.eyeDY)
+    if (gloss) {
+        // T-011: glossy jelly body with white oval eyes and their soft shadow (reference 7)
+        drawGlossyBody(body)
+        val shadow = colors.copy(eye = GLOSSY_EYE_SHADOW)
+        val white = colors.copy(eye = GLOSSY_EYE)
+        drawEye(left + GLOSSY_EYE_OFFSET, pose, shadow, pose.eyeLS * GLOSSY_EYE_SCALE)
+        drawEye(right + GLOSSY_EYE_OFFSET, pose, shadow, pose.eyeRS * GLOSSY_EYE_SCALE)
+        drawEye(left, pose, white, pose.eyeLS * GLOSSY_EYE_SCALE)
+        drawEye(right, pose, white, pose.eyeRS * GLOSSY_EYE_SCALE)
+        return
+    }
+    drawPath(body, colors.body)
     drawEye(left, pose, colors, pose.eyeLS)
     drawEye(right, pose, colors, pose.eyeRS)
 }

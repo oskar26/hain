@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -24,10 +25,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.hain.ui.HainIcons
 import app.hain.ui.motion.HainMotion
@@ -49,39 +52,59 @@ import com.mikepenz.markdown.model.MarkdownTypography
  * User message: soft grey bubble on the right (DESIGN_SYSTEM.md §1). Like Gemini (T-057), a short
  * tap ([onTap]) reveals [actions] below the bubble on the right — no long-press popup. The row
  * fades and unfolds in [HainMotion.FAST_MS]; with reduced motion it simply appears.
+ *
+ * T-085: the bubble takes at most 85 % of the width (never wider than 560 dp in landscape); a very
+ * long message folds after 14 lines with [moreLabel] / [lessLabel] to open and close it, so one
+ * pasted text no longer fills the whole chat.
  */
+@Suppress("LongParameterList", "LongMethod") // optional labels and slots
 @Composable
 fun UserBubble(
     text: String,
     modifier: Modifier = Modifier,
     actionsVisible: Boolean = false,
     onTap: (() -> Unit)? = null,
+    moreLabel: String? = null,
+    lessLabel: String? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = LocalHainColors.current
     val spacing = LocalHainSpacing.current
     val shape = LocalHainShapes.current.userBubble
+    var unfolded by rememberSaveable(text) { mutableStateOf(false) }
+    var overflows by remember(text) { mutableStateOf(false) }
+    val foldable = moreLabel != null && lessLabel != null
     Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
-        val bubble =
-            Modifier
-                .widthIn(max = 320.dp)
-                .hainSurface(HainLevel.FLAT, shape)
-        if (onTap == null) {
-            SelectionContainer {
+        Box(Modifier.fillMaxWidth(BUBBLE_FRACTION), contentAlignment = Alignment.CenterEnd) {
+            val bubble =
+                Modifier
+                    .widthIn(max = BUBBLE_MAX.dp)
+                    .hainSurface(HainLevel.FLAT, shape)
+                    .then(if (onTap != null) Modifier.clickable(onClick = onTap) else Modifier)
+                    .padding(horizontal = spacing.lg, vertical = spacing.md)
+            val style = LocalHainTypography.current.body.copy(color = colors.text)
+            if (onTap == null) {
+                SelectionContainer { BasicText(text = text, style = style, modifier = bubble) }
+            } else {
                 BasicText(
                     text = text,
-                    style = LocalHainTypography.current.body.copy(color = colors.text),
-                    modifier = bubble.padding(horizontal = spacing.lg, vertical = spacing.md),
+                    style = style,
+                    maxLines = if (foldable && !unfolded) COLLAPSED_LINES else Int.MAX_VALUE,
+                    overflow = TextOverflow.Ellipsis,
+                    onTextLayout = { if (!unfolded) overflows = it.hasVisualOverflow },
+                    modifier = bubble,
                 )
             }
-        } else {
+        }
+        if (foldable && (overflows || unfolded)) {
             BasicText(
-                text = text,
-                style = LocalHainTypography.current.body.copy(color = colors.text),
+                if (unfolded) lessLabel.orEmpty() else moreLabel.orEmpty(),
+                style = LocalHainTypography.current.label.copy(color = colors.accent),
                 modifier =
-                    bubble
-                        .clickable(onClick = onTap)
-                        .padding(horizontal = spacing.lg, vertical = spacing.md),
+                    Modifier
+                        .padding(top = spacing.xs)
+                        .clickable(role = Role.Button) { unfolded = !unfolded }
+                        .padding(horizontal = spacing.sm, vertical = spacing.xs),
             )
         }
         val reduce = LocalReduceMotion.current
@@ -208,6 +231,9 @@ enum class MessageActionKind { COPY, SHARE, THUMB_UP, THUMB_DOWN, SPEAK, RETRY, 
 private const val ICON_INSET = 11
 private const val ACTION_GAP = 2
 private const val ACTION_ICON = 18
+private const val BUBBLE_FRACTION = 0.85f
+private const val BUBBLE_MAX = 560
+private const val COLLAPSED_LINES = 14
 
 @Composable
 fun hainMarkdownColors(): MarkdownColors {

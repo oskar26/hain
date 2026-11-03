@@ -6,45 +6,51 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 
 /*
- * "Light 3D touch" (docs/design/REFERENCES_3D.md): a soft shade at the bottom,
- * a light spot top left and a small specular dot. Drawn inside the body only,
- * before the eyes, so Pim keeps his flat, friendly face.
+ * Glossy 3D Pim (T-011, Oskar's reference 7): the body is no longer one flat mint but a soft jelly —
+ * pale and bright at the top left, saturated green at the bottom right, a warm inner glow near the
+ * belly, a thin light rim and a crisp specular spot. Light always comes from the top left.
  */
-private val SHADE_CENTRE = Offset(x = 68f, y = 104f)
-private const val SHADE_RADIUS = 52f
-private const val SHADE_ALPHA = 0.22f
-private val LIGHT_CENTRE = Offset(x = 46f, y = 50f)
-private const val LIGHT_RADIUS = 34f
-private const val LIGHT_ALPHA = 0.55f
-private val SPEC_CENTRE = Offset(x = 44f, y = 48f)
-private val SPEC_SIZE = Size(width = 9f, height = 6f)
-private const val SPEC_ALPHA = 0.85f
-private val SHADE_COLOR = Color(color = 0xFF0B5A3A)
+private val LIGHT_CENTRE = Offset(x = 46f, y = 48f)
+private const val BODY_RADIUS = 78f
+private val BODY_PALE = Color(color = 0xFFDDF9EA)
+private val BODY_MID = Color(color = 0xFF86DDAC)
+private val BODY_DEEP = Color(color = 0xFF27A56C)
+private const val MID_STOP = 0.42f
+private val GLOW_CENTRE = Offset(x = 62f, y = 92f)
+private const val GLOW_RADIUS = 30f
+private const val GLOW_ALPHA = 0.38f
+private const val RIM_ALPHA = 0.35f
+private const val RIM_WIDTH = 2f
+private val SPEC_CENTRE = Offset(x = 43f, y = 47f)
+private val SPEC_SIZE = Size(width = 12f, height = 7f)
+private const val SPEC_ALPHA = 0.9f
 
-internal fun DrawScope.drawBodyGloss(body: Path) {
-    clipPath(body) {
-        drawCircle(
-            brush =
-                Brush.radialGradient(
-                    listOf(SHADE_COLOR.copy(alpha = SHADE_ALPHA), Color.Transparent),
-                    center = SHADE_CENTRE,
-                    radius = SHADE_RADIUS,
-                ),
-            radius = SHADE_RADIUS,
-            center = SHADE_CENTRE,
-        )
-        drawCircle(
-            brush =
-                Brush.radialGradient(
-                    listOf(Color.White.copy(alpha = LIGHT_ALPHA), Color.Transparent),
-                    center = LIGHT_CENTRE,
-                    radius = LIGHT_RADIUS,
-                ),
-            radius = LIGHT_RADIUS,
+/** Paints the glossy body (replaces the flat fill when Pim is big enough to show it). */
+internal fun DrawScope.drawGlossyBody(body: Path) {
+    drawPath(
+        body,
+        Brush.radialGradient(
+            0f to BODY_PALE,
+            MID_STOP to BODY_MID,
+            1f to BODY_DEEP,
             center = LIGHT_CENTRE,
+            radius = BODY_RADIUS,
+        ),
+    )
+    clipPath(body) {
+        // inner glow: light scattered inside the jelly, strongest just above the bottom
+        drawCircle(
+            Brush.radialGradient(
+                listOf(Color.White.copy(alpha = GLOW_ALPHA), Color.Transparent),
+                center = GLOW_CENTRE,
+                radius = GLOW_RADIUS,
+            ),
+            radius = GLOW_RADIUS,
+            center = GLOW_CENTRE,
         )
         drawOval(
             color = Color.White.copy(alpha = SPEC_ALPHA),
@@ -52,7 +58,15 @@ internal fun DrawScope.drawBodyGloss(body: Path) {
             size = SPEC_SIZE,
         )
     }
+    // thin light rim along the edge
+    drawPath(body, Color.White.copy(alpha = RIM_ALPHA), style = Stroke(width = RIM_WIDTH))
 }
+
+/** Glossy eyes are white ovals with a soft green shadow (reference 7). */
+internal val GLOSSY_EYE = Color.White
+internal val GLOSSY_EYE_SHADOW = Color(color = 0x55125C3B)
+internal val GLOSSY_EYE_OFFSET = Offset(x = 0.6f, y = 1.4f)
+internal const val GLOSSY_EYE_SCALE = 1.22f
 
 /** Soft contact shadow under Pim; shrinks while he is in the air. */
 private val SHADOW_CENTRE = Offset(x = 60f, y = 110f)

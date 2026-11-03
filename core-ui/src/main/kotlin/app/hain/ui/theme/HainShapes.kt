@@ -11,7 +11,8 @@ import com.kyant.capsule.ContinuousRoundedRectangle
  * - [HainRadius.SMALL] 12 dp: chips, rows in lists and menus
  * - [HainRadius.MEDIUM] 20 dp: cards, bubbles, menus, tiles
  * - [HainRadius.LARGE] 28 dp: sheets and big hero surfaces
- * - capsule: composer and buttons
+ * - [HainRadius.TILE] 24 dp: glass tiles with inner light (T-011)
+ * - capsule: buttons and pills
  */
 data class HainShapes(
     val composer: Shape,
@@ -22,17 +23,22 @@ data class HainShapes(
     val row: Shape,
     val menu: Shape,
     val sheet: Shape,
+    /** Glass tiles with inner light (T-011): settings groups, tool cards, packs, the composer card. */
+    val tile: Shape,
 )
 
 object HainRadius {
     const val SMALL = 12
     const val MEDIUM = 20
     const val LARGE = 28
+
+    /** Glass tiles (T-011): strongly rounded, between card and sheet. */
+    const val TILE = 24
 }
 
 val StandardHainShapes =
     HainShapes(
-        composer = ContinuousCapsule,
+        composer = ContinuousRoundedRectangle(HainRadius.LARGE.dp),
         userBubble = ContinuousRoundedRectangle(HainRadius.MEDIUM.dp),
         card = ContinuousRoundedRectangle(HainRadius.MEDIUM.dp),
         chip = ContinuousRoundedRectangle(HainRadius.SMALL.dp),
@@ -40,4 +46,5 @@ val StandardHainShapes =
         row = ContinuousRoundedRectangle(HainRadius.SMALL.dp),
         menu = ContinuousRoundedRectangle(HainRadius.MEDIUM.dp),
         sheet = ContinuousRoundedRectangle(HainRadius.LARGE.dp),
+        tile = ContinuousRoundedRectangle(HainRadius.TILE.dp),
     )

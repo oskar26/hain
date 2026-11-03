@@ -1,8 +1,13 @@
 package app.hain.ui.components
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -11,22 +16,31 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.hain.ui.HainIcons
-import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
-import app.hain.ui.theme.hainSurface
+import app.hain.ui.theme.drawFloorGlow
+import app.hain.ui.theme.glowStrength
+import app.hain.ui.theme.isHainDark
 
 /**
- * The pill-shaped message box (DESIGN_SYSTEM.md §3), a raised white capsule (T-010 redesign):
- * text, then send — which morphs into stop
- * while an answer is streaming.
+ * The message box (T-011, like Oskar's reference 6): a big white card with a soft shadow and a
+ * gentle green glow around its edge. The text grows up to [MAX_LINES] lines and then scrolls
+ * inside; below it a row with [leading] controls (the thinking picker) on the left and the round
+ * domed send button on the right, which turns into stop while an answer streams. The buttons never
+ * scroll away, however long the text gets (T-085).
  */
-@Suppress("LongParameterList") // slot-free composable: every label/callback is a parameter
+@Suppress("LongParameterList") // slot-light composable: every label/callback is a parameter
 @Composable
 fun Composer(
     text: String,
@@ -39,22 +53,26 @@ fun Composer(
     stopLabel: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    leading: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     val spacing = LocalHainSpacing.current
     val shape = LocalHainShapes.current.composer
-    Row(
-        modifier =
-            modifier
+    Column(modifier.fillMaxWidth().composerCard(shape)) {
+        Box(
+            Modifier
                 .fillMaxWidth()
-                .hainSurface(HainLevel.RAISED, shape)
-                .padding(start = spacing.lg, end = spacing.xs, top = spacing.xs, bottom = spacing.xs),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(Modifier.weight(1f).padding(vertical = spacing.sm), contentAlignment = Alignment.CenterStart) {
+                .padding(start = spacing.lg, end = spacing.lg, top = spacing.md, bottom = spacing.xs),
+            contentAlignment = Alignment.TopStart,
+        ) {
             if (text.isEmpty()) {
-                BasicText(placeholder, style = type.body.copy(color = colors.textMuted), maxLines = 1)
+                BasicText(
+                    placeholder,
+                    style = type.body.copy(color = colors.textMuted),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
             BasicTextField(
                 value = text,
@@ -62,31 +80,59 @@ fun Composer(
                 enabled = enabled,
                 textStyle = type.body.copy(color = colors.text),
                 cursorBrush = SolidColor(colors.accent),
+                minLines = 1,
                 maxLines = MAX_LINES,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 24.dp),
             )
         }
-        AnimatedContent(targetState = isGenerating, label = "send-stop") { generating ->
-            if (generating) {
-                HainIconButton(
-                    icon = HainIcons.stop,
-                    contentDescription = stopLabel,
-                    onClick = onStop,
-                    tint = colors.bg,
-                    background = colors.text,
-                )
-            } else {
-                HainIconButton(
-                    icon = HainIcons.send,
-                    contentDescription = sendLabel,
-                    onClick = onSend,
-                    enabled = enabled && text.isNotBlank(),
-                    tint = colors.onAccent,
-                    background = colors.accent,
-                )
+        Row(
+            Modifier.fillMaxWidth().padding(start = spacing.sm, end = spacing.sm, bottom = spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            leading()
+            Spacer(Modifier.weight(1f))
+            AnimatedContent(targetState = isGenerating, label = "send-stop") { generating ->
+                if (generating) {
+                    DomeIconButton(
+                        icon = HainIcons.stop,
+                        contentDescription = stopLabel,
+                        onClick = onStop,
+                        color = colors.text,
+                        tint = colors.bg,
+                    )
+                } else {
+                    DomeIconButton(
+                        icon = HainIcons.send,
+                        contentDescription = sendLabel,
+                        onClick = onSend,
+                        enabled = enabled && text.isNotBlank(),
+                    )
+                }
             }
         }
     }
 }
 
+/** White card, soft shadow, a gentle green glow on the floor and a green rim that is brightest below. */
+@Composable
+private fun Modifier.composerCard(shape: Shape): Modifier {
+    val colors = LocalHainColors.current
+    val s = glowStrength(isHainDark())
+    val rim =
+        Brush.verticalGradient(
+            listOf(colors.accent.copy(alpha = RIM_TOP), colors.accent.copy(alpha = RIM_BOTTOM)),
+        )
+    return this
+        .drawBehind { drawFloorGlow(colors.accent.copy(alpha = s.shadow * FLOOR_SHARE)) }
+        .shadow(CARD_ELEVATION.dp, shape, clip = false, ambientColor = colors.shadow, spotColor = colors.shadow)
+        .clip(shape)
+        .background(colors.bg, shape)
+        .border(RIM_WIDTH.dp, rim, shape)
+}
+
 private const val MAX_LINES = 6
+private const val CARD_ELEVATION = 12
+private const val RIM_WIDTH = 1.5f
+private const val RIM_TOP = 0.22f
+private const val RIM_BOTTOM = 0.5f
+private const val FLOOR_SHARE = 0.55f

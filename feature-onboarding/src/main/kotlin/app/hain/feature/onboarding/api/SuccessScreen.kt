@@ -25,6 +25,7 @@ import app.hain.ui.effects.Celebration
 import app.hain.ui.motion.rememberHainHaptics
 import app.hain.ui.pim.JuicyPim
 import app.hain.ui.pim.PimState
+import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
@@ -54,7 +55,12 @@ internal fun SuccessScreen(
             verticalArrangement = Arrangement.Center,
         ) {
             Spacer(Modifier.weight(1f))
-            JuicyPim(PimState.CELEBRATE, 168.dp)
+            // T-011: Pim cheers inside a big shiny bubble, two small bubbles float beside him
+            Box(contentAlignment = Alignment.Center) {
+                GlassBubble(SUCCESS_BUBBLE, GlowHue.MINT) { JuicyPim(PimState.CELEBRATE, 150.dp) }
+                GlassBubble(40.dp, GlowHue.SUN, Modifier.align(Alignment.TopEnd))
+                GlassBubble(28.dp, GlowHue.LILAC, Modifier.align(Alignment.BottomStart))
+            }
             Spacer(Modifier.height(spacing.xl))
             BasicText(
                 stringResource(R.string.onboarding_done),
@@ -71,3 +77,5 @@ internal fun SuccessScreen(
         Celebration(Modifier.fillMaxSize())
     }
 }
+
+private val SUCCESS_BUBBLE = 230.dp

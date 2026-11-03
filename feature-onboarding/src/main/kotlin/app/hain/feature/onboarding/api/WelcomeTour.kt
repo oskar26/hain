@@ -12,29 +12,36 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import app.hain.feature.onboarding.R
 import app.hain.ui.components.HainButton
 import app.hain.ui.components.HainButtonStyle
+import app.hain.ui.components.dome
 import app.hain.ui.pim.JuicyPim
 import app.hain.ui.pim.PimState
+import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
@@ -44,26 +51,37 @@ private data class TourPage(
     val title: Int,
     val body: Int,
     val hero: Hero?,
+    val glow: GlowHue = GlowHue.MINT,
 )
 
 private val PAGES =
     listOf(
         TourPage(R.string.tour_1_title, R.string.tour_1_body, null),
-        TourPage(R.string.tour_2_title, R.string.tour_2_body, Hero.LOCK),
-        TourPage(R.string.tour_3_title, R.string.tour_3_body, Hero.TREE),
-        TourPage(R.string.tour_4_title, R.string.tour_4_body, Hero.SEED),
+        TourPage(R.string.tour_2_title, R.string.tour_2_body, Hero.LOCK, GlowHue.SKY),
+        TourPage(R.string.tour_3_title, R.string.tour_3_body, Hero.TREE, GlowHue.TEAL),
+        TourPage(R.string.tour_4_title, R.string.tour_4_body, Hero.SEED, GlowHue.SUN),
     )
 
-/** Soft mint → light lime wash (light) or a deep forest tint (dark). Chat stays plain. */
+/**
+ * The welcome background (T-011, Wabi reference): plain white (or almost black) with one faint mint
+ * glow behind the bubbles at the top. Chat stays plain.
+ */
 @Composable
 internal fun tourBackground(): Brush {
     val colors = LocalHainColors.current
-    return Brush.verticalGradient(
-        listOf(lerp(colors.bg, MINT_WASH, WASH_TOP), colors.bg, lerp(colors.bg, LIME_WASH, WASH_BOTTOM)),
+    return Brush.radialGradient(
+        listOf(lerp(colors.bg, MINT_WASH, WASH_TOP), colors.bg),
+        center = Offset(x = WASH_CENTRE_X, y = 0f),
+        radius = WASH_RADIUS,
     )
 }
 
-/** Playful welcome tour before the download (2e): one thought and one 3D object per page. */
+/**
+ * Welcome tour before the download (2e, T-011): the first page is a cloud of shiny bubbles with a
+ * round white Pim knob below it, the others show their hero object inside a big glass bubble. Big
+ * calm headline, two wide pills at the bottom (white "skip", dark "next").
+ */
+@Suppress("LongMethod") // pager page, bubble cloud and the two pills form one screen
 @Composable
 fun WelcomeTour(
     onFinish: () -> Unit,
@@ -81,44 +99,63 @@ fun WelcomeTour(
             .background(tourBackground())
             .statusBarsPadding()
             .navigationBarsPadding()
-            .padding(spacing.lg),
+            .padding(horizontal = spacing.lg, vertical = spacing.md),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-            if (!last) HainButton(stringResource(R.string.tour_skip), onFinish, style = HainButtonStyle.GHOST)
-        }
         HorizontalPager(pager, Modifier.weight(1f).fillMaxWidth()) { index ->
             val page = PAGES[index]
             Column(
-                Modifier.fillMaxSize().padding(horizontal = spacing.md),
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
                 if (page.hero == null) {
-                    JuicyPim(PimState.HAPPY, HERO_SIZE)
+                    BubbleCloud()
+                    // the round white knob with Pim, overlapping the bottom of the cloud like in Wabi
+                    Box(
+                        Modifier
+                            .offset(y = -KNOB_OVERLAP)
+                            .size(KNOB)
+                            .dome(colors.bg, CircleShape, KNOB_ELEVATION),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        JuicyPim(PimState.HAPPY, KNOB * PIM_SHARE)
+                    }
                 } else {
-                    HeroObject(page.hero, HERO_SIZE)
+                    GlassBubble(HERO_BUBBLE, page.glow) { HeroObject(page.hero, HERO_SIZE) }
+                    Spacer(Modifier.height(spacing.xl))
                 }
-                Spacer(Modifier.height(spacing.xl))
                 BasicText(
                     stringResource(page.title),
-                    style = type.display.copy(color = colors.text, textAlign = TextAlign.Center),
+                    style = type.display.copy(color = colors.text, textAlign = TextAlign.Center, fontSize = TITLE_SIZE),
+                    modifier = Modifier.padding(horizontal = spacing.md),
                 )
                 Spacer(Modifier.height(spacing.md))
                 BasicText(
                     stringResource(page.body),
                     style = type.body.copy(color = colors.textMuted, textAlign = TextAlign.Center),
+                    modifier = Modifier.padding(horizontal = spacing.md),
                 )
             }
         }
         Dots(count = PAGES.size, current = pager.currentPage)
         Spacer(Modifier.height(spacing.lg))
+        if (!last) {
+            HainButton(
+                stringResource(R.string.tour_skip),
+                onFinish,
+                Modifier.fillMaxWidth(),
+                style = HainButtonStyle.SECONDARY,
+            )
+            Spacer(Modifier.height(spacing.md))
+        }
         HainButton(
             text = stringResource(if (last) R.string.tour_go else R.string.tour_next),
             onClick = {
                 if (last) onFinish() else scope.launch { pager.animateScrollToPage(pager.currentPage + 1) }
             },
             modifier = Modifier.fillMaxWidth(),
+            style = if (last) HainButtonStyle.PRIMARY else HainButtonStyle.DARK,
         )
     }
 }
@@ -139,10 +176,16 @@ private fun Dots(
     }
 }
 
-private val HERO_SIZE = 180.dp
+private val HERO_SIZE = 150.dp
+private val HERO_BUBBLE = 230.dp
+private val KNOB = 76.dp
+private val KNOB_OVERLAP = 30.dp
+private val KNOB_ELEVATION = 14.dp
+private const val PIM_SHARE = 0.72f
+private val TITLE_SIZE = 32.sp
 private val DOT = 8.dp
 private val DOT_ACTIVE = 22.dp
 private val MINT_WASH = Color(color = 0xFF7FD6A4)
-private val LIME_WASH = Color(color = 0xFFD8F0A0)
-private const val WASH_TOP = 0.16f
-private const val WASH_BOTTOM = 0.12f
+private const val WASH_TOP = 0.22f
+private const val WASH_CENTRE_X = 540f
+private const val WASH_RADIUS = 1400f

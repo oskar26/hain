@@ -13,6 +13,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -44,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
@@ -69,15 +71,20 @@ import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainSpring
 import app.hain.ui.motion.hainTween
 import app.hain.ui.motion.motionSpec
+import app.hain.ui.pim.Pim
+import app.hain.ui.pim.PimState
+import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.HainLevel
+import app.hain.ui.theme.HainRadius
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
+import app.hain.ui.theme.glassTile
 import app.hain.ui.theme.hainSurface
 
 /** Chat list drawer: search, sections Pinned/Today/Yesterday/7 days/Older, rename, pin, delete (T-053). */
-@Suppress("LongParameterList") // drawer state is passed flat so previews stay simple
+@Suppress("LongParameterList", "LongMethod") // drawer state is passed flat so previews stay simple
 @Composable
 internal fun ChatListDrawer(
     open: Boolean,
@@ -108,19 +115,36 @@ internal fun ChatListDrawer(
         enter = slideInHorizontally(motionSpec(HainMotionMoment.DRAWER, reduce)) { -it },
         exit = slideOutHorizontally(motionSpec(HainMotionMoment.DRAWER, reduce)) { -it },
     ) {
+        // T-011: the drawer is a pane of glass lit softly in mint from the top, rounded on the open side
         Column(
             Modifier
                 .fillMaxHeight()
                 .width(DRAWER_WIDTH.dp)
-                .background(colors.bg)
+                .glassTile(GlowHue.MINT, DrawerShape, DRAWER_ELEVATION.dp, Offset(x = 0.15f, y = 0f), floorGlow = false)
                 .statusBarsPadding()
                 .navigationBarsPadding()
                 .padding(spacing.md),
         ) {
+            Row(
+                Modifier.padding(horizontal = spacing.xs, vertical = spacing.sm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Pim(PimState.HAPPY, 48.dp)
+                Spacer(Modifier.width(spacing.sm))
+                BasicText(
+                    stringResource(R.string.chat_title),
+                    style = LocalHainTypography.current.title.copy(color = colors.text),
+                )
+            }
             SearchField(searchQuery, actions.onSearch)
-            Spacer(Modifier.height(spacing.sm))
-            HainMenuRow(HainIcons.plus, stringResource(R.string.chat_new), actions.onNewChat, Modifier.fillMaxWidth())
-            Spacer(Modifier.height(spacing.sm))
+            Spacer(Modifier.height(spacing.md))
+            HainButton(
+                stringResource(R.string.chat_new),
+                actions.onNewChat,
+                Modifier.fillMaxWidth(),
+                style = HainButtonStyle.SECONDARY,
+            )
+            Spacer(Modifier.height(spacing.md))
             DrawerList(hasChats, groups, searchQuery, currentChatId, actions, Modifier.weight(1f))
             HainMenuRow(
                 HainIcons.settings,
@@ -404,7 +428,11 @@ private fun ConfirmDelete(
             overflow = TextOverflow.Ellipsis,
         )
         Spacer(Modifier.height(spacing.sm))
-        Row(horizontalArrangement = Arrangement.spacedBy(spacing.sm)) {
+        // T-085: with big fonts the two buttons wrap instead of running out of the menu
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(spacing.sm),
+        ) {
             HainButton(stringResource(R.string.chat_delete_yes), onDelete, style = HainButtonStyle.SECONDARY)
             HainButton(stringResource(R.string.chat_cancel), onCancel, style = HainButtonStyle.GHOST)
         }
@@ -412,6 +440,14 @@ private fun ConfirmDelete(
 }
 
 private const val DRAWER_WIDTH = 300
+private const val DRAWER_ELEVATION = 24
+private val DrawerShape =
+    androidx.compose.foundation.shape.RoundedCornerShape(
+        topStart = 0.dp,
+        topEnd = HainRadius.LARGE.dp,
+        bottomEnd = HainRadius.LARGE.dp,
+        bottomStart = 0.dp,
+    )
 private const val ICON_SIZE = 20
 private const val MENU_OFFSET = 44
 private const val MENU_SHADOW_ROOM = 12

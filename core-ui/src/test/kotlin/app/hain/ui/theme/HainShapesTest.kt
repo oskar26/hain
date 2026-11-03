@@ -17,15 +17,16 @@ class HainShapesTest {
     @Test
     fun `corner radii match spec`() {
         val s = StandardHainShapes
-        // composer is a full capsule (no fixed radius), all others are squircles
+        // buttons are full capsules (no fixed radius), all others are squircles
         assertEquals(20f, radius(s.userBubble as ContinuousRoundedRectangle))
         assertEquals(20f, radius(s.card as ContinuousRoundedRectangle))
         assertEquals(20f, radius(s.menu as ContinuousRoundedRectangle))
         assertEquals(12f, radius(s.chip as ContinuousRoundedRectangle))
         assertEquals(12f, radius(s.row as ContinuousRoundedRectangle))
         assertEquals(28f, radius(s.sheet as ContinuousRoundedRectangle))
-        // composer and buttons are capsules
-        assertEquals(s.composer, s.button)
+        // T-011: the composer is a big rounded card, glass tiles are strongly rounded
+        assertEquals(28f, radius(s.composer as ContinuousRoundedRectangle))
+        assertEquals(24f, radius(s.tile as ContinuousRoundedRectangle))
     }
 
     @Test

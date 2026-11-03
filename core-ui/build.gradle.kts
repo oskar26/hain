@@ -72,4 +72,16 @@ dependencies {
     testImplementation(libs.roborazzi)
     testImplementation(libs.roborazzi.compose)
     testImplementation(libs.roborazzi.junit.rule)
+    testImplementation(composeBom)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+// Screenshot tests are slow and need native graphics: they only run when asked for (T-011).
+tasks.withType<Test>().configureEach {
+    if (!project.hasProperty("hain.screens")) {
+        exclude("**/screens/**")
+        failOnNoDiscoveredTests.set(false)
+    }
 }

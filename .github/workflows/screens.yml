@@ -1,0 +1,56 @@
+name: Screens
+
+# Renders the design screenshots (T-011 / T-085) with Roborazzi + Robolectric native graphics,
+# which need an x86 Linux host. The PNGs are uploaded as the "screens" artifact; the ones worth
+# keeping are copied to docs/design/screens/ in the PR. Does not block merging.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: screens-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  screens:
+    name: record screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout (with llama.cpp submodule)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle (cache)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Record screenshots
+        run: >
+          ./gradlew :core-ui:testDebugUnitTest :feature-chat:testDebugUnitTest
+          :feature-settings:testDebugUnitTest :feature-onboarding:testDebugUnitTest
+          --tests '*.screens.*' -Phain.native=false -Phain.screens=true -Proborazzi.test.record=true --stacktrace
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screens
+          path: '**/build/outputs/roborazzi/*.png'
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screens-reports
+          path: '**/build/reports/tests/'
+          if-no-files-found: ignore

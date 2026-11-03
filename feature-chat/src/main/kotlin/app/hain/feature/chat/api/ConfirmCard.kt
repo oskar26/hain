@@ -1,8 +1,8 @@
 package app.hain.feature.chat.api
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,8 +13,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -26,15 +25,15 @@ import app.hain.feature.chat.internal.ActionCard
 import app.hain.feature.chat.internal.ActionEvent
 import app.hain.feature.chat.internal.ActionState
 import app.hain.tools.api.PhoneAction
-import app.hain.ui.HainIcons
+import app.hain.ui.components.Hain3D
+import app.hain.ui.components.Hain3DIcon
 import app.hain.ui.components.HainButton
 import app.hain.ui.components.HainButtonStyle
-import app.hain.ui.theme.HainLevel
+import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.LocalHainColors
-import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
-import app.hain.ui.theme.hainSurface
+import app.hain.ui.theme.glassTile
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -60,17 +59,13 @@ internal fun ConfirmCard(
         modifier
             .padding(top = spacing.sm)
             .fillMaxWidth()
-            .hainSurface(HainLevel.RAISED, LocalHainShapes.current.card)
+            // T-011: a glass tile that glows in the action's colour, with its 3D icon
+            .glassTile(hue(card.action), elevation = 6.dp, lightAt = Offset(x = 0.08f, y = 0.3f))
             .padding(spacing.md),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                icon(card.action),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(colors.accent),
-                modifier = Modifier.size(20.dp),
-            )
+            Hain3DIcon(icon3d(card.action), size = 36.dp)
             Spacer(Modifier.width(spacing.sm))
             Column(Modifier.weight(1f)) {
                 BasicText(
@@ -99,7 +94,11 @@ private fun CardFooter(
     val context = LocalContext.current
     when (card.state) {
         ActionState.PENDING ->
-            Row(horizontalArrangement = Arrangement.spacedBy(spacing.sm)) {
+            // T-085: with big fonts the two buttons wrap instead of running off the card
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+                verticalArrangement = Arrangement.spacedBy(spacing.sm),
+            ) {
                 HainButton(
                     stringResource(confirmLabel(card.action)),
                     onClick = { onEvent(PhoneIntents.launch(context, card.action)) },
@@ -128,13 +127,18 @@ private fun CardFooter(
     }
 }
 
-@Composable
-private fun icon(action: PhoneAction): Painter =
+private fun icon3d(action: PhoneAction): Hain3D =
     when (action) {
-        is PhoneAction.Alarm -> HainIcons.alarm
-        is PhoneAction.Timer -> HainIcons.timer
-        is PhoneAction.CalendarEvent -> HainIcons.calendar
-        is PhoneAction.Navigate -> HainIcons.navigation
+        is PhoneAction.CalendarEvent -> Hain3D.CALENDAR
+        is PhoneAction.Navigate -> Hain3D.GLOBE
+        else -> Hain3D.PHONE
+    }
+
+private fun hue(action: PhoneAction): GlowHue =
+    when (action) {
+        is PhoneAction.CalendarEvent -> GlowHue.PEACH
+        is PhoneAction.Navigate -> GlowHue.SKY
+        else -> GlowHue.MINT
     }
 
 private fun confirmLabel(action: PhoneAction): Int =

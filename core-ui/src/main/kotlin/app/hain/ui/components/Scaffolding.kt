@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -33,12 +34,18 @@ fun TopBar(
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     Row(
-        modifier.fillMaxWidth().height(56.dp).padding(horizontal = LocalHainSpacing.current.xs),
+        modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = LocalHainSpacing.current.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         leading()
         Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-            BasicText(title, style = type.button.copy(color = colors.text), maxLines = 1)
+            // T-085: long titles (a settings page at 200 % font) end in … instead of being cut
+            BasicText(
+                title,
+                style = type.button.copy(color = colors.text),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
             if (subtitle != null) {
                 BasicText(
                     subtitle,

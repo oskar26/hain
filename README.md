@@ -58,10 +58,10 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 
 <table>
   <tr>
-    <td align="center"><img src="docs/readme/screenshot-welcome.png" alt="Welcome tour (screenshot coming soon)" width="190"><br><sub>Welcome tour</sub></td>
-    <td align="center"><img src="docs/readme/screenshot-chat.png" alt="Chat (screenshot coming soon)" width="190"><br><sub>Chat</sub></td>
-    <td align="center"><img src="docs/readme/screenshot-chats.png" alt="Saved chats (screenshot coming soon)" width="190"><br><sub>Saved chats</sub></td>
-    <td align="center"><img src="docs/readme/screenshot-settings.png" alt="Settings and knowledge packs (screenshot coming soon)" width="190"><br><sub>Settings &amp; packs</sub></td>
+    <td align="center"><img src="docs/design/screens/3d_onboarding_light.png" alt="Welcome tour with glossy bubbles and Pim" width="190"><br><sub>Welcome tour</sub></td>
+    <td align="center"><img src="docs/design/screens/3d_chat_empty_light.png" alt="Empty chat with glass suggestion tiles" width="190"><br><sub>Chat</sub></td>
+    <td align="center"><img src="docs/design/screens/3d_chat_thinking_picker_light.png" alt="Thinking level picker behind the brain button" width="190"><br><sub>Thinking level</sub></td>
+    <td align="center"><img src="docs/design/screens/3d_settings_light.png" alt="Settings as glass tiles with 3D icons" width="190"><br><sub>Settings &amp; packs</sub></td>
   </tr>
 </table>
 
@@ -78,14 +78,14 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🌍 Answer language | Pim answers in the language you write in (German, English, French, Turkish, Russian, …), or always in German or English if you want | ✅ |
 | 🌱 First start | Playful welcome tour with Pim, brain download (LFM3-1.7B, 1.0 GB) with resume and checksum, celebration screen; the download can wait or run in the background | ✅ |
 | 🗂️ Saved chats | Stored encrypted on the phone; search, rename, pin, delete, grouped by day | ✅ |
-| ⚙️ Settings | Theme, easy-to-read font, answer mode (fast / auto / thorough), answer language, "about me" and answer style | ✅ |
+| ⚙️ Settings | Theme, easy-to-read font, answer mode (fast / auto / thorough), answer language, "about me" and answer style. Thinking level also right in the message box (brain button) | ✅ |
 | 📦 Knowledge packs | See, download and remove packs, with hints on what fits your phone | ✅ |
-| 🎨 Look | One calm design everywhere: new light font (Hanken Grotesk), soft cards and glass menus, the same gentle motion on every screen, dark mode to match; "Reduce motion" stops it all. Living Pim, green "thinking" glow | ✅ |
+| 🎨 Look | One design everywhere, calm but with depth: glass tiles that glow from inside, small glossy 3D icons, domed buttons that press in, a glossy 3D Pim, a welcome tour with shiny bubbles; light font (Hanken Grotesk), dark mode with glowing glass; "Reduce motion" stops all movement | ✅ |
 | ✏️ Chat extras | Automatic chat titles; tap your own message to edit or copy it. Chat list: small glass menu at each chat (pin, rename, delete), smooth drawer | ✅ |
 | 📤 Export | Export a chat as Markdown or PDF | 🗓️ |
-| 🧭 Settings, part 2 | Clearer layout with icon tiles and sub pages, own "reduce motion" switch. Still open: pack picker, language step at first start, glossy 3D Pim and new first-start pictures | 🚧 |
+| 🧭 Settings, part 2 | Glass tiles with their own colour and 3D icon, sub pages, own "reduce motion" switch, glossy 3D Pim, new first start. Still open: pack picker, language step at first start | 🚧 |
 | 🔧 Tools | Calculator and units, weather (Open-Meteo), Wikipedia (German/English), web search without API key that reads several pages (or your own SearXNG), reading a link, alarm, timer, calendar entry and route with a confirm card – Pim shows each step and its sources under the answer. Still open: weather card, repeating alarms | 🚧 |
-| ⏰ Phone actions | Alarm, timer, calendar entry, navigation, always confirmed by you | 🗓️ |
+| ⏰ Phone actions | Alarm, timer, calendar entry, navigation – prepared by Pim as a glass card, done only after your tap | ✅ |
 | 🛡️ Network log | Every tool request goes through one gate: orange "Online" dot while it runs, offline mode, log of the last 7 days in Settings → Privacy. Still open: brain download through the gate, log kept across app restarts | 🚧 |
 | 📰 News | Standard mix (incl. junge Welt), standard + own feeds, or only own feeds | 🗓️ |
 | 🃏 Answer cards | Lists, tables, checklists, weather and source cards instead of plain text | 🗓️ |
@@ -101,10 +101,13 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **The 3D redesign.** Hain now looks like the pictures it was meant to look like: settings groups, tool cards, suggestions, knowledge packs and the side panel are **glass tiles that glow from inside** in their own soft colour, with small **glossy 3D icons** (weather, book, leaf, shield …). Pim is a **glossy 3D jelly** with white oval eyes. The empty chat greets you big and light ("Guten Abend, was kann ich für dich tun?") above three suggestion tiles, the message box is a big white card with a soft green glow and a round domed send button. The welcome tour starts with a cloud of shiny bubbles and a round Pim button. Buttons press in a little when you tap them. Dark mode glows too; "Reduce motion" stops all movement but keeps the depth. The chat text itself stays calm.
+- **Thinking level in the message box.** Tap the **brain** in the message box and pick **Auto** (Pim decides), **Schnell** (answers right away) or **Gründlich** (thinks longer, for hard questions). The bar above the box is gone; next to the brain you see the level when it is not Auto. Same setting as Settings → Answers.
+- **Long texts fixed.** Very long own messages fold after 14 lines ("Mehr anzeigen"), the chat no longer pulls you down while you scroll up to read a long answer (a small button brings you back), tables and code scroll sideways, long chat titles, tool lines and menu entries end neatly instead of being cut off, the message box grows to 6 lines and then scrolls with the buttons staying put; checked with 200 % font, a small 360 dp screen and landscape.
+- **Softer screen changes.** The start page now glides into the chat, settings slide in and out.
 - **Alarm, timer, calendar and directions – always with your OK.** Say "Stell mir einen Wecker um 6:30", "Timer 10 Minuten", "Trag Zahnarzt morgen um 15 Uhr ein" or "Navigier mich zum Kölner Dom". Pim prepares it and shows a small card under the answer; nothing happens until you tap **Stellen**, **Starten** or **Eintragen** (or **Abbrechen**). Then your clock, calendar or map app takes over – the calendar opens already filled in, so Hain needs no calendar permission. If your phone has no app for it, the card tells you. Works in offline mode too.
 - **Your own search.** Run your own SearXNG? Put its address in Settings → Privacy and Pim asks it first.
 - **Search gives DuckDuckGo a break.** When DuckDuckGo answers with its "are you a bot?" page, Hain leaves it alone for 10 minutes and uses the other sources instead.
-- **Softer screen changes and a depth switch in the chat.** The start page now glides into the chat, settings slide in and out. Above the message box you pick **Auto / Fast / Thorough** – it applies to your next message (same setting as Settings → Answers).
 - **Tools in every message.** Before, Pim used a tool only once per chat and afterwards pretended to have "looked it up". Now Pim remembers which tools it really used, calls them again for every new question (weather, Wikipedia, search) and never claims to have looked something up without doing it.
 - **Pim searches the web – without an API key.** Ask "Recherchier mal: Wie viel Strom spart eine Wärmepumpe?" and Pim searches (DuckDuckGo, SearXNG or Wikipedia), reads the 3 best pages at the same time and answers from them. You watch every step above the answer ("Suche · Wärmepumpe ✓", "3 Seiten gelesen ✓"), the pages Pim really read are the source chips below. If it needs more, Pim searches a second time. In the answer mode **Schnell** Pim searches once and reads one page.
 - **Send Pim a link.** "Was steht hier: https://…" – Pim reads the page and sums it up.

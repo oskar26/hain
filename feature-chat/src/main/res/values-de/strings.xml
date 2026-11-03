@@ -105,4 +105,19 @@
     <string name="chat_mode_auto">Auto</string>
     <string name="chat_mode_fast">Schnell</string>
     <string name="chat_mode_thorough">Gründlich</string>
+    <!-- T-084 Denk-Auswahl im Eingabefeld -->
+    <string name="chat_mode_auto_hint">Pim entscheidet selbst</string>
+    <string name="chat_mode_fast_hint">Antwortet sofort, ohne nachzudenken</string>
+    <string name="chat_mode_thorough_hint">Denkt länger nach, für schwierige Fragen</string>
+    <string name="chat_mode_button">Denk-Stufe: %1$s. Tippen zum Ändern</string>
+    <string name="chat_mode_selected">%1$s, ausgewählt</string>
+    <!-- T-011 leerer Chat -->
+    <string name="chat_hello_morning">Guten Morgen,</string>
+    <string name="chat_hello_day">Hallo,</string>
+    <string name="chat_hello_evening">Guten Abend,</string>
+    <string name="chat_hello_question">was kann ich für dich tun?</string>
+    <!-- T-085 lange Texte -->
+    <string name="chat_show_more">Mehr anzeigen</string>
+    <string name="chat_show_less">Weniger anzeigen</string>
+    <string name="chat_scroll_down">Zur neuesten Nachricht</string>
 </resources>

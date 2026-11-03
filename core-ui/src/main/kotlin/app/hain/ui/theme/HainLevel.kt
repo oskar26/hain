@@ -16,8 +16,9 @@ import androidx.compose.ui.unit.dp
  * The three depth levels of the whole app (T-010, docs/design/DESIGN_LANGUAGE.md). Every surface
  * picks one of these instead of its own shadow or border, so Hain feels like one calm piece.
  * - [FLAT]: soft grey fill, no edge (bubbles, search field, chips at rest)
- * - [RAISED]: page-coloured card with a hairline and a barely-there shadow (tiles, composer, cards)
- * - [FLOATING]: glass tile with a light top edge and one soft shadow (menus, popovers)
+ * - [RAISED]: page-coloured card with a light top edge and a soft shadow (secondary pills, cards)
+ * - [FLOATING]: clear glass tile ([glassTile]) with sheen, light edge and a deep soft shadow (menus, popovers)
+ * Coloured glass tiles with inner light use [glassTile] directly (T-011).
  */
 enum class HainLevel { FLAT, RAISED, FLOATING }
 
@@ -42,19 +43,24 @@ fun Modifier.hainSurface(
     val c = LocalHainColors.current
     return when (level) {
         HainLevel.FLAT -> clip(shape).background(fill ?: c.surface, shape)
+        // T-011 "calm, but with depth": a real soft shadow and a light top edge instead of a flat hairline
         HainLevel.RAISED ->
             shadow(level.shadowDp(), shape, clip = false, ambientColor = c.shadow, spotColor = c.shadow)
                 .clip(shape)
                 .background(fill ?: c.bg, shape)
-                .border(HAIRLINE.dp, c.border, shape)
-        HainLevel.FLOATING ->
-            shadow(level.shadowDp(), shape, clip = false, ambientColor = c.shadow, spotColor = c.shadow)
-                .clip(shape)
-                .background(fill ?: c.glass, shape)
                 .border(HAIRLINE.dp, Brush.verticalGradient(listOf(c.glassEdge, c.border)), shape)
+        HainLevel.FLOATING ->
+            if (fill == null) {
+                glassTile(GlowHue.CLEAR, shape, level.shadowDp(), floorGlow = false)
+            } else {
+                shadow(level.shadowDp(), shape, clip = false, ambientColor = c.shadow, spotColor = c.shadow)
+                    .clip(shape)
+                    .background(fill, shape)
+                    .border(HAIRLINE.dp, Brush.verticalGradient(listOf(c.glassEdge, c.border)), shape)
+            }
     }
 }
 
 private const val HAIRLINE = 1
-private const val RAISED_SHADOW = 2
-private const val FLOATING_SHADOW = 14
+private const val RAISED_SHADOW = 6
+private const val FLOATING_SHADOW = 18
