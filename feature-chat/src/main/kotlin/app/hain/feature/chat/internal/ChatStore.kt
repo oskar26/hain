@@ -122,6 +122,26 @@ class ChatStore(
         write { it.deleteMessage(messageId) }
     }
 
+    /**
+     * Removes every message after [messageId] (and [messageId] itself unless [keep]). Used to edit a
+     * sent message or to ask again from an older answer.
+     */
+    fun truncateFrom(
+        chatId: Long,
+        messageId: Long,
+        keep: Boolean,
+    ) {
+        val messages = chat(chatId)?.messages.orEmpty()
+        val index = messages.indexOfFirst { it.id == messageId }
+        val dropped = if (index < 0) emptyList() else messages.drop(if (keep) index + 1 else index)
+        if (dropped.isEmpty()) return
+        val gone = dropped.map { it.id }.toSet()
+        mutableChats.update { list ->
+            list.map { c -> if (c.id == chatId) c.copy(messages = c.messages.filterNot { it.id in gone }) else c }
+        }
+        write { p -> gone.forEach { p.deleteMessage(it) } }
+    }
+
     fun delete(chatId: Long) {
         mutableChats.update { list -> list.filterNot { it.id == chatId } }
         write { it.deleteChat(chatId) }

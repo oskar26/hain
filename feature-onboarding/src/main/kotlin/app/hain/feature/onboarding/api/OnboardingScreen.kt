@@ -43,12 +43,17 @@ import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 
-/** First start (T-083): welcome tour, then the brain gets downloaded, then Pim cheers. */
+/**
+ * First start (T-083): welcome tour, then the brain gets downloaded, then Pim cheers.
+ * [onSkip] (2d-2): the download can wait (or keeps running in the background); the chat then
+ * shows a friendly reminder.
+ */
 @Composable
 fun OnboardingScreen(
     models: ModelRepository,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
+    onSkip: () -> Unit = onDone,
 ) {
     val model = remember { models.defaultBrain }
     val download by remember(model) { models.downloadState(model) }.collectAsState(DownloadState.Idle)
@@ -99,7 +104,7 @@ fun OnboardingScreen(
             style = type.body.copy(color = colors.textMuted, textAlign = TextAlign.Center),
         )
         Spacer(Modifier.height(spacing.xl))
-        DownloadBlock(download, model, size, models, start, onDone)
+        DownloadBlock(download, model, size, models, start, onDone, onSkip)
         Spacer(Modifier.height(spacing.xl))
         BasicText(
             stringResource(R.string.onboarding_licence, model.name, model.licence),
@@ -117,6 +122,7 @@ private fun DownloadBlock(
     models: ModelRepository,
     start: () -> Unit,
     onDone: () -> Unit,
+    onSkip: () -> Unit,
 ) {
     val context = LocalContext.current
     val colors = LocalHainColors.current
@@ -132,17 +138,20 @@ private fun DownloadBlock(
             DownloadState.Idle -> {
                 HainButton(stringResource(R.string.onboarding_download), start, Modifier.fillMaxWidth())
                 BasicText(stringResource(R.string.onboarding_wifi), style = muted)
+                HainButton(stringResource(R.string.onboarding_skip), onSkip, style = HainButtonStyle.GHOST)
             }
             DownloadState.Queued -> {
                 ProgressBar(0f)
                 BasicText(stringResource(R.string.onboarding_queued), style = muted)
                 CancelButton { models.cancelDownload(model) }
+                HainButton(stringResource(R.string.onboarding_background), onSkip, style = HainButtonStyle.GHOST)
             }
             is DownloadState.Running -> {
                 ProgressBar(download.fraction)
                 val done = Formatter.formatShortFileSize(context, download.downloaded)
                 BasicText(stringResource(R.string.onboarding_progress, done, size), style = muted)
                 CancelButton { models.cancelDownload(model) }
+                HainButton(stringResource(R.string.onboarding_background), onSkip, style = HainButtonStyle.GHOST)
             }
             DownloadState.Verifying -> {
                 ProgressBar(1f)
@@ -153,6 +162,7 @@ private fun DownloadBlock(
             is DownloadState.Failed -> {
                 BasicText(failText(download.reason, size), style = type.bodySmall.copy(color = colors.danger))
                 HainButton(stringResource(R.string.onboarding_retry), start, Modifier.fillMaxWidth())
+                HainButton(stringResource(R.string.onboarding_skip), onSkip, style = HainButtonStyle.GHOST)
             }
         }
     }

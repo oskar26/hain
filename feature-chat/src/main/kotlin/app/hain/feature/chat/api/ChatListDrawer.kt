@@ -1,14 +1,12 @@
 package app.hain.feature.chat.api
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicText
@@ -45,9 +44,11 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import app.hain.feature.chat.R
 import app.hain.feature.chat.internal.Chat
@@ -57,6 +58,8 @@ import app.hain.ui.components.HainButton
 import app.hain.ui.components.HainButtonStyle
 import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.HainMenuRow
+import app.hain.ui.components.HainPopupItem
+import app.hain.ui.components.HainPopupMenu
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
@@ -221,6 +224,10 @@ private fun SearchField(
     }
 }
 
+/**
+ * One chat in the list. The ⋯ button opens a small menu right at the row (2d-2: no big empty box);
+ * rename edits the title in place, delete asks once inside the menu.
+ */
 @Suppress("LongParameterList")
 @Composable
 private fun ChatRow(
@@ -232,87 +239,62 @@ private fun ChatRow(
     modifier: Modifier = Modifier,
 ) {
     val colors = LocalHainColors.current
-    val spacing = LocalHainSpacing.current
-    val shape = LocalHainShapes.current.chip
-    var mode by remember(chat.id, expanded) { mutableStateOf(RowMode.ACTIONS) }
-    Column(
-        modifier
-            .fillMaxWidth()
-            .animateContentSize()
-            .then(if (expanded) Modifier.border(1.dp, colors.border, shape) else Modifier),
-    ) {
-        if (expanded && mode == RowMode.RENAME) {
-            RenameField(chat.title, onDone = { title ->
-                if (title != null) actions.onRename(chat.id, title)
-                onToggle()
-            })
-        } else {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                HainMenuRow(
-                    icon = if (chat.pinned) HainIcons.pin else null,
-                    label = chat.title,
-                    onClick = { actions.onOpen(chat.id) },
-                    selected = selected,
-                    modifier = Modifier.weight(1f),
-                )
-                HainIconButton(HainIcons.more, stringResource(R.string.chat_more), onToggle, tint = colors.textMuted)
-            }
-        }
-        if (expanded && mode == RowMode.ACTIONS) {
-            Row(Modifier.padding(horizontal = spacing.xs, vertical = spacing.xs)) {
-                RowAction(
-                    if (chat.pinned) R.string.chat_unpin else R.string.chat_pin,
-                    { HainIcons.pin },
-                ) {
-                    actions.onPin(chat.id, !chat.pinned)
-                    onToggle()
-                }
-                RowAction(R.string.chat_rename, { HainIcons.edit }) { mode = RowMode.RENAME }
-                RowAction(R.string.chat_delete_short, { HainIcons.delete }, danger = true) {
-                    mode = RowMode.CONFIRM_DELETE
-                }
-            }
-        }
-        if (expanded && mode == RowMode.CONFIRM_DELETE) {
-            ConfirmDelete(
-                onDelete = {
-                    actions.onDelete(chat.id)
-                    onToggle()
-                },
-                onCancel = { mode = RowMode.ACTIONS },
-            )
-        }
+    var mode by remember(chat.id, expanded) { mutableStateOf(RowMode.MENU) }
+    if (expanded && mode == RowMode.RENAME) {
+        RenameField(chat.title, onDone = { title ->
+            if (title != null) actions.onRename(chat.id, title)
+            onToggle()
+        })
+        return
     }
-}
-
-private enum class RowMode { ACTIONS, RENAME, CONFIRM_DELETE }
-
-@Composable
-private fun RowAction(
-    label: Int,
-    icon: @Composable () -> androidx.compose.ui.graphics.painter.Painter,
-    danger: Boolean = false,
-    onClick: () -> Unit,
-) {
-    val colors = LocalHainColors.current
-    val spacing = LocalHainSpacing.current
-    val tint = if (danger) colors.danger else colors.text
-    Row(
-        Modifier
-            .clickable(onClick = onClick)
-            .padding(horizontal = spacing.sm, vertical = spacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Image(
-            icon(),
-            contentDescription = null,
-            colorFilter = ColorFilter.tint(tint),
-            modifier = Modifier.size(SMALL_ICON.dp),
+    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        HainMenuRow(
+            icon = if (chat.pinned) HainIcons.pin else null,
+            label = chat.title,
+            onClick = { actions.onOpen(chat.id) },
+            selected = selected,
+            modifier = Modifier.weight(1f),
         )
-        Spacer(Modifier.width(spacing.xs))
-        BasicText(stringResource(label), style = LocalHainTypography.current.bodySmall.copy(color = tint))
+        Box {
+            HainIconButton(HainIcons.more, stringResource(R.string.chat_more), onToggle, tint = colors.textMuted)
+            if (expanded) {
+                HainPopupMenu(
+                    onDismiss = onToggle,
+                    alignment = Alignment.TopEnd,
+                    offset = IntOffset(0, with(LocalDensity.current) { MENU_OFFSET.dp.roundToPx() }),
+                ) {
+                    if (mode == RowMode.CONFIRM_DELETE) {
+                        ConfirmDelete(
+                            onDelete = {
+                                actions.onDelete(chat.id)
+                                onToggle()
+                            },
+                            onCancel = { mode = RowMode.MENU },
+                        )
+                    } else {
+                        HainPopupItem(
+                            HainIcons.pin,
+                            stringResource(if (chat.pinned) R.string.chat_unpin else R.string.chat_pin),
+                            {
+                                actions.onPin(chat.id, !chat.pinned)
+                                onToggle()
+                            },
+                        )
+                        HainPopupItem(HainIcons.edit, stringResource(R.string.chat_rename), { mode = RowMode.RENAME })
+                        HainPopupItem(
+                            HainIcons.delete,
+                            stringResource(R.string.chat_delete_short),
+                            { mode = RowMode.CONFIRM_DELETE },
+                            danger = true,
+                        )
+                    }
+                }
+            }
+        }
     }
 }
+
+private enum class RowMode { MENU, RENAME, CONFIRM_DELETE }
 
 /** Inline title editor; [onDone] gets the new title, or `null` when cancelled. */
 @Composable
@@ -349,11 +331,11 @@ private fun ConfirmDelete(
 ) {
     val spacing = LocalHainSpacing.current
     val type = LocalHainTypography.current
-    Column(Modifier.padding(spacing.md)) {
+    Column(Modifier.widthIn(max = CONFIRM_WIDTH.dp).padding(spacing.md)) {
         BasicText(
             stringResource(R.string.chat_delete_confirm),
             style = type.bodySmall.copy(color = LocalHainColors.current.text),
-            maxLines = 2,
+            maxLines = 3,
             overflow = TextOverflow.Ellipsis,
         )
         Spacer(Modifier.height(spacing.sm))
@@ -367,4 +349,5 @@ private fun ConfirmDelete(
 private const val SCRIM_ALPHA = 0.32f
 private const val DRAWER_WIDTH = 300
 private const val ICON_SIZE = 20
-private const val SMALL_ICON = 16
+private const val MENU_OFFSET = 40
+private const val CONFIRM_WIDTH = 240

@@ -28,4 +28,6 @@
     <string name="tour_next">Weiter</string>
     <string name="tour_skip">Überspringen</string>
     <string name="tour_go">Los geht\'s</string>
+    <string name="onboarding_skip">Später – erst mal umschauen</string>
+    <string name="onboarding_background">Im Hintergrund weiterladen</string>
 </resources>

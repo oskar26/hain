@@ -52,8 +52,10 @@ sealed interface GenerationEvent {
 sealed interface EngineState {
     data object Unloaded : EngineState
 
+    /** [progress] runs 0→1 while the file is read; below 0 when unknown. */
     data class Loading(
         val path: String,
+        val progress: Float = -1f,
     ) : EngineState
 
     data class Ready(
@@ -77,12 +79,25 @@ interface LlmEngine {
         contextSize: Int = 8192,
     ): Boolean
 
-    /** Streams the answer to a fully templated [prompt]. Cancelling the flow stops generation. */
+    /**
+     * Streams the answer to a fully templated [prompt]. Cancelling the flow stops generation.
+     * [checkpoints] are character offsets into [prompt] (prefixes the next turn starts with, e.g.
+     * the end of the system prompt or of the history); the engine keeps its memory there so the
+     * next turn does not read the whole chat again.
+     */
     fun generate(
         prompt: String,
         params: SamplingParams = SamplingParams.CHAT,
+        checkpoints: List<Int> = emptyList(),
     ): Flow<GenerationEvent>
 
+    /** Reads [prompt] (e.g. the system prompt) into memory ahead of time. `false` if not possible. */
+    suspend fun prefill(
+        prompt: String,
+        checkpoints: List<Int> = emptyList(),
+    ): Boolean = false
+
+    /** Stops the running generation (or prefill) as soon as possible, even inside a long prompt. */
     fun cancel()
 
     suspend fun unload()

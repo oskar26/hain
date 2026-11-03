@@ -3,6 +3,7 @@ package app.hain.ui.components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontWeight
@@ -36,25 +38,46 @@ import com.mikepenz.markdown.model.DefaultMarkdownTypography
 import com.mikepenz.markdown.model.MarkdownColors
 import com.mikepenz.markdown.model.MarkdownTypography
 
-/** User message: grey bubble on the right (DESIGN_SYSTEM.md §1). */
+/**
+ * User message: grey bubble on the right (DESIGN_SYSTEM.md §1). With [onLongPress] a long press
+ * opens the message menu (copy, edit); [menu] is shown anchored below the bubble.
+ */
 @Composable
 fun UserBubble(
     text: String,
     modifier: Modifier = Modifier,
+    onLongPress: (() -> Unit)? = null,
+    menu: @Composable () -> Unit = {},
 ) {
     val colors = LocalHainColors.current
     val spacing = LocalHainSpacing.current
+    val shape = LocalHainShapes.current.userBubble
     Box(modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-        SelectionContainer {
-            BasicText(
-                text = text,
-                style = LocalHainTypography.current.body.copy(color = colors.text),
-                modifier =
-                    Modifier
-                        .widthIn(max = 320.dp)
-                        .background(colors.surface, LocalHainShapes.current.userBubble)
-                        .padding(horizontal = spacing.lg, vertical = spacing.md),
-            )
+        val bubble =
+            Modifier
+                .widthIn(max = 320.dp)
+                .clip(shape)
+                .background(colors.surface, shape)
+        if (onLongPress == null) {
+            SelectionContainer {
+                BasicText(
+                    text = text,
+                    style = LocalHainTypography.current.body.copy(color = colors.text),
+                    modifier = bubble.padding(horizontal = spacing.lg, vertical = spacing.md),
+                )
+            }
+        } else {
+            Box {
+                BasicText(
+                    text = text,
+                    style = LocalHainTypography.current.body.copy(color = colors.text),
+                    modifier =
+                        bubble
+                            .combinedClickable(onClick = {}, onLongClick = onLongPress)
+                            .padding(horizontal = spacing.lg, vertical = spacing.md),
+                )
+                menu()
+            }
         }
     }
 }

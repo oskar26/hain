@@ -1,17 +1,9 @@
 package app.hain.feature.chat.internal
 
 import app.hain.llm.api.ChatMessage
-import app.hain.llm.api.EngineState
-import app.hain.llm.api.GenerationEvent
-import app.hain.llm.api.LlmEngine
 import app.hain.llm.api.Role
-import app.hain.llm.api.SamplingParams
 import app.hain.llm.api.StopReason
 import app.hain.llm.internal.AnswerMode
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -19,35 +11,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ChatEngineTest {
-    private class FakeLlm(
-        private val chunks: List<String>,
-        private val end: StopReason = StopReason.END,
-    ) : LlmEngine {
-        var lastPrompt = ""
-        var lastParams: SamplingParams? = null
-        override val state: StateFlow<EngineState> = MutableStateFlow(EngineState.Ready("x"))
-        override val isAvailable = true
-
-        override suspend fun load(
-            path: String,
-            contextSize: Int,
-        ) = true
-
-        override fun generate(
-            prompt: String,
-            params: SamplingParams,
-        ): Flow<GenerationEvent> {
-            lastPrompt = prompt
-            lastParams = params
-            val events = chunks.map { GenerationEvent.Token(it) } + GenerationEvent.Done(end)
-            return flowOf(*events.toTypedArray())
-        }
-
-        override fun cancel() = Unit
-
-        override suspend fun unload() = Unit
-    }
-
     @Test
     fun fastModeStreamsTextWithoutThinking() =
         runTest {
@@ -77,12 +40,72 @@ class ChatEngineTest {
     @Test
     fun stoppedWhileThinkingKeepsThinkingOutOfTheAnswer() =
         runTest {
-            val llm = FakeLlm(listOf("noch am denken"), StopReason.CANCELLED)
+            val llm = FakeLlm(listOf("noch am denken"), end = StopReason.CANCELLED)
             val updates = ChatEngine(llm, { "S" }).respond(user("warum?"), AnswerMode.THOROUGH).toList()
             val last = updates.last() as TurnUpdate.Finished
             assertEquals("", last.output.text)
             assertEquals("noch am denken", last.output.reasoning)
         }
+
+    @Test
+    fun checkpointsMarkFixedSystemTextSystemEndAndHistory() =
+        runTest {
+            val llm = FakeLlm(listOf("A"))
+            val system = "Be kind.\n\n# Context\nNow: 23:10"
+            val history =
+                listOf(
+                    ChatMessage(Role.USER, "eins"),
+                    ChatMessage(Role.ASSISTANT, "erste Antwort"),
+                    ChatMessage(Role.USER, "zwei"),
+                )
+            ChatEngine(llm, { system }).respond(history, AnswerMode.FAST).toList()
+            val prompt = llm.lastPrompt
+            val cuts = llm.checkpoints.last()
+            assertEquals(4, cuts.size)
+            assertTrue(prompt.substring(cuts[0]).startsWith("# Context"))
+            assertTrue(prompt.substring(0, cuts[1]).endsWith("Now: 23:10<|im_end|>\n"))
+            assertTrue(prompt.substring(0, cuts[2]).endsWith("erste Antwort<|im_end|>\n"))
+            assertTrue(prompt.substring(0, cuts[3]).endsWith("zwei<|im_end|>\n"))
+        }
+
+    @Test
+    fun systemPromptTimeMovesOnlyEveryHalfHour() {
+        var now = 1_000_000L
+        val engine = ChatEngine(FakeLlm(), { "S" }, clock = { now })
+        val first = engine.promptAnchor()
+        now += ChatEngine.ANCHOR_MS - 1
+        assertEquals(first, engine.promptAnchor())
+        now += 1
+        assertEquals(now, engine.promptAnchor())
+    }
+
+    @Test
+    fun warmUpReadsTheSystemPrompt() =
+        runTest {
+            val llm = FakeLlm()
+            ChatEngine(llm, { "SYS" }).warmUp()
+            assertEquals("<|startoftext|><|im_start|>system\nSYS<|im_end|>\n", llm.prefills.single())
+        }
+
+    @Test
+    fun titleIsAskedAfterTheHistoryWithoutThinking() =
+        runTest {
+            val llm = FakeLlm(listOf("\"Plastik sparen im Alltag.\""))
+            val history = listOf(ChatMessage(Role.USER, "Wie spare ich Plastik?"), ChatMessage(Role.ASSISTANT, "So."))
+            val title = ChatEngine(llm, { "S" }).title(history)
+            assertEquals("Plastik sparen im Alltag", title)
+            assertTrue(llm.lastPrompt.endsWith("<|im_start|>assistant\n<think></think>"))
+            val historyEnd = llm.checkpoints.last().last()
+            assertTrue(llm.lastPrompt.substring(0, historyEnd).endsWith("So.<|im_end|>\n"))
+        }
+
+    @Test
+    fun cleanTitleKeepsSixWordsAndDropsLabels() {
+        val long = "Titel: eins zwei drei vier fünf sechs sieben"
+        assertEquals("Eins zwei drei vier fünf sechs", ChatEngine.cleanTitle(long))
+        assertEquals(null, ChatEngine.cleanTitle("  \n \"\" "))
+        assertEquals("Wetter morgen", ChatEngine.cleanTitle("**Wetter morgen**\nmehr Text"))
+    }
 
     private fun user(text: String) = listOf(ChatMessage(Role.USER, text))
 }

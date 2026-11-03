@@ -3,6 +3,8 @@ package app.hain
 import android.content.Context
 import app.hain.llm.internal.SystemPromptFiller
 import app.hain.llm.internal.SystemPromptVars
+import java.time.Instant
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.Locale
 
@@ -18,11 +20,13 @@ class SystemPromptSource(
             .use { it.readText() }
     }
 
-    fun current(): String {
+    /** System prompt with the time [atMillis] (the chat engine moves it on only every half hour). */
+    fun current(atMillis: Long = System.currentTimeMillis()): String {
         val locale = context.resources.configuration.locales[0] ?: Locale.getDefault()
+        val at = ZonedDateTime.ofInstant(Instant.ofEpochMilli(atMillis), ZoneId.systemDefault())
         val vars =
             SystemPromptVars
-                .of(ZonedDateTime.now(), locale, locale.country.ifEmpty { null })
+                .of(at, locale, locale.country.ifEmpty { null })
                 .copy(userCustomInstructions = instructions(locale))
         return SystemPromptFiller.fill(template, vars)
     }

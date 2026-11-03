@@ -1,5 +1,6 @@
 package app.hain.ui.effects
 
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -9,7 +10,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
@@ -33,23 +33,24 @@ fun ThinkingGlow(
     visible: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val alpha by animateFloatAsState(if (visible) 1f else 0f, tween(FADE_MS), label = "glow-alpha")
-    if (alpha == 0f) return
+    // Soft, eased fade (2d-2: no sudden pop-in). Values are read in the draw lambda only, so the
+    // glow never recomposes the screen while it moves.
+    val alpha = animateFloatAsState(if (visible) 1f else 0f, tween(FADE_MS, easing = FADE_EASING), label = "glow-alpha")
+    if (!visible && alpha.value == 0f) return
     val reduce = LocalReduceMotion.current
     val accent = LocalHainColors.current.accent
+    if (reduce) {
+        Box(modifier.drawBehind { drawGlow(alpha.value, 0f, accent) })
+        return
+    }
     val phase =
-        if (reduce) {
-            0f
-        } else {
-            val p by rememberInfiniteTransition(label = "glow").animateFloat(
-                initialValue = 0f,
-                targetValue = 1f,
-                animationSpec = infiniteRepeatable(tween(WANDER_MS, easing = LinearEasing), RepeatMode.Restart),
-                label = "glow-phase",
-            )
-            p
-        }
-    Box(modifier.drawBehind { drawGlow(alpha, phase, accent) })
+        rememberInfiniteTransition(label = "glow").animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(WANDER_MS, easing = LinearEasing), RepeatMode.Restart),
+            label = "glow-phase",
+        )
+    Box(modifier.drawBehind { drawGlow(alpha.value, phase.value, accent) })
 }
 
 internal fun DrawScope.drawGlow(
@@ -58,6 +59,7 @@ internal fun DrawScope.drawGlow(
     accent: Color,
 ) {
     val h = size.height
+    if (alpha <= 0f) return
     // calm base: strongest at the bottom edge, transparent above 45 %
     drawRect(
         Brush.verticalGradient(
@@ -83,7 +85,12 @@ internal fun DrawScope.drawGlow(
     }
 }
 
-private const val FADE_MS = 600
+private const val FADE_MS = 450
+private const val EASE_X1 = 0.4f
+private const val EASE_X2 = 0.2f
+
+/** Material-like "standard" curve: starts gently, settles softly. */
+private val FADE_EASING = CubicBezierEasing(EASE_X1, 0f, EASE_X2, 1f)
 private const val WANDER_MS = 5200
 private const val BASE_TOP = 0.55f
 private const val BASE_ALPHA = 0.22f

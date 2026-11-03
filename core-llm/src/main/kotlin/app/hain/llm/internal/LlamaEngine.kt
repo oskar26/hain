@@ -1,6 +1,7 @@
 package app.hain.llm.internal
 
 import android.content.Context
+import android.util.Log
 import app.hain.llm.api.EngineState
 import app.hain.llm.api.GenerationEvent
 import app.hain.llm.api.LlmEngine
@@ -29,7 +30,11 @@ class LlamaEngine(
 
     @Volatile private var handle = 0L
 
-    @Volatile private var cancelRequested = false
+    // Each generation gets a number; cancel() stops every generation up to the current one. A plain
+    // flag could be reset by the end of the previous generation and swallow a stop.
+    @Volatile private var started = 0
+
+    @Volatile private var cancelledUpTo = 0
     private var initialized = false
 
     override val isAvailable: Boolean get() = NativeLlm.loadError == null
@@ -50,16 +55,41 @@ class LlamaEngine(
                 initialized = true
             }
             freeHandle()
-            mutableState.value = EngineState.Loading(path)
-            val newHandle = NativeLlm.nativeLoad(path, contextSize, threadCount(), 0)
+            mutableState.value = EngineState.Loading(path, 0f)
+            var shown = 0f
+            val progress =
+                LoadProgress { p ->
+                    // a few steps are enough for the progress bar; no flood of state updates
+                    if (p - shown >= PROGRESS_STEP || p >= 1f) {
+                        shown = p
+                        mutableState.value = EngineState.Loading(path, p)
+                    }
+                    true
+                }
+            val newHandle = NativeLlm.nativeLoad(path, contextSize, threadCount(), 0, progress)
             handle = newHandle
+            if (newHandle != 0L) {
+                Log.i(TAG, "brain loaded in ${NativeLlm.nativeStats(newHandle)[0].toInt()} ms")
+            }
             mutableState.value = if (newHandle != 0L) EngineState.Ready(path) else EngineState.Failed("load failed")
             newHandle != 0L
+        }
+
+    override suspend fun prefill(
+        prompt: String,
+        checkpoints: List<Int>,
+    ): Boolean =
+        withContext(dispatcher) {
+            val h = handle
+            if (h == 0L) return@withContext false
+            NativeLlm.nativeSetCancel(h, false)
+            NativeLlm.nativePrefill(h, prompt.encodeToByteArray(), byteOffsets(prompt, checkpoints))
         }
 
     override fun generate(
         prompt: String,
         params: SamplingParams,
+        checkpoints: List<Int>,
     ): Flow<GenerationEvent> =
         callbackFlow {
             val h = handle
@@ -68,21 +98,29 @@ class LlamaEngine(
                 close()
                 return@callbackFlow
             }
-            cancelRequested = false
+            val me = ++started
+            NativeLlm.nativeSetCancel(h, false)
             val code =
-                NativeLlm.nativeGenerate(h, prompt.encodeToByteArray(), params.toArray(), null) { bytes ->
+                NativeLlm.nativeGenerate(
+                    h,
+                    prompt.encodeToByteArray(),
+                    byteOffsets(prompt, checkpoints),
+                    params.toArray(),
+                    null,
+                ) { bytes ->
                     trySend(GenerationEvent.Token(bytes.decodeToString()))
-                    !cancelRequested && !isClosedForSend
+                    me > cancelledUpTo && !isClosedForSend
                 }
+            logStats(h)
             trySend(GenerationEvent.Done(code.toStopReason()))
             close()
-            awaitClose { cancelRequested = true }
+            awaitClose { }
         }.flowOn(dispatcher)
 
     override fun cancel() {
-        cancelRequested = true
+        cancelledUpTo = started
         val h = handle
-        if (h != 0L) NativeLlm.nativeCancel(h)
+        if (h != 0L) NativeLlm.nativeSetCancel(h, true)
     }
 
     override suspend fun unload() =
@@ -98,6 +136,18 @@ class LlamaEngine(
         }
     }
 
+    private fun logStats(h: Long) {
+        val s = NativeLlm.nativeStats(h)
+        val genTokens = s[STAT_GEN_TOKENS]
+        val genMs = s[STAT_GEN_MS]
+        val tps = if (genMs > 0f) genTokens * MS_PER_S / genMs else 0f
+        Log.i(
+            TAG,
+            "prompt ${s[STAT_PROMPT].toInt()} tok, reused ${s[STAT_REUSED].toInt()}, " +
+                "read in ${s[STAT_PREFILL_MS].toInt()} ms; ${genTokens.toInt()} tok at ${"%.1f".format(tps)} t/s",
+        )
+    }
+
     private fun threadCount(): Int = (Runtime.getRuntime().availableProcessors() - 2).coerceIn(2, MAX_THREADS)
 
     private fun Int.toStopReason(): StopReason =
@@ -110,6 +160,24 @@ class LlamaEngine(
         }
 
     private companion object {
+        const val TAG = "HainLlm"
         const val MAX_THREADS = 6
+        const val PROGRESS_STEP = 0.02f
+        const val MS_PER_S = 1000f
+        const val STAT_PROMPT = 1
+        const val STAT_REUSED = 2
+        const val STAT_PREFILL_MS = 3
+        const val STAT_GEN_TOKENS = 4
+        const val STAT_GEN_MS = 5
     }
 }
+
+/** Character offsets in [text] → UTF-8 byte offsets (what the native side cuts at). */
+internal fun byteOffsets(
+    text: String,
+    charOffsets: List<Int>,
+): IntArray =
+    charOffsets
+        .filter { it in 1 until text.length }
+        .map { text.substring(0, it).encodeToByteArray().size }
+        .toIntArray()

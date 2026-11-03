@@ -41,13 +41,14 @@ fun Pim(
     size: Dp,
     modifier: Modifier = Modifier,
 ) {
-    PimCanvas(pose = poseFor(state), size = size, modifier = modifier)
+    val pose = poseFor(state)
+    PimCanvas(pose = { pose }, size = size, modifier = modifier)
 }
 
-/** Draws one pose; glossy 3D look from 48 dp, contact shadow when [shadowLift] is set. */
+/** Draws the pose [pose] returns; glossy 3D look from 48 dp, contact shadow when [shadowLift] is set. */
 @Composable
 internal fun PimCanvas(
-    pose: PimPose,
+    pose: () -> PimPose,
     size: Dp,
     modifier: Modifier = Modifier,
     shadowLift: Float? = null,
@@ -55,12 +56,14 @@ internal fun PimCanvas(
     val colors = if (LocalHainColors.current.bg.luminance() < DARK_BG_LUMINANCE) DarkPimColors else LightPimColors
     val showVein = size >= 64.dp
     val gloss = size >= GLOSS_MIN_SIZE
+    // [pose] is read while drawing, so an animated Pim only redraws and never recomposes.
     Canvas(modifier = modifier.size(size)) {
+        val now = pose()
         // viewBox -12 -18 144 144 → fit the 144-unit box into the canvas
         val fit = this.size.minDimension / PimGeometry.VIEW_BOX_SIZE
         scale(fit, fit, Offset.Zero) {
-            if (shadowLift != null) drawContactShadow(-pose.y + shadowLift, pose.sx)
-            drawPim(pose, colors, showVein, gloss)
+            if (shadowLift != null) drawContactShadow(-now.y + shadowLift, now.sx)
+            drawPim(now, colors, showVein, gloss)
         }
     }
 }

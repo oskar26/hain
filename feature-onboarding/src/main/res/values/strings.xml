@@ -28,4 +28,6 @@
     <string name="tour_next">Next</string>
     <string name="tour_skip">Skip</string>
     <string name="tour_go">Let\'s go</string>
+    <string name="onboarding_skip">Later – look around first</string>
+    <string name="onboarding_background">Keep loading in the background</string>
 </resources>

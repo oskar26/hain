@@ -203,3 +203,26 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 | T-083 | review | Gate | `WelcomeTour`, `SuccessScreen`, `Heroes` in feature-onboarding; `ThinkingGlow`, `Celebration` (Konfetti) in core-ui; primary `HainButton` domed + press-in | Onboarding language step stays 2f. |
 
 **Next:** day 2e-2: Einstellungen neu (Gruppen mit Icon, Unterseiten), Micro-Animationen Senden/neue Nachricht/Drawer; dann 2d-2.
+
+## 2026-11-02 · day 2d-2 "Tempo, Stopp, Tastatur, Gehirn später, Nachrichten-Aktionen, Menü, Auto-Titel" · review · harness: Hark · branch `hark/day-2d-2`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-190 | doing | Gate; APK check: CI APK built with `-Phain.fastDebug=true` | `app/build.gradle.kts` (debug `isDebuggable` from property), `apk.yml` | **Main "sau langsam" cause:** the phone APK was a *debuggable* debug build (Compose runs without ART optimisations, library baseline profiles ignored). CI now builds it non-debuggable, same id `app.hain.debug` + key → installs as update. R8 (`isMinifyEnabled`) and an own baseline profile are **not** on yet (need a device run to rule out missing keep rules) → 2d-3. |
+| T-033 | review | host harness against host-built llama.cpp `39febd2` + real `LFM3-1.7B-QAD-Q4_0.gguf` (see below); `ByteOffsetsTest` | native logic moved to `core-llm/src/main/cpp/hain_session.h` (no JNI, testable on a PC) | LFM3 is hybrid (attention + short conv): `llama_memory_seq_rm` cannot cut the recurrent part, so **every turn re-read the whole chat**. Now: partial-state checkpoints (`llama_state_seq_*_ext`, `PARTIAL_ONLY`, like llama-server) at the end of the fixed system text, of the system prompt and of the history; warm-up reads the system prompt after loading; abort callback → stop lands inside a prompt batch; load progress callback; stats (`HainLlm` logcat: load ms, prompt/reused tokens, t/s). |
+| T-050 | review | `ChatEngineTest` (checkpoints, 30-min time anchor, warm-up, title prompt, clean title) | `SystemPromptSource.current(atMillis)` | System prompt contained the time in minutes → prompt start changed every minute → full re-read. Time anchor now moves every 30 min. Auto-title is asked *after* the history (same prefix), thinking off, 24 tokens max. |
+| T-057 | review (subset) | `ChatViewModelTest` 7 cases, `ChatStoreTest.truncateFrom` | `ChatStore.truncateFrom` | Stop switches the UI at once (message marked stopped, job cancelled, native flag set). Edit own message (long press → menu), ask again on any answer, streaming UI updates throttled to ~20/s, chat without brain → hint `NO_BRAIN`. Branches/queue still open. |
+| T-052 | review | Gate | manifest `windowSoftInputMode="adjustResize"`; `core-ui`: `HainPopupMenu`, `UserBubble(onLongPress, menu)` | Keyboard: the window was *panned* (top bar under the status bar) **and** got `imePadding` (input in the middle). Now resize only; greeting shrinks Pim and hides chips below 420 dp height. Banner "Pim braucht noch sein Gehirn" with Laden/Später, edit bar above the composer, load progress in % in the top bar. |
+| T-053 | review | Gate | — | ⋯ opens a compact popup at the row (pin, rename, delete with confirm inside the menu) instead of the inline box. |
+| T-083 | review | Gate | `MainActivity` (SharedPreferences flag `onboarding_skipped`) | Download can be skipped ("Später – erst mal umschauen") or left running ("Im Hintergrund weiterladen"). |
+| T-163 | review | `JuicyPimTest` | `Pim.kt` `PimCanvas(pose: () -> PimPose)` | Pim and the thinking glow read their animation values in the draw phase only (no recomposition per frame). Blink 200 ms. Glow fades in 450 ms with an eased curve. |
+
+**Measurements (sandbox, aarch64, 2 cores, host build of the pinned llama.cpp, `LFM3-1.7B-QAD-Q4_0.gguf`; the phone will differ, ratios matter):**
+- Load with Q4_0 repack (default): 2.3 s; without repack (`use_extra_bufts=false`): 0.9 s, but prompt reading ~3× and answers ~2–3× slower → repack stays, load shows progress instead.
+- Warm-up (system prompt, 113 tokens): 1.8 s once after loading.
+- Turn 1: 134-token prompt, **113 reused**, read in 0.29 s. Turn 2: 190 tokens, **174 reused**, 0.40 s — without checkpoints the same prompt took 2.0 s (full re-read). Switching to another chat restores the system checkpoint (85 tokens reused).
+- Stop inside a long prompt (1.9k tokens): **≈ 30–40 ms** until the decode returns (before: only after the whole prompt batch, here > 20 s worst case).
+- Greedy output with checkpoints vs. full re-read: same quality, can differ by a word (different batch split → tiny float differences, known llama.cpp behaviour).
+- Not measured: phone start time, jank, t/s on the phone (no device in the sandbox) → please look at logcat tag `HainLlm` on the next test.
+
+**Gate:** `assembleDebug testDebugUnitTest ktlintCheck detekt -Phain.native=false` green (135 unit tests, 0 failures), `check_strings` OK. Native APK by `apk.yml` (PR #14). **Next:** 2d-3 (Einstellungen neu, 3D-UI/Onboarding-Bilder, Pim-3D-Glanz; R8 + Baseline-Profil after a device check).

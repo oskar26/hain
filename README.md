@@ -73,15 +73,17 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 
 | Area | What Hain does | Status |
 |---|---|---|
-| 💬 Chat | Streaming answers, Markdown and code, collapsible "thinking" block, stop, regenerate, copy, share | ✅ |
+| 💬 Chat | Streaming answers, Markdown and code, collapsible "thinking" block, stop (reacts at once), ask again on any answer, copy, share | ✅ |
+| ⚡ Speed | Faster test build, brain loads in the background with progress, remembers the chat between answers instead of re-reading it, system prompt read ahead | ✅ |
 | 🌍 Answer language | Answers in your language automatically, or always in German or English | ✅ |
-| 🌱 First start | Playful welcome tour with Pim, brain download (LFM3-1.7B, 1.0 GB) with resume and checksum, celebration screen | ✅ |
+| 🌱 First start | Playful welcome tour with Pim, brain download (LFM3-1.7B, 1.0 GB) with resume and checksum, celebration screen; the download can wait or run in the background | ✅ |
 | 🗂️ Saved chats | Stored encrypted on the phone; search, rename, pin, delete, grouped by day | ✅ |
 | ⚙️ Settings | Theme, easy-to-read font, answer mode (fast / auto / thorough), answer language, "about me" and answer style | ✅ |
 | 📦 Knowledge packs | See, download and remove packs, with hints on what fits your phone | ✅ |
 | 🎨 Personality | Living Pim, green "thinking" glow, soft 3D buttons | ✅ |
-| ✏️ Chat extras | Automatic chat titles, edit a sent message, export chats | 🗓️ |
-| 🧭 Settings, part 2 | Clearer layout with groups, own "reduce motion" switch, pack picker, language step at first start | 🚧 |
+| ✏️ Chat extras | Automatic chat titles, copy or edit your own message (long press) | ✅ |
+| 📤 Export | Export a chat as Markdown or PDF | 🗓️ |
+| 🧭 Settings, part 2 | Clearer layout with groups, own "reduce motion" switch, pack picker, language step at first start, glossy 3D Pim and new first-start pictures | 🚧 |
 | 🔧 Tools | Calculator and units, weather, Wikipedia, web search without API key, read web pages | 🗓️ |
 | ⏰ Phone actions | Alarm, timer, calendar entry, navigation, always confirmed by you | 🗓️ |
 | 🛡️ Network log | Every internet request goes through one gate and shows up in a log you can read | 🗓️ |
@@ -97,6 +99,17 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 
 The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the plan in [docs/workflow/ROADMAP.md](docs/workflow/ROADMAP.md).
 
+### New in the latest test build
+
+- **Faster.** The test APK is now built like a real release (not "debuggable"), so screens and scrolling should feel clearly smoother. Pim and the green thinking glow move without slowing the rest of the screen down.
+- **The brain remembers the chat.** Before, every answer made the brain read the whole chat again. Now it continues where it stopped, so answers in longer chats start sooner. While it wakes up, the top bar shows how far it is (in %).
+- **Stop means stop.** Tapping stop ends the answer at once, even while Pim is still reading your message.
+- **Chat titles by themselves.** After the first answer Pim gives the chat a short title. A name you typed yourself is never changed.
+- **Your own messages.** Long-press one of your messages to copy it or to edit it: Pim then answers again from there. "Ask again" works on every answer, also the first one.
+- **Brain later.** At the first start you can skip the download (or let it run in the background) and look around first. The chat then shows a small, quiet reminder instead of an error.
+- **Keyboard fixed.** With the keyboard open in an empty chat the top bar stays put and Pim simply gets smaller.
+- **Small menu in the chat list.** The ⋯ button opens a compact menu right at the chat (pin, rename, delete).
+
 ## Install in 3 steps
 
 You don't need to be technical. Hain is not in the Play Store yet, so you install it directly from GitHub.
@@ -104,7 +117,7 @@ You don't need to be technical. Hain is not in the Play Store yet, so you instal
 1. **Download.** Open the [nightly release](https://github.com/oskar26/hain/releases/tag/nightly) on your phone and tap **`hain-debug.apk`**.
 2. **Allow and install.** Open the downloaded file. Android will ask whether your browser may "install unknown apps". Tap **Settings**, switch on **Allow from this source**, go back and tap **Install**.
    <sub>This only lets this one app (your browser) install apps. You can switch it off again afterwards under *Settings → Apps → Special app access → Install unknown apps*. Google Play Protect may show a warning because Hain isn't from the Play Store; that's expected.</sub>
-3. **Open Hain.** Pim welcomes you and downloads the brain (about 1 GB). Use Wi-Fi if you can. After that, Hain works without internet.
+3. **Open Hain.** Pim welcomes you and downloads the brain (about 1 GB). Use Wi-Fi if you can, or skip it and get it later from the chat. After that, Hain works without internet.
 
 **Updating:** download the newest `hain-debug.apk` from the same page and install it over the old one. Your chats stay. Every change to `main` builds a new nightly, and all nightlies are signed with the same key, so they install as an update. (In the alpha, a big update can still reset chats or settings.)
 
@@ -265,7 +278,7 @@ Architecture: [docs/specs/ARCHITECTURE.md](docs/specs/ARCHITECTURE.md) · Design
 
 Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Gerät läuft: chatten, und bald auch suchen, Fotos und PDFs verstehen, sprechen und sich Dinge merken. Keine Cloud, kein Konto, keine API-Schlüssel. Ins Internet geht Hain nur, wenn du etwas brauchst, und zeigt dir genau, wohin die Anfrage geht. Das ganze Konzept steht in [docs/concept/KONZEPT.md](docs/concept/KONZEPT.md).
 
-**Installieren:** Auf dem Handy die [Nightly-Seite](https://github.com/oskar26/hain/releases/tag/nightly) öffnen, `hain-debug.apk` laden, beim Öffnen „Unbekannte Apps installieren“ für den Browser erlauben, installieren. Beim ersten Start lädt Pim das Gehirn (ca. 1 GB, am besten im WLAN). Updates einfach drüber installieren.
+**Installieren:** Auf dem Handy die [Nightly-Seite](https://github.com/oskar26/hain/releases/tag/nightly) öffnen, `hain-debug.apk` laden, beim Öffnen „Unbekannte Apps installieren“ für den Browser erlauben, installieren. Beim ersten Start lädt Pim das Gehirn (ca. 1 GB, am besten im WLAN) – das kannst du auch überspringen und später im Chat nachholen. Updates einfach drüber installieren, Chats und Gehirn bleiben erhalten.
 
 **Stand:** Hain ist noch in Entwicklung (Alpha). Version 0.2.0 für Freundinnen und Freunde ist für den 6. November 2026 geplant, Version 1.0 für 2027. Beim Programmieren helfen KI-Agenten, jede Änderung wird aber von einem Menschen geprüft. Die KI in der App kann sich irren, prüf wichtige Antworten lieber nach. Mitmachen: Fehler und Wünsche einfach als [Issue](https://github.com/oskar26/hain/issues) melden, siehe [CONTRIBUTING.md](CONTRIBUTING.md).
 
