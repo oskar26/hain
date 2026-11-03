@@ -37,7 +37,7 @@ Descriptions short (small model). English, the model answers in user language an
 | `recall` | `query` | MemoryStore search | – |
 | `search_documents` | `query` | DocStore (DOCS_OCR.md) | SourcesCard |
 
-Intent tools **never fire directly**: they return a ConfirmCard; the user taps "Stellen / Set". (Setting `confirm_actions` default true; if false, fire immediately after card shows 3 s undo.)
+Intent tools **never fire directly**: they return a ConfirmCard; the user taps "Stellen / Set". (Setting `confirm_actions` default true; if false, fire immediately after card shows 3 s undo.) As built in 4b: see §3c (`days` for repeating alarms and `confirm_actions` → 4c).
 
 ## 3. SearchRouter (ADR-07)
 
@@ -57,7 +57,41 @@ Intent tools **never fire directly**: they return a ConfirmCard; the user taps "
 - **Research in several steps (Oskar's test of #19):** the search result names the best pages in `ToolResult.readUrls`; `ChatEngine` then calls `ToolRouter.readPages` – 3 pages in parallel (8 s each, 15 s together, `Purpose.PAGE_READ`), each cut to 1,200 characters at a sentence end. The brain gets one answer `{"search":{…hits…},"read":{"pages":[{n,title,url,text}]}}` and may search again. Timeline: "Suche · <query> ✓", then "Lese 3 Seiten…" → "3 Seiten gelesen ✓". Sources = the pages that were really read.
 - Limits: 4 tool rounds per answer (was 3), 2 web searches per answer. Mode **Schnell**: 1 search, 1 page.
 - `read_page` (link from the user): one page, 3,000 characters; only `http(s)://`.
-- No Readability4K: own `HtmlText` (drops script/style/nav/header/footer/aside/form, keeps lines ≥ 40 characters, decodes entities). Not yet: DDG back-off timer, user SearXNG URL setting → 4b.
+- No Readability4K: own `HtmlText` (drops script/style/nav/header/footer/aside/form, keeps lines ≥ 40 characters, decodes entities). DDG back-off and the user's SearXNG address: done in 4b, see §3c.
+
+### 3c. As built (Werkzeuge II Rest, 4b, 03.11.2026)
+
+**Phone actions (T-068).** Four offline tools in `core-tools/internal/phone` (`set_alarm`, `set_timer`, `add_calendar_event`, `navigate`). They never act: the result is `{"prepared":…,"status":"waiting_for_tap","hint":…}` plus `ToolResult.action` (`PhoneAction` in `core-tools/api`). `ChatEngine` turns it into an `ActionCard` (state `PENDING`) on the answer; it is stored in `message.sources_json` under `"actions"` (no schema change) and shown as **ConfirmCard** under the answer (`feature-chat/api/ConfirmCard.kt`, `hainSurface` RAISED, Lucide icon, green button + "Abbrechen"). Only the tap builds the intent (`PhoneIntents`):
+
+| tool | args (schema) | intent after the tap | button |
+|---|---|---|---|
+| `set_alarm` | `time` ("06:30", "um 7", "halb 8", "7 am"), `label?` | `AlarmClock.ACTION_SET_ALARM` (hour, minutes, message, skip UI = false) | Stellen / Set |
+| `set_timer` | `seconds` (number or "10 Minuten", "1h 30m"; also `minutes`), `label?` | `AlarmClock.ACTION_SET_TIMER` (length, message) | Starten / Start |
+| `add_calendar_event` | `title`, `start` (ISO or "morgen 15 Uhr", "Freitag 19 Uhr", "4.11. 9 Uhr", "in 10 Minuten"), `end?` (default +1 h), `location?`; only a day → whole day | `Intent.ACTION_INSERT` on `CalendarContract.Events` – the calendar app opens filled in, **no calendar permission** | Eintragen / Add |
+| `navigate` | `destination`, `mode?` | `geo:0,0?q=<destination>` – the phone lets you pick the map app | Starten / Start |
+
+- Card states: `PENDING` → `DONE` (intent started) / `CANCELLED` / `NO_APP` (`ActivityNotFoundException` → friendly hint, e.g. "Organic Maps oder OsmAnd sind kostenlos"). One tap, one action: a finished card never changes again (`ActionCard.after`, unit-tested). The state is kept with the message (also after a restart).
+- Times are read by `TimeParser` (own code, DE+EN) relative to `ToolContext.now`: only a time → the next such time (today or tomorrow); a day without a year → the next such day.
+- Permission: only `com.android.alarm.permission.SET_ALARM` (normal, no prompt). Works in offline mode (tools are offline; system prompt says so).
+- System prompt (`SystemPromptSource.PHONE_DE/EN`): which tool for alarm/timer/appointment/route, `start` as `2026-11-04T15:00`, and "never say it is already set".
+
+**DuckDuckGo back-off (T-066).** `SearchParsers.isBotCheck` (HTTP 202/403/429 or the anomaly/challenge page). The page that showed it (`ddg` = HTML, `ddg_lite`) is skipped for 10 minutes (`SearchTool.BACKOFF_MS`, in memory), the next source answers instead (Lite → Wikipedia). Unit-tested with a fake clock.
+
+**Own SearXNG address.** Settings → Privacy → "Eigene Suche (SearXNG)" (`searxng_url` in DataStore). `SearxAddress.normalize` makes `searx.example.org/` into `https://searx.example.org`, cuts `/search?…`, refuses `http://` (the gate only talks https); a quiet line under the field says whether it can be used. `ToolContext.searxUrl` puts it first, before the public instances.
+
+**Host test 03.11.2026** (llama.cpp `39febd2`, LFM3-1.7B-QAD-Q4_0, temp 0.1, German system prompt of the app incl. PHONE_DE, all 9 tool schemas, fresh chat per request, turn hint + tool nudge as in the app; `/workspace/work/hain-4b-host/phone.py`):
+
+| # | Anfrage | Aufruf des Gehirns | Karte | richtig? |
+|---|---|---|---|---|
+| 1 | Stell mir einen Wecker um 6:30 | `set_alarm(time=06:30)` | Wecker um 06:30 · Stellen | ✅ |
+| 2 | Timer 10 Minuten | `set_timer(seconds=600)` | Timer für 10 Min. · Starten | ✅ |
+| 3 | Trag Zahnarzt morgen um 15 Uhr ein | `add_calendar_event(title=Zahnarzt, start=2026-11-04T15:00)` | Zahnarzt · Mi. 4.11. 15:00–16:00 · Eintragen | ✅ |
+| 4 | Navigier mich zum Kölner Dom | `navigate(destination=Kölner Dom)` | Kölner Dom · Starten | ✅ |
+| 5 | Set an alarm for 7 am | `set_alarm(time=07:00)` | Alarm at 07:00 · Set | ✅ |
+| 6 | Remind me with a timer in 25 minutes | `set_timer(seconds=1500, label=Reminder)` | Timer for 25 min · Start | ✅ |
+| 7 | Put dinner with Lea on Friday at 7 pm in my calendar | `add_calendar_event(title=Dinner with Lea, start=2026-11-06T19:00)` | Dinner with Lea · Fri 6 Nov 19:00–20:00 · Add | ✅ |
+
+All 7 requests (the 4 from the plan + 3 English ones) → the right tool with the right arguments, answers in the language of the message (the 8th, "Take me to Cologne Central Station", stopped because the sandbox ran out of memory). Weak spot: the answer text still often says "eingestellt"/"I've set" although nothing is set yet, even with the hint in the tool result and the rule in the system prompt (2 of 7 say "vorbereitet"/"prepared"). The card makes it clear (green button, nothing happens before the tap); sharpening the wording → 4c.
 
 ### 3b. Tools in every message (T-062 fix)
 
