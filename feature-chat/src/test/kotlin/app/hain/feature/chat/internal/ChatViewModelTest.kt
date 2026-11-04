@@ -1,9 +1,16 @@
 package app.hain.feature.chat.internal
 
+import app.hain.llm.api.GenerationEvent
+import app.hain.llm.api.LlmEngine
+import app.hain.llm.api.SamplingParams
+import app.hain.llm.api.StopReason
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -104,7 +111,7 @@ class ChatViewModelTest {
     }
 
     @Test
-    fun editingAMessageAnswersAgainFromThere() {
+    fun editingAMessageAnswersAgainFromThereAndKeepsTheOldVersion() {
         val llm = FakeLlm(listOf("A1"), listOf("Titel"), listOf("A2"), listOf("A3"))
         val store = ChatStore()
         val vm = viewModel(llm, store)
@@ -115,16 +122,13 @@ class ChatViewModelTest {
         assertEquals(first.id, vm.state.value.editingId)
         assertEquals("eins", vm.state.value.input)
         vm.say("eins, aber anders")
-        val texts = store.only().messages.map { it.text }
-        assertEquals(listOf("eins, aber anders", "A3"), texts)
-        assertEquals(
-            first.id,
-            store
-                .only()
-                .messages
-                .first()
-                .id,
-        )
+        assertEquals(listOf("eins, aber anders", "A3"), store.only().messages.map { it.text })
+        // T-057: the old version is still there, "‹ 2/2 ›" under the edited message
+        val edited = store.only().messages.first()
+        assertEquals(BranchInfo(2, 2, first.id, null), vm.state.value.branches[edited.id])
+        vm.selectBranch(first.id)
+        assertEquals(listOf("eins", "A1", "zwei", "A2"), store.only().messages.map { it.text })
+        assertEquals(BranchInfo(1, 2, null, edited.id), vm.state.value.branches[first.id])
     }
 
     @Test
@@ -138,6 +142,131 @@ class ChatViewModelTest {
         vm.openChat(store.only().id)
         vm.regenerate(firstAnswer.id)
         assertEquals(listOf("eins", "neu"), store.only().messages.map { it.text })
+        // the brain did not see the old answer or what followed it
+        assertFalse(llm.lastPrompt.contains("A1"))
+        assertFalse(llm.lastPrompt.contains("zwei"))
+    }
+
+    @Test
+    fun askingAgainKeepsEveryAnswerAsAVersion() {
+        val llm = FakeLlm(listOf("A1"), listOf("Titel"), listOf("A2"), listOf("A3"))
+        val store = ChatStore()
+        val vm = viewModel(llm, store)
+        vm.say("Frage")
+        val a1 = store.only().messages.last()
+        vm.regenerate()
+        vm.regenerate()
+        val a3 = store.only().messages.last()
+        assertEquals("A3", a3.text)
+        assertEquals(BranchInfo(3, 3, store.only().hidden.maxOf { it.id }, null), vm.state.value.branches[a3.id])
+        vm.selectBranch(a1.id)
+        assertEquals(listOf("Frage", "A1"), store.only().messages.map { it.text })
+        // switching is not possible while Pim answers
+        val stuck = FakeLlm(null)
+        val other = viewModel(stuck, ChatStore())
+        other.say("x")
+        other.selectBranch(1L)
+        assertTrue(other.state.value.isGenerating)
+    }
+
+    @Test
+    fun messageSentWhileAnsweringWaitsAndGoesOutAfterwards() {
+        val gate = CompletableDeferred<Unit>()
+        val llm = GatedLlm(gate, FakeLlm(listOf("A2"), listOf("Titel")))
+        val store = ChatStore()
+        val vm =
+            ChatViewModel(llm, ChatEngine(llm, { "S" }), store, { "b.gguf" }, streamThrottleMs = 0)
+        watchers += CoroutineScope(Dispatchers.Main).launch { vm.state.collect { } }
+        vm.say("erste")
+        assertTrue(vm.state.value.isGenerating)
+        vm.say("zweite")
+        assertEquals(
+            listOf("zweite"),
+            vm.state.value.queue
+                .map { it.text },
+        )
+        assertEquals("", vm.state.value.input)
+        // not part of the chat yet, only waiting
+        assertEquals(
+            listOf("erste"),
+            store
+                .only()
+                .messages
+                .filter { it.isUser }
+                .map { it.text },
+        )
+        gate.complete(Unit)
+        assertTrue(
+            vm.state.value.queue
+                .isEmpty(),
+        )
+        assertEquals(listOf("erste", "A1", "zweite", "A2"), store.only().messages.map { it.text })
+    }
+
+    @Test
+    fun waitingMessageCanBeTakenBackAndStopStillSendsTheRest() {
+        val llm = FakeLlm(null, listOf("A2"))
+        val store = ChatStore()
+        val vm = viewModel(llm, store)
+        vm.say("erste")
+        vm.say("zweite")
+        vm.say("dritte")
+        val queued = vm.state.value.queue
+        assertEquals(listOf("zweite", "dritte"), queued.map { it.text })
+        vm.cancelQueued(queued[0].id)
+        assertEquals(
+            listOf("dritte"),
+            vm.state.value.queue
+                .map { it.text },
+        )
+        vm.stop()
+        assertTrue(
+            vm.state.value.queue
+                .isEmpty(),
+        )
+        assertEquals(
+            listOf("erste", "dritte"),
+            store
+                .only()
+                .messages
+                .filter { it.isUser }
+                .map { it.text },
+        )
+        assertEquals(
+            "A2",
+            store
+                .only()
+                .messages
+                .last()
+                .text,
+        )
+    }
+
+    @Test
+    fun sharedTextOpensANewChatWithoutSending() {
+        val llm = FakeLlm(listOf("A1"))
+        val store = ChatStore()
+        val vm = viewModel(llm, store)
+        vm.say("alt")
+        vm.newChatWith("https://example.org/artikel")
+        assertEquals(null, vm.state.value.currentChatId)
+        assertEquals("https://example.org/artikel", vm.state.value.input)
+        assertEquals(1, store.chats.value.size)
+    }
+
+    @Test
+    fun newChatDropsTheQueue() {
+        val llm = FakeLlm(null)
+        val store = ChatStore()
+        val vm = viewModel(llm, store)
+        vm.say("erste")
+        vm.say("zweite")
+        vm.newChat()
+        assertTrue(
+            vm.state.value.queue
+                .isEmpty(),
+        )
+        assertEquals(1, store.only().messages.count { it.isUser })
     }
 
     @Test
@@ -200,5 +329,27 @@ class ChatViewModelTest {
                 .single()
                 .state,
         )
+    }
+}
+
+/** The first answer ("A1") waits for [gate]; everything after comes from [rest]. */
+private class GatedLlm(
+    private val gate: CompletableDeferred<Unit>,
+    private val rest: FakeLlm,
+) : LlmEngine by rest {
+    private var first = true
+
+    override fun generate(
+        prompt: String,
+        params: SamplingParams,
+        checkpoints: List<Int>,
+    ): Flow<GenerationEvent> {
+        if (!first) return rest.generate(prompt, params, checkpoints)
+        first = false
+        return flow {
+            emit(GenerationEvent.Token("A1"))
+            gate.await()
+            emit(GenerationEvent.Done(StopReason.END))
+        }
     }
 }

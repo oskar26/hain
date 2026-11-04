@@ -36,6 +36,11 @@ data class MessageEntity(
     @ColumnInfo(name = "thinking_ms") val thinkingMillis: Long? = null,
     /** ok, stopped or failed — how the answer ended. */
     val status: String = STATUS_OK,
+    /**
+     * T-057 branches: when this message was picked among its siblings (same [parentId]); the newest
+     * pick is the version shown. `null` = never picked (the newest sibling by id wins).
+     */
+    @ColumnInfo(name = "selected_at") val selectedAt: Long? = null,
 ) {
     companion object {
         const val ROLE_SYSTEM = "system"
