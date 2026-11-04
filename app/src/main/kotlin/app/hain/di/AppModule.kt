@@ -7,6 +7,7 @@ import app.hain.common.api.HainSettings
 import app.hain.common.api.SettingsRepository
 import app.hain.common.api.net.NetworkGate
 import app.hain.data.HainDatabase
+import app.hain.data.RoomNetworkLogStore
 import app.hain.data.KeystoreKeyProvider
 import app.hain.feature.chat.internal.ChatStore
 import app.hain.feature.chat.internal.RoomChatPersistence
@@ -61,26 +62,43 @@ object AppModule {
      */
     @Provides
     @Singleton
-    fun networkGate(settings: SettingsRepository): NetworkGate {
+    fun networkGate(
+        settings: SettingsRepository,
+        database: DatabaseHolder,
+    ): NetworkGate {
         val current = AtomicReference(HainSettings())
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { settings.settings.collect { current.set(it) } }
         return HttpNetworkGate(
             offline = { current.get().offlineMode },
             detailedLog = { current.get().networkLogDetail },
+            store = database.db?.let { RoomNetworkLogStore(it.networkLog()) },
         )
     }
+
+    /** The one encrypted database, opened once; null when it cannot open (chats then stay in memory). */
+    @Provides
+    @Singleton
+    fun databaseHolder(
+        @ApplicationContext context: Context,
+    ): DatabaseHolder =
+        DatabaseHolder(
+            runCatching { HainDatabase.open(context, KeystoreKeyProvider(context)) }
+                .onFailure { Log.e("Hain", "Chat database unavailable, chats stay in memory", it) }
+                .getOrNull(),
+        )
 
     /** Chats survive app restarts in the encrypted database; if it cannot open, chats stay in memory. */
     @Provides
     @Singleton
-    fun chatStore(
-        @ApplicationContext context: Context,
-    ): ChatStore {
+    fun chatStore(database: DatabaseHolder): ChatStore {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         val persistence =
-            runCatching { RoomChatPersistence(HainDatabase.open(context, KeystoreKeyProvider(context))) }
-                .onFailure { Log.e("Hain", "Chat database unavailable, chats stay in memory", it) }
-                .getOrNull()
+            database.db?.let { RoomChatPersistence(it) }
         return ChatStore(persistence = persistence, scope = scope)
     }
 }
+
+/** Wraps the database so Hilt can hand out a missing one. */
+class DatabaseHolder(
+    val db: HainDatabase?,
+)
