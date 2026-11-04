@@ -39,6 +39,8 @@ androidxSqlite = "2.5.2"
 robolectric = "4.16"
 androidxTestCore = "1.7.0"
 pdfboxAndroid = "2.0.27.0"
+# Pinned: from 1.29 the Android AAR brings a telemetry starter (not allowed). Same as Häppchen 10.
+onnxruntime = "1.28.0"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
@@ -93,6 +95,7 @@ androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTes
 
 # Documents (DOCS_OCR.md, Häppchen 9) — see LICENSES.md
 pdfbox-android = { module = "com.tom-roush:pdfbox-android", version.ref = "pdfboxAndroid" }
+onnxruntime-android = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxruntime" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

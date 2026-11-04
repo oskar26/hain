@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application>
+        <!-- No telemetry (AGENTS.md): should a newer ONNX Runtime bring its telemetry starter back
+             (1.29+ does), it never runs. libs.versions.toml pins 1.28.0, which has none. -->
+        <provider
+            android:name="ai.onnxruntime.TelemetryInitializer"
+            android:authorities="${applicationId}.onnxruntime_telemetry_initializer"
+            tools:node="remove" />
+    </application>
+</manifest>
