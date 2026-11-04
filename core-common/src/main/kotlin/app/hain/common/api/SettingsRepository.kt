@@ -28,6 +28,7 @@ class SettingsRepository(
                 networkLogDetail = p[NETWORK_LOG_DETAIL] ?: false,
                 searxUrl = p[SEARXNG_URL].orEmpty(),
                 haptics = p[HAPTICS].toEnum(HapticStrength.SUBTLE),
+                appIcon = p[APP_ICON].toEnum(AppIcon.THREE_D),
                 game2048Best = p[GAME_2048_BEST] ?: 0,
             )
         }
@@ -54,17 +55,24 @@ class SettingsRepository(
 
     suspend fun setHaptics(value: HapticStrength) = store.edit { it[HAPTICS] = value.name }
 
+    suspend fun setAppIcon(value: AppIcon) = store.edit { it[APP_ICON] = value.name }
+
     /** Keeps the higher of the stored and the new 2048 score. */
     suspend fun recordGame2048(score: Int) {
         store.edit { if (score > (it[GAME_2048_BEST] ?: 0)) it[GAME_2048_BEST] = score }
     }
 
-    /** Back to the defaults; the 2048 best score stays. */
+    /**
+     * Back to the defaults; the 2048 best score and the launcher icon stay (changing the icon
+     * on the home screen should only ever happen when you pick it yourself).
+     */
     suspend fun reset() =
         store.edit {
             val best = it[GAME_2048_BEST]
+            val icon = it[APP_ICON]
             it.clear()
             if (best != null) it[GAME_2048_BEST] = best
+            if (icon != null) it[APP_ICON] = icon
         }
 
     private companion object {
@@ -80,6 +88,7 @@ class SettingsRepository(
         val SEARXNG_URL = stringPreferencesKey("searxng_url")
         val HAPTICS = stringPreferencesKey("haptics")
         val GAME_2048_BEST = intPreferencesKey("game_2048_best")
+        val APP_ICON = stringPreferencesKey("app_icon")
     }
 }
 

@@ -1,7 +1,7 @@
 import {
   ShieldCheck, WifiOff, PiggyBank, Leaf, MessageCircle, Lock, Calculator, Newspaper, Brain, EyeOff, SlidersHorizontal, Trees,
   Download, Smartphone, Sparkles, Check, X, ChevronDown, ArrowUpRight, Bug, Languages, CodeXml, Globe, CloudSun, BookOpen,
-  Search, Link, AlarmClock, Package, NotebookPen, LayoutList, FileText, Mic, Clock, Share2, ImageIcon,
+  Search, Link, AlarmClock, Package, NotebookPen, LayoutList, FileText, Mic, Clock, Share2, ImageIcon, Heart,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { COPY, LINKS, SCREENSHOTS, type Lang, type Status } from '../content'
@@ -446,12 +446,20 @@ export function Footer({ lang }: { lang: Lang }) {
           <p className="mt-3 text-sm text-muted">{t.noCookies}</p>
         </div>
         <ul className="grid grid-cols-2 gap-x-10 gap-y-3 text-[15px] sm:grid-cols-3">
-          <li><a className="hover:text-hain-ink" href={LINKS.repo}>{t.source}</a></li>
-          <li><a className="hover:text-hain-ink" href={LINKS.license}>{t.license}</a></li>
-          <li><a className="hover:text-hain-ink" href={LINKS.issues}>Issues</a></li>
-          <li><a className="hover:text-hain-ink" href={LINKS.concept}>{lang === 'de' ? 'Konzept' : 'Concept (German)'}</a></li>
+          <li><a className="footer-link" href={LINKS.repo}>{t.source}</a></li>
+          <li><a className="footer-link" href={LINKS.license}>{t.license}</a></li>
+          <li><a className="footer-link" href={LINKS.issues}>{t.issues}</a></li>
+          <li><a className="footer-link" href={LINKS.concept}>{t.concept}</a></li>
+          <li><a className="footer-link" href={LINKS.trademarks}>{t.trademarks}</a></li>
           {/* PLACEHOLDER: link the imprint (Impressum) page here once it exists */}
           <li><span className="text-muted" data-placeholder="imprint">{t.imprintNote}</span></li>
+          {/* Support / donations: not live yet, so no link on purpose */}
+          <li className="col-span-2 sm:col-span-3">
+            <span className="inline-flex items-center gap-2 text-muted" data-placeholder="support">
+              <Heart className="h-4 w-4" strokeWidth={1.75} aria-hidden /> {t.support}
+              <span className="badge badge-soon">{t.soon}</span>
+            </span>
+          </li>
         </ul>
       </Container>
       <Container className="mt-10 text-sm text-muted">© 2026 Hain · Oskar</Container>

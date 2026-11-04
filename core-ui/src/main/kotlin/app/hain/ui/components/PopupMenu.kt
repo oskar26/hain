@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
+import app.hain.ui.effects.rememberMenuBackdrop
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainTween
@@ -52,7 +53,7 @@ import app.hain.ui.theme.hainSurface
  * place it inside the same Box as the button or message it belongs to. It grows out of its anchor
  * with scale + fade in [HainMotion.MENU_MS] ([growFrom] = the corner nearest the anchor), is only as
  * wide as its rows, shrinks back the same way and closes on outside tap or back. No motion when
- * motion is reduced.
+ * motion is reduced. Inside a `HainMenuBackdrop` the screen behind gets a soft blur (T-104).
  */
 @Suppress("LongParameterList") // placement options all have defaults
 @Composable
@@ -69,6 +70,8 @@ fun HainPopupMenu(
     val haptics = rememberHainHaptics()
     // one soft tick when a ⋯ / long-press menu opens, nothing when it closes
     LaunchedEffect(expanded) { if (expanded) haptics.menu() }
+    // T-104: soft blur behind the open menu (dimming below Android 12)
+    rememberMenuBackdrop(expanded)
     val shown = remember { MutableTransitionState(false) }
     shown.targetState = expanded
     // stays in the window until the fade-out has finished
@@ -101,6 +104,7 @@ fun HainPopover(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val reduce = LocalReduceMotion.current
+    rememberMenuBackdrop(expanded)
     val shown = remember { MutableTransitionState(false) }
     shown.targetState = expanded
     if (!shown.currentState && !shown.targetState) return

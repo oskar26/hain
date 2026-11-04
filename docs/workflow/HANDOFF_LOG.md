@@ -337,3 +337,21 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Not done (on purpose): no `.github/FUNDING.yml`, no sponsor button, website unchanged (other PR).
 - Checks: docs only; CI on the PR.
 - Next: Oskar reads the wording; T-195 (DPMA/TMview search) still open; add FUNDING.yml once a sponsor account exists.
+
+## 2026-11-04 · T-100i (app icon "Pim als Sprechblase") · review · harness: Hark · model: Hark · branch `hark/icon-bubble`
+- What: Oskar chose the motif "Pim als Sprechblase" (04.11.2026). Pim's body path in `assets/icon/src/make_icon.py` is now a round chat bubble (ellipse cx 62 cy 66 rx 36 ry 28.5 + tail at the lower left, one smooth closed path); stem + leaf moved so they grow from the top of the bubble (stem starts inside the body), eyes centred, highlight/inner glow/bounce light/contact shadow kept in the same style and re-placed. Pim scale 0.0068 → 0.0072 (tile), adaptive foreground 0.0051 → 0.0052 (tail tip at ~32 dp of the 33 dp safe radius). Monochrome vector = bubble silhouette with eyes cut out + stem + leaf.
+- Files: assets/icon/** (PNGs + SVGs + make_icon.py), app/src/{main,debug}/res mipmaps, app/src/main/res/drawable/ic_launcher_monochrome.xml, website/public/{favicon.png,apple-touch-icon.png,og.png,img/hain-icon.webp} (OG: only the icon area swapped), website/src/components/ui.tsx (comment), README.md (alt text + feature bullet), docs/design/ICON.md, docs/workflow/{TASKS,STATUS,HANDOFF_LOG}.md.
+- Checks: 1024/96/48 px, masked round and squircle (adaptive crop), monochrome rendered, dev pill clear of the tail; `npm ci && npm run build` green. Gradle not run locally (RAM) → CI + APK workflow.
+- Next: Oskar checks the icon on the phone (launcher, themed icon on Android 13+).
+
+## 2026-11-04 · T-102 bis T-105 (Icon „Pim im Wald“, Icon-Wahl, Menü-Blur, Website) · review · harness: Hark · model: Hark · branch `hark/icon-bubble` (PR #31)
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-102 | review | Icon bei 1024/96/48 px, rund und Squircle maskiert, Safe-Zone geprüft | `assets/icon/**`, Mipmaps in `app/src/{main,debug}/res` (3D + `ic_launcher_flat*`) | Oskar prüft das Icon auf dem Handy |
+| T-103 | review | `SettingsRepositoryTest` (`app_icon`) | `AndroidManifest.xml` (zwei `activity-alias`), `AppIconSwitcher`, `MainActivity`, `AppIconPicker`, `IconStep`, `SettingsPages`, Strings DE/EN | Icon wechselt erst beim Verlassen der App; der Launcher braucht evtl. ein paar Sekunden |
+| T-104 | review | `MenuBackdropTest`; Screenshots `menu_blur_light/dark` über `screens.yml` | `MenuBackdrop.kt` (neu), `PopupMenu`, `Buttons`, `MainActivity`, `ChatListDrawer` (Langdruck) | Blur nur bei Popup-Menüs und Popovern, nicht bei Dialogen |
+| T-105 | review | `npm ci && npm run build` grün (EN + /de vorgerendert) | `website/**`, `README.md` | Englische Seite zeigt deutsche App-Screenshots; Footer-Link „Marke“ zeigt auf `TRADEMARKS.md`, die erst mit `hark/trademarks` (T-196) auf main kommt |
+
+- Website (T-105): Header blendet Hintergrund, Blur und Linie weich als eine Ebene ein (ohne Flackern), Screenshots ohne weißen Streifen unten (Settings kürzer), englische Labels auf /de übersetzt (Navigation, Footer, `og:locale`, `noscript`), Alt-Texte für Icon und Startseite.
+- Nächster Schritt: Oskar testet APK (Icon-Wahl, Blur), danach Merge; Pages-Deploy erst nach dem Merge.

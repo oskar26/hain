@@ -6,6 +6,9 @@ enum class ThemeChoice { SYSTEM, LIGHT, DARK }
 /** Strength of the haptics (SETTINGS.md `haptics`, T-096): off, subtle (default), normal, strong. */
 enum class HapticStrength { OFF, SUBTLE, NORMAL, STRONG }
 
+/** Launcher icon "Pim im Wald" (SETTINGS.md `app_icon`, T-103): glossy 3D (default) or flat. */
+enum class AppIcon { THREE_D, FLAT }
+
 /** Language Hain answers in (SETTINGS.md `answer_language`). */
 enum class AnswerLanguage { AUTO, DE, EN }
 
@@ -29,6 +32,8 @@ data class HainSettings(
     val searxUrl: String = "",
     /** Haptics, Settings → Look → "Vibration" (SETTINGS.md `haptics`). */
     val haptics: HapticStrength = HapticStrength.SUBTLE,
+    /** Launcher icon, Settings → Look → "App icon" and onboarding (T-103). */
+    val appIcon: AppIcon = AppIcon.THREE_D,
     /** Best score of the hidden 2048 game (T-092). */
     val game2048Best: Int = 0,
 ) {

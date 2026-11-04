@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.hain.common.api.AnswerLanguage
+import app.hain.common.api.AppIcon
 import app.hain.common.api.HainSettings
 import app.hain.common.api.SearxAddress
 import app.hain.common.api.SettingsRepository
@@ -43,6 +44,7 @@ import app.hain.models.api.DownloadState
 import app.hain.models.api.ModelRepository
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.ToolContext
+import app.hain.ui.effects.HainMenuBackdrop
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.HapticLevel
 import app.hain.ui.motion.LocalHapticLevel
@@ -93,6 +95,7 @@ class MainActivity : ComponentActivity() {
             onClearNetworkLog = networkGate::clearLog,
             onSearxUrl = { write { repo.setSearxUrl(it) } },
             onHaptics = { write { repo.setHaptics(it) } },
+            onAppIcon = { write { repo.setAppIcon(it) } },
         )
     }
 
@@ -160,8 +163,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val brain = models.defaultBrain
-        var current = HainSettings()
         val prompts = SystemPromptSource(applicationContext) { current }
+        lifecycleScope.launch { settingsRepository.settings.collect { storedIcon = it.appIcon } }
         setContent {
             val settings by settingsRepository.settings.collectAsStateWithLifecycle(HainSettings())
             current = settings
@@ -181,71 +184,97 @@ class MainActivity : ComponentActivity() {
                     LocalReduceMotion provides (settings.reduceMotion || systemReducesMotion()),
                     LocalHapticLevel provides HapticLevel.entries[settings.haptics.ordinal],
                 ) {
-                    var installed by remember { mutableStateOf(models.isInstalled(brain)) }
-                    var skipped by remember { mutableStateOf(startPrefs.getBoolean(KEY_SKIPPED, false)) }
-                    if (!installed && !skipped) {
-                        OnboardingScreen(
-                            models = models,
-                            onDone = { installed = models.isInstalled(brain) },
-                            onLanguage = { tag -> pickLanguage(tag) },
-                            onSkip = {
-                                startPrefs.edit().putBoolean(KEY_SKIPPED, true).apply()
-                                skipped = true
-                            },
-                        )
-                    } else {
-                        val chatViewModel = viewModel { chatViewModel(prompts) { current } }
-                        ChatScreen(
-                            viewModel = chatViewModel,
-                            onOpenSettings = { showSettings = true },
-                            onGetBrain = { showPacks = true },
-                            answerMode = settings.answerMode,
-                            onAnswerMode = { mode -> lifecycleScope.launch { settingsRepository.setAnswerMode(mode) } },
-                            onOpenGame = { showGame = true },
-                        )
-                        // T-098: the 2048 easter egg opens right after Pim's burst
-                        AnimatedVisibility(
-                            visible = showGame,
-                            enter =
-                                fadeIn(hainTween(HainMotion.PAGE_MS)) +
-                                    scaleIn(hainTween(HainMotion.PAGE_MS), GAME_FROM),
-                            exit = fadeOut(hainTween(HainMotion.FAST_MS)),
-                        ) {
-                            Game2048Screen(
-                                best = settings.game2048Best,
-                                onScore = { score ->
-                                    lifecycleScope.launch { settingsRepository.recordGame2048(score) }
+                    HainMenuBackdrop {
+                        var installed by remember { mutableStateOf(models.isInstalled(brain)) }
+                        var skipped by remember { mutableStateOf(startPrefs.getBoolean(KEY_SKIPPED, false)) }
+                        if (!installed && !skipped) {
+                            OnboardingScreen(
+                                models = models,
+                                onDone = { installed = models.isInstalled(brain) },
+                                onLanguage = { tag -> pickLanguage(tag) },
+                                iconFlat = settings.appIcon == AppIcon.FLAT,
+                                onIconFlat = { flat ->
+                                    lifecycleScope.launch {
+                                        settingsRepository.setAppIcon(if (flat) AppIcon.FLAT else AppIcon.THREE_D)
+                                    }
                                 },
-                                onClose = { showGame = false },
+                                onSkip = {
+                                    startPrefs.edit().putBoolean(KEY_SKIPPED, true).apply()
+                                    skipped = true
+                                },
                             )
-                        }
-                        AnimatedVisibility(
-                            visible = showSettings,
-                            enter =
-                                fadeIn(hainTween(HainMotion.PAGE_MS)) +
-                                    slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
-                            exit = fadeOut(hainTween(HainMotion.FAST_MS)),
-                        ) {
-                            val log by networkGate.log.collectAsStateWithLifecycle()
-                            SettingsScreen(
-                                settings,
-                                settingsActions({ showSettings = false }, { showPacks = true }),
-                                networkLog = log,
+                        } else {
+                            val chatViewModel = viewModel { chatViewModel(prompts) { current } }
+                            ChatScreen(
+                                viewModel = chatViewModel,
+                                onOpenSettings = { showSettings = true },
+                                onGetBrain = { showPacks = true },
+                                answerMode = settings.answerMode,
+                                onAnswerMode = { mode ->
+                                    lifecycleScope.launch { settingsRepository.setAnswerMode(mode) }
+                                },
+                                onOpenGame = { showGame = true },
                             )
-                        }
-                        AnimatedVisibility(
-                            visible = showPacks,
-                            enter =
-                                fadeIn(hainTween(HainMotion.PAGE_MS)) +
-                                    slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
-                            exit = fadeOut(hainTween(HainMotion.FAST_MS)),
-                        ) {
-                            PacksScreen(models, deviceRamGb(), { showPacks = false })
+                            // T-098: the 2048 easter egg opens right after Pim's burst
+                            AnimatedVisibility(
+                                visible = showGame,
+                                enter =
+                                    fadeIn(hainTween(HainMotion.PAGE_MS)) +
+                                        scaleIn(hainTween(HainMotion.PAGE_MS), GAME_FROM),
+                                exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+                            ) {
+                                Game2048Screen(
+                                    best = settings.game2048Best,
+                                    onScore = { score ->
+                                        lifecycleScope.launch { settingsRepository.recordGame2048(score) }
+                                    },
+                                    onClose = { showGame = false },
+                                )
+                            }
+                            AnimatedVisibility(
+                                visible = showSettings,
+                                enter =
+                                    fadeIn(hainTween(HainMotion.PAGE_MS)) +
+                                        slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
+                                exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+                            ) {
+                                val log by networkGate.log.collectAsStateWithLifecycle()
+                                SettingsScreen(
+                                    settings,
+                                    settingsActions({ showSettings = false }, { showPacks = true }),
+                                    networkLog = log,
+                                )
+                            }
+                            AnimatedVisibility(
+                                visible = showPacks,
+                                enter =
+                                    fadeIn(hainTween(HainMotion.PAGE_MS)) +
+                                        slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
+                                exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+                            ) {
+                                PacksScreen(models, deviceRamGb(), { showPacks = false })
+                            }
                         }
                     }
                 }
             }
         }
+    }
+
+    /** Latest settings, read by the prompt source and [onStop]. */
+    private var current = HainSettings()
+
+    /** Stored icon choice; null until DataStore was read, so [onStop] never flips it by mistake. */
+    private var storedIcon: AppIcon? = null
+
+    /**
+     * T-103: the launcher alias follows the stored icon choice when you leave Hain. Switching it
+     * while Hain is in front can close the app on some phones; not on a rotation or language change.
+     */
+    override fun onStop() {
+        super.onStop()
+        val icon = storedIcon
+        if (icon != null && !isChangingConfigurations) AppIconSwitcher.apply(applicationContext, icon)
     }
 
     /** System "remove animations" (animator scale 0) → Pim and the glow stay still. */

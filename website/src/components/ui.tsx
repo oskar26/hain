@@ -27,12 +27,12 @@ export function SectionHead({ kicker, title, sub, center = true }: { kicker: str
   )
 }
 
-/** The app icon (glossy Pim). */
-export function AppIcon({ size, className = '', eager = false }: { size: number; className?: string; eager?: boolean }) {
+/** The app icon "Pim im Wald" (glossy glass Pim in front of a soft forest). Decorative unless [alt] is given. */
+export function AppIcon({ size, className = '', eager = false, alt = '' }: { size: number; className?: string; eager?: boolean; alt?: string }) {
   return (
     <img
       src={img('hain-icon.webp')}
-      alt=""
+      alt={alt}
       width={size}
       height={size}
       className={`select-none ${className}`}

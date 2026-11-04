@@ -38,7 +38,7 @@
     <string name="packs_fit_space">Auf deinem Handy ist nicht genug Platz frei.</string>
     <string name="packs_fit_small">Dein Handy ist zu klein für dieses Paket.</string>
     <string name="settings_group_packs">Pakete</string>
-    <string name="settings_look_hint">Farben und Schrift.</string>
+    <string name="settings_look_hint">Farben, App-Symbol und Schrift.</string>
     <string name="settings_answers_hint">Sprache und Art der Antworten.</string>
     <string name="settings_you_hint">Erzähl Hain von dir.</string>
     <string name="settings_group_privacy">Privatsphäre</string>
@@ -74,5 +74,9 @@
     <string name="settings_haptics_normal">Normal</string>
     <string name="settings_haptics_strong">Kräftig</string>
     <string name="settings_haptics_hint">Kurze, feine Klicks statt Brummen. Ist die Berührungsvibration am Handy aus, bleibt auch Hain still.</string>
+    <string name="settings_app_icon">App-Symbol</string>
+    <string name="settings_app_icon_3d">3D</string>
+    <string name="settings_app_icon_flat">Flach</string>
+    <string name="settings_app_icon_hint">Das neue Symbol erscheint, sobald du Hain verlässt. Der Startbildschirm braucht oft ein paar Sekunden.</string>
     <string name="settings_hub_hello">Hier stellst du Hain so ein, wie du es magst.</string>
 </resources>

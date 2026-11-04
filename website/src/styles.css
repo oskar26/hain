@@ -84,6 +84,51 @@ section[id] {
   scroll-margin-top: 76px;
 }
 
+/* Header (T-105): one background layer that fades in softly after scrolling (no jump of the
+   blur), a calm hairline + shadow, and a row that gets a little lower. The scroll state comes from
+   src/client.ts (data-scrolled, with hysteresis so it never flickers at the threshold). */
+.site-nav {
+  --nav-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: color-mix(in srgb, var(--c-bg) 78%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid var(--c-line);
+  box-shadow: 0 6px 20px -14px var(--c-shadow);
+  transition: opacity 0.35s var(--nav-ease);
+  will-change: opacity;
+}
+.site-nav[data-scrolled] .nav-bg { opacity: 1; }
+.nav-row {
+  height: 4rem;
+  transition: height 0.35s var(--nav-ease);
+}
+.site-nav[data-scrolled] .nav-row { height: 3.5rem; }
+@media (max-width: 1023px) {
+  /* on phones the row keeps its height, so the menu button never moves under your finger */
+  .site-nav[data-scrolled] .nav-row { height: 4rem; }
+}
+.nav-link {
+  transition: background-color 0.2s ease-out, color 0.2s ease-out;
+}
+.nav-link:hover {
+  background: var(--c-surface);
+  color: var(--c-ink);
+}
+.nav-link:active {
+  background: var(--c-surface-high);
+}
+
+.footer-link {
+  transition: color 0.2s ease-out;
+}
+.footer-link:hover { color: var(--c-accent-ink); }
+
 /* Card: white, hairline, almost no shadow (Lichtung "FLAT"/"RAISED") */
 .card {
   background: var(--c-card);
@@ -175,6 +220,9 @@ section[id] {
 }
 .device img {
   border-radius: 22px;
+}
+.device picture {
+  display: block;
 }
 
 /* Scroll reveal (class "in" is added by src/client.ts). Without JS everything stays visible. */

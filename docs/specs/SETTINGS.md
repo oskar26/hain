@@ -13,6 +13,7 @@ Level 1 = visible directly; level 2 = under "Erweitert / Advanced".
 | | pim_avatar_in_chat | bool | true | 2 |
 | | reduce_motion | bool | false | 2 |
 | | haptics | off/subtle/normal/strong | subtle (T-096, docs/design/HAPTICS.md) | 2 |
+| | app_icon | three_d/flat (launcher icon "Pim im Wald", activity-alias; kept on reset) | three_d (T-103, docs/design/ICON.md) | 1 |
 | | start_screen | chat/home | chat | 2 |
 | Model | brain_model_id | string | lfm3-1.7b-qad-q4_0 | 1 |
 | | answer_mode | fast/thorough/auto | auto | 1 |

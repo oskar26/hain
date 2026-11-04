@@ -38,7 +38,7 @@
     <string name="packs_fit_space">Not enough free space on your phone.</string>
     <string name="packs_fit_small">Your phone is too small for this pack.</string>
     <string name="settings_group_packs">Packs</string>
-    <string name="settings_look_hint">Colors and text.</string>
+    <string name="settings_look_hint">Colors, app icon and text.</string>
     <string name="settings_answers_hint">Language and style of answers.</string>
     <string name="settings_you_hint">Tell Hain about you.</string>
     <string name="settings_group_privacy">Privacy</string>
@@ -74,5 +74,9 @@
     <string name="settings_haptics_normal">Normal</string>
     <string name="settings_haptics_strong">Strong</string>
     <string name="settings_haptics_hint">Short taps instead of a buzz. If touch vibration is off on your phone, Hain stays quiet too.</string>
+    <string name="settings_app_icon">App icon</string>
+    <string name="settings_app_icon_3d">3D</string>
+    <string name="settings_app_icon_flat">Flat</string>
+    <string name="settings_app_icon_hint">The new icon shows up once you leave Hain. Your home screen may need a few seconds.</string>
     <string name="settings_hub_hello">Here you set Hain up the way you like it.</string>
 </resources>

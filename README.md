@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/icon/hain-icon-rounded-1024.png" alt="Hain app icon: Pim, a glossy mint drop with a leaf" width="128">
+<img src="assets/icon/hain-icon-rounded-1024.png" alt="Hain app icon: Pim as a glossy mint glass figure with a leaf, in a soft forest of round trees" width="128">
 
 # Hain
 
@@ -78,7 +78,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🌍 Answer language | Pim answers in the language you write in (German, English, French, Turkish, Russian, …), or always in German or English if you want | ✅ |
 | 🌱 First start | Playful welcome tour with Pim, brain download (LFM3-1.7B, 1.0 GB) with resume and checksum, celebration screen; the download can wait or run in the background | ✅ |
 | 🗂️ Saved chats | Stored encrypted on the phone; search, rename, pin, delete, grouped by day | ✅ |
-| ⚙️ Settings | Theme, easy-to-read font, answer mode (fast / auto / thorough), answer language, "about me" and answer style. Thinking level also right in the message box (brain button) | ✅ |
+| ⚙️ Settings | Theme, app icon (3D or flat), easy-to-read font, answer mode (fast / auto / thorough), answer language, "about me" and answer style. Thinking level also right in the message box (brain button) | ✅ |
 | 📦 Knowledge packs | See, download and remove packs, with hints on what fits your phone | ✅ |
 | 🎨 Look | One calm design "Lichtung": lots of white, fine hairlines, Hain green only as an accent, radii 12–16 dp, quiet line icons; light font (Hanken Grotesk), dark mode; "Reduce motion" stops all movement | ✅ |
 | 🌱 Pim | Lives everywhere (start page, thinking, done, errors, empty search, pull gestures) and the leaf always stays on his head. Tap him for a different little reaction each time, drag him around on the start page and he springs back | ✅ |
@@ -104,7 +104,8 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
-- **A real app icon.** Hain now has its own launcher icon: Pim as a glossy mint drop with a leaf on a soft green tile, like a modern macOS app. It works as a round or rounded icon, follows your wallpaper colours with themed icons (Android 13+), and the test build shows a small “dev” tag so you can tell it apart.
+- **New app icon “Pim im Wald”, and you choose the look.** Pim, as a glossy, see-through mint glass figure, stands in front of a soft forest of round trees with mist and a light sky. There is also a **flat** version in plain colours. Pick it at first start (right after the language) or any time in **Settings → Look → App icon** (3D is the default). The new icon shows up once you leave Hain; your home screen may need a few seconds. Themed icons (Android 13+) show Pim's outline, and the test build has a small “dev” tag.
+- **Softer menus.** When a ⋯ menu or a popup opens, the screen behind it gets a calm blur (a light dimming on phones older than Android 12). A long press on a chat in the side panel now opens its menu too. "Reduce motion" keeps the blur but drops the fade.
 - **New website look.** The website (https://oskar26.github.io/hain/) now looks like the app's calm style “Lichtung”, in light and dark, with real screenshots and a clear mark on every feature: green “Available now” or grey “Coming soon”.
 - **The 3D redesign.** Hain now looks like the pictures it was meant to look like: settings groups, tool cards, suggestions, knowledge packs and the side panel are **glass tiles that glow from inside** in their own soft colour, with small **glossy 3D icons** (weather, book, leaf, shield …). Pim is a **glossy 3D jelly** with white oval eyes. The empty chat greets you big and light ("Guten Abend, was kann ich für dich tun?") above three suggestion tiles, the message box is a big white card with a soft green glow and a round domed send button. The welcome tour starts with a cloud of shiny bubbles and a round Pim button. Buttons press in a little when you tap them. Dark mode glows too; "Reduce motion" stops all movement but keeps the depth. The chat text itself stays calm.
 - **Thinking level in the message box.** Tap the **brain** in the message box and pick **Auto** (Pim decides), **Schnell** (answers right away) or **Gründlich** (thinks longer, for hard questions). The bar above the box is gone; next to the brain you see the level when it is not Auto. Same setting as Settings → Answers.

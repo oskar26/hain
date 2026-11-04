@@ -55,6 +55,11 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-085 | UI fixes for long texts (bubble fold, follow-scroll, ellipsis, composer 6 lines, 200 % font, 360 dp, landscape) | ui | S | E | T-052 | review (03.11., screenshots via screens.yml) |
 | T-088 | App icon: glossy glass Pim (squircle, adaptive + themed + debug "dev") | ui | S | B | T-061 | review (03.11., own SVG → assets/icon/src/make_icon.py, in app/src/{main,debug}/res) |
 | T-089 | Website in style A "Lichtung" + feature status badges + new icon | docs | S | B | T-088 | review (03.11.) |
+| T-100i | App icon motif "Pim als Sprechblase" (Pim's glass body as a round chat bubble, tail lower left) | ui | S | B | T-088 | review (04.11., Oskar's choice; make_icon.py, res, website copies) |
+| T-102 | App icon motif "Pim im Wald" (glass Pim in front of a round-tree forest), 3D + flat look | ui | S | B | T-100i | review (04.11., Oskar's choice; make_icon.py, res for both looks, website copies) |
+| T-103 | Icon choice in the app (activity-alias 3D/flat, DataStore `app_icon`, onboarding step + Settings → Look) | feature | S | B | T-102,T-100 | review (04.11.; alias switches when you leave the app) |
+| T-104 | Soft background blur behind menus and popups (Haze, dimming under API 31) | ui | S | B | T-011 | review (04.11.) |
+| T-105 | Website: new icon + bug pass (smoother header, phone screenshots, 390/1440 px, EN + /de) | docs | S | B | T-089 | review (04.11.) |
 | T-060 | NetworkGate + network log | feature | S | A | T-020 | review |
 | T-061 | Pim launcher icon + VectorDrawable export | ui | S | B | T-016 | done via T-088 (03.11.) |
 | T-062 | ToolRouter + schemas | feature | S | A | T-040,T-060 | review |
