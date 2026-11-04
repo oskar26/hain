@@ -308,6 +308,18 @@ Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Ger
 
 [GPL-3.0](LICENSE). Model weights are not bundled and keep their own licences (e.g. LFM Open License v1.0).
 
+## Name & Pim / Trademarks
+
+The code is free (GPL-3.0-or-later), but the name “Hain”, the character Pim (look, animations, voice) and the app icon/logo mark the official project. Forks are welcome under their own name, with their own mascot and icon. Sharing official builds, writing about Hain and packaging it (e.g. F-Droid) are fine. Details: [TRADEMARKS.md](TRADEMARKS.md).
+
+Der Code ist frei, aber Name, Pim und Icon kennzeichnen das offizielle Projekt. Forks bitte mit eigenem Namen, eigener Figur und eigenem Icon. Mehr in [TRADEMARKS.md](TRADEMARKS.md).
+
+## Support / Unterstützen
+
+**Coming soon:** a way to sponsor Hain will follow soon. Until then, the best help is a ⭐ star, an [issue](https://github.com/oskar26/hain/issues) with a bug or an idea, or telling a friend about Hain.
+
+**Bald:** Eine Möglichkeit, Hain finanziell zu unterstützen, folgt bald. Bis dahin hilft ein ⭐ Stern, ein [Issue](https://github.com/oskar26/hain/issues) mit Fehler oder Idee, oder Hain weiterzusagen.
+
 ## Credits
 
 - [llama.cpp](https://github.com/ggml-org/llama.cpp) by ggml-org: runs the AI on the phone (MIT).
