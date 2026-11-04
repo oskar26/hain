@@ -106,7 +106,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-131 | Card renderer + GBNF | ui | M | E | T-130,T-014 | done |
 | T-140 | STT Moonshine + mic button | feature | M | F | T-082 | review (Hark, hark/day-10) |
 | T-141 | TTS (system voice, Pim pitch) + read aloud | feature | M | F | T-082 | review (Hark, hark/day-10) |
-| T-143 | Pocket TTS on Android (ONNX, all language packs) | native | M | F | T-082 | todo |
+| T-145 | Pocket TTS on Android (ONNX, all language packs) | native | M | F | T-082 | todo |
 | T-142 | Voice mode screen | ui | M | F | T-140,T-141,T-016 | todo |
 | T-143 | Default assistant + screen context | feature | M | F | T-052 | todo |
 | T-144 | Widget + quick settings tile + share target | feature | S | F | T-052 | review (8b: share text/links → new chat, Glance widget "Frag Pim", tile "Neuer Chat"; images/PDF share + tile→voice open) |
@@ -1006,7 +1006,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - files: core-voice/.../tts/*.kt
 - done (Häppchen 10, 04.11.): `SpeechText` (Markdown → sentences, unit-tested), `ReadAloudController` (2 sentences
   ahead, stop, one answer at a time) behind `SpeechSynth`; engine = Android system TTS (`SystemSpeech`, pitch 1.1225 +
-  rate 1.15, started lazily), "Vorlesen" in the answer row. Pocket TTS (Pim's own voice) stays T-143: public ONNX
+  rate 1.15, started lazily), "Vorlesen" in the answer row. Pocket TTS (Pim's own voice) is T-145 (was T-143, renumbered in the integration PR: the ID was taken twice): public ONNX
   exports are English-only with voice `alba` baked in (soniqo/Pocket-TTS-100M-ONNX-INT8, exporter
   csukuangfj/pocket-tts-onnx-export) or need Arm's closed engine (Arm/pocket-tts-de-mix-precision); anna + DE needs an
   own export. Open from the card: Pim/Neutral setting, amplitude envelope, DeviceCheck RTF fallback, language packs.
@@ -1016,7 +1016,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
   - text prep tests + device
 - check: `./gradlew :core-voice:testDebugUnitTest`
 
-### T-143 · Pocket TTS on Android (ONNX, all language packs)
+### T-145 · Pocket TTS on Android (ONNX, all language packs)
 
 - type: `native` · size: `M` · lane: `F` · depends: T-082
 - read: VOICE.md (Pim voice)

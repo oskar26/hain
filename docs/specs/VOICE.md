@@ -25,7 +25,7 @@ All via **sherpa-onnx** Android AAR (Apache-2.0). Models are packs (MODELS.md).
 > **Built in Häppchen 10 (0.1.10, T-141):** read aloud under every answer through `SpeechSynth`; the engine today is
 > the Android system voice with Pim's pitch (×1.1225 = +2 st) and speed 1.15 (`SystemSpeech`). Text prep below is
 > implemented in `SpeechText` (tables are read row by row, formulas → "Formel übersprungen"). The language is the
-> language of the answer (offline guess), else the answer language. Pocket TTS = T-143 (see TASKS.md for its state).
+> language of the answer (offline guess), else the answer language. Pocket TTS = T-145 (see TASKS.md for its state).
 
 ### Pim voice — one voice for all languages (owner decision 2026-10-28)
 

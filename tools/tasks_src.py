@@ -223,7 +223,7 @@ t("T-140","STT Moonshine + mic button","feature","M","F","T-082","VOICE.md",
   "core-voice/.../stt/*.kt, feature-chat composer mic",["sherpa-onnx streaming, VAD, permission sheet."],["device test"],"device")
 t("T-141","TTS Piper + read aloud","feature","M","F","T-082","VOICE.md",
   "core-voice/.../tts/*.kt",["Text prep (unit-tested), sentence pipelining, speed. Pim voice per VOICE.md: Pocket TTS voice anna +2 st, speed 1.15 in every language, English pack always installed, setup language picker downloads the chosen pack, system TTS fallback by DeviceCheck RTF, pitch via AudioTrack PlaybackParams, setting Pim/Neutral, amplitude envelope flow for Pim speaking motion; compare with assets/voice/samples."],["text prep tests + device"],U("core-voice"))
-t("T-143","Pocket TTS on Android (ONNX, all language packs)","native","M","F","T-082","VOICE.md (Pim voice)",
+t("T-145","Pocket TTS on Android (ONNX, all language packs)","native","M","F","T-082","VOICE.md (Pim voice)",
   "tools/voice/export_kerstin_onnx.py, docs/specs/VOICE.md",["Export Pocket TTS (en/de/fr/es/it/pt/nl, voice anna embedding) to ONNX fp16/int8 (reference: PocketTTS-Android-Engine), streaming inference in :core:voice, measure size + RTF on T-000 devices; URLs/SHA-256 only via T-080 on the T-000 devices, compare with assets/voice/samples; write URL+SHA-256 only after a human verifies (T-080)."],
   ["ONNX output audibly matches reference samples; RTF table in VOICE.md"],"device")
 t("T-142","Voice mode screen","ui","M","F","T-140,T-141,T-016","VOICE.md; DESIGN_SYSTEM.md",
