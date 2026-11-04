@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -28,7 +29,12 @@ import app.hain.common.api.HainSettings
 import app.hain.common.api.SearxAddress
 import app.hain.common.api.SettingsRepository
 import app.hain.common.api.ThemeChoice
+import app.hain.common.api.UpdateCheck
 import app.hain.common.api.net.NetworkGate
+import app.hain.common.api.update.UpdateChecker
+import app.hain.common.api.update.UpdateResult
+import app.hain.common.api.update.UpdateRules
+import app.hain.feature.chat.api.ChatExtras
 import app.hain.feature.chat.api.ChatScreen
 import app.hain.feature.chat.game.Game2048Screen
 import app.hain.feature.chat.internal.ChatEngine
@@ -36,10 +42,17 @@ import app.hain.feature.chat.internal.ChatStore
 import app.hain.feature.chat.internal.ChatViewModel
 import app.hain.feature.chat.internal.PrefsRatings
 import app.hain.feature.onboarding.api.OnboardingScreen
+import app.hain.feature.settings.api.AppInfo
 import app.hain.feature.settings.api.PacksScreen
 import app.hain.feature.settings.api.SettingsActions
+import app.hain.feature.settings.api.SettingsExtras
 import app.hain.feature.settings.api.SettingsScreen
+import app.hain.feature.settings.api.UpdateAskCard
+import app.hain.feature.settings.api.UpdateBanner
+import app.hain.feature.settings.api.UpdateStatus
+import app.hain.llm.api.DevTuning
 import app.hain.llm.api.LlmEngine
+import app.hain.models.api.DevModels
 import app.hain.models.api.DownloadState
 import app.hain.models.api.ModelRepository
 import app.hain.tools.api.HainTools
@@ -52,8 +65,10 @@ import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainTween
 import app.hain.ui.theme.HainTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.io.File
 import java.time.ZonedDateTime
 import javax.inject.Inject
 import app.hain.llm.internal.AnswerMode as LlmAnswerMode
@@ -96,8 +111,41 @@ class MainActivity : ComponentActivity() {
             onSearxUrl = { write { repo.setSearxUrl(it) } },
             onHaptics = { write { repo.setHaptics(it) } },
             onAppIcon = { write { repo.setAppIcon(it) } },
+            onDev = { write { repo.setDev(it) } },
+            onUpdateCheck = { write { repo.setUpdateCheck(it) } },
+            onUpdateChannel = { write { repo.setUpdateChannel(it) } },
+            onCheckUpdate = { checkForUpdate() },
         )
     }
+
+    /** T-215: build facts for "Über Hain". */
+    private val appInfo =
+        AppInfo(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, BuildConfig.GIT_SHA, BuildConfig.BUILD_DATE)
+
+    /** T-212: where the update check stands (Compose state, read by the banner and "Über Hain"). */
+    private var updateStatus by mutableStateOf<UpdateStatus>(UpdateStatus.Idle)
+
+    /** Asks GitHub for a newer build through the NetworkGate; never installs anything. */
+    private fun checkForUpdate() {
+        if (updateStatus == UpdateStatus.Checking) return
+        updateStatus = UpdateStatus.Checking
+        lifecycleScope.launch {
+            val result = UpdateChecker(networkGate).check(current.updateChannel, BuildConfig.VERSION_CODE)
+            settingsRepository.setLastUpdateCheck(System.currentTimeMillis())
+            updateStatus =
+                when (result) {
+                    is UpdateResult.Newer -> UpdateStatus.Newer(result.release.versionName, result.page)
+                    UpdateResult.UpToDate -> UpdateStatus.UpToDate
+                    UpdateResult.Failed -> UpdateStatus.Failed
+                }
+        }
+    }
+
+    /** T-211: the own GGUF of developer mode when it is in use and on the phone, else `null`. */
+    private fun ownModelPath(): String? = DevTuning.ownModel(current.dev) { File(it).isFile }
+
+    /** T-211: own models from Hugging Face for developer mode. */
+    private val devModels by lazy { DevModels(models, networkGate, deviceRamGb()) }
 
     private fun chatViewModel(
         prompts: SystemPromptSource,
@@ -122,12 +170,15 @@ class MainActivity : ComponentActivity() {
                             searxUrl = SearxAddress.normalize(cfg.searxUrl),
                         )
                     },
+                    tuning = { settings().dev },
+                    ownModel = { ownModelPath() != null },
                 ),
             store = chatStore,
-            modelPath = { models.mainFile(brain).absolutePath },
+            modelPath = { ownModelPath() ?: models.mainFile(brain).absolutePath },
             brainInstalled = models.downloadState(brain).map { it is DownloadState.Installed },
             networkActive = networkGate.active.map { it > 0 },
             messageRatings = PrefsRatings(getSharedPreferences(RATINGS_PREFS, MODE_PRIVATE)),
+            contextSize = { DevTuning.contextSize(settings().dev) },
         )
     }
 
@@ -165,6 +216,12 @@ class MainActivity : ComponentActivity() {
         val brain = models.defaultBrain
         val prompts = SystemPromptSource(applicationContext) { current }
         lifecycleScope.launch { settingsRepository.settings.collect { storedIcon = it.appIcon } }
+        // T-212: once a day at start, only when switched on (off by default)
+        lifecycleScope.launch {
+            val stored = settingsRepository.settings.first()
+            current = stored
+            if (UpdateRules.due(stored, System.currentTimeMillis())) checkForUpdate()
+        }
         setContent {
             val settings by settingsRepository.settings.collectAsStateWithLifecycle(HainSettings())
             current = settings
@@ -205,6 +262,9 @@ class MainActivity : ComponentActivity() {
                             )
                         } else {
                             val chatViewModel = viewModel { chatViewModel(prompts) { current } }
+                            val chatState by chatViewModel.state.collectAsStateWithLifecycle()
+                            var updateHidden by rememberSaveable { mutableStateOf(false) }
+                            val dev = settings.dev
                             ChatScreen(
                                 viewModel = chatViewModel,
                                 onOpenSettings = { showSettings = true },
@@ -214,6 +274,39 @@ class MainActivity : ComponentActivity() {
                                     lifecycleScope.launch { settingsRepository.setAnswerMode(mode) }
                                 },
                                 onOpenGame = { showGame = true },
+                                extras =
+                                    ChatExtras(
+                                        showStats = dev.enabled && dev.showStats,
+                                        rawThinking = dev.enabled && dev.showRawThinking,
+                                        debugInfo = { stats ->
+                                            val model = File(ownModelPath() ?: models.mainFile(brain).absolutePath).name
+                                            DevTuning.debugLine(model, current.dev, stats)
+                                        },
+                                    ),
+                                banner = {
+                                    val status = updateStatus
+                                    if (status is UpdateStatus.Newer && !updateHidden) {
+                                        val uri = LocalUriHandler.current
+                                        UpdateBanner(status.versionName, { uri.openUri(status.page) }, {
+                                            updateHidden =
+                                                true
+                                        })
+                                    } else if (UpdateRules.shouldAsk(settings, chatState.chats.size)) {
+                                        UpdateAskCard(
+                                            onYes = {
+                                                lifecycleScope.launch {
+                                                    settingsRepository.setUpdateCheck(
+                                                        UpdateCheck.DAILY,
+                                                    )
+                                                }
+                                                checkForUpdate()
+                                            },
+                                            onNo = {
+                                                lifecycleScope.launch { settingsRepository.dismissUpdateQuestion() }
+                                            },
+                                        )
+                                    }
+                                },
                             )
                             // T-098: the 2048 easter egg opens right after Pim's burst
                             AnimatedVisibility(
@@ -243,6 +336,7 @@ class MainActivity : ComponentActivity() {
                                     settings,
                                     settingsActions({ showSettings = false }, { showPacks = true }),
                                     networkLog = log,
+                                    extras = SettingsExtras(appInfo, updateStatus, devModels),
                                 )
                             }
                             AnimatedVisibility(

@@ -118,6 +118,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-215 | Version display: `hain.versionName` in gradle.properties (0.1.3.1), BuildConfig commit + build date, docs/workflow/VERSIONING.md | scaffold | XS | A | T-002 | review (04.11., extras PR) |
 | T-214 | "Über Hain" page: centred Pim header, website, GitHub, version, licence, open-source licences, update rows | ui | S | B | T-215 | review (04.11., extras PR) |
 | T-213 | Pim in the chat more often and bigger: thinking row 40 dp, 24 dp Pim at the newest answer (peeks in while tools run, cheers when done, fright on errors), empty chat 96 dp | ui | S | B | T-163 | review (04.11., extras PR) |
+| T-211 | Developer mode (7× tap on the version): own GGUF from Hugging Face, sampling, context, thinking, own system prompt, speed + debug info | feature | M | C | T-214,T-032 | review (04.11., extras PR) |
 
 ## M0 · Device check & setup (human)
 

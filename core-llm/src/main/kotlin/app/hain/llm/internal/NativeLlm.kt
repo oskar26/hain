@@ -70,4 +70,18 @@ internal object NativeLlm {
         handle: Long,
         enabled: Boolean,
     )
+
+    /** UTF-8 bytes of the GGUF chat template (`tokenizer.chat_template`), `null` if the file has none. */
+    external fun nativeChatTemplate(handle: Long): ByteArray?
+
+    /**
+     * Applies [template] (UTF-8) to messages with llama.cpp's built-in template engine; `null` when
+     * llama.cpp does not know the template. Roles and contents are UTF-8, same length.
+     */
+    external fun nativeApplyTemplate(
+        template: ByteArray,
+        roles: Array<ByteArray>,
+        contents: Array<ByteArray>,
+        addAssistant: Boolean,
+    ): ByteArray?
 }

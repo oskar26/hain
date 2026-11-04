@@ -32,7 +32,8 @@ class ModelDownloadWorker(
     override suspend fun doWork(): Result =
         withContext(Dispatchers.IO) {
             val url = inputData.getString(KEY_URL) ?: return@withContext fail(FailReason.UNKNOWN)
-            val sha = inputData.getString(KEY_SHA) ?: return@withContext fail(FailReason.UNKNOWN)
+            // T-211: own models from a direct link may come without a checksum ("" = skip the check)
+            val sha = inputData.getString(KEY_SHA).orEmpty()
             val size = inputData.getLong(KEY_SIZE, -1L)
             val target = File(inputData.getString(KEY_TARGET) ?: return@withContext fail(FailReason.UNKNOWN))
             val title = inputData.getString(KEY_TITLE).orEmpty()
@@ -49,7 +50,7 @@ class ModelDownloadWorker(
                 return@withContext if (runAttemptCount < MAX_RETRIES) Result.retry() else fail(FailReason.NETWORK, e)
             }
             setProgress(workDataOf(KEY_PHASE to PHASE_VERIFY))
-            if (!sha256(part).equals(sha, ignoreCase = true)) {
+            if (sha.isNotBlank() && !sha256(part).equals(sha, ignoreCase = true)) {
                 part.delete()
                 return@withContext fail(FailReason.CHECKSUM)
             }

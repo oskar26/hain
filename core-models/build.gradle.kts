@@ -23,6 +23,8 @@ android {
 
 dependencies {
     implementation(project(":core-data"))
+    // T-211: own models from Hugging Face are listed through the NetworkGate
+    api(project(":core-common"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)

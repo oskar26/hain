@@ -1,5 +1,6 @@
 package app.hain.feature.chat.internal
 
+import app.hain.llm.api.GenerationStats
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +30,8 @@ data class UiMessage(
     val actions: List<ActionCard> = emptyList(),
     /** Research clock while a thorough answer is still looking things up (T-069; not stored). */
     val research: ResearchClock? = null,
+    /** Speed of this answer for developer mode (T-211; not stored). */
+    val stats: GenerationStats? = null,
 )
 
 data class Chat(

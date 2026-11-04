@@ -46,7 +46,26 @@ sealed interface GenerationEvent {
 
     data class Done(
         val reason: StopReason,
+        /** Speed of this generation (T-211, developer mode); `null` when the engine does not know. */
+        val stats: GenerationStats? = null,
     ) : GenerationEvent
+}
+
+/** How fast one generation was (T-211): read prompt, first token, tokens per second. */
+data class GenerationStats(
+    val promptTokens: Int,
+    val reusedTokens: Int,
+    val prefillMs: Long,
+    val genTokens: Int,
+    val genMs: Long,
+    /** From the request to the first streamed token, in ms. */
+    val firstTokenMs: Long,
+) {
+    val tokensPerSecond: Float get() = if (genMs > 0) genTokens * MS_PER_S / genMs else 0f
+
+    private companion object {
+        const val MS_PER_S = 1000f
+    }
 }
 
 sealed interface EngineState {
@@ -109,6 +128,19 @@ interface LlmEngine {
 
     /** Stops the running generation (or prefill) as soon as possible, even inside a long prompt. */
     fun cancel()
+
+    /** Chat template stored in the loaded GGUF (`tokenizer.chat_template`), or `null` (T-211). */
+    fun chatTemplate(): String? = null
+
+    /**
+     * Formats [messages] (role → text, roles "system" / "user" / "assistant") with the loaded model's
+     * own chat template via llama.cpp (T-211, own models in developer mode). `null` when the model
+     * has no template llama.cpp knows.
+     */
+    fun applyTemplate(
+        messages: List<Pair<String, String>>,
+        addAssistant: Boolean,
+    ): String? = null
 
     suspend fun unload()
 }

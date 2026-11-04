@@ -3,6 +3,7 @@
 #include <jni.h>
 
 #include <atomic>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -188,6 +189,56 @@ Java_app_hain_llm_internal_NativeLlm_nativeGenerate(JNIEnv *env, jobject, jlong 
     };
     return hain::generate(s, bytesOf(env, promptUtf8), intsOf(env, cutBytes), p.data(), (int) nParams,
                           cgrammar.empty() ? nullptr : cgrammar.c_str(), emit);
+}
+
+// T-211: chat template stored in the GGUF (tokenizer.chat_template) as UTF-8 bytes, or null.
+JNIEXPORT jbyteArray JNICALL
+Java_app_hain_llm_internal_NativeLlm_nativeChatTemplate(JNIEnv *env, jobject, jlong handle) {
+    Session *s = session(handle);
+    if (s == nullptr) return nullptr;
+    const char *tmpl = llama_model_chat_template(s->model, nullptr);
+    if (tmpl == nullptr) return nullptr;
+    const auto n = (jsize) std::strlen(tmpl);
+    jbyteArray out = env->NewByteArray(n);
+    env->SetByteArrayRegion(out, 0, n, reinterpret_cast<const jbyte *>(tmpl));
+    return out;
+}
+
+// T-211: formats messages with llama.cpp's built-in template engine (own models in developer mode).
+// Returns UTF-8 bytes, or null when llama.cpp does not know the template.
+JNIEXPORT jbyteArray JNICALL
+Java_app_hain_llm_internal_NativeLlm_nativeApplyTemplate(JNIEnv *env, jobject, jbyteArray templateUtf8,
+                                                         jobjectArray roles, jobjectArray contents,
+                                                         jboolean addAssistant) {
+    const std::string tmpl = bytesOf(env, templateUtf8);
+    const jsize n = env->GetArrayLength(roles);
+    std::vector<std::string> roleText(n);
+    std::vector<std::string> contentText(n);
+    std::vector<llama_chat_message> chat(n);
+    for (jsize i = 0; i < n; ++i) {
+        auto r = (jbyteArray) env->GetObjectArrayElement(roles, i);
+        auto c = (jbyteArray) env->GetObjectArrayElement(contents, i);
+        roleText[i] = bytesOf(env, r);
+        contentText[i] = bytesOf(env, c);
+        env->DeleteLocalRef(r);
+        env->DeleteLocalRef(c);
+    }
+    for (jsize i = 0; i < n; ++i) chat[i] = {roleText[i].c_str(), contentText[i].c_str()};
+    size_t total = 0;
+    for (jsize i = 0; i < n; ++i) total += roleText[i].size() + contentText[i].size();
+    std::vector<char> buf(total * 2 + 1024);
+    int32_t len = llama_chat_apply_template(tmpl.c_str(), chat.data(), chat.size(), addAssistant == JNI_TRUE,
+                                            buf.data(), (int32_t) buf.size());
+    if (len < 0) return nullptr;
+    if ((size_t) len > buf.size()) {
+        buf.resize(len);
+        len = llama_chat_apply_template(tmpl.c_str(), chat.data(), chat.size(), addAssistant == JNI_TRUE,
+                                        buf.data(), (int32_t) buf.size());
+        if (len < 0) return nullptr;
+    }
+    jbyteArray out = env->NewByteArray(len);
+    env->SetByteArrayRegion(out, 0, len, reinterpret_cast<const jbyte *>(buf.data()));
+    return out;
 }
 
 }  // extern "C"
