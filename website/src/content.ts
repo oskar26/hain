@@ -81,7 +81,7 @@ export const COPY: Record<Lang, Copy> = {
       items: [
         { title: 'Chat on your phone', text: 'Ask anything and watch the answer appear. Stop, copy or share answers. The AI runs right on your phone.', status: 'ready' },
         { title: 'Your chats, locked away', text: 'Chats are saved encrypted on your phone. You can search, rename and delete them.', status: 'progress' },
-        { title: 'Handy tools', text: 'Calculator, weather, Wikipedia, web search and timer. Hain shows you where each request goes.', status: 'next' },
+        { title: 'Handy tools', text: 'Calculator, weather, Wikipedia, web search, reading links, alarm, timer, calendar and routes. Pim picks the right tool, asks if something is missing and shows where each request goes.', status: 'progress' },
         { title: 'News', text: 'Headlines from a fixed mix of sources, or from your own feeds.', status: 'next' },
         { title: 'Memory', text: '“Remember that I’m vegetarian.” You can see, change and delete everything Hain remembers.', status: 'next' },
         { title: 'Private chat & app lock', text: 'A chat that is not saved at all, and a fingerprint lock for the app.', status: 'next' },
@@ -240,7 +240,7 @@ export const COPY: Record<Lang, Copy> = {
       items: [
         { title: 'Chatten auf dem Handy', text: 'Frag, was du willst, und sieh zu, wie die Antwort entsteht. Antworten stoppen, kopieren oder teilen. Die KI läuft direkt auf deinem Handy.', status: 'ready' },
         { title: 'Deine Chats, sicher verwahrt', text: 'Chats werden verschlüsselt auf deinem Handy gespeichert. Du kannst sie durchsuchen, umbenennen und löschen.', status: 'progress' },
-        { title: 'Praktische Werkzeuge', text: 'Rechner, Wetter, Wikipedia, Websuche und Timer. Hain zeigt dir, wohin jede Anfrage geht.', status: 'next' },
+        { title: 'Praktische Werkzeuge', text: 'Rechner, Wetter, Wikipedia, Websuche, Links lesen, Wecker, Timer, Termine und Wege. Pim wählt das passende Werkzeug, fragt nach, wenn etwas fehlt, und zeigt dir, wohin jede Anfrage geht.', status: 'progress' },
         { title: 'Nachrichten', text: 'Schlagzeilen aus einem festen Mix von Quellen oder aus deinen eigenen Feeds.', status: 'next' },
         { title: 'Gedächtnis', text: '„Merk dir, dass ich vegetarisch esse.“ Du kannst alles sehen, ändern und löschen, was Hain sich merkt.', status: 'next' },
         { title: 'Privater Chat & App-Sperre', text: 'Ein Chat, der gar nicht gespeichert wird, und eine Sperre mit Fingerabdruck.', status: 'next' },

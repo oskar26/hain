@@ -120,8 +120,35 @@ def render(defs, lang, msgs):
     return o + S + "assistant\n<think></think>"
 
 
-def hint(defs, lang):
-    return ("Antworte auf Deutsch. " if lang == "de" else "Answer in English. ") + defs[lang]["nudge"]
+FOLLOW_STARTS = ("und ", "and ", "what about", "how about", "mach ", "make it", "lieber", "instead", "auch ", "also ", "dann ")
+THANKS = re.compile(r"\b(danke|dank|thanks|thank you|thx|super|cool|ok|okay|perfekt|great)\b")
+
+
+def follow_up(hist, q, lang):
+    """Mirrors FollowUp.kt (4d): a short follow-up after a tool answer names the tool again."""
+    t = q.strip().lower()
+    if len(t.split()) > 7 or not (t.endswith("?") or t.startswith(FOLLOW_STARTS)) or THANKS.search(t):
+        return None
+    last_user = max((i for i, (r, _) in enumerate(hist) if r == "user"), default=-1)
+    tools = [re.search(r"<function=([\w.\-]+)>", c) for r, c in hist[last_user + 1:] if r == "assistant"]
+    tools = [m.group(1) for m in tools if m]
+    if not tools: return None
+    return (f"Das ist eine Folgefrage: rufe {tools[-1]} neu auf, mit den Werten aus dieser Nachricht." if lang == "de"
+            else f"This is a follow-up: call {tools[-1]} again with the values from this message.")
+
+
+def link(q, lang):
+    """Mirrors FollowUp.link (4d)."""
+    m = re.search(r"https?://[^\s<>\"]+", q)
+    if not m: return None
+    url = m.group(0).rstrip(".,)!?")
+    return f"Die Nachricht enthält einen Link: lies {url} mit read_page." if lang == "de" else f"The message has a link: read {url} with read_page."
+
+
+def hint(defs, lang, hist=(), q=""):
+    h = ("Antworte auf Deutsch. " if lang == "de" else "Answer in English. ") + defs[lang]["nudge"]
+    f = (link(q, lang) or follow_up(list(hist), q, lang)) if "enums" in defs else None
+    return h + (" " + f if f else "")
 
 # ---------------------------------------------------------------- brain
 
@@ -218,6 +245,13 @@ def normalise(defs, name, args):
     for k, v in args.items():
         key = al.get(k.lower(), k.lower())
         out.setdefault(key, v)
+    if name == "set_timer" and "enums" in defs:  # mirrors ToolCallFixer.timerSeconds (4d)
+        num = lambda *ks: next((float(str(out[k]).replace(",", ".")) for k in ks if k in out and re.fullmatch(r"\s*\d+(?:[.,]\d+)?\s*", str(out[k]))), None)
+        m, sec, h = num("minutes"), num("seconds"), num("hours")
+        total = int((m or 0) * 60 + (sec or 0) + (h or 0) * 3600) if (m is not None or sec is not None or h is not None) else \
+            next((duration(out[k]) for k in ("minutes", "seconds", "duration", "length", "time") if k in out and duration(out[k])), None)
+        out = {k: v for k, v in out.items() if k == "label"}
+        if total: out["seconds"] = total
     for p, vals in defs.get("enums", {}).get(name, {}).items():
         if p in out and isinstance(out[p], str):
             out[p] = vals.get(out[p].strip().lower(), out[p].strip().lower())
@@ -272,6 +306,7 @@ def arg_ok(defs, name, args, item):
     schema = next((t for t in defs["tools"] if t["name"] == name), None)
     if schema is None: return False
     for r in schema["parameters"].get("required", []):
+        r = "seconds" if (name == "set_timer" and r == "minutes") else r
         if not str(args.get(r, "")).strip(): return False
     for key, want in item["expect"]["args"].items():
         keys = key.split("|")
@@ -287,21 +322,65 @@ def arg_ok(defs, name, args, item):
             if d != want[0] or hh != int(want[1]): return False
         elif isinstance(want, list):
             if not all(norm(w) in norm(v) for w in want): return False
-        elif norm(want) not in norm(v):
+        elif not any(norm(w) in norm(v) for w in str(want).split("|")):
             return False
     return True
 
 # ---------------------------------------------------------------- one question
 
 DONT_KNOW = re.compile(r"weiß (ich )?(es )?nicht|nicht sicher|kann ich nicht nachsehen|don't know|not sure|can't check|cannot check", re.I)
-LOOKED = re.compile(r"nachgeschaut|nachgesehen|recherchiert|i looked it up|i checked|i searched", re.I)
+LOOKED = re.compile(r"nachgeschaut|nachgesehen|recherchiert|abgefragt|i looked it up|i checked|i searched", re.I)
 DONE_CLAIM = re.compile(r"\b(ist|sind|wurde|habe|hab)\b[^.!?]{0,80}\b(gestellt|eingestellt|eingetragen|gestartet|gesetzt)\b|\b(is|are|has been|i've|i have)\b[^.!?]{0,60}\b(set|added|started|scheduled)\b(?! up)", re.I)
+
+
+QUESTION_PREFIXES = ["was ist", "was sind", "wieviel ist", "wie viel ist", "wieviel sind", "wie viel sind", "berechne",
+                     "rechne", "what's", "whats", "what is", "how much is", "calculate"]
+SPOKEN = [(" prozent von ", "% * "), (" percent of ", "% * "), (" % von ", "% * "), (" % of ", "% * "), (" mal ", " * "),
+          (" times ", " * "), (" geteilt durch ", " / "), (" divided by ", " / "), (" plus ", " + "), (" minus ", " - "),
+          (" hoch ", " ^ "), (" to the power of ", " ^ ")]
+
+
+def quick(q):
+    """Mirrors CalculatorTool.directAnswer (4d): a spoken sum is answered by code, without the brain."""
+    t = " " + q.strip().lower().rstrip("?").strip() + " "
+    for p in QUESTION_PREFIXES:
+        if t.startswith(f" {p} "):
+            t = " " + t[len(p) + 2:]; break
+    for w, sign in SPOKEN:
+        t = t.replace(w, sign)
+    t = t.strip()
+    if re.fullmatch(r"[\d\s.,+\-*/^%()]+", t) and re.search(r"\d", t) and re.search(r"[+\-*/^%]", t):
+        return t
+    return None
+
+
+CLOCK_Q = {"wie spät ist es", "wie spaet ist es", "wie spät is es", "wieviel uhr ist es", "wie viel uhr ist es", "uhrzeit",
+           "wie spät", "what time is it", "whats the time", "what's the time", "what is the time", "time",
+           "welcher tag ist heute", "welcher tag ist", "welches datum ist heute", "welches datum haben wir",
+           "der wievielte ist heute", "was ist heute für ein tag", "datum", "what day is it", "what day is it today",
+           "what's the date", "whats the date", "what is the date", "what's today's date", "what is today's date"}
+
+
+def clock_q(q):
+    """Mirrors ClockAnswer (4d): time/date questions answered by code."""
+    return re.sub(r"\s+", " ", re.sub(r"[?!.,]+", "", q.strip().lower())).strip() in CLOCK_Q
 
 
 def ask(args, defs, item):
     lang = item["lang"]
+    if "enums" in defs and not item.get("history") and clock_q(item["q"]):
+        ok = not item["expect"]["tools"]
+        return dict(id=item["id"], lang=lang, kind=item["kind"], q=item["q"], calls=[], broken=False, tool_ok=ok, args_ok=None,
+                    unnecessary=0, halluc=False, why="", cites=False, quick=True, seconds=0.0, model_s=0.0, prompt_tokens=0,
+                    raw="(clock answer, no brain)", answer="(code: time/date from the phone clock)")
+    if "enums" in defs and not item.get("history") and quick(item["q"]):
+        e = quick(item["q"])
+        ok = "calculate" in item["expect"]["tools"]
+        return dict(id=item["id"], lang=lang, kind=item["kind"], q=item["q"], calls=[["calculate", {"expression": e}]], broken=False,
+                    tool_ok=ok, args_ok=ok, unnecessary=0 if ok else 1, halluc=False, why="", cites=False, quick=True,
+                    seconds=0.0, model_s=0.0, prompt_tokens=0, raw="(quick answer, no brain)", answer=f"{e} = (code)")
     hist = [(r, c) for r, c in item.get("history", [])]
-    msgs = hist + [("user", item["q"]), ("system", hint(defs, lang))]
+    msgs = hist + [("user", item["q"]), ("system", hint(defs, lang, hist, item["q"]))]
     t0 = time.time()
     out1, s1, ptok = gen(args, render(defs, lang, msgs), 160)
     parse = parse_strict if args.strict else parse_lenient
@@ -328,10 +407,10 @@ def ask(args, defs, item):
     if calls:
         tool_msgs = []
         for n, a in calls:
-            tool_msgs.append(("tool", mock(item, n, a, lang)))
+            tool_msgs.append(("tool", mock(item, n, a, lang, defs)))
         call_txt = "\n\n".join("<tool_call>\n<function=%s>\n%s</function>\n</tool_call>" % (n, "".join(
             "<parameter=%s>\n%s\n</parameter>\n" % (k, v) for k, v in a.items())) for n, a in calls)
-        msgs2 = hist + [("user", item["q"]), ("system", hint(defs, lang)), ("assistant", call_txt)] + tool_msgs
+        msgs2 = hist + [("user", item["q"]), ("system", hint(defs, lang, hist, item["q"])), ("assistant", call_txt)] + tool_msgs
         answer, s2, _ = gen(args, render(defs, lang, msgs2), 220)
         answer = answer.split("</think>")[-1].strip()
         answer = re.sub(r"<tool_call>.*?(</tool_call>|$)", "", answer, flags=re.S).strip()
@@ -358,15 +437,43 @@ def judge(item, calls, answer):
     return halluc, why
 
 
-def mock(item, name, a, lang):
+def mock(item, name, a, lang, defs=None):
     if item.get("mock") and name in item["expect"]["tools"]:
         return item["mock"]
     if name in ("set_alarm", "set_timer", "add_calendar_event", "navigate"):
         f = {k: str(v) for k, v in a.items()}
-        return json.dumps(dict({"prepared": name}, **f, status="waiting_for_tap",
-                               hint="Nothing is done yet, so never say it is set or added. A card under your answer shows it. "
-                                    "In one short sentence say what you prepared and that a tap on the card's button does it."), ensure_ascii=False)
+        if defs is None or "enums" not in defs:  # before 4d
+            return json.dumps(dict({"prepared": name}, **f, status="waiting_for_tap",
+                                   hint="Nothing is done yet, so never say it is set or added. A card under your answer shows it. "
+                                        "In one short sentence say what you prepared and that a tap on the card's button does it."), ensure_ascii=False)
+        return json.dumps(dict({"prepared": name}, **f, status="waiting_for_tap", say=say(name, label(name, a, lang), lang),
+                               hint="Nothing is done yet. Answer with the sentence in say; never say it is set or added."), ensure_ascii=False)
     return json.dumps({"error": "not_found", "hint": "Nothing found. Answer from what you know and say you are not sure."})
+
+
+def label(name, a, lang):
+    """The card label the app makes (PhoneTools.kt)."""
+    de = lang == "de"
+    if name == "set_alarm":
+        return clock(a.get("time", "")) or str(a.get("time", ""))
+    if name == "set_timer":
+        sec = duration(a.get("seconds", 0)) or 0
+        h, m, x = sec // 3600, sec % 3600 // 60, sec % 60
+        parts = ([f"{h} {'Std.' if de else 'h'}"] if h else []) + ([f"{m} {'Min.' if de else 'min'}"] if m else []) + ([f"{x} {'Sek.' if de else 's'}"] if x else [])
+        return " ".join(parts)
+    if name == "add_calendar_event":
+        d, hh = start_of(a.get("start", ""))
+        return f"{a.get('title', '')} · {d or ''}" + (f" {hh:02d}:00" if hh is not None else "")
+    return str(a.get("destination", ""))
+
+
+def say(kind, lbl, lang):
+    de = lang == "de"
+    what = {"set_alarm": ("Der Wecker für ", "The alarm for "), "set_timer": ("Der Timer über ", "The "),
+            "add_calendar_event": ("Der Termin ", "The event "), "navigate": ("Die Route zu ", "The route to ")}[kind]
+    w = (what[0] + lbl) if de else (what[1] + lbl + (" timer" if kind == "set_timer" else ""))
+    return f"{w} ist vorbereitet – tipp auf der Karte auf den Knopf." if de else f"{w} is ready – tap the button on the card."
+
 
 # ---------------------------------------------------------------- report
 
@@ -390,6 +497,7 @@ def summary(rows):
                                      sum(1 for r in rows if r["calls"] and r["kind"] in ("fact", "current"))),
         "avg_seconds": round(sum(r["seconds"] for r in rows) / n, 1) if n else 0,
         "max_prompt_tokens_round1": max((r["prompt_tokens"] for r in rows), default=0),
+        "quick_answers": sum(1 for r in rows if r.get("quick")),
     }
 
 
@@ -410,9 +518,14 @@ def main():
     items_by_id = {i["id"]: i for i in (json.loads(l) for l in open(os.path.join(HERE, "tool_eval.jsonl")) if l.strip())}
     if args.rescore:
         data = json.load(open(args.rescore))
+        defs = load_defs(args.defs, args.rev)
         for r in data["rows"]:
+            if r.get("quick"):
+                continue
             it = items_by_id[r["id"]]
             calls = [(n, a) for n, a in r["calls"]]
+            if calls and calls[0][0] in it["expect"]["tools"]:
+                r["args_ok"] = arg_ok(defs, calls[0][0], calls[0][1], it)
             r["halluc"], r["why"] = judge(it, calls, r["answer"])
         data["summary"] = summary(data["rows"])
         json.dump(data, open(args.rescore, "w"), ensure_ascii=False, indent=1)

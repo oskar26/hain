@@ -162,3 +162,66 @@ Tool results also carry a short `label` ("Köln") and `sources` for the ToolTime
 ## 7. Errors
 
 `ToolResult.error` short English code + forModel `{"error":"<code>","hint":"<one sentence>"}`. Model is told by system prompt to say so plainly.
+
+## 8. Werkzeuge 4d: Definitionen, robuste Aufrufe, Prompts (04.11.2026)
+
+**Eine Quelle für die Definitionen:** `core-tools/src/main/resources/app/hain/tools/tools.json`. Pro Werkzeug ein
+kurzer Satz, wofür (und wofür nicht), flache Parameter mit Beispiel, Enums (`navigate.mode` = walk/bike/drive/transit),
+falsche Namen (`names`: `search`, `get_weather`, `timer` …) und Parameter-Aliase (`aliases`: `city`→`place`,
+`q`→`query`, `zu Fuß`→`walk` …). `ToolSpecs` baut daraus die `<tools>`-Zeilen; der Host-Eval liest dieselbe Datei.
+Änderungen gegenüber §2: `wikipedia` ohne `lang` (nimmt die Chat-Sprache, die andere als Rückfall), `set_timer`
+zeigt dem Gehirn `minutes` statt `seconds` (Eval: "8 min" kam als `seconds=8`), `add_calendar_event.start` darf
+"morgen 15:00" / "Freitag 18:00" sein (wird relativ zu `ToolContext.now` zu ISO), die Handy-Aktionen sagen im
+Ergebnis, mit welchem Satz Pim antworten soll (`say`: "Der Wecker für 06:30 ist vorbereitet – tipp auf der Karte auf
+den Knopf."). Wikipedia-Auszüge: höchstens 4 ganze Sätze / 600 Zeichen (`Compact`). Fehler sind ein Satz mit
+Vorschlag ("…Try 2 to 4 other key words once", "Ask the user which city they mean").
+
+**Ohne Gehirn:** gesprochene Rechenaufgaben ("was ist 17 mal 23", "15 prozent von 80", "whats 2^10") und
+"Wie spät ist es?" / "Welcher Tag ist heute?" beantwortet der Code sofort (`CalculatorTool.directAnswer`,
+`ClockAnswer`).
+
+**Robuste Aufrufe** (`RepairingToolCallParser`, `ToolCallFixer`, `ToolRouter`, `ChatEngine`):
+- Erst der strenge Parser; nur wenn er ablehnt, wird repariert: fehlendes `</tool_call>`/`</function>`/`</parameter>`,
+  JSON-Körper (`{"name":…,"arguments":…}`), Python-Form (`weather(place="Köln")`), LFM-Tags `<|tool_call_start|>`.
+  Ein unlesbarer Block fällt weg, die anderen laufen. Namen nur `[A-Za-z0-9_.-]`.
+- Namen/Parameter-Aliase, Enum-Werte in eigenen Worten, Zahlen aus Text ("10 min", "morgen" → `days=2`),
+  `date`+`time` → `start`, unbekannte Schlüssel fallen weg.
+- Fehlt ein Pflichtwert: `missing_argument` mit Rückfrage ("Ask the user which city they mean.").
+- Gleiche Aufrufe einer Runde laufen einmal; ein schon gelaufener Aufruf derselben Antwort bekommt `repeat`.
+- Netzwerkfehler: ein zweiter Versuch nach 400 ms innerhalb der 12 s; Aufrufe einer Runde laufen weiter parallel.
+
+**Prompts** (`core-llm/src/main/assets/prompts/tools.<de|en>.txt`, Abschnitte `[tools]`, `[nudge]`, `[offline]`,
+optional `[examples]`; `PromptTemplates`): eine Zeile pro Werkzeug-Gruppe, Regel "jede neue Frage neu",
+Small-Talk ohne Werkzeug, Quellen als [1], [2]. Der Zug-Hinweis (turnHint) hängt den kurzen `[nudge]` an, dazu
+zwei feste Hinweise aus dem Code: eine **Folgefrage** ("und in München?", "mach lieber 15 draus") nach einer
+Werkzeug-Antwort nennt das Werkzeug wieder (`FollowUp.hint`), ein **Link** in der Nachricht heißt "lies ihn mit
+read_page" (`FollowUp.link`).
+
+**Gemessen und zurückgenommen:** Beispiel-Dialoge im System-Prompt. Mit echten `<tool_call>`-Beispielen rief das
+Gehirn bei Small-Talk das Wetter auf (3 von 6 Plaudereien, Beispiel "Wetter morgen in Köln" wurde kopiert); mit
+Text-Beispielen ("→ weather mit place Köln") schrieb es den Aufruf als Text statt ihn zu machen. Ebenso
+zurückgenommen: vorformulierte Antwortsätze in den Regeln ("sag ‚vorbereitet, tipp auf die Karte‘") – das Gehirn sagte
+den Satz, ohne das Werkzeug aufzurufen. Gehirn-Parameter (temp 0.1, top_k 50, repeat 1.1) unverändert.
+
+**Eval** (`tools/eval/`, 52 Fragen DE/EN mit Tippfehlern, Folgefragen und Fragen ohne Werkzeug, Mock-Ergebnisse,
+echtes LFM3 auf dem Host): Baseline `results/baseline.json`, nachher `results/after.json`.
+
+| Messung (52 Fragen, LFM3-1.7B-QAD-Q4_0, temp 0.1) | vor 4d | nach 4d |
+|---|---|---|
+| richtiges Werkzeug | 88.5 % | 96.2 % |
+| gültige Argumente (wenn richtiges Werkzeug) | 94.3 % | 97.5 % |
+| unnötige Aufrufe | 0 | 1 |
+| kaputte Aufrufe (verworfen) | 0 | 0 |
+| Halluzinationen gesamt² | 6 | 1 |
+| davon bei Faktenfragen (21) | 0 | 0 |
+| Quelle [1] zitiert nach Werkzeug | 95.0 % | 95.0 % |
+| Ø Zeit pro Frage (Host, 2 Kerne)¹ | 8.0 s | 11.7 s |
+| Prompt-Tokens Runde 1, max. (ctx 2048) | 1678 | 1662 |
+| ohne Gehirn beantwortet (Rechner, Uhrzeit) | 0 | 6 |
+
+¹ Nicht vergleichbar: der Host war beim Nachher-Lauf stark ausgelastet; dieselben alten Prompts brauchten zur selben Zeit 2,7–49 s statt vorher 2,0–8,1 s. Der Prompt ist 16 Tokens kürzer, und 6 Fragen brauchen das Gehirn gar nicht mehr.
+² Vorher 6× "Wecker/Timer eingestellt", obwohl erst die Karte kommt; nachher 1× (Nudel-Timer). Ein unnötiger Aufruf nachher: nach "hey how are you" hängte das Gehirn an die Plauder-Antwort einen `navigate`-Aufruf (die Karte fragt vor jeder Aktion).
+
+Offen (nicht geschafft): "wie hoch ist die zugspitze" antwortet manchmal ohne Werkzeug, "und wann ist sie gestorben?"
+nach einer Wikipedia-Antwort ruft das Werkzeug nicht immer neu auf, und nach `set_timer` schreibt Pim selten doch
+"eingestellt".

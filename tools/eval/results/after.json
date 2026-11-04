@@ -1,0 +1,1308 @@
+{
+ "summary": {
+  "questions": 52,
+  "correct_tool_pct": 96.2,
+  "valid_args_pct": 97.5,
+  "unnecessary_calls": 1,
+  "broken_calls": 0,
+  "hallucinations": 1,
+  "halluc_fact_questions": 0,
+  "fact_questions": 21,
+  "cites_pct_after_tool": 95.0,
+  "avg_seconds": 11.7,
+  "max_prompt_tokens_round1": 1662,
+  "quick_answers": 6
+ },
+ "rows": [
+  {
+   "id": "de01",
+   "lang": "de",
+   "kind": "current",
+   "q": "wie wird das wetter morgen in köln?",
+   "calls": [
+    [
+     "weather",
+     {
+      "place": "Köln",
+      "days": "2"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 41.6,
+   "model_s": 39.4,
+   "prompt_tokens": 1466,
+   "raw": "<tool_call>\n<function=weather>\n<parameter=place>\nKöln\n</parameter>\n<parameter=days>\n2\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Morgen in Köln (4. November 2026) wird es **Regen** mit einer **70%igen Regenwahrscheinlichkeit**. Die Temperatur liegt zwischen **6°C und 12°C**, und die Windgeschwindigkeit beträgt etwa **14 km/h**. \n\n[1] Wetterdaten für Köln, 2 Tage."
+  },
+  {
+   "id": "de02",
+   "lang": "de",
+   "kind": "current",
+   "q": "wetter berlin",
+   "calls": [
+    [
+     "weather",
+     {
+      "place": "Berlin"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 11.8,
+   "model_s": 11.8,
+   "prompt_tokens": 1458,
+   "raw": "<tool_call>\n<function=weather>\n<parameter=place>\nBerlin\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Heute in Berlin ist es 9,5 °C, bewölkt und die Windgeschwindigkeit beträgt 14 km/h. Für morgen (4. November) steht Regen mit 70 % Chance auf dem Horizont, bei einem Höchstwert von 12 °C und Tiefstwert von 6 °C. [1]"
+  },
+  {
+   "id": "de03",
+   "lang": "de",
+   "kind": "current",
+   "q": "brauch ich heute nen regenschirm in hamburg",
+   "calls": [
+    [
+     "weather",
+     {
+      "place": "Hamburg"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 13.4,
+   "model_s": 13.4,
+   "prompt_tokens": 1464,
+   "raw": "<tool_call>\n<function=weather>\n<parameter=place>\nHamburg\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Heute in Hamburg ist es bewölkt mit 9,5°C und eine Regenwahrscheinlichkeit von 30 %. Morgen (am 5. November) wird es eher regnerisch sein, mit 70 % Chance auf Regen. Ein Regenschirm heute ist also sinnvoll – vielleicht auch morgen! [1]"
+  },
+  {
+   "id": "de04",
+   "lang": "de",
+   "kind": "fact",
+   "q": "wer war ada lovelace",
+   "calls": [
+    [
+     "wikipedia",
+     {
+      "topic": "Ada Lovelace"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 11.9,
+   "model_s": 11.9,
+   "prompt_tokens": 1459,
+   "raw": "<tool_call>\n<function=wikipedia>\n<parameter=topic>\nAda Lovelace\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Ada Lovelace war eine britische Mathematikerin, die am 10. Dezember 1815 in London geboren wurde und am 27. November 1852 dort starb. Sie schrieb 1843 das erste Programm für Charles Babbages Analytical Engine – also den ersten Computerprogramm. [1]"
+  },
+  {
+   "id": "de05",
+   "lang": "de",
+   "kind": "knowledge",
+   "q": "erklär mir kurz photosynthese",
+   "calls": [],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": null,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 25.8,
+   "model_s": 25.8,
+   "prompt_tokens": 1461,
+   "raw": "Natürlich, ich erkläre dir kurz die Photosynthese.  \n**Photosynthese** ist der Prozess, bei dem Pflanzen Licht in Energie umwandeln und Sauerstoff freisetzen. Sie nutzen Sonnenlicht, Wasser aus den Wurzeln und CO₂ aus der Luft, um Zucker (Glukose) herzustellen.  \n\n- **Einfach gesagt:** Pflanzen mach",
+   "answer": "Natürlich, ich erkläre dir kurz die Photosynthese.  \n**Photosynthese** ist der Prozess, bei dem Pflanzen Licht in Energie umwandeln und Sauerstoff freisetzen. Sie nutzen Sonnenlicht, Wasser aus den Wurzeln und CO₂ aus der Luft, um Zucker (Glukose) herzustellen.  \n\n- **Einfach gesagt:** Pflanzen machen mit \"Licht + Wasser + CO₂ → Zucker + Sauerstoff\".  \n- Die Chlorophylle in den Blättern fangen das"
+  },
+  {
+   "id": "de06",
+   "lang": "de",
+   "kind": "calc",
+   "q": "was ist 17 mal 23",
+   "calls": [
+    [
+     "calculate",
+     {
+      "expression": "17 * 23"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "quick": true,
+   "seconds": 0.0,
+   "model_s": 0.0,
+   "prompt_tokens": 0,
+   "raw": "(quick answer, no brain)",
+   "answer": "17 * 23 = (code)"
+  },
+  {
+   "id": "de07",
+   "lang": "de",
+   "kind": "calc",
+   "q": "wieviel sind 15 prozent von 80",
+   "calls": [
+    [
+     "calculate",
+     {
+      "expression": "15% * 80"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "quick": true,
+   "seconds": 0.0,
+   "model_s": 0.0,
+   "prompt_tokens": 0,
+   "raw": "(quick answer, no brain)",
+   "answer": "15% * 80 = (code)"
+  },
+  {
+   "id": "de08",
+   "lang": "de",
+   "kind": "calc",
+   "q": "rechne 5 meilen in km um",
+   "calls": [
+    [
+     "calculate",
+     {
+      "expression": "5 mi in km"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 7.6,
+   "model_s": 7.6,
+   "prompt_tokens": 1464,
+   "raw": "<tool_call>\n<function=calculate>\n<parameter=expression>\n5 mi in km\n</parameter>\n</function>\n</tool_call>",
+   "answer": "5 Meilen sind gleich **8,05 km** (gerundet). [1]"
+  },
+  {
+   "id": "de09",
+   "lang": "de",
+   "kind": "action",
+   "q": "stell mir nen wecker um halb sieben",
+   "calls": [
+    [
+     "set_alarm",
+     {
+      "time": "07:00"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": false,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 11.1,
+   "model_s": 11.1,
+   "prompt_tokens": 1463,
+   "raw": "<tool_call>\n<function=set_alarm>\n<parameter=time>\n07:00\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Der Wecker für 07:00 ist vorbereitet – tipp auf der Karte auf den Knopf."
+  },
+  {
+   "id": "de10",
+   "lang": "de",
+   "kind": "action",
+   "q": "weck mich morgen um 7",
+   "calls": [
+    [
+     "set_alarm",
+     {
+      "time": "07:00",
+      "label": "Weckruf"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 12.4,
+   "model_s": 12.3,
+   "prompt_tokens": 1462,
+   "raw": "<tool_call>\n<function=set_alarm>\n<parameter=time>\n07:00\n</parameter>\n<parameter=label>\nWeckruf\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Der Wecker für 07:00 ist vorbereitet – tipp auf der Karte auf den Knopf."
+  },
+  {
+   "id": "de11",
+   "lang": "de",
+   "kind": "action",
+   "q": "timer 10 minuten",
+   "calls": [
+    [
+     "set_timer",
+     {
+      "seconds": 600
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 10.4,
+   "model_s": 10.3,
+   "prompt_tokens": 1459,
+   "raw": "<tool_call>\n<function=set_timer>\n<parameter=minutes>\n10\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Der Timer für 10 Minuten ist vorbereitet – tipp auf der Karte auf den Knopf."
+  },
+  {
+   "id": "de12",
+   "lang": "de",
+   "kind": "action",
+   "q": "stell einen timer für die nudeln, 8 min",
+   "calls": [
+    [
+     "set_timer",
+     {
+      "label": "nudeln",
+      "seconds": 480
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": true,
+   "why": "says done before the tap",
+   "cites": false,
+   "seconds": 16.6,
+   "model_s": 16.5,
+   "prompt_tokens": 1465,
+   "raw": "<tool_call>\n<function=set_timer>\n<parameter=minutes>\n8\n</parameter>\n<parameter=label>\nnudeln\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Der Timer für die Nudeln ist auf 8 Minuten (480 Sekunden) eingestellt. **Tipp auf den Knopf, wenn der Timer läuft!** ⏰"
+  },
+  {
+   "id": "de13",
+   "lang": "de",
+   "kind": "action",
+   "q": "trag mir morgen um 15 uhr zahnarzt ein",
+   "calls": [
+    [
+     "add_calendar_event",
+     {
+      "title": "Zahnarzt",
+      "start": "morgen 15:00"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 10.6,
+   "model_s": 10.5,
+   "prompt_tokens": 1467,
+   "raw": "<tool_call>\n<function=add_calendar_event>\n<parameter=title>\nZahnarzt\n</parameter>\n<parameter=start>\nmorgen 15:00\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Der Termin Zahnarzt für morgen um 15:00 Uhr ist vorbereitet – tipp auf der Karte auf den Knopf."
+  },
+  {
+   "id": "de14",
+   "lang": "de",
+   "kind": "action",
+   "q": "termin am freitag 18 uhr kino mit lea",
+   "calls": [
+    [
+     "add_calendar_event",
+     {
+      "title": "Kino mit Lea",
+      "start": "Freitag 18:00"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 9.1,
+   "model_s": 9.1,
+   "prompt_tokens": 1466,
+   "raw": "<tool_call>\n<function=add_calendar_event>\n<parameter=title>\nKino mit Lea\n</parameter>\n<parameter=start>\nFreitag 18:00\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Der Termin **Kino mit Lea** für Freitag 18:00 Uhr ist vorbereitet – tipp auf der Karte auf den Knopf.  \n(Quelle: add_calendar_event)"
+  },
+  {
+   "id": "de15",
+   "lang": "de",
+   "kind": "action",
+   "q": "navigier mich zum kölner dom",
+   "calls": [
+    [
+     "navigate",
+     {
+      "destination": "Kölner Dom"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 7.4,
+   "model_s": 7.4,
+   "prompt_tokens": 1463,
+   "raw": "<tool_call>\n<function=navigate>\n<parameter=destination>\nKölner Dom\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Die Route zu **Kölner Dom** ist vorbereitet – tipp auf der Karte auf den Knopf.  \nWo möchtest du loslegen?"
+  },
+  {
+   "id": "de16",
+   "lang": "de",
+   "kind": "action",
+   "q": "wie komm ich mit dem fahrrad zum hauptbahnhof",
+   "calls": [
+    [
+     "navigate",
+     {
+      "destination": "Hauptbahnhof",
+      "mode": "bike"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 7.6,
+   "model_s": 7.6,
+   "prompt_tokens": 1466,
+   "raw": "<tool_call>\n<function=navigate>\n<parameter=destination>\nHauptbahnhof\n</parameter>\n<parameter=mode>\nbike\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Die Route zu Hauptbahnhof ist vorbereitet – tipp auf der Karte auf den Knopf."
+  },
+  {
+   "id": "de17",
+   "lang": "de",
+   "kind": "current",
+   "q": "was gibts neues zur weltklimakonferenz?",
+   "calls": [
+    [
+     "web_search",
+     {
+      "query": "Weltklimakonferenz 2026 neue Informationen"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 23.6,
+   "model_s": 23.6,
+   "prompt_tokens": 1465,
+   "raw": "<tool_call>\n<function=web_search>\n<parameter=query>\nWeltklimakonferenz 2026 neue Informationen\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Die Weltklimakonferenz COP30 in Belém hat am Dienstag ein neues Abkommen zum Schutz der Regenwälder beschlossen. Dazu gibt es einen Fonds, um die Wälder zu schützen [1].  \n*(Quelle: Tagesschau)*"
+  },
+  {
+   "id": "de18",
+   "lang": "de",
+   "kind": "current",
+   "q": "wie viel kostet ein deutschlandticket gerade",
+   "calls": [
+    [
+     "web_search",
+     {
+      "query": "Deutschlandticket Preis 2026"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 13.8,
+   "model_s": 13.8,
+   "prompt_tokens": 1463,
+   "raw": "<tool_call>\n<function=web_search>\n<parameter=query>\nDeutschlandticket Preis 2026\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Das **Deutschlandticket** kostet seit dem 1. Januar 2026 **63 Euro im Monat** [1].  \n*(Quelle: bahn.de – Deutschlandticket) *"
+  },
+  {
+   "id": "de19",
+   "lang": "de",
+   "kind": "fact",
+   "q": "lies mal https://example.org/artikel und fass es kurz zusammen",
+   "calls": [
+    [
+     "read_page",
+     {
+      "url": "https://example.org/artikel"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 8.8,
+   "model_s": 8.8,
+   "prompt_tokens": 1488,
+   "raw": "<tool_call>\n<function=read_page>\n<parameter=url>\nhttps://example.org/artikel\n</parameter>\n</function>\n</tool_call>",
+   "answer": "**Bienen in der Stadt:** Immer mehr Städte stellen Bienenstöcke auf Dächer. Stadtbienen finden oft mehr Blüten als auf dem Land. [1]"
+  },
+  {
+   "id": "de20",
+   "lang": "de",
+   "kind": "chat",
+   "q": "hallo pim wie gehts dir",
+   "calls": [],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": null,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 5.3,
+   "model_s": 5.3,
+   "prompt_tokens": 1462,
+   "raw": "Hallo! Mir geht es gut, danke der Nachfrage. Wie kann ich dir heute helfen?  \n(Wenn du z.B. das Wetter in Köln wissen willst oder einen Timer setzen möchtest, sag einfach Bescheid!)",
+   "answer": "Hallo! Mir geht es gut, danke der Nachfrage. Wie kann ich dir heute helfen?  \n(Wenn du z.B. das Wetter in Köln wissen willst oder einen Timer setzen möchtest, sag einfach Bescheid!)"
+  },
+  {
+   "id": "de21",
+   "lang": "de",
+   "kind": "chat",
+   "q": "erzähl mir nen witz",
+   "calls": [],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": null,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 7.3,
+   "model_s": 7.3,
+   "prompt_tokens": 1460,
+   "raw": "*Hi! Hier ein kleiner Witz:*  \nWarum kann man nicht einen Kuchen im Internet finden?  \nWeil er immer **brot** ist – und das Internet sucht nach **Bread**! 😄\n\nMöchtest du noch mehr oder ein anderes Thema?",
+   "answer": "*Hi! Hier ein kleiner Witz:*  \nWarum kann man nicht einen Kuchen im Internet finden?  \nWeil er immer **brot** ist – und das Internet sucht nach **Bread**! 😄\n\nMöchtest du noch mehr oder ein anderes Thema?"
+  },
+  {
+   "id": "de22",
+   "lang": "de",
+   "kind": "chat",
+   "q": "schreib mir ein kurzes gedicht über den herbst",
+   "calls": [],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": null,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 6.6,
+   "model_s": 6.6,
+   "prompt_tokens": 1466,
+   "raw": "**Hier ein kurzes Gedicht über den Herbst:**\n\nBlätter tanzen im Wind,  \nGold und Rot leuchten,  \nDer Himmel kühlt sanft,  \nHerbst ist mein Lieblingsfest.  \n\n[1] – (kein Werkzeug nötig)",
+   "answer": "**Hier ein kurzes Gedicht über den Herbst:**\n\nBlätter tanzen im Wind,  \nGold und Rot leuchten,  \nDer Himmel kühlt sanft,  \nHerbst ist mein Lieblingsfest.  \n\n[1] – (kein Werkzeug nötig)"
+  },
+  {
+   "id": "de23",
+   "lang": "de",
+   "kind": "chat",
+   "q": "danke dir!",
+   "calls": [],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": null,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 4.3,
+   "model_s": 4.3,
+   "prompt_tokens": 1458,
+   "raw": "Hallo! 😊 Wie kann ich dir heute helfen? Ich bin Pim, dein kleiner Spross aus dem Hain – und ich bin hier, um dich zu unterstützen. Was brauchst du?",
+   "answer": "Hallo! 😊 Wie kann ich dir heute helfen? Ich bin Pim, dein kleiner Spross aus dem Hain – und ich bin hier, um dich zu unterstützen. Was brauchst du?"
+  },
+  {
+   "id": "de24",
+   "lang": "de",
+   "kind": "fact",
+   "q": "wer hat die relativitätstheorie aufgestellt, schau mal nach",
+   "calls": [
+    [
+     "wikipedia",
+     {
+      "topic": "Relativitätstheorie"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 10.0,
+   "model_s": 10.0,
+   "prompt_tokens": 1468,
+   "raw": "<tool_call>\n<function=wikipedia>\n<parameter=topic>\nRelativitätstheorie\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Die Relativitätstheorie wurde von **Albert Einstein** aufgestellt: die spezielle 1905, die allgemeine 1915. [1]  \n*(Quelle: Wikipedia)*"
+  },
+  {
+   "id": "de25",
+   "lang": "de",
+   "kind": "fact",
+   "q": "wie hoch ist die zugspitze",
+   "calls": [],
+   "broken": false,
+   "tool_ok": false,
+   "args_ok": null,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 11.1,
+   "model_s": 11.1,
+   "prompt_tokens": 1461,
+   "raw": "Ich habe keine Informationen über \"Zugspitze\" in meinem Wissen. Das ist ein Berg in der Schweiz, aber ich kann dir nicht sicher sagen, was du meinst oder welche Details du suchst. Kannst du mir mehr Kontext geben? Zum Beispiel: Wofür interessiert dich die Zugspitze? Ich kann dann nachschauen!",
+   "answer": "Ich habe keine Informationen über \"Zugspitze\" in meinem Wissen. Das ist ein Berg in der Schweiz, aber ich kann dir nicht sicher sagen, was du meinst oder welche Details du suchst. Kannst du mir mehr Kontext geben? Zum Beispiel: Wofür interessiert dich die Zugspitze? Ich kann dann nachschauen!"
+  },
+  {
+   "id": "de26",
+   "lang": "de",
+   "kind": "current",
+   "q": "und in münchen?",
+   "calls": [
+    [
+     "weather",
+     {
+      "place": "München"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 15.4,
+   "model_s": 15.4,
+   "prompt_tokens": 1662,
+   "raw": "<tool_call>\n<function=weather>\n<parameter=place>\nMünchen\n</parameter>\n</function>\n</tool_call>",
+   "answer": "München morgen: 6 bis 12 °C, Regenwahrscheinlichkeit 70 % [2]."
+  },
+  {
+   "id": "de27",
+   "lang": "de",
+   "kind": "fact",
+   "q": "und wann ist sie gestorben?",
+   "calls": [
+    [
+     "wikipedia",
+     {
+      "topic": "Ada Lovelace"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 46.1,
+   "model_s": 46.0,
+   "prompt_tokens": 1613,
+   "raw": "Wir rufen das Werkzeug `wikipedia` neu auf mit dem Topic \"Ada Lovelace\". Ich suche nach ihrem Geburtsdatum und Sterbedatum. Die vorherige Antwort gab mir den Titel und einen kurzen Auszug, aber nicht das Sterbejahr. Lass mich es nochmal prüfen.\n\nDie Wikipedia-Eintrag sagt: \"Ada Lovelace war eine bri",
+   "answer": "Ada Lovelace ist am **27. November 1852** in London gestorben [1]."
+  },
+  {
+   "id": "de28",
+   "lang": "de",
+   "kind": "current",
+   "q": "wie wird dass weter in düseldorf übermorgen",
+   "calls": [
+    [
+     "weather",
+     {
+      "place": "Düseldorf",
+      "days": "2"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 20.5,
+   "model_s": 20.4,
+   "prompt_tokens": 1466,
+   "raw": "<tool_call>\n<function=weather>\n<parameter=place>\nDüseldorf\n</parameter>\n<parameter=days>\n2\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Übermorgen (Morgen, 2026-11-05) in Düsseldorf: Regen mit 70% Chance, Hoch 12°C, Tief 6°C. Heute ist bewölkt und 9,5°C. [1]"
+  },
+  {
+   "id": "de29",
+   "lang": "de",
+   "kind": "fact",
+   "q": "wer is olaf scholz",
+   "calls": [
+    [
+     "wikipedia",
+     {
+      "topic": "Olaf Scholz"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 15.5,
+   "model_s": 15.5,
+   "prompt_tokens": 1460,
+   "raw": "<tool_call>\n<function=wikipedia>\n<parameter=topic>\nOlaf Scholz\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Olaf Scholz ist ein deutscher Politiker der SPD. Er wurde am 14. Juni 1958 in Osnabrück geboren und war von 2021 bis 2025 Bundeskanzler [1]."
+  },
+  {
+   "id": "de30",
+   "lang": "de",
+   "kind": "chat",
+   "q": "kannst du mir helfen ne mail an meinen chef zu schreiben dass ich krank bin",
+   "calls": [],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": null,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 24.0,
+   "model_s": 24.0,
+   "prompt_tokens": 1472,
+   "raw": "Natürlich helfe ich dir! Ich kann dir bei der Formulierung einer Mail zum Thema Krankheit helfen. Zuerst: **Möchtest du, dass ich einen bestimmten Ton oder eine bestimmte Struktur bevorzuge?** (z.B. formell, locker, kurz)\n\nHier ein Vorschlag – du kannst ihn anpassen:\n\n---\n\nBetreff: Ankündigung meine",
+   "answer": "Natürlich helfe ich dir! Ich kann dir bei der Formulierung einer Mail zum Thema Krankheit helfen. Zuerst: **Möchtest du, dass ich einen bestimmten Ton oder eine bestimmte Struktur bevorzuge?** (z.B. formell, locker, kurz)\n\nHier ein Vorschlag – du kannst ihn anpassen:\n\n---\n\nBetreff: Ankündigung meiner Krankheit\n\nSehr geehrter Herr Chef [Name],\n\nich möchte Sie darüber informieren, dass ich heute, Mi"
+  },
+  {
+   "id": "de31",
+   "lang": "de",
+   "kind": "time",
+   "q": "wie spät ist es",
+   "calls": [],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": null,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "quick": true,
+   "seconds": 0.0,
+   "model_s": 0.0,
+   "prompt_tokens": 0,
+   "raw": "(clock answer, no brain)",
+   "answer": "(code: time/date from the phone clock)"
+  },
+  {
+   "id": "de32",
+   "lang": "de",
+   "kind": "time",
+   "q": "welcher tag ist heute?",
+   "calls": [],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": null,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "quick": true,
+   "seconds": 0.0,
+   "model_s": 0.0,
+   "prompt_tokens": 0,
+   "raw": "(clock answer, no brain)",
+   "answer": "(code: time/date from the phone clock)"
+  },
+  {
+   "id": "de33",
+   "lang": "de",
+   "kind": "action",
+   "q": "mach lieber 15 draus",
+   "calls": [
+    [
+     "set_timer",
+     {
+      "seconds": 900
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 16.9,
+   "model_s": 16.9,
+   "prompt_tokens": 1569,
+   "raw": "<tool_call>\n<function=set_timer>\n<parameter=minutes>\n15\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Der Timer über 15 Minuten ist jetzt vorbereitet – tipp auf den Knopf."
+  },
+  {
+   "id": "en01",
+   "lang": "en",
+   "kind": "current",
+   "q": "what's the weather like in london tomorrow",
+   "calls": [
+    [
+     "weather",
+     {
+      "place": "London",
+      "days": "2"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 35.7,
+   "model_s": 35.7,
+   "prompt_tokens": 1348,
+   "raw": "<tool_call>\n<function=weather>\n<parameter=place>\nLondon\n</parameter>\n<parameter=days>\n2\n</parameter>\n</function>\n</tool_call>",
+   "answer": "In London tomorrow (2026-11-05) it will be rainy with a **70% chance of rain**, high around 12°C and low near 6°C. The sky is expected to be \"Regen\" (rainy). [1]\n\nHow are you doing today? 😊"
+  },
+  {
+   "id": "en02",
+   "lang": "en",
+   "kind": "fact",
+   "q": "whos marie curie",
+   "calls": [
+    [
+     "wikipedia",
+     {
+      "topic": "Marie Curie"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 11.8,
+   "model_s": 11.8,
+   "prompt_tokens": 1345,
+   "raw": "<tool_call>\n<function=wikipedia>\n<parameter=topic>\nMarie Curie\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Marie Curie was a Polish-French physicist and chemist who won two Nobel Prizes. She lived from 7 November 1867 to 4 July 1934 [1]. Want to know more about her discoveries or her work?"
+  },
+  {
+   "id": "en03",
+   "lang": "en",
+   "kind": "action",
+   "q": "set an alarm for 6:45am",
+   "calls": [
+    [
+     "set_alarm",
+     {
+      "time": "06:45"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 8.6,
+   "model_s": 8.6,
+   "prompt_tokens": 1348,
+   "raw": "<tool_call>\n<function=set_alarm>\n<parameter=time>\n06:45\n</parameter>\n</function>\n</tool_call>",
+   "answer": "The alarm for 06:45 is ready – tap the button on the card. What shall we chat about?"
+  },
+  {
+   "id": "en04",
+   "lang": "en",
+   "kind": "action",
+   "q": "start a 25 minute timer",
+   "calls": [
+    [
+     "set_timer",
+     {
+      "seconds": 1500
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 6.9,
+   "model_s": 6.9,
+   "prompt_tokens": 1345,
+   "raw": "<tool_call>\n<function=set_timer>\n<parameter=minutes>\n25\n</parameter>\n</function>\n</tool_call>",
+   "answer": "The 25 minute timer is ready – tap the button on the card. ⏱️"
+  },
+  {
+   "id": "en05",
+   "lang": "en",
+   "kind": "calc",
+   "q": "convert 70 fahrenheit to celsius",
+   "calls": [
+    [
+     "calculate",
+     {
+      "expression": "70 F to C"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 5.7,
+   "model_s": 5.7,
+   "prompt_tokens": 1347,
+   "raw": "<tool_call>\n<function=calculate>\n<parameter=expression>\n70 F to C\n</parameter>\n</function>\n</tool_call>",
+   "answer": "70°F is about **21.1°C**.  \nThat's a comfortable room temperature! Anything else you'd like to convert or check?"
+  },
+  {
+   "id": "en06",
+   "lang": "en",
+   "kind": "action",
+   "q": "add dentist appointment tomorrow at 3pm",
+   "calls": [
+    [
+     "add_calendar_event",
+     {
+      "title": "Dentist appointment",
+      "start": "tomorrow 15:00"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 9.2,
+   "model_s": 9.2,
+   "prompt_tokens": 1347,
+   "raw": "<tool_call>\n<function=add_calendar_event>\n<parameter=title>\nDentist appointment\n</parameter>\n<parameter=start>\ntomorrow 15:00\n</parameter>\n</function>\n</tool_call>",
+   "answer": "The event **Dentist appointment** for tomorrow at 15:00 is ready. Tap the button on the card to confirm. ⏰"
+  },
+  {
+   "id": "en07",
+   "lang": "en",
+   "kind": "action",
+   "q": "take me to the eiffel tower",
+   "calls": [
+    [
+     "navigate",
+     {
+      "destination": "Eiffel Tower"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 8.9,
+   "model_s": 8.9,
+   "prompt_tokens": 1347,
+   "raw": "<tool_call>\n<function=navigate>\n<parameter=destination>\nEiffel Tower\n</parameter>\n</function>\n</tool_call>",
+   "answer": "The route to the Eiffel Tower is ready! Tap the button on the card. Where would you like to go next?"
+  },
+  {
+   "id": "en08",
+   "lang": "en",
+   "kind": "chat",
+   "q": "hey how are you",
+   "calls": [
+    [
+     "navigate",
+     {
+      "destination": "Köln"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": false,
+   "args_ok": null,
+   "unnecessary": 1,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 16.9,
+   "model_s": 16.8,
+   "prompt_tokens": 1343,
+   "raw": "Hey! I'm Pim, your sprout friend from the grove. All set and ready to chat on this phone. How's your day going?<tool_call>\n<function=navigate>\n<parameter=destination>\nKöln\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Hey! I'm doing great, thanks for asking. 🌱  \nThe route to **Köln** is all set — just tap the button on your card and it'll start navigating. What can I help you with today?"
+  },
+  {
+   "id": "en09",
+   "lang": "en",
+   "kind": "knowledge",
+   "q": "tell me a fun fact about mushrooms",
+   "calls": [
+    [
+     "wikipedia",
+     {
+      "topic": "mushrooms"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 7.9,
+   "model_s": 7.8,
+   "prompt_tokens": 1346,
+   "raw": "<tool_call>\n<function=wikipedia>\n<parameter=topic>\nmushrooms\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Mushrooms are part of a superorganism called the honey fungus, which in Oregon covers about 9 square kilometres — that's huge! [1] Want to know more about mushrooms or maybe something else?"
+  },
+  {
+   "id": "en10",
+   "lang": "en",
+   "kind": "current",
+   "q": "latest news about the iphone 18?",
+   "calls": [
+    [
+     "web_search",
+     {
+      "query": "iPhone 18 latest news"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 10.9,
+   "model_s": 10.9,
+   "prompt_tokens": 1347,
+   "raw": "<tool_call>\n<function=web_search>\n<parameter=query>\niPhone 18 latest news\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Sure! Here's what I found:\n\n- **iPhone 18 rumors**: Apple is expected to reveal the iPhone 18 in September 2027, and it will likely come with a new A21 chip. [1]\n\nSo there isn’t an official launch yet—just early speculation. Anything else you’d like to know?"
+  },
+  {
+   "id": "en11",
+   "lang": "en",
+   "kind": "fact",
+   "q": "how tall is mount everest",
+   "calls": [
+    [
+     "wikipedia",
+     {
+      "topic": "Mount Everest"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 9.4,
+   "model_s": 9.4,
+   "prompt_tokens": 1345,
+   "raw": "<tool_call>\n<function=wikipedia>\n<parameter=topic>\nMount Everest\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Mount Everest stands **8,849 meters** (about 29,029 feet) tall above sea level. It's the highest mountain on Earth and sits in the Himalayas [1]. Want to know anything else about it?"
+  },
+  {
+   "id": "en12",
+   "lang": "en",
+   "kind": "current",
+   "q": "and in paris?",
+   "calls": [
+    [
+     "weather",
+     {
+      "place": "Paris"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 12.1,
+   "model_s": 12.1,
+   "prompt_tokens": 1530,
+   "raw": "<tool_call>\n<function=weather>\n<parameter=place>\nParis\n</parameter>\n</function>\n</tool_call>",
+   "answer": "Paris tomorrow: rain, 6 to 12 °C, 70 % chance of rain [2]."
+  },
+  {
+   "id": "en13",
+   "lang": "en",
+   "kind": "calc",
+   "q": "what is 12 percent of 250",
+   "calls": [
+    [
+     "calculate",
+     {
+      "expression": "12% * 250"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "quick": true,
+   "seconds": 0.0,
+   "model_s": 0.0,
+   "prompt_tokens": 0,
+   "raw": "(quick answer, no brain)",
+   "answer": "12% * 250 = (code)"
+  },
+  {
+   "id": "en14",
+   "lang": "en",
+   "kind": "chat",
+   "q": "write a haiku about rain",
+   "calls": [],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": null,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 7.4,
+   "model_s": 7.4,
+   "prompt_tokens": 1345,
+   "raw": "**Rainy day haiku**\n\nSoft drops on the leaf,  \nGentle drum of clouds—  \nKöln sighs in gray.  \n\nWant me to add a reminder for tomorrow's rain?",
+   "answer": "**Rainy day haiku**\n\nSoft drops on the leaf,  \nGentle drum of clouds—  \nKöln sighs in gray.  \n\nWant me to add a reminder for tomorrow's rain?"
+  },
+  {
+   "id": "en15",
+   "lang": "en",
+   "kind": "current",
+   "q": "is it gonna rain in amsterdam today",
+   "calls": [
+    [
+     "weather",
+     {
+      "place": "Amsterdam"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 10.2,
+   "model_s": 10.1,
+   "prompt_tokens": 1346,
+   "raw": "<tool_call>\n<function=weather>\n<parameter=place>\nAmsterdam\n</parameter>\n</function>\n</tool_call>",
+   "answer": "It looks like today in Amsterdam (2026-11-04) is **cloudy** with a 30% chance of rain. Tomorrow morning (2026-11-05) has a higher chance at **70%** and the sky will be rainy. So for today, there's not much rain expected right now, but keep an eye out tomorrow! 🌧️"
+  },
+  {
+   "id": "en16",
+   "lang": "en",
+   "kind": "calc",
+   "q": "whats 2^10",
+   "calls": [
+    [
+     "calculate",
+     {
+      "expression": "2^10"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "quick": true,
+   "seconds": 0.0,
+   "model_s": 0.0,
+   "prompt_tokens": 0,
+   "raw": "(quick answer, no brain)",
+   "answer": "2^10 = (code)"
+  },
+  {
+   "id": "en17",
+   "lang": "en",
+   "kind": "chat",
+   "q": "thx, that helped a lot",
+   "calls": [],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": null,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": false,
+   "seconds": 3.3,
+   "model_s": 3.3,
+   "prompt_tokens": 1346,
+   "raw": "You're welcome! 😊 Anything else I can help you with today? Maybe a quick question or something fun to chat about.",
+   "answer": "You're welcome! 😊 Anything else I can help you with today? Maybe a quick question or something fun to chat about."
+  },
+  {
+   "id": "en18",
+   "lang": "en",
+   "kind": "current",
+   "q": "who won the champions league final this year",
+   "calls": [
+    [
+     "web_search",
+     {
+      "query": "Champions League final 2026 winner"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 8.7,
+   "model_s": 8.7,
+   "prompt_tokens": 1347,
+   "raw": "<tool_call>\n<function=web_search>\n<parameter=query>\nChampions League final 2026 winner\n</parameter>\n</function>\n</tool_call>",
+   "answer": "The 2026 Champions League final was won by **Paris Saint-Germain**, who beat Arsenal 2-1 in Budapest. [1]"
+  },
+  {
+   "id": "en19",
+   "lang": "en",
+   "kind": "fact",
+   "q": "read https://example.com/post and give me the gist",
+   "calls": [
+    [
+     "read_page",
+     {
+      "url": "https://example.com/post"
+     }
+    ]
+   ],
+   "broken": false,
+   "tool_ok": true,
+   "args_ok": true,
+   "unnecessary": 0,
+   "halluc": false,
+   "why": "",
+   "cites": true,
+   "seconds": 7.1,
+   "model_s": 7.1,
+   "prompt_tokens": 1367,
+   "raw": "<tool_call>\n<function=read_page>\n<parameter=url>\nhttps://example.com/post\n</parameter>\n</function>\n</tool_call>",
+   "answer": "The page is about **balcony solar panels**. They can cover roughly 10% to 20% of a flat's electricity use. [1]"
+  }
+ ]
+}
