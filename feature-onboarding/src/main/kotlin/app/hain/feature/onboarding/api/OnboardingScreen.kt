@@ -76,7 +76,10 @@ fun OnboardingScreen(
     var languageDone by rememberSaveable { mutableStateOf(false) }
     var tourDone by rememberSaveable { mutableStateOf(false) }
     if (!languageDone && download == DownloadState.Idle) {
-        LanguageStep(onPick = { tag -> onLanguage(tag); languageDone = true }, modifier = modifier)
+        LanguageStep(onPick = { tag ->
+            onLanguage(tag)
+            languageDone = true
+        }, modifier = modifier)
         return
     }
     if (!tourDone && download == DownloadState.Idle) {
