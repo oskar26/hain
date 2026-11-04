@@ -21,12 +21,13 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | Parakeet TDT 0.6B v3 | CC-BY-4.0 | verify, attribution |
 | PP-OCRv5 / PaddleOCR | Apache-2.0 | ok |
 | PaddleOCR-VL-1.6 | Apache-2.0 | verify |
-| ONNX Runtime | MIT | ok |
+| ONNX Runtime (`com.microsoft.onnxruntime:onnxruntime-android` **1.28.0, pinned**: 1.29+ adds a Microsoft telemetry initializer; removed in the manifest too) | MIT | ok (Häppchen 9 OCR, Häppchen 10 voice – one version, one `.so`) |
 | kotlinx.serialization (json, 1.8.1) | Apache-2.0 | ok (T-040, ToolSchema JSON) |
 | kxml2 2.3.0 (test only, XmlPullParser on the JVM) | BSD-style (MIT-like) | ok (T-070) |
 | androidx.work (work-runtime-ktx 2.12.0) | Apache-2.0 | ok (T-082, model downloads) |
 | LFM3-1.7B GGUF (downloaded at runtime, not bundled) | LFM Open License v1.0 | model weights, not linked code; licence shown in onboarding (T-083) |
-| pdfbox-android | Apache-2.0 | ok |
+| pdfbox-android (`com.tom-roush:pdfbox-android` 2.0.27.0, T-120) | Apache-2.0 | ok |
+| PP-OCRv5 mobile det + latin rec + PP-LCNet textline orientation, ONNX exports from huggingface.co/PaddlePaddle (downloaded at runtime, pinned commit + SHA-256) | Apache-2.0 | ok (T-121; shown in "Meine Dateien") |
 | MuPDF | AGPL | **do not use** |
 | German word list `core-docs/src/main/assets/dict/de_words.txt` (208,341 words, T-122): igerman98 (Björn Jacke, GPL-2.0/GPL-3.0) + FrequencyWords DE (Hermit Dave, CC-BY-SA-4.0) | GPL / CC-BY-SA-4.0 (one-way compatible with GPL-3.0) | ok; sources in `assets/dict/README.txt` |
 | Readability4K | Apache-2.0 | verify |

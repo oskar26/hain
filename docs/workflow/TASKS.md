@@ -91,10 +91,10 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-113 | Retrieval & ranking | feature | S | C | T-111 | todo |
 | T-114 | Background extraction worker | feature | M | C | T-112,T-113,T-110 | todo |
 | T-115 | Memory screen | ui | M | C | T-113 | todo |
-| T-120 | PDF text layer + page render | feature | S | D | T-002 | todo |
-| T-121 | PP-OCRv5 Latin via ONNX Runtime | native | M | D | T-120 | todo |
-| T-122 | GermanOcrFixer | feature | S | D | T-002 | todo |
-| T-123 | Chunking + doc search tool + attach in chat | feature | M | D | T-121,T-122,T-062 | todo |
+| T-120 | PDF text layer + page render | feature | S | D | T-002 | review (Hark, PR #49) |
+| T-121 | PP-OCRv5 Latin via ONNX Runtime | native | M | D | T-120 | review (Hark, PR #49) |
+| T-122 | GermanOcrFixer | feature | S | D | T-002 | review (Hark, PR #49) |
+| T-123 | Chunking + doc search tool + attach in chat | feature | M | D | T-121,T-122,T-062 | review (Hark, PR #49) |
 | T-130 | Card parser | feature | S | E | T-002 | todo |
 | T-131 | Card renderer + GBNF | ui | M | E | T-130,T-014 | todo |
 | T-140 | STT Moonshine + mic button | feature | M | F | T-082 | todo |

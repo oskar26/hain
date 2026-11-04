@@ -98,7 +98,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🃏 Answer cards | Lists, tables, checklists, weather and source cards instead of plain text | 🗓️ |
 | 🧠 Memory | "Remember that …", a memory page you can edit, forget anything | 🗓️ |
 | 🔒 Private chats | Chats that are never saved, app lock with fingerprint | 🗓️ |
-| 📄 Documents | Ask your PDFs and photos of text (PP-OCRv5), answers with sources | 🗓️ |
+| 📄 Documents | Paper clip in the message box → **File or photo** (PDF, photo of a page, .txt/.md) or **My files**. Hain reads the text on your phone with a progress line, shows the file as a chip ("Rechnung.pdf · 3 Seiten") and Pim answers from it with page numbers like [S. 2]: small files go into the question whole, long ones are searched (the best 4 parts). Scans and photos need the optional text recognition (PP-OCRv5, ~14 MB, asked first, with a German fix for Ü/ß). Only the text is kept, encrypted; **My files** lists everything, delete a file or remove the pack | ✅ |
 | 🎙️ Voice | Dictation (Moonshine), read aloud, Pim's own voice | 🗓️ |
 | 📲 On the phone | Share menu target, widget, quick tile, default assistant | 🗓️ |
 | 🌳 Mini-apps | Many key-free integrations (e.g. KVB / Transitous), shown as trees in Pim's forest | 🗓️ later |
@@ -116,6 +116,7 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
   - **Weather where you are.** Switch on **Settings → Privacy → Location for weather** and Android asks once. Then "Wie wird das Wetter?" without a place uses your phone's last rough location (no GPS search, no Google services); only about 1 km goes to Open-Meteo.
   - **Web search: on, ask first, off.** In **Settings → Privacy**. "Ask first": Pim asks "Darf ich kurz im Web suchen?" and searches only after your yes. "Off": no web search at all, Wikipedia and weather keep working.
   - **The brain download shows in the network log** like every other request, with the orange online dot while it runs.
+- **Version 0.1.9: Documents.** Tap the **paper clip** in the message box → **File or photo** and pick a PDF, a photo of a page or a text file. Hain reads it on your phone ("Lese Seite 2 von 5 …"), the file waits as a chip above the box, then ask "Wie viel muss ich zahlen?" – Pim answers from the file and names the page ([S. 1]). Long files are searched instead of read whole. Scanned pages and photos need the text recognition: Hain asks "Texterkennung laden?" (about 14 MB, once, through the network log) and then reads everything offline, with a German fix for typical mistakes (Uberprüfung → Überprüfung, StraBe → Straße). **My files** shows all read files to attach again or delete, and lets you remove the pack. Only the text is kept, in its own encrypted database – never the file.
 - **Version 0.1.5: News.** Open the side panel → **News**: headlines of today, yesterday and before from a fixed mix of German and English sources (incl. junge Welt), your own feeds on top, or only your own feeds. Tap opens the article, a long press shares the link, **Summarise** lets Pim sum up a freely readable article in 5 points on your phone (paywalls are never bypassed). In the chat, ask "Was gibt es Neues zum Streik?" and Pim shows the headlines as a card. Feeds load only when you open News or ask Pim, and show as "News" in the network log.
 - **Version 0.1.3.1.** Hain now shows its version in **Settings → About Hain** (with build number and commit). How the numbers work is in [docs/workflow/VERSIONING.md](docs/workflow/VERSIONING.md).
 - **Frosted glass menus.** The ⋯ menu, the long-press menu in the side panel and the thinking picker are now real frosted glass: the chat behind them shows through, softly blurred, with a thin light edge and a soft shadow. The rest of the screen only dims a little. On phones older than Android 12 the menus are a solid card.
@@ -198,7 +199,7 @@ Hain speaks of "knowledge packs" instead of "models". Only the brain is needed; 
 |---|---|---|---|
 | Brain (base) | LFM3-1.7B QAD Q4_0 | 1.0 GB | chat, tools, memory |
 | Remember & files | LFM2.5-Embedding-350M | ~0.2 GB | search in memory, chats, files |
-| Reading text | PaddleOCR PP-OCRv5 mobile (Latin) | 12 MB | PDFs and photos, without Google |
+| Reading text | PaddleOCR PP-OCRv5 mobile (detection + Latin + line orientation, ONNX) | 14 MB | scanned PDFs and photos, without Google (asked when first needed) |
 | Dictation | Moonshine Small | ~0.12–0.25 GB | microphone, DE + EN |
 | See + talk (optional) | LFM3-Omni-2B | 1.65 GB | photos, voice mode |
 | Image generation (optional) | SD 1.5 + DMD2 | 1.1 GB | only phones with 8 GB RAM+ |
@@ -237,7 +238,7 @@ Details: [docs/specs/ARCHITECTURE.md](docs/specs/ARCHITECTURE.md).
 |---|---|---|
 | nightly | Every merge to `main`, for testers | ongoing |
 | **0.2.0** | First version for friends: chat that stays on your phone, settings, knowledge packs, tools (calculator, weather, Wikipedia, web search, timer), news, memory, private chats | **planned for 6 Nov 2026** |
-| 1.0 | Everything in the [concept](docs/concept/KONZEPT.md): documents and photos, voice, mini-apps "forest", F-Droid | 2027, no fixed date |
+| 1.0 | Everything in the [concept](docs/concept/KONZEPT.md): tables and forms in documents, questions about photos, voice, mini-apps "forest", F-Droid | 2027, no fixed date |
 
 Dates are goals, not promises. The detailed plan is in [docs/workflow/ROADMAP.md](docs/workflow/ROADMAP.md), the current state in [docs/workflow/STATUS.md](docs/workflow/STATUS.md).
 
@@ -320,7 +321,7 @@ Architecture: [docs/specs/ARCHITECTURE.md](docs/specs/ARCHITECTURE.md) · Design
 
 ## Auf Deutsch
 
-Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Gerät läuft: chatten, rechnen, Wetter und Wikipedia nachschauen, im Web suchen, Nachrichten aus einem festen Mix (inkl. junge Welt) oder eigenen Feeds lesen und von Pim zusammenfassen lassen, Wecker, Timer, Termine und Routen vorbereiten (du bestätigst jedes Mal mit einem Tipp), und bald auch Fotos und PDFs verstehen, sprechen und sich Dinge merken. Keine Cloud, kein Konto, keine API-Schlüssel. Ins Internet geht Hain nur, wenn du etwas brauchst, und zeigt dir genau, wohin die Anfrage geht. Das ganze Konzept steht in [docs/concept/KONZEPT.md](docs/concept/KONZEPT.md).
+Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Gerät läuft: chatten, rechnen, Wetter und Wikipedia nachschauen, im Web suchen, Nachrichten aus einem festen Mix (inkl. junge Welt) oder eigenen Feeds lesen und von Pim zusammenfassen lassen, Wecker, Timer, Termine und Routen vorbereiten (du bestätigst jedes Mal mit einem Tipp), PDFs, Fotos von Texten und Textdateien lesen und Fragen dazu mit Seitenangabe beantworten (Büroklammer im Nachrichtenfeld, Texterkennung auf dem Handy), und bald auch sprechen und sich Dinge merken. Keine Cloud, kein Konto, keine API-Schlüssel. Ins Internet geht Hain nur, wenn du etwas brauchst, und zeigt dir genau, wohin die Anfrage geht. Das ganze Konzept steht in [docs/concept/KONZEPT.md](docs/concept/KONZEPT.md).
 
 **Installieren:** Auf dem Handy die [Nightly-Seite](https://github.com/oskar26/hain/releases/tag/nightly) öffnen, `hain-debug.apk` laden, beim Öffnen „Unbekannte Apps installieren“ für den Browser erlauben, installieren. Beim ersten Start lädt Pim das Gehirn (ca. 1 GB, am besten im WLAN) – das kannst du auch überspringen und später im Chat nachholen. Updates einfach drüber installieren, Chats und Gehirn bleiben erhalten.
 

@@ -27,6 +27,10 @@ SQLite build: SQLCipher for Android (`net.zetetic:sqlcipher-android`), decided i
 
 Migrations: every schema change = new Room version + migration test (`MigrationTestHelper`).
 
+## Documents database (Häppchen 9)
+
+Documents live in their **own** Room database `hain_docs.db` (`core-docs`, `DocsDatabase`, version 1), encrypted with SQLCipher and the same Keystore-wrapped key as `hain.db`. Reason: `hain.db` stays unchanged while other branches change its schema. Tables: `document` (id, name, kind pdf/text/image, mime, pages, chars, added_at, ocr_pages, missing_pages, thumbnail BLOB, status) and `doc_chunk` (id, document_id FK cascade, page, chunk_index, text, ocr, confidence). No FTS/vec tables yet (BM25 in memory over the attached documents). `exportSchema = false` for version 1; the first schema change must turn export on and add a migration test. The original file is never kept (a cache copy is deleted after reading). Message attachments: `message.attachments_json` = `[{id, name, kind, pages, tokens}]`.
+
 ## Settings
 
 Jetpack DataStore (Proto or Preferences) — all keys in SETTINGS.md. Not in Room.

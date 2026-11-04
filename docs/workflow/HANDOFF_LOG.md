@@ -433,3 +433,19 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Zwischenstand-Commit T-073 baut erst zusammen mit T-074 (ViewModel kennt `SummarizeArticle`).
 - `hain.versionName` = 0.1.5 (gradle.properties). README (Funktionstabelle, deutscher Absatz) und Website (EN + /de: Nachrichten = „Schon da“) aktualisiert, `NEWS.md` §7 beschreibt die Abweichungen.
 - Nächstes: Oskar testet die APK: Seitenleiste → Nachrichten, Modus wechseln, eigenen Feed hinzufügen, „Zusammenfassen“ (mit Gehirn), im Chat „Was gibt es Neues zum Streik?“.
+
+## 2026-11-04 · T-120 bis T-123 (0.1.9 – Dokumente) · review · harness: Hark · model: Hark · branch `hark/day-9` (Draft-PR #49)
+
+Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen wurden Modelle/Wörterbuch/Referenzskripte aus `ocr9/` und die teilweise geretteten Dateien (PDF, Text, Chunker, Fixer, Wörterbuch, Test-PDF). OCR-Pipeline, Datenbank, Werkzeug, UI und alle Tests neu geschrieben.
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-120 | review | `PdfTextExtractorTest` (Robolectric, Fixture `rechnung.pdf`: 3 Seiten, Seite 2 = Scan), `TextFilesTest` | `gradle/libs.versions.toml` (pdfbox-android), `core-docs/consumer-rules.pro` | Seitenbild nur auf dem Gerät (PdfRenderer) |
+| T-121 | review | `CtcDecoderTest`, `RecDictionaryTest` (echte `inference.yml`, 836 Zeichen), `DbPostProcessTest`, `ReadingOrderTest` (Zeilen, Absätze, 2 Spalten, Titel), `OcrImageTest`, `OcrPackTest` (Gate, SHA, Pack entfernen); JVM-Host-Lauf mit ORT 1.28.0: Rechnung + Zwei-Spalten-Seite 100 % | `core-docs/src/main/AndroidManifest.xml` (Telemetrie-Provider entfernt), `libs.versions.toml` (onnxruntime 1.28.0) | instrumentierter Test „≥ 95 % Zeichen“ auf dem Gerät steht aus (`check: device`) |
+| T-122 | review | `GermanOcrFixerTest` (alle Spec-Beispiele auf dem echten Wörterbuch) | `docs/specs/LICENSES.md`, `assets/dict/README.txt` | – |
+| T-123 | review | `ChunkerTest`, `DocPromptTest`, `DocAttachmentTest`, `SearchDocumentToolTest`, `DocsDatabaseTest` (Robolectric + bundled SQLite), `DocumentToolsTest` (core-tools), `DocMessagesTest`, `ChatViewModelDocsTest` | `core-tools` (`ToolContext.documents`, `ToolRouter.schemas(documents)`, `HainTools.router(extra)`, `Relevance` public), `feature-chat` (`UiMessage.attachments`, `ChatViewModel.attach/detach/documentPrompt`, `ChatEngine.respond(documents)`, `RoomChatPersistence` attachments_json, `ChatScreen` Büroklammer/Leiste/Meine Dateien, neue `ChatDocs.kt`, `DocsUi.kt`, `DocMessages.kt`, `strings_docs.xml` EN+DE, `ic_paperclip`), `MainActivity` | eigene DB `hain_docs.db` statt Tabellen in `hain.db` (Schema-Konflikte mit 7/Gedächtnis vermeiden); keine FTS/vec-Tabellen (BM25 im Speicher); Dokumente stehen an der Nachricht, die sie angehängt hat – fällt diese aus den letzten 24 Nachrichten, fehlt das Dokument im Prompt |
+
+- Gradle lokal nicht gestartet: ktlint 1.5.0 + detekt 1.23.8 CLI grün; reine Kotlin-Tests (OCR, Fixer, Chunker, Prompt, JSON, Text) zusätzlich lokal mit kotlinc 2.1.20 + JUnit 4 gelaufen (48 grün); Rest über CI/APK.
+- Strings in eigener Datei `feature-chat/src/main/res/values{,-de}/strings_docs.xml` (gleiche Schlüssel; weniger Merge-Konflikte). `tools/check_strings.py` prüft nur `strings.xml` → Parität von Hand geprüft.
+- `hain.versionName=0.1.9`. README (Tabelle, „Neu“, Wissenspakete, Deutsch), Website EN + /de (Dokumente = „Schon da“), DOCS_OCR, DATA, LICENSES, STATUS, TASKS aktualisiert.
+- Nächstes: Oskar testet die APK: Büroklammer → PDF mit Text („Wie viel muss ich zahlen?“), dann ein Foto einer Seite (→ „Texterkennung laden?“ → Laden), „Meine Dateien“ → Datei löschen, Pack entfernen.
