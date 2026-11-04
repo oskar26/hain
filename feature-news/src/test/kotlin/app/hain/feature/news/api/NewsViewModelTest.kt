@@ -8,9 +8,14 @@ import app.hain.tools.internal.news.NewsMode
 import app.hain.tools.internal.news.NewsRepository
 import app.hain.tools.internal.news.NewsSnapshot
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -27,13 +32,22 @@ class NewsViewModelTest {
             NewsItem("own-1", "Mein Blog", "Neuer Beitrag", "https://blog.example.org/1", "b1", now - 2, now, ""),
         )
 
+    // Not backgroundScope: advanceUntilIdle() skips work that only runs there.
+    private val scopes = mutableListOf<CoroutineScope>()
+
+    @After fun cancelScopes() {
+        scopes.forEach { it.cancel() }
+    }
+
     private fun TestScope.viewModel(
         gate: FakeGate = FakeGate(),
         brain: BrainCall = BrainCall { _, _ -> "- a" },
     ): NewsViewModel {
         val snapshot = NewsSnapshot(ownFeeds = listOf(own), items = items, lastRefresh = now)
         val repo = NewsRepository(gate, MemoryNewsStore(snapshot), standard)
-        return NewsViewModel(repo, SummarizeArticle(gate, brain), { "de" }, backgroundScope)
+        val scope = CoroutineScope(StandardTestDispatcher(testScheduler) + SupervisorJob())
+        scopes += scope
+        return NewsViewModel(repo, SummarizeArticle(gate, brain), { "de" }, scope)
     }
 
     @Test fun modeSwitchPicksTheFeeds() =
