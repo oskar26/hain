@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -87,15 +88,19 @@ internal fun BoxScope.ModelPicker(
 ) {
     var anchorHeight by remember { mutableIntStateOf(0) }
     Box(Modifier.matchParentSize().onSizeChanged { anchorHeight = it.height })
+    // the tile keeps room for its shadow; pull it up by that much so it sits right under the title
+    val lift = with(LocalDensity.current) { MENU_LIFT.dp.roundToPx() }
     val haptics = rememberHainHaptics()
-    // read the catalogue and the files on the phone once per opening
-    val options = remember(expanded) { if (expanded) state.options() else emptyList() }
-    val ownModel = remember(expanded) { expanded && state.ownModelActive() }
+    // read the catalogue and the files on the phone once per opening; keep the rows while it fades out
+    val opened = remember(expanded) { if (expanded) state.options() to state.ownModelActive() else null }
+    val shown = remember { arrayOfNulls<Pair<List<BrainOption>, Boolean>>(1) }
+    if (opened != null) shown[0] = opened
+    val (options, ownModel) = shown[0] ?: (emptyList<BrainOption>() to false)
     HainPopupMenu(
         expanded = expanded,
         onDismiss = onDismiss,
         alignment = Alignment.TopCenter,
-        offset = IntOffset(0, anchorHeight),
+        offset = IntOffset(0, (anchorHeight - lift).coerceAtLeast(0)),
         growFrom = TransformOrigin(PIVOT_CENTER, 0f),
     ) {
         ModelPickerContent(
@@ -203,7 +208,7 @@ private fun BrainRow(
             modifier = Modifier.size(20.dp),
         )
         Spacer(Modifier.width(spacing.md))
-        Column(Modifier.weight(1f, fill = false)) {
+        Column(Modifier.weight(1f)) {
             BasicText(
                 name,
                 style = type.button.copy(color = if (option.installed) colors.text else colors.textMuted),
@@ -251,3 +256,4 @@ private fun BrainRow(
 private const val SELECTED_ALPHA = 0.7f
 private const val HAIRLINE = 1
 private const val PIVOT_CENTER = 0.5f
+private const val MENU_LIFT = 8

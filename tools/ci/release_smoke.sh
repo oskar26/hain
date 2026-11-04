@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # T-190: release smoke test + start time on the CI emulator (screens.yml, job "release-smoke").
 #
-#   tools/ci/release_smoke.sh <release.apk> [<before.apk>]
+#   tools/ci/release_smoke.sh <release.apk> [<before.apk>] [<mapping.txt>]
 #
 # 1. Installs the minified release APK (app.hain) and starts it: the process must still live after a
 #    few seconds and the crash log must stay empty (catches missing R8 keep rules at start).
@@ -15,6 +15,7 @@ set -uo pipefail
 
 REL="$1"
 BEFORE="${2:-}"
+MAPPING="${3:-}"
 RUNS="${RUNS:-7}"
 ACTIVITY="app.hain.MainActivity"
 OUT=smoke
@@ -92,11 +93,34 @@ adb shell am broadcast -a androidx.profileinstaller.action.INSTALL_PROFILE \
   -n app.hain/androidx.profileinstaller.ProfileInstallReceiver > /dev/null 2>&1 || true
 sleep 3
 adb shell cmd package dump-profiles app.hain > /dev/null 2>&1 || true
-PROFILE_TXT=$(adb shell cat /data/misc/profman/app.hain-primary.prof.txt 2>/dev/null | tr -d '\r')
-APP_LINES=$(echo "$PROFILE_TXT" | grep -c '^Lapp/hain\|^HSPLapp/hain\|^[HSP]*Lapp/hain' || true)
-ALL_LINES=$(echo "$PROFILE_TXT" | grep -c . || true)
-echo "$PROFILE_TXT" > "$OUT/art-profile.txt"
-log "- Baseline profile on the phone: $ALL_LINES entries, $APP_LINES of them Hain's own code"
+adb shell cat /data/misc/profman/app.hain-primary.prof.txt 2>/dev/null | tr -d '\r' > "$OUT/art-profile.txt"
+# R8 renamed most classes: map them back with mapping.txt to count methods of Hain's own code
+COUNTS=$(python3 - "$OUT/art-profile.txt" "$MAPPING" <<'PY'
+import re, sys
+names = {}
+if len(sys.argv) > 2 and sys.argv[2]:
+    try:
+        for line in open(sys.argv[2]):
+            if not line.startswith((" ", "#")) and " -> " in line and line.rstrip().endswith(":"):
+                orig, ob = line.rstrip()[:-1].split(" -> ")
+                names[ob.strip()] = orig.strip()
+    except OSError:
+        pass
+total = own = 0
+for line in open(sys.argv[1]):
+    m = re.match(r"^\s*\S+ ([\w$.]+)\.[\w$<>]+\(", line)
+    if m:
+        total += 1
+        own += names.get(m.group(1), m.group(1)).startswith("app.hain.")
+print(total, own)
+PY
+)
+read -r ALL_METHODS APP_METHODS <<< "${COUNTS:-0 0}"
+log "- Baseline profile on the phone: $ALL_METHODS methods, $APP_METHODS of them in Hain's own code"
+if [ "${ALL_METHODS:-0}" = "0" ]; then
+  log "- ❌ no baseline profile was installed"
+  FAIL=1
+fi
 
 if [ -n "$BEFORE" ] && [ -f "$BEFORE" ]; then
   if adb install -r "$BEFORE" 2>&1 | tee -a "$OUT/install.txt" | grep -q Success; then

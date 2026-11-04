@@ -130,7 +130,7 @@ jobs:
           disk-size: 6000M
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
           disable-animations: true
-          script: bash tools/ci/release_smoke.sh app/build/outputs/apk/release/app-release.apk before/hain-debug.apk
+          script: bash tools/ci/release_smoke.sh app/build/outputs/apk/release/app-release.apk before/hain-debug.apk app/build/outputs/mapping/release/mapping.txt
 
       - name: Job summary
         if: always()
