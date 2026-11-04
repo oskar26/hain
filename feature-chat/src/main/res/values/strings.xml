@@ -93,6 +93,9 @@
     <string name="chat_action_minutes">%1$d min</string>
     <string name="chat_action_seconds">%1$d s</string>
     <string name="chat_action_all_day">all day</string>
+    <string name="chat_action_every_day">Every day</string>
+    <string name="chat_action_weekdays">Mon–Fri</string>
+    <string name="chat_action_weekend">Weekends</string>
     <string name="chat_action_route_hint">Opens the route in your map app</string>
     <string name="chat_action_set">Set</string>
     <string name="chat_action_start">Start</string>

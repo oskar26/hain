@@ -237,6 +237,66 @@ internal object TimeParser {
         return null to text
     }
 
+    // ---- repeat days (4b-2) -------------------------------------------------------------------
+
+    private val EVERY_DAY = word("täglich|taeglich|jeden\\s+tag|alle\\s+tage|every\\s*day|each\\s+day|daily")
+    private val WORKDAYS =
+        word("werktags?|werktage|wochentags?|wochentage|arbeitstage|weekdays?|workdays?|work\\s+days|business\\s+days")
+    private val WEEKEND = word("wochenende[ns]?|weekends?")
+    private val DAY_RANGE =
+        Regex("""(?iu)(\p{L}+)\.?(?:\s*[-–—]\s*|\s+(?:bis|to|through|thru|until)\s+)(\p{L}+)""")
+
+    private val DAY_NAMES: Map<String, DayOfWeek> =
+        WEEKDAYS.flatMap { (day, names) -> names.map { it to day } }.toMap() +
+            mapOf(
+                "mon" to DayOfWeek.MONDAY,
+                "tue" to DayOfWeek.TUESDAY,
+                "tues" to DayOfWeek.TUESDAY,
+                "tu" to DayOfWeek.TUESDAY,
+                "wed" to DayOfWeek.WEDNESDAY,
+                "we" to DayOfWeek.WEDNESDAY,
+                "thu" to DayOfWeek.THURSDAY,
+                "thur" to DayOfWeek.THURSDAY,
+                "thurs" to DayOfWeek.THURSDAY,
+                "th" to DayOfWeek.THURSDAY,
+                "fri" to DayOfWeek.FRIDAY,
+                "sat" to DayOfWeek.SATURDAY,
+                "sun" to DayOfWeek.SUNDAY,
+            )
+
+    /**
+     * Repeat days of an alarm as the brain writes them (4b-2): "Mo-Fr", "werktags", "täglich",
+     * "montags und donnerstags", "Mon, Wed, Fri", "weekends", "Montag bis Freitag", "1,3,5" (ISO
+     * numbers). Sorted Monday first; `null` when no day is in [text].
+     */
+    fun weekdays(text: String): List<DayOfWeek>? {
+        val t = text.lowercase()
+        if (EVERY_DAY.containsMatchIn(t)) return DayOfWeek.entries.toList()
+        val days = sortedSetOf<DayOfWeek>()
+        if (WORKDAYS.containsMatchIn(t)) days += DayOfWeek.entries.take(WORK_DAYS)
+        if (WEEKEND.containsMatchIn(t)) days += listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
+        var rest = t
+        DAY_RANGE.findAll(t).forEach { m ->
+            val from = dayName(m.groupValues[1])
+            val to = dayName(m.groupValues[2])
+            if (from != null && to != null) {
+                val steps = (to.value - from.value + 7) % 7
+                days += (0..steps).map { from.plus(it.toLong()) }
+                rest = rest.replace(m.value, " ")
+            }
+        }
+        rest.split(Regex("""[^\p{L}\d]+""")).forEach { w ->
+            val day = dayName(w) ?: w.toIntOrNull()?.takeIf { it in 1..7 }?.let { DayOfWeek.of(it) }
+            if (day != null) days += day
+        }
+        return days.toList().ifEmpty { null }
+    }
+
+    /** "montag", "montags", "mondays", "mo", "thurs" → the day; `null` for other words. */
+    private fun dayName(word: String): DayOfWeek? = DAY_NAMES[word] ?: DAY_NAMES[word.removeSuffix("s")]
+
+    private const val WORK_DAYS = 5
+
     private fun month(word: String): Int? {
         val w = word.lowercase().trimEnd('.')
         val i = MONTHS.indexOfFirst { names -> names.any { it == w } }

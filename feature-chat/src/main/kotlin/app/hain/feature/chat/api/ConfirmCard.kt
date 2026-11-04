@@ -34,11 +34,13 @@ import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 import app.hain.ui.theme.glassTile
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.time.format.TextStyle
 
 /**
  * ConfirmCard (T-068): what Pim prepared — alarm, timer, calendar event or route — with one green
@@ -169,7 +171,9 @@ private fun noAppLabel(action: PhoneAction): Int =
 private fun describe(action: PhoneAction): Pair<String, String?> {
     val locale = LocalConfiguration.current.locales[0]
     return when (action) {
-        is PhoneAction.Alarm -> stringResource(R.string.chat_action_alarm, action.clock) to action.label
+        is PhoneAction.Alarm ->
+            stringResource(R.string.chat_action_alarm, action.clock) to
+                listOfNotNull(action.label, repeatDays(action.days)).joinToString(" · ").ifEmpty { null }
         is PhoneAction.Timer -> stringResource(R.string.chat_action_timer, duration(action.seconds)) to action.label
         is PhoneAction.CalendarEvent -> {
             val zone = if (action.allDay) ZoneOffset.UTC else ZoneId.systemDefault()
@@ -189,6 +193,19 @@ private fun describe(action: PhoneAction): Pair<String, String?> {
     }
 }
 
+/** 4b-2: "Jeden Tag", "Mo–Fr", "Am Wochenende" or "Mo., Mi."; `null` for a one-time alarm. */
+@Composable
+private fun repeatDays(days: List<Int>): String? {
+    if (days.isEmpty()) return null
+    val locale = LocalConfiguration.current.locales[0]
+    return when (days) {
+        (1..DAYS_PER_WEEK).toList() -> stringResource(R.string.chat_action_every_day)
+        (1..WORK_DAYS).toList() -> stringResource(R.string.chat_action_weekdays)
+        listOf(WORK_DAYS + 1, DAYS_PER_WEEK) -> stringResource(R.string.chat_action_weekend)
+        else -> days.joinToString(", ") { DayOfWeek.of(it).getDisplayName(TextStyle.SHORT, locale) }
+    }
+}
+
 @Composable
 private fun duration(seconds: Int): String {
     val h = seconds / SECONDS_PER_HOUR
@@ -203,3 +220,5 @@ private fun duration(seconds: Int): String {
 
 private const val SECONDS_PER_HOUR = 3600
 private const val SECONDS_PER_MINUTE = 60
+private const val DAYS_PER_WEEK = 7
+private const val WORK_DAYS = 5
