@@ -97,6 +97,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-123 | Chunking + doc search tool + attach in chat | feature | M | D | T-121,T-122,T-062 | todo |
 | T-130 | Card parser | feature | S | E | T-002 | done |
 | T-131 | Card renderer + GBNF | ui | M | E | T-130,T-014 | done |
+| T-132 | Card charts: bar + line (own Compose canvas, TalkBack sentence) in parser, renderer, card.gbnf, CARDS.md | ui | S | E | T-131 | review (04.11., 0.1.6.1) |
 | T-140 | STT Moonshine + mic button | feature | M | F | T-082 | todo |
 | T-141 | TTS Piper + read aloud | feature | M | F | T-082 | todo |
 | T-143 | Pocket TTS on Android (ONNX, all language packs) | native | M | F | T-082 | todo |

@@ -77,10 +77,13 @@ good=[
  'Card title="Wetter"\nTable\n| Stadt | Grad |\n| Köln | 9 |\n| Bonn | 10 |\n```',
  'Progress value=40 label="Vokabeln"\n```',
  'Progress value=100\nButton label="Mehr" action=ask:"Erklär das genauer"\nButton label="Teilen" action=share\n```',
+ 'Card title="Schlaf"\nChart type=bar unit="h"\n- Mo: 7.5\n- Di: 6\n- Mi: 8\n```',
+ 'Chart type=line title="Temperatur"\n- 9 Uhr: -2\n- 12 Uhr: 4\nList\n- warm anziehen\n```',
 ]
 bad=[
  'Hallo\n```', 'List\n```', 'Progress value=140\n```', 'Button label="x" action=open\n```',
  'Table\n| nur Kopf |\n```', 'Card title=""\nList\n- a\n```', 'List\n- a\n',
+ 'Chart type=pie\n- a: 1\n```', 'Chart type=bar\n```', 'Chart type=bar\n- Mo: viel\n```',
 ]
 ok=True
 for g in good:

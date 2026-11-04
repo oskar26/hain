@@ -1,13 +1,13 @@
 # card.gbnf — model cards (docs/specs/CARDS.md §2-3, T-131), llama.cpp GBNF.
 # Covers the body of a ```card block: from the line after "```card" up to and including the
-# closing fence. List, checklist, table, progress and buttons; the app's parser (CardParser) is
+# closing fence. List, checklist, table, progress, chart (0.1.6.1) and buttons; the app's parser (CardParser) is
 # more lenient and also reads what the brain writes without this grammar.
 # Limits: up to 8 blocks, 12 items or 10 table rows per block, 5 columns, 60 characters per quoted
-# value, 80 per item (about the 30 lines of CARDS.md).
+# value, 80 per item (about the 30 lines of CARDS.md); a chart has 1-12 points ("- label: number").
 
 root      ::= title? block block? block? block? block? block? block? block? "```"
 title     ::= "Card title=" str nl
-block     ::= list | checklist | table | progress | button
+block     ::= list | checklist | table | progress | chart | button
 
 list      ::= "List" nl item{1,12}
 item      ::= "- " text nl
@@ -21,6 +21,11 @@ cell      ::= " " [^|\n]{1,40} " |"
 
 progress  ::= "Progress value=" pct (" label=" str)? nl
 pct       ::= "100" | [1-9] [0-9] | [0-9]
+
+chart     ::= "Chart type=" ("bar" | "line") (" title=" str)? (" unit=" str)? nl point{1,12}
+point     ::= "- " plabel ": " num nl
+plabel    ::= [^\n:\[]{1,24}
+num       ::= "-"? [0-9]{1,7} ("." [0-9]{1,2})?
 
 button    ::= "Button label=" str " action=" action nl
 action    ::= "copy" | "share" | "ask:" str

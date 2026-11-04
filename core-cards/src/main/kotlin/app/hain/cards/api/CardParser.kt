@@ -17,8 +17,11 @@ object CardParser {
     const val MAX_COLUMNS = 5
     const val MAX_BUTTONS = 3
     const val MAX_TEXT = 200
+    const val MAX_POINTS = 12
+    const val MAX_LABEL = 24
+    const val MAX_UNIT = 8
 
-    private enum class Mode { NONE, LIST, CHECKLIST, TABLE }
+    private enum class Mode { NONE, LIST, CHECKLIST, TABLE, CHART }
 
     private val itemPrefix = Regex("""^(?:[-*•–]|\d{1,2}[.)])\s+""")
     private val separatorCell = Regex("""^:?-{2,}:?$""")
@@ -29,6 +32,10 @@ object CardParser {
     private const val QUOTED = """"((?:[^"\\]|\\.)*)"|„([^“”"]*)[“”"]|'([^']*)'"""
     private val askAction =
         Regex("""action\s*=\s*ask\s*:\s*(?:$QUOTED|"((?:[^"\\]|\\.)*)$|(\S.*)$)""")
+
+    /** "Mo: 7,5 h", "Januar = 120", "Köln 9 °C": label, number, optional unit. */
+    private val chartPoint =
+        Regex("""^(.+?)\s*(?:[:=]\s*|\s)([-−]?\d{1,9}(?:[.,]\d{1,4})?)\s*([^\d\s][^\d]{0,7})?$""")
     private val controlChars = Regex("""[\u0000-\u0008\u000B-\u001F\u007F]""")
 
     /** Parses the body of one card block; null when it holds no block at all. */
@@ -51,16 +58,24 @@ object CardParser {
         val checks = mutableListOf<CheckItem>()
         val rows = mutableListOf<List<String>>()
         var buttons = 0
+        val chart = ChartDraft()
 
         fun line(line: String) {
-            val keyword = KEYWORDS[line.substringBefore(' ').trimEnd(':').lowercase()]
+            val first = line.substringBefore(' ').trimEnd(':').lowercase()
+            val keyword = KEYWORDS[first]
             val rest = line.substringAfter(' ', "").trim()
             when {
+                first in IGNORED -> Unit // `Image src=…`: not shown yet (CARDS.md §2), never a chart point
                 keyword == Keyword.CARD -> title = attributes(rest)["title"]?.let(::clean) ?: title
                 keyword == Keyword.PROGRESS -> progress(rest)
                 keyword == Keyword.BUTTON -> button(line)
+                keyword == Keyword.CHART -> {
+                    switchTo(Mode.CHART)
+                    chart.start(attributes(rest), rest)
+                }
                 keyword != null && rest.isEmpty() -> switchTo(keyword.mode)
                 line.startsWith("|") -> row(line)
+                mode == Mode.CHART -> chart.add(line.replaceFirst(itemPrefix, ""))
                 itemPrefix.containsMatchIn(line) -> item(line.replaceFirst(itemPrefix, ""))
                 else -> Unit // unknown line: ignored (CARDS.md §3)
             }
@@ -76,11 +91,13 @@ object CardParser {
                 Mode.LIST -> if (items.isNotEmpty()) blocks += CardBlock.Bullets(items.toList())
                 Mode.CHECKLIST -> if (checks.isNotEmpty()) blocks += CardBlock.Checklist(checks.toList())
                 Mode.TABLE -> table()?.let { blocks += it }
+                Mode.CHART -> chart.build()?.let { blocks += it }
                 Mode.NONE -> Unit
             }
             items.clear()
             checks.clear()
             rows.clear()
+            chart.clear()
             mode = Mode.NONE
         }
 
@@ -151,6 +168,69 @@ object CardParser {
         }
     }
 
+    /**
+     * A chart while it is read (0.1.6.1): `Chart type=bar|line title="…" unit="…"` (German `Diagramm
+     * typ=balken|linie titel=… einheit=…`), then "Mo: 7,5" lines; anything else inside is ignored.
+     */
+    private class ChartDraft {
+        val points = mutableListOf<ChartPoint>()
+        var type = ChartType.BAR
+        var title: String? = null
+        var unit: String? = null
+        var pointUnit: String? = null
+
+        fun start(
+            attrs: Map<String, String>,
+            rest: String,
+        ) {
+            val kind = (attrs["type"] ?: attrs["typ"] ?: rest.substringBefore(' ')).lowercase()
+            type = if (kind in LINE_WORDS) ChartType.LINE else ChartType.BAR
+            title = (attrs["title"] ?: attrs["titel"])?.let(::clean)?.takeIf { it.isNotEmpty() }
+            unit = (attrs["unit"] ?: attrs["einheit"])?.let(::clean)?.take(MAX_UNIT)?.takeIf { it.isNotEmpty() }
+            pointUnit = null
+        }
+
+        fun add(raw: String) {
+            val match = chartPoint.find(clean(raw)).takeIf { points.size < MAX_POINTS }
+            val label =
+                match
+                    ?.groupValues
+                    ?.get(1)
+                    ?.trim()
+                    ?.trimEnd(':', '=')
+                    ?.trim()
+                    ?.take(MAX_LABEL)
+                    .orEmpty()
+            val number =
+                match
+                    ?.groupValues
+                    ?.get(2)
+                    ?.replace('−', '-')
+                    ?.replace(',', '.')
+                    ?.toDoubleOrNull()
+                    ?.takeIf { it.isFinite() }
+            if (match == null || label.isEmpty() || number == null) return
+            if (pointUnit == null) {
+                pointUnit =
+                    match.groupValues[UNIT_GROUP]
+                        .trim()
+                        .take(MAX_UNIT)
+                        .takeIf { it.isNotEmpty() }
+            }
+            points += ChartPoint(label, number)
+        }
+
+        fun build(): CardBlock.Chart? {
+            if (points.isEmpty()) return null
+            val shown = if (type == ChartType.LINE && points.size < MIN_LINE_POINTS) ChartType.BAR else type
+            return CardBlock.Chart(shown, points.toList(), title, unit ?: pointUnit)
+        }
+
+        fun clear() {
+            points.clear()
+        }
+    }
+
     private fun checkItem(raw: String): CheckItem? {
         var text = raw
         var checked = false
@@ -209,6 +289,7 @@ object CardParser {
         TABLE(Mode.TABLE),
         PROGRESS(Mode.NONE),
         BUTTON(Mode.NONE),
+        CHART(Mode.CHART),
     }
 
     private val KEYWORDS =
@@ -227,6 +308,13 @@ object CardParser {
             "fortschritt" to Keyword.PROGRESS,
             "button" to Keyword.BUTTON,
             "knopf" to Keyword.BUTTON,
+            "chart" to Keyword.CHART,
+            "diagramm" to Keyword.CHART,
+            "grafik" to Keyword.CHART,
         )
+    private val IGNORED = setOf("image", "bild", "img")
+    private val LINE_WORDS = setOf("line", "linie", "linien", "liniendiagramm", "kurve")
     private const val PERCENT = 100.0
+    private const val MIN_LINE_POINTS = 2
+    private const val UNIT_GROUP = 3
 }

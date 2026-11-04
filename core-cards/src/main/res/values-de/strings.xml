@@ -38,4 +38,13 @@
     <string name="cards_action_no_clock">Auf deinem Handy ist keine Uhr-App, die Wecker und Timer annimmt. Du kannst eine im App-Store holen.</string>
     <string name="cards_action_no_calendar">Auf deinem Handy ist noch keine Kalender-App. Hol dir eine im App-Store und versuch es dann noch mal.</string>
     <string name="cards_action_no_maps">Auf deinem Handy ist noch keine Karten-App. Organic Maps oder OsmAnd sind kostenlos – danach klappt es.</string>
+    <!-- 0.1.6.1: Diagramme in Antwort-Karten -->
+    <string name="card_chart_bar">Balkendiagramm</string>
+    <string name="card_chart_line">Liniendiagramm</string>
+    <string name="card_chart_description">%1$s mit %2$s: %3$s. Am höchsten: %4$s.</string>
+    <plurals name="card_chart_values">
+        <item quantity="one">%d Wert</item>
+        <item quantity="other">%d Werten</item>
+    </plurals>
+    <string name="card_chart_unit">Werte in %1$s</string>
 </resources>

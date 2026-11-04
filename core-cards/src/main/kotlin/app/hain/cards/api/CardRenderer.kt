@@ -68,7 +68,7 @@ import kotlinx.coroutines.delay
  * Renders a [ModelCard] in the answer (CARDS.md §4, T-131), Lichtung style: one calm tile with a
  * hairline (radius 12 dp), the title in Medium, then the blocks — bullets, a table whose columns
  * share the width, a checklist the user can tick ([state] / [onStateChange], saved by the chat),
- * a progress bar, and quiet buttons. `copy` and `share` work right here; `ask:"…"` goes to [onAsk]
+ * a progress bar, a bar or line chart ([CardChart], 0.1.6.1), and quiet buttons. `copy` and `share` work right here; `ask:"…"` goes to [onAsk]
  * (sends a new message). Nothing opens a URL. While the brain still writes ([complete] = false)
  * a muted line says so and buttons wait.
  */
@@ -115,6 +115,7 @@ fun CardRenderer(
                     )
                 is CardBlock.Table -> Table(block)
                 is CardBlock.Progress -> Progress(block)
+                is CardBlock.Chart -> CardChart(block)
                 is CardBlock.Button -> Unit // all buttons sit together at the bottom
             }
         }

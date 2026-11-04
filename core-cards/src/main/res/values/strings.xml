@@ -38,4 +38,13 @@
     <string name="cards_action_no_clock">Your phone has no clock app that takes alarms and timers. You can get one from your app store.</string>
     <string name="cards_action_no_calendar">Your phone has no calendar app yet. You can get one from your app store, then try again.</string>
     <string name="cards_action_no_maps">Your phone has no map app yet. Organic Maps or OsmAnd are free – then try again.</string>
+    <!-- 0.1.6.1: charts in answer cards -->
+    <string name="card_chart_bar">Bar chart</string>
+    <string name="card_chart_line">Line chart</string>
+    <string name="card_chart_description">%1$s with %2$s: %3$s. Highest: %4$s.</string>
+    <plurals name="card_chart_values">
+        <item quantity="one">%d value</item>
+        <item quantity="other">%d values</item>
+    </plurals>
+    <string name="card_chart_unit">Values in %1$s</string>
 </resources>

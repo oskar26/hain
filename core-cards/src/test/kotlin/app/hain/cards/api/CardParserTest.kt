@@ -134,7 +134,7 @@ class CardParserTest {
 
     @Test
     fun unknownLinesAreIgnored() {
-        val card = CardParser.parse("Hallo du\nChart type=bar\nList\n- a\nirgendwas\n- b")!!
+        val card = CardParser.parse("Hallo du\nImage src=attachment:1\nList\n- a\nirgendwas\n- b")!!
         assertEquals(listOf(CardBlock.Bullets(listOf("a", "b"))), card.blocks)
     }
 
