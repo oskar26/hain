@@ -6,6 +6,7 @@ import app.hain.common.api.net.Purpose
 import app.hain.tools.api.Args
 import app.hain.tools.api.Compact
 import app.hain.tools.api.InfoCard
+import app.hain.tools.api.OfflineWiki
 import app.hain.tools.api.Tool
 import app.hain.tools.api.ToolContext
 import app.hain.tools.api.ToolResult
@@ -23,11 +24,17 @@ import kotlinx.serialization.json.put
 import java.io.IOException
 import java.net.URLEncoder
 
-/** `wikipedia` (T-065): opensearch for the best title, then the page summary, in German or English. */
+/**
+ * `wikipedia` (T-065): opensearch for the best title, then the page summary, in German or English.
+ * T-237: with an installed knowledge pack ([offline]) the article comes from the phone first —
+ * without internet and also in offline mode; online only when the pack has nothing.
+ */
 class WikipediaTool(
     private val gate: NetworkGate,
+    private val offline: OfflineWiki? = null,
 ) : Tool {
-    override val online = true
+    /** Online only while no knowledge pack is installed (then it also works in offline mode). */
+    override val online: Boolean get() = offline?.languages().isNullOrEmpty()
     override val schema = ToolSpecs.of("wikipedia").schema
 
     @Suppress("ReturnCount")
@@ -37,18 +44,29 @@ class WikipediaTool(
     ): ToolResult {
         val topic = Args.required(args, "topic")
         val lang = (Args.string(args, "lang") ?: ctx.lang).lowercase().takeIf { it == "de" || it == "en" } ?: "en"
+        val other = if (lang == "de") "en" else "de"
+        // T-237: the knowledge pack first (no internet), the asked language before the other one
+        val local = offlineLookUp(topic, lang) ?: offlineLookUp(topic, other)
+        if (local != null) return result(local, fromPack = true)
         // 4c: the asked language first, then the other one (a German topic may only exist in English)
         val summary =
             lookUp(topic, lang)
-                ?: lookUp(topic, if (lang == "de") "en" else "de")
+                ?: lookUp(topic, other)
                 ?: return ToolRouter.failure(
                     "not_found",
                     "Wikipedia has no page about '$topic'. Try web_search with other words.",
                 )
+        return result(summary, fromPack = false)
+    }
+
+    private fun result(
+        summary: WikiSummary,
+        fromPack: Boolean,
+    ): ToolResult {
         if (summary.disambiguation) {
             return ToolRouter.failure(
                 "disambiguation",
-                "'$topic' has several meanings on Wikipedia. Ask the user which one they mean.",
+                "'${summary.title}' has several meanings on Wikipedia. Ask the user which one they mean.",
             )
         }
         val json =
@@ -57,13 +75,26 @@ class WikipediaTool(
                 put("extract", Compact.facts(summary.extract))
                 put("url", summary.url)
             }
+        val source = if (fromPack) "Wikipedia (offline): ${summary.title}" else "Wikipedia: ${summary.title}"
         return ToolResult(
             forModel = json.toString(),
             label = summary.title,
-            sources = listOf(ToolSource("Wikipedia: ${summary.title}", summary.url)),
+            sources = listOf(ToolSource(source, summary.url)),
             card = InfoCard(InfoCard.WIKI, json.toString()),
         )
     }
+
+    /** T-237: the article from an installed pack; a broken pack file is simply skipped. */
+    @Suppress("TooGenericExceptionCaught", "SwallowedException")
+    private fun offlineLookUp(
+        topic: String,
+        lang: String,
+    ): WikiSummary? =
+        try {
+            offline?.summary(topic, lang)
+        } catch (e: Exception) {
+            null
+        }
 
     /** Best page about [topic] in [lang], or `null` when there is none or it has no text. */
     private suspend fun lookUp(

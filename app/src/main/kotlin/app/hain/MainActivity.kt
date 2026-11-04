@@ -91,6 +91,7 @@ import app.hain.models.api.DeviceCheck
 import app.hain.models.api.DeviceProfile
 import app.hain.models.api.DownloadState
 import app.hain.models.api.Fit
+import app.hain.models.api.KnowledgePacks
 import app.hain.models.api.ModelInfo
 import app.hain.models.api.ModelRepository
 import app.hain.tools.api.Favicons
@@ -143,6 +144,9 @@ class MainActivity : FragmentActivity() {
     @Volatile private var privateChatOpen = false
 
     @Inject lateinit var brainChoice: BrainChoiceStore
+
+    /** T-237: Wikipedia from the knowledge packs on the phone (Settings → Modelle & Pakete → Wissen). */
+    private val offlineWiki by lazy { HainTools.offlineWiki { KnowledgePacks.installed(models) } }
 
     /** T-055: brain picker in the top bar (catalogue + DataStore choice). */
     private val brainPicking by lazy {
@@ -339,6 +343,8 @@ class MainActivity : FragmentActivity() {
                                 // Häppchen 9: search_document in the attached files
                                 docLibrary.searchTool,
                             ),
+                            // T-237: Wikipedia from the installed knowledge packs first
+                            offlineWiki = offlineWiki,
                         ),
                     toolContext = {
                         val cfg = settings()
