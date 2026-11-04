@@ -15,7 +15,7 @@ android {
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = (providers.gradleProperty("hain.versionCode").orNull ?: "1").toInt()
         // T-215: one place for the version name (gradle.properties, docs/workflow/VERSIONING.md)
-        versionName = providers.gradleProperty("hain.versionName").orNull ?: "0.1.3.3"
+        versionName = providers.gradleProperty("hain.versionName").orNull ?: "0.1.4"
         // commit and build date for "Über Hain"; CI passes them (-Phain.commit, -Phain.buildDate)
         val commit = providers.gradleProperty("hain.commit").orNull ?: "local"
         val buildDate = providers.gradleProperty("hain.buildDate").orNull ?: ""

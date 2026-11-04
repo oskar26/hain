@@ -7,6 +7,7 @@ import app.hain.common.api.BrainChoiceStore
 import app.hain.common.api.HainSettings
 import app.hain.common.api.SettingsRepository
 import app.hain.common.api.net.NetworkGate
+import app.hain.common.api.net.NetworkGates
 import app.hain.data.HainDatabase
 import app.hain.data.KeystoreKeyProvider
 import app.hain.data.RoomNetworkLogStore
@@ -86,7 +87,7 @@ object AppModule {
             offline = { current.get().offlineMode },
             detailedLog = { current.get().networkLogDetail },
             store = database.db?.let { RoomNetworkLogStore(it.networkLog()) },
-        )
+        ).also { NetworkGates.current = it } // 3b-2: the brain download worker logs through it too
     }
 
     /** The one encrypted database, opened once; null when it cannot open (chats then stay in memory). */
