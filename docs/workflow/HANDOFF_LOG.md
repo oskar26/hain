@@ -433,3 +433,25 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Nicht gemacht: Favicons (T-064c, Bilder müssten durchs Gate), ConfirmCard nach core-cards (T-068e, reiner Umbau ohne Nutzen für 0.2), Host-Test mit echtem LFM3 für `days`/Wetter ohne Ort (kein Host-Lauf in diesem Durchgang).
 - Nächstes: Oskar testet auf dem Handy: „Weck mich werktags um 6:30“, Schalter „Handy-Aktionen bestätigen“ aus, „Wie wird das Wetter?“ mit Standort, Websuche „Erst fragen“.
 
+
+## 2026-11-04 · T-068e, T-064c, T-132, T-133 (0.1.6.1 – Rest Werkzeuge + Karten) · review · harness: Hark · model: Hark · branch `hark/rest-tools-cards` (Draft-PR #44, gestapelt auf #41)
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-068e | review | `ActionCardTest` (core-cards), `PhoneActionsTest` angepasst | `feature-chat` `ConfirmCard.kt` (nur noch Weiterleitung), `ToolSteps.kt`, Strings nach core-cards verschoben | – |
+| T-064c | review | `FaviconsTest` (10), `SettingsRepositoryTest` (`source_icons`) | `NetworkGate` (Zweck `IMAGES`), `HainSettings`/`SettingsRepository`, `SettingsPages` (Privatsphäre), `ChatExtras`, `ToolTimeline`, `MainActivity` | – |
+| T-132 | review | `CardChartTest` (14), `CardGrammarTest`, `python3 tools/check_gbnf.py` (21 Regeln ok) | Prompt DE+EN (Diagramm-Beispiel) | – |
+| T-133 | review | Host: `core-llm/src/test/cpp/card_fence_test.cpp` (10 Fälle) grün, Grammatik + Wurzel mit echtem LFM3-Vokabular geladen; Native-Build in CI grün | `hain_session.h`, `hain_llm.cpp`, `NativeLlm.kt`, `LlamaEngine.kt` (liest `card.gbnf` aus den App-Assets) | Fence mitten in einem größeren Token → diese Karte ohne Grammatik (nachsichtiger Parser) |
+
+- T-133 Ablauf: Antwort wird wie bisher gesampelt. Endet der Text genau mit einer Zeile „```card“, schaltet `CardFence` einen Grammatik-Sampler (card.gbnf + Wurzel `hain-card-root ::= root "\n"?`) zu; KV-Cache und Sampler-Kette bleiben. Nach dem schließenden „```“ (auch „```\n“ in einem Token) ist sie wieder aus. Lässt die Grammatik kein Token zu, geht sie für diese Karte aus (Log), der Parser liest dann nachsichtig.
+- Host-Test mit echtem LFM3 (`lfm3.gguf`, eigener Harness über `hain::generate`, voller DE-System-Prompt inkl. Werkzeug-Text und Schemas, Temperatur 0.1, Seed 42):
+  - Wecker „6:30 an Wochentagen“ → `set_alarm(time=06:30, days=Wochentag)` ✓ (`TimeParser` liest „wochentag“ als Mo–Fr).
+  - „Weck mich jeden Samstag und Sonntag um 9 Uhr“ → **kein** Werkzeug-Aufruf, Pim schreibt eine Pseudo-Knopfzeile (auch vor diesem PR so; offen).
+  - „Wie wird das Wetter morgen?“ (ohne Ort) → vorher Rückfrage „Wo bist du?“, mit dem neuen Hinweis im Werkzeug-Text `weather()` ohne place ✓. „Brauche ich heute einen Regenschirm?“ ✓, „…nächsten 3 Tage in Hamburg“ → `weather(place=Hamburg, days=3)` ✓. Zwei andere Formulierungen („Hain nimmt dann den Standort“) verwirrten das Modell („Ort Hain“) und wurden verworfen.
+  - Karten: Einkaufsliste → gültige Checklisten-Karte ✓ (Grammatik an, 1 Karte). Liniendiagramm Lernstunden und Wetter-Höchstwerte als Balkendiagramm: **ohne** Diagramm-Beispiel im Prompt nie ein Diagramm (Markdown-Tabelle + „Chart type=line“ als Fließtext), **mit** Beispiel 3/3 ✓. Vergleich Zug/Auto → Markdown-Tabelle (keine Karte; wird als Tabelle gezeigt). Einwohner-Diagramm → Pim sucht zuerst im Web (richtig).
+  - Gefunden + behoben: mit der Grammatik endete die Karte auf einem einzelnen „```“-Token, danach schrieb LFM3 einen falschen `<tool_call>` (weather/calculate). Seit die Wurzel „```\n“ erlaubt: kein falscher Aufruf mehr (r1, c1, c3 erneut geprüft).
+- Prompt: „# Karten“/„# Cards“ hat jetzt ein zweites, kurzes Beispiel (Balkendiagramm, ≈30 Token mehr im gecachten System-Prompt). Werkzeug-Text DE/EN (`SystemPromptSource`): „weather für Wetter (nennt der Nutzer keinen Ort, rufe weather ohne place auf, dann gilt der Standort des Handys)“.
+- Favicons standardmäßig an: geladen wird nur das Symbol der Website, die ohnehin gerade Quelle war (kein Dritt-Dienst wie Google S2/DuckDuckGo-Icons), über das NetworkGate (Netzwerk-Log, Online-Punkt, im Offline-Modus gesperrt), einmal pro Website und dann auf dem Handy gespeichert. Aus: Einstellungen → Privatsphäre → „Quellen-Bilder“, dann nur der erste Buchstabe.
+- `hark/day-6` (166df06, enthält main mit #40) hineingemergt: nur Reihenfolge-Konflikte (README, STATUS, HANDOFF_LOG, core-cards strings, ChatStore, RoomChatPersistence, gradle.properties), unsere Seite behalten, Version `0.1.6.1`.
+- Gradle lokal nicht gestartet: ktlint 1.5.0 + detekt 1.23.8 CLI, `tools/check_strings.py`, `tools/check_gbnf.py` lokal grün, Rest über CI, APK, Screens.
+- Achtung Konflikte: `hark/day-7b` ändert ebenfalls `hain_llm.cpp` und `LlmEngine` (nativeGenerate-Signatur hat hier den neuen Parameter `cardGrammar`).
