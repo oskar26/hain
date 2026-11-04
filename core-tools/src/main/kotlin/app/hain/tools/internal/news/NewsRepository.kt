@@ -6,17 +6,20 @@ import app.hain.common.api.net.NetworkGate
 import app.hain.common.api.net.OfflineException
 import app.hain.common.api.net.Purpose
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
 import java.net.URI
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicInteger
 
 /** What adding an own feed did (T-073). */
 sealed interface AddFeedResult {
@@ -61,6 +64,7 @@ class NewsRepository(
     private val refreshMs: () -> Long = { DEFAULT_REFRESH_MS },
 ) {
     private val mutex = Mutex()
+    private val pageImageLimit = Semaphore(PAGE_IMAGE_PARALLEL)
     private val snapshot = MutableStateFlow(NewsSnapshot())
     private var loaded = false
 
@@ -95,7 +99,59 @@ class NewsRepository(
             s.items.filter { item ->
                 item.feedId in ids && item.time >= since && (lang == null || item.lang == null || item.lang == lang)
             }
-        return dedup(wanted).sortedByDescending { it.time }
+        return dedup(wanted).sortedByDescending { it.time }.map { item -> withPageFacts(item, s) }
+    }
+
+    /** The page's picture when the feed had none (T-075) and the "really cut off" mark (T-077). */
+    private fun withPageFacts(
+        item: NewsItem,
+        s: NewsSnapshot,
+    ): NewsItem {
+        val link = item.link ?: return item
+        val image = item.imageUrl ?: s.pageImages[link]?.ifEmpty { null }
+        val locked = link in s.locked
+        val same = image == item.imageUrl && locked == item.paywall
+        return if (same) item else item.copy(imageUrl = image, paywall = locked)
+    }
+
+    /**
+     * What the reading view found out about the article at [link] (T-076/T-077): whether its text is
+     * cut off, and the page's picture for the list when the feed had none.
+     */
+    suspend fun markRead(
+        link: String,
+        locked: Boolean,
+        image: String?,
+    ) {
+        update { s ->
+            val known = !s.pageImages[link].isNullOrEmpty()
+            val images = if (image != null && !known) s.pageImages + (link to image) else s.pageImages
+            s.copy(locked = if (locked) s.locked + link else s.locked - link, pageImages = images)
+        }
+    }
+
+    /**
+     * Looks up the picture of an article whose feed names none (T-075): reads the page's `og:image`
+     * once through the gate (purpose IMAGES, at most [PAGE_IMAGE_PARALLEL] at a time) and remembers
+     * it, or that there is none. Offline or on errors nothing is remembered, so it is asked again later.
+     */
+    @Suppress("TooGenericExceptionCaught", "SwallowedException", "ReturnCount")
+    suspend fun lookUpPageImage(link: String) {
+        if (!link.startsWith("https://")) return
+        if (link in snapshot.value.pageImages) return
+        val found =
+            pageImageLimit.withPermit {
+                if (link in snapshot.value.pageImages) return
+                try {
+                    val response = gate.fetch(GateRequest(link, Purpose.IMAGES))
+                    if (!response.ok) "" else PageImage.find(response.body, link).orEmpty()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    null
+                }
+            } ?: return
+        update { s -> s.copy(pageImages = s.pageImages + (link to found)) }
     }
 
     /** Own feeds that stopped answering with a feed (shown in the own-feeds list only). */
@@ -183,22 +239,30 @@ class NewsRepository(
                 force || now - (start.feedStates[feed.id]?.lastFetched ?: 0) >= refreshMs()
             }
         if (due.isEmpty()) return RefreshResult(0, 0)
-        val outcomes =
-            try {
-                coroutineScope { due.map { feed -> async { fetchOne(feed, start.feedStates[feed.id]) } }.awaitAll() }
-            } catch (e: OfflineException) {
-                return RefreshResult(0, 0, offline = true)
+        val failed = AtomicInteger(0)
+        try {
+            // T-230: every feed on its own, each shown as soon as it is there; a slow or broken feed
+            // neither holds the others back nor stops them (time limit per feed)
+            coroutineScope {
+                due.forEach { feed ->
+                    launch {
+                        val old = start.feedStates[feed.id]
+                        val outcome =
+                            withTimeoutOrNull(FEED_TIMEOUT_MS) { fetchOne(feed, old) }
+                                ?: Outcome(feed, old ?: FeedState(), null, failed = true)
+                        if (outcome.failed) failed.incrementAndGet()
+                        update { s ->
+                            val items = outcome.parsed?.let { merge(s.items, feed, it, now) } ?: s.items
+                            s.copy(feedStates = s.feedStates + (feed.id to outcome.state), items = items)
+                        }
+                    }
+                }
             }
-        update { s ->
-            var items = s.items
-            val states = s.feedStates.toMutableMap()
-            outcomes.forEach { o ->
-                states[o.feed.id] = o.state
-                o.parsed?.let { items = merge(items, o.feed, it, now) }
-            }
-            s.copy(feedStates = states, items = prune(items, s, now), lastRefresh = now)
+        } catch (e: OfflineException) {
+            return RefreshResult(0, 0, offline = true)
         }
-        return RefreshResult(due.size, outcomes.count { it.failed })
+        update { s -> s.copy(items = prune(s.items, s, now), lastRefresh = now, pageImages = prunePages(s)) }
+        return RefreshResult(due.size, failed.get())
     }
 
     /** True when the current mode's items are older than the refresh interval. */
@@ -297,11 +361,11 @@ class NewsRepository(
                         title = f.title,
                         link = f.link,
                         guid = f.guid,
-                        published = f.published?.toEpochMilli(),
+                        // junge Welt dates articles with tomorrow's paper: never in the future
+                        published = f.published?.toEpochMilli()?.coerceAtMost(now),
                         fetchedAt = old[f.guid]?.fetchedAt ?: now,
                         summary = f.summary,
                         imageUrl = f.imageUrl,
-                        paywall = feed.paywall,
                         lang = feed.lang,
                     )
                 }
@@ -318,6 +382,12 @@ class NewsRepository(
     ): List<NewsItem> {
         val feedIds = (standardFeeds.map { it.id } + s.ownFeeds.map { it.id }).toSet()
         return items.filter { it.time >= now - KEEP_MS && it.feedId in feedIds }
+    }
+
+    /** Page pictures and marks only for links that are still in the list. */
+    private fun prunePages(s: NewsSnapshot): Map<String, String> {
+        val links = s.items.mapNotNull { it.link }.toSet()
+        return s.pageImages.filterKeys { it in links }
     }
 
     private suspend fun update(change: (NewsSnapshot) -> NewsSnapshot) {
@@ -343,6 +413,12 @@ class NewsRepository(
         const val DEFAULT_REFRESH_MS = 30 * 60 * 1000L
         const val KEEP_MS = 7 * 24 * 60 * 60 * 1000L
         const val DEDUP_MS = 24 * 60 * 60 * 1000L
+
+        /** One feed may take this long; then it counts as failed for this refresh (T-230). */
+        const val FEED_TIMEOUT_MS = 15_000L
+        const val PAGE_IMAGE_PARALLEL = 3
+        private const val MIX_WINDOW = 12
+        private const val MIX_MEMORY = 6
         private const val MAX_ITEMS_PER_FEED = 150
         private const val MAX_NAME = 60
         private const val MIN_TERM = 3
@@ -370,6 +446,25 @@ class NewsRepository(
                 if (!duplicate) times += item.time
                 !duplicate
             }
+        }
+
+        /**
+         * The list as the user sees it (T-230): newest first, but sources take turns when others are
+         * close behind (looks [MIX_WINDOW] items ahead), so a feed that publishes 30 articles at once
+         * does not fill the whole first screen.
+         */
+        fun mixed(items: List<NewsItem>): List<NewsItem> {
+            val rest = items.toMutableList()
+            val out = ArrayList<NewsItem>(items.size)
+            while (rest.isNotEmpty()) {
+                // the newest item of the source seen least among the last few, within the next MIX_WINDOW
+                val recent = out.takeLast(MIX_MEMORY).groupingBy { it.feedId }.eachCount()
+                val window = rest.take(MIX_WINDOW)
+                val least = window.minOf { recent[it.feedId] ?: 0 }
+                val pick = window.indexOfFirst { (recent[it.feedId] ?: 0) == least }
+                out += rest.removeAt(pick)
+            }
+            return out
         }
 
         /** https address of a feed the user typed; `http://` becomes `https://`, no scheme gets one. */

@@ -2,9 +2,11 @@ package app.hain.tools.internal.news
 
 import app.hain.common.api.net.GateRequest
 import app.hain.common.api.net.GateResponse
+import app.hain.common.api.net.NetworkGate
 import app.hain.common.api.net.OfflineException
 import app.hain.common.api.net.Purpose
 import app.hain.tools.search.FakeGate
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -35,9 +37,13 @@ class NewsRepositoryTest {
         store: NewsStore = MemoryNewsStore(),
     ) = NewsRepository(gate, store, standard, FeedParser { KXmlParser() }, clock = { now })
 
-    @Test fun standardListHasFourteenFeedsInBothLanguagesWithJungeWelt() {
-        assertEquals(14, standard.size)
-        assertTrue(standard.any { it.id == "jungewelt" && it.lang == "de" && it.paywall })
+    @Test fun standardListHasNineteenFeedsInBothLanguagesWithJungeWelt() {
+        // T-230: public broadcasters, big papers and left media in German and English
+        assertEquals(19, standard.size)
+        assertTrue(standard.any { it.id == "jungewelt" && it.lang == "de" })
+        assertTrue(standard.count { it.lang == "de" } >= 9)
+        assertTrue(standard.count { it.lang == "en" } >= 7)
+        assertEquals(standard.size, standard.map { it.id }.toSet().size)
         assertTrue(standard.any { it.lang == "en" })
         assertEquals("Faktencheck", standard.first { it.id == "correctiv" }.category)
         assertTrue(standard.all { it.url.startsWith("https://") && !it.own })
@@ -48,9 +54,9 @@ class NewsRepositoryTest {
             val gate = fixtureGate()
             val repo = repo(gate)
             val result = repo.refresh()
-            assertEquals(14, result.fetched)
+            assertEquals(19, result.fetched)
             assertEquals(0, result.failed)
-            assertEquals(14, gate.requests.size)
+            assertEquals(19, gate.requests.size)
             assertTrue(gate.requests.all { it.purpose == Purpose.NEWS })
             val items = repo.items()
             assertTrue(items.size > 100)
@@ -150,7 +156,7 @@ class NewsRepositoryTest {
             assertTrue(repo.items().isNotEmpty())
             assertTrue(repo.items().all { it.feedId == added.feed.id })
             repo.setMode(NewsMode.STANDARD_PLUS_OWN)
-            assertEquals(15, repo.feeds(NewsMode.STANDARD_PLUS_OWN).size)
+            assertEquals(20, repo.feeds(NewsMode.STANDARD_PLUS_OWN).size)
             repo.setMode(NewsMode.STANDARD)
             assertTrue(repo.items().none { it.feedId == added.feed.id })
         }
@@ -213,6 +219,98 @@ class NewsRepositoryTest {
             assertFalse(repo.stale())
         }
 
+    @Test fun slowFeedDoesNotHoldBackTheOthers() =
+        runTest {
+            val slowUrl = standard.first { it.id == "bbc" }.url
+            val inner = fixtureGate()
+            val gate =
+                object : NetworkGate by inner {
+                    override suspend fun fetch(request: GateRequest): GateResponse {
+                        if (request.url == slowUrl) delay(10 * NewsRepository.FEED_TIMEOUT_MS)
+                        return inner.fetch(request)
+                    }
+                }
+            val repo = NewsRepository(gate, MemoryNewsStore(), standard, FeedParser { KXmlParser() }, clock = { now })
+            val result = repo.refresh()
+            assertEquals(1, result.failed)
+            val sources = repo.items().map { it.feedId }.toSet()
+            assertTrue("bbc" !in sources)
+            assertTrue(sources.size >= 15)
+        }
+
+    @Test fun brokenFeedsDoNotStopTheFirstScreen() =
+        runTest {
+            // T-230: even with four feeds failing, the first open has plenty of headlines of many sources
+            now = Instant.parse("2026-11-05T06:00:00Z").toEpochMilli() // after the newest saved feed
+            val broken = standard.map { it.url }.take(4).toSet()
+            val repo = repo(fixtureGate { req -> if (req.url in broken) GateResponse(500, "") else null })
+            val result = repo.refresh()
+            assertEquals(4, result.failed)
+            val items = repo.items()
+            assertTrue(items.size >= 20)
+            assertTrue(items.map { it.source }.toSet().size >= 12)
+            assertTrue(items.any { it.source == "junge Welt" })
+        }
+
+    @Test fun mixedListNeverShowsTheSameSourceThreeTimesInARowWhileOthersWait() {
+        val items =
+            (1..10).map { item("jungewelt", "jW $it", now - it * 1000L) } +
+                (1..5).map { item("tagesschau", "ts $it", now - HOUR - it * 1000L) }
+        val mixed = NewsRepository.mixed(items.sortedByDescending { it.time })
+        assertEquals(items.size, mixed.size)
+        assertEquals(items.toSet(), mixed.toSet())
+        val firstTen = mixed.take(10).map { it.feedId }
+        assertTrue(firstTen.windowed(3).none { w -> w.toSet().size == 1 })
+        assertEquals("jungewelt", mixed.first().feedId)
+    }
+
+    @Test fun articleDatedTomorrowIsShownAsNow() =
+        runTest {
+            val future = "Thu, 05 Nov 2099 00:00:00 +0100"
+            val rss =
+                "<rss version=\"2.0\"><channel><title>jW</title><item><title>Morgen in der Zeitung</title>" +
+                    "<link>https://www.jungewelt.de/artikel/1.html</link><pubDate>$future</pubDate>" +
+                    "</item></channel></rss>"
+            val jw = standard.first { it.id == "jungewelt" }.url
+            val repo = repo(fixtureGate { req -> if (req.url == jw) GateResponse(200, rss) else null })
+            repo.refresh()
+            val item = repo.items().first { it.title == "Morgen in der Zeitung" }
+            assertTrue(item.time <= now)
+        }
+
+    @Test fun onlyArticlesFoundCutOffCarryThePaywallMark() =
+        runTest {
+            val a = item("jungewelt", "Frei", now - HOUR)
+            val b = item("jungewelt", "Gesperrt", now - HOUR)
+            val repo = repo(fixtureGate(), MemoryNewsStore(NewsSnapshot(items = listOf(a, b), lastRefresh = now)))
+            repo.load()
+            assertTrue(repo.items().none { it.paywall })
+            repo.markRead(b.link!!, locked = true, image = "https://www.jungewelt.de/img/1.jpg")
+            val shown = repo.items().associateBy { it.title }
+            assertTrue(shown.getValue("Gesperrt").paywall)
+            assertFalse(shown.getValue("Frei").paywall)
+            assertEquals("https://www.jungewelt.de/img/1.jpg", shown.getValue("Gesperrt").imageUrl)
+            repo.markRead(b.link!!, locked = false, image = null)
+            assertTrue(repo.items().none { it.paywall })
+        }
+
+    @Test fun pagePictureIsLookedUpOnceThroughTheGate() =
+        runTest {
+            val noPicture = item("dw_en", "Ohne Bild", now - HOUR)
+            val page =
+                "<html><head><meta property=\"og:image\" content=\"https://static.dw.com/image/1_302.jpg\">" +
+                    "</head><body></body></html>"
+            val gate = fixtureGate { req -> if (req.url == noPicture.link) GateResponse(200, page) else null }
+            val repo = repo(gate, MemoryNewsStore(NewsSnapshot(items = listOf(noPicture), lastRefresh = now)))
+            repo.load()
+            repo.lookUpPageImage(noPicture.link!!)
+            repo.lookUpPageImage(noPicture.link!!)
+            assertEquals("https://static.dw.com/image/1_302.jpg", repo.items().single().imageUrl)
+            val asked = gate.requests.filter { it.url == noPicture.link }
+            assertEquals(1, asked.size)
+            assertEquals(Purpose.IMAGES, asked.single().purpose)
+        }
+
     @Test fun snapshotSurvivesJson() {
         val s =
             NewsSnapshot(
@@ -221,6 +319,8 @@ class NewsRepositoryTest {
                 feedStates = mapOf("own-1" to FeedState("e", "m", 2, 5)),
                 items = listOf(item("own-1", "Titel", now)),
                 lastRefresh = 9,
+                pageImages = mapOf("https://example.org/Titel" to "https://example.org/b.jpg"),
+                locked = setOf("https://example.org/Titel"),
             )
         assertEquals(s, NewsJson.decode(NewsJson.encode(s)))
     }
