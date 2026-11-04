@@ -74,7 +74,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | Area | What Hain does | Status |
 |---|---|---|
 | 💬 Chat | Streaming answers, Markdown and code, collapsible "thinking" block, stop (reacts at once). Under every answer a quiet row: copy, share, thumbs up/down (stays on your phone), ask again | ✅ |
-| ⚡ Speed | Faster test build, brain loads in the background with progress, remembers the chat between answers instead of re-reading it, system prompt read ahead | ✅ |
+| ⚡ Speed | Faster test build, brain loads in the background with progress, remembers the chat between answers instead of re-reading it, system prompt read ahead. Release build shrunk and optimised with R8, with a baseline profile so the app starts and scrolls faster from the first start (also without Play) | ✅ |
 | 🌍 Answer language | Pim answers in the language you write in (German, English, French, Turkish, Russian, …), or always in German or English if you want | ✅ |
 | 🌱 First start | Playful welcome tour with Pim, brain download (LFM3-1.7B, 1.0 GB) with resume and checksum, celebration screen; the download can wait or run in the background | ✅ |
 | 🗂️ Saved chats | Stored encrypted on the phone; search, rename, pin, delete, grouped by day | ✅ |
@@ -110,6 +110,7 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 ### New in the latest test build
 
 - **Choose Pim's brain at the top.** Tap **"Hain · On this phone"** at the top of the chat. A small frosted-glass menu shows the brains on your phone with a plain name ("Quick brain", "Balanced brain", "Smart brain"), the model and its size, and marks the one **recommended for your phone**. Tap another one and it loads in the background – a thin green line under the top bar shows how far it is; a running answer stops first. Hain remembers your pick. Brains that are not on your phone yet, and "More brains", open **Knowledge packs**. (Today the catalogue has one brain; more follow.)
+- **Faster start for the release build.** The release version of Hain is now shrunk and optimised (R8) and carries a "baseline profile": the parts that run at start and while you scroll through a chat are compiled ahead of time on your phone – also when you install Hain from GitHub or F-Droid, without Play. A test in CI installs this build on an emulator, checks that it starts and measures how fast. The test build `app.hain.debug` stays as it is.
 - **Version 0.1.3.1.** Hain now shows its version in **Settings → About Hain** (with build number and commit). How the numbers work is in [docs/workflow/VERSIONING.md](docs/workflow/VERSIONING.md).
 - **Frosted glass menus.** The ⋯ menu, the long-press menu in the side panel and the thinking picker are now real frosted glass: the chat behind them shows through, softly blurred, with a thin light edge and a soft shadow. The rest of the screen only dims a little. On phones older than Android 12 the menus are a solid card.
 - **More Pim in the chat.** Pim is bigger while he thinks, sits small next to the newest answer, peeks in while he looks something up, is happy for a moment when the answer is done and gets a fright on an error. On the empty chat he is a bit bigger too. "Reduce motion" keeps him still.

@@ -108,7 +108,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-097 | Pim normal size + 5 s easter egg (grows to ≤ 5×, trembling, rising haptics, burst) | ui | S | B | T-091,T-096 | review |
 | T-098 | Own 2048 mini game behind Pim (swipe, merge pop, best score, undo, won/lost) | ui | M | B | T-097 | review |
 | T-099 | Subtle haptics everywhere (menus, delete confirm, pull) + HAPTICS.md checklist | ui | S | B | T-096 | review |
-| T-190 | Accessibility & performance pass | fix | M | H | T-052,T-100 | doing (2d-2: non-debuggable CI APK, draw-only animations, throttled streaming; R8 + own baseline profile open) |
+| T-190 | Accessibility & performance pass | fix | M | H | T-052,T-100 | review (2d-2: non-debuggable CI APK, draw-only animations, throttled streaming; 2f-2 `hark/picker-perf`: R8 + shrinkResources for release, hand-written baseline profile + ProfileInstaller, CI release smoke test with start time) |
 | T-195 | Trademark check name 'Hain' | plan | XS | H | - | todo |
 | T-196 | Trademark policy TRADEMARKS.md (DE+EN) + README sections "Name & Pim" and "Support (coming soon)" | docs | XS | H | - | review (04.11., draft PR) |
 | T-106 | Website: hero screenshots fixed (second phone frame without empty area, both frames sized to their image) | fix | XS | B | T-089 | review (04.11., draft PR) |
@@ -1113,6 +1113,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - files: various (list in handoff)
 - do:
   1. TalkBack labels, font scale 200 %, contrast, baseline profile, startup < 1 s without model.
+  2. (2f-2) Release build with R8 (`isMinifyEnabled` + `isShrinkResources`, keep rules for JNI/llama, Room, SQLCipher, kotlinx.serialization, WorkManager in `app/proguard-rules.pro`), baseline profile `app/src/main/baselineProfiles/baseline-prof.txt` + `androidx.profileinstaller`; CI job `release-smoke` (screens.yml, `tools/ci/release_smoke.sh`) installs the release APK on an emulator, checks it starts, checks the installed profile and measures cold start before/after. See SPEED.md §5.
 - accept:
   - checklist in STATUS.md
 - check: `manual`

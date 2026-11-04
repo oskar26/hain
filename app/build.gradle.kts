@@ -15,7 +15,7 @@ android {
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = (providers.gradleProperty("hain.versionCode").orNull ?: "1").toInt()
         // T-215: one place for the version name (gradle.properties, docs/workflow/VERSIONING.md)
-        versionName = providers.gradleProperty("hain.versionName").orNull ?: "0.1.3.1"
+        versionName = providers.gradleProperty("hain.versionName").orNull ?: "0.1.3.3"
         // commit and build date for "Über Hain"; CI passes them (-Phain.commit, -Phain.buildDate)
         val commit = providers.gradleProperty("hain.commit").orNull ?: "local"
         val buildDate = providers.gradleProperty("hain.buildDate").orNull ?: ""
@@ -47,9 +47,18 @@ android {
             // profiles of Compose & co. — several times slower. Local builds stay debuggable.
             isDebuggable = providers.gradleProperty("hain.fastDebug").orNull != "true"
         }
+        // T-190 speed: R8 shrinks, optimises and renames the code and drops unused resources. What
+        // native code or the database reach by name is kept in proguard-rules.pro; the CI job
+        // "release-smoke" (screens.yml) installs this APK on an emulator and checks that it starts.
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Release APKs stay unsigned (F-Droid / a store signs them). Only for the CI smoke test or
+            // your own phone: -Phain.signReleaseWithDebugKey=true signs with the public debug key.
+            if (providers.gradleProperty("hain.signReleaseWithDebugKey").orNull == "true") {
+                signingConfig = signingConfigs.getByName("debug")
+            }
         }
     }
 
@@ -90,6 +99,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
+    // T-190: compiles the baseline profile (src/main/baselineProfiles) on phones without Play
+    implementation(libs.androidx.profileinstaller)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     // All modules
