@@ -28,6 +28,7 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | LFM3-1.7B GGUF (downloaded at runtime, not bundled) | LFM Open License v1.0 | model weights, not linked code; licence shown in onboarding (T-083) |
 | pdfbox-android | Apache-2.0 | ok |
 | MuPDF | AGPL | **do not use** |
+| German word list `core-docs/src/main/assets/dict/de_words.txt` (208,341 words, T-122): igerman98 (Björn Jacke, GPL-2.0/GPL-3.0) + FrequencyWords DE (Hermit Dave, CC-BY-SA-4.0) | GPL / CC-BY-SA-4.0 (one-way compatible with GPL-3.0) | ok; sources in `assets/dict/README.txt` |
 | Readability4K | Apache-2.0 | verify |
 | jsoup | MIT | ok |
 | OkHttp | Apache-2.0 | ok |
