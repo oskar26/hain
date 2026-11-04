@@ -51,6 +51,14 @@
     <string name="settings_about_text">Hain is a small helper that thinks on your phone, without the cloud. Pim is the little drop that keeps you company. Hain is free and open source (GPL-3.0).</string>
     <string name="settings_offline">Offline mode</string>
     <string name="settings_offline_hint">Pim never goes online. Weather and Wikipedia pause.</string>
+    <string name="settings_web_search">Web search</string>
+    <string name="settings_web_search_on">On</string>
+    <string name="settings_web_search_ask">Ask first</string>
+    <string name="settings_web_search_off">Off</string>
+    <string name="settings_weather_location">Location for weather</string>
+    <string name="settings_weather_location_hint">“What’s the weather?” without a place uses your phone’s last rough location. Only sent to Open-Meteo, about 1 km exact.</string>
+    <string name="settings_confirm_actions">Confirm phone actions</string>
+    <string name="settings_confirm_actions_hint">Alarms, timers, events and routes wait for your tap. Off: they start after 3 seconds, with Undo.</string>
     <string name="settings_searx">Your own search (SearXNG)</string>
     <string name="settings_searx_placeholder">https://searx.example.org</string>
     <string name="settings_searx_hint">Got your own SearXNG? Put its address here and Pim asks it first. Empty = Hain’s usual sources.</string>
