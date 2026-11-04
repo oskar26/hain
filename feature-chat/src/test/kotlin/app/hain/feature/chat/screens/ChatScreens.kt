@@ -258,6 +258,7 @@ internal fun ChatFrame(
                     stopLabel = texts.stop,
                     modifier = Modifier.padding(12.dp),
                     leading = { ThinkingPicker(mode, {}) },
+                    glass = glass,
                 )
             }
         },

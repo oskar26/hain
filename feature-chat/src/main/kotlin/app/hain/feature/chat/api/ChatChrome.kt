@@ -22,6 +22,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.Dp
@@ -33,6 +36,7 @@ import app.hain.ui.effects.hainGlassSource
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
+import app.hain.ui.theme.isHainDark
 import dev.chrisbanes.haze.HazeState
 
 /**
@@ -41,7 +45,7 @@ import dev.chrisbanes.haze.HazeState
  * glass, so messages scroll cleanly *under* them instead of being cut at a hard edge. [content] gets
  * the room the two take as padding (top bar + status bar, message box + keyboard/navigation bar).
  *
- * Behind the chat: the page colour and Pim's thinking glow while he works.
+ * Behind the chat lies a calm "clearing" light ([ChatBackdrop]).
  */
 @Suppress("LongParameterList") // three slots + the glass and the thinking flag
 @Composable
@@ -131,10 +135,23 @@ internal fun ChatBottomCard(
     }
 }
 
-/** Page colour + Pim's thinking glow. */
+/**
+ * T-232: the chat is no longer plain white or black: page colour with a very faint "clearing" light
+ * of Hain green rising from the bottom (light and dark), under it Pim's thinking glow while he works.
+ * Static, so it costs nothing and stays with "reduce motion".
+ */
 @Composable
 internal fun ChatBackdrop(thinking: Boolean) {
-    Box(Modifier.fillMaxSize().background(LocalHainColors.current.bg))
+    val colors = LocalHainColors.current
+    val wash = colors.accent.copy(alpha = if (isHainDark()) WASH_DARK else WASH_LIGHT)
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(colors.bg)
+            .drawBehind {
+                drawRect(Brush.verticalGradient(0f to Color.Transparent, WASH_FROM to Color.Transparent, 1f to wash))
+            },
+    )
     ThinkingGlow(visible = thinking, modifier = Modifier.fillMaxSize())
 }
 
@@ -143,3 +160,7 @@ internal fun ChatBackdrop(thinking: Boolean) {
  * are at most this wide and sit in the middle on tablets and in landscape.
  */
 internal val CHAT_MAX_WIDTH: Dp = 720.dp
+
+private const val WASH_FROM = 0.4f
+private const val WASH_LIGHT = 0.08f
+private const val WASH_DARK = 0.1f

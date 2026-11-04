@@ -261,6 +261,7 @@ fun ChatScreen(
                             ThinkingPicker(answerMode, onAnswerMode)
                         },
                         trailing = { voiceUi?.let { MicButton(it, enabled = !state.isGenerating) } },
+                        glass = chrome,
                     )
                 }
             },
