@@ -355,3 +355,11 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 
 - Website (T-105): Header blendet Hintergrund, Blur und Linie weich als eine Ebene ein (ohne Flackern), Screenshots ohne weißen Streifen unten (Settings kürzer), englische Labels auf /de übersetzt (Navigation, Footer, `og:locale`, `noscript`), Alt-Texte für Icon und Startseite.
 - Nächster Schritt: Oskar testet APK (Icon-Wahl, Blur), danach Merge; Pages-Deploy erst nach dem Merge.
+
+## 2026-11-04 · T-106 (Website: Hero-Screenshots repariert) · review · harness: Hark · model: Hark · branch `hark/web-fix`
+- Was: Im Hero (iPad quer) hatte das zweite, kleinere Handy unter dem Screenshot eine große leere weiße Fläche. Ursache: Der Flex-Container streckte beide Rahmen (`.device`) auf die Höhe des größeren ersten Handys. Jetzt `items-start` am Container und `self-start` an jedem `Shot`, der Rahmen ist so hoch wie sein Bild. Der Screenshot selbst (Denk-Auswahl offen) bleibt unverändert, so gewollt.
+- Geprüft mit Playwright (Chromium) bei 1366×1024, 1024×768, 390×844, 1440×900, hell + dunkel, EN + /de: kein waagerechter Überlauf, keine weiteren abgeschnittenen Bereiche. Vorher/Nachher-Bilder in `docs/design/web/`.
+- Dateien: website/src/components/Hero.tsx, docs/design/web/*.png, docs/workflow/{TASKS,STATUS,HANDOFF_LOG}.md.
+- Nicht gemacht: T-107 (englische App-Screenshots für die EN-Seite). Dafür braucht es EN-Varianten der Roborazzi-Style-Tests (Qualifier `en-…`, englische Beispieltexte in `ChatFrame`/`answerState`/`Drawer`, Onboarding, Einstellungen), einen Lauf von `screens.yml` und eine Sprachweiche in `Shot` (`<id>-<mode>-en.webp`). Zu groß für diesen Lauf.
+- Hinweis: Ganzseiten-Screenshots brauchen die Klasse `cv-off` (sonst rendert `content-visibility` die Abschnitte außerhalb des Bildschirms nicht) – kein Fehler der Seite.
+- Nächstes: Oskar prüft auf dem iPad; dann T-107.

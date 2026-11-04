@@ -105,7 +105,7 @@ export function Hero({ lang }: { lang: Lang }) {
             ))}
           </ul>
         </div>
-        <div className="fade-up relative mx-auto flex w-full max-w-[460px] justify-center gap-4" style={{ '--d': '0.25s' } as React.CSSProperties}>
+        <div className="fade-up relative mx-auto flex w-full max-w-[460px] items-start justify-center gap-4" style={{ '--d': '0.25s' } as React.CSSProperties}>
           <Shot id="chat_empty" alt={t.pimAlt} className="w-[58%]" eager />
           <Shot id="chat_composer_picker" alt="" className="mt-14 hidden w-[42%] sm:block" eager />
         </div>
@@ -119,7 +119,7 @@ export function Shot({ id, alt, className = '', eager = false }: { id: string; a
   const src = (m: string) => `${BASE}screenshots/${id}-${m}.webp`
   const [w, h] = SHOT_SIZE[id] ?? [720, 1548]
   return (
-    <div className={`device ${className}`}>
+    <div className={`device self-start ${className}`}>
       <picture>
         <source srcSet={src('dark')} media="(prefers-color-scheme: dark)" />
         <img src={src('light')} alt={alt} width={w} height={h} loading={eager ? 'eager' : 'lazy'} className="block h-auto w-full" />

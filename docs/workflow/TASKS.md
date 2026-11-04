@@ -111,6 +111,8 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-190 | Accessibility & performance pass | fix | M | H | T-052,T-100 | doing (2d-2: non-debuggable CI APK, draw-only animations, throttled streaming; R8 + own baseline profile open) |
 | T-195 | Trademark check name 'Hain' | plan | XS | H | - | todo |
 | T-196 | Trademark policy TRADEMARKS.md (DE+EN) + README sections "Name & Pim" and "Support (coming soon)" | docs | XS | H | - | review (04.11., draft PR) |
+| T-106 | Website: hero screenshots fixed (second phone frame without empty area, both frames sized to their image) | fix | XS | B | T-089 | review (04.11., draft PR) |
+| T-107 | Website: English app screenshots on the EN page (EN variants of the Roborazzi style tests) | docs | S | B | T-106 | todo |
 | T-199 | Beta release (GitHub + F-Droid metadata) | scaffold | S | H | T-190 | todo |
 
 ## M0 · Device check & setup (human)
