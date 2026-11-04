@@ -5,6 +5,8 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import app.hain.common.api.AnswerMode
 import app.hain.feature.chat.internal.ChatUiState
+import app.hain.feature.chat.internal.StepState
+import app.hain.feature.chat.internal.ToolStep
 import app.hain.feature.chat.internal.UiMessage
 import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
 import com.github.takahirom.roborazzi.captureScreenRoboImage
@@ -71,6 +73,22 @@ abstract class ChatStyleShots(
         val state = ChatUiState(messages = listOf(question, UiMessage(2, false, texts.longMarkdown)))
         compose.setContent { Frame(dark) { ChatFrame(state, AnswerMode.THOROUGH, texts) } }
         shot("chat_long_answer")
+    }
+
+    /** T-213: Pim peeks in at the newest answer while a tool runs. */
+    @Test
+    fun pimWhileToolsRun() {
+        val question = UiMessage(1, true, texts.compare)
+        val answer =
+            UiMessage(
+                2,
+                false,
+                "",
+                streaming = true,
+                steps = listOf(ToolStep("web_search", "Köln Wetter", StepState.RUNNING, online = true)),
+            )
+        compose.setContent { Frame(dark) { ChatFrame(ChatUiState(messages = listOf(question, answer)), texts = texts) } }
+        shot("chat_pim_tools")
     }
 
     @Test

@@ -117,6 +117,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-210 | Frosted glass action cards (⋯ menu, long-press menu, thinking popover: card blurs what is behind it, light dimming around) | ui | S | B | T-104 | review (04.11., extras PR) |
 | T-215 | Version display: `hain.versionName` in gradle.properties (0.1.3.1), BuildConfig commit + build date, docs/workflow/VERSIONING.md | scaffold | XS | A | T-002 | review (04.11., extras PR) |
 | T-214 | "Über Hain" page: centred Pim header, website, GitHub, version, licence, open-source licences, update rows | ui | S | B | T-215 | review (04.11., extras PR) |
+| T-213 | Pim in the chat more often and bigger: thinking row 40 dp, 24 dp Pim at the newest answer (peeks in while tools run, cheers when done, fright on errors), empty chat 96 dp | ui | S | B | T-163 | review (04.11., extras PR) |
 
 ## M0 · Device check & setup (human)
 
