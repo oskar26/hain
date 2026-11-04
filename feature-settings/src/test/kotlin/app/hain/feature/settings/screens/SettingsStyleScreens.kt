@@ -22,13 +22,40 @@ import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
-/** Settings in the Lichtung style (docs/design/STYLE_OPTIONS.md), light and dark; CI workflow screens.yml only. */
+/**
+ * Settings in the Lichtung style (docs/design/STYLE_OPTIONS.md), light and dark, German; CI workflow
+ * screens.yml only.
+ */
+@Config(sdk = [35], qualifiers = "de-w392dp-h850dp-xxhdpi")
+class SettingsStyleScreens(
+    dark: Boolean,
+) : SettingsStyleShots(dark, suffix = "") {
+    companion object {
+        @JvmStatic
+        @ParameterizedRobolectricTestRunner.Parameters(name = "dark={0}")
+        fun params(): List<Array<Any>> = listOf(false, true).map { arrayOf<Any>(it) }
+    }
+}
+
+/** The same screens in English for the English website (T-107), file names end in "_en". */
+@Config(sdk = [35], qualifiers = "en-w392dp-h850dp-xxhdpi")
+class SettingsStyleScreensEn(
+    dark: Boolean,
+) : SettingsStyleShots(dark, suffix = "_en") {
+    companion object {
+        @JvmStatic
+        @ParameterizedRobolectricTestRunner.Parameters(name = "dark={0}")
+        fun params(): List<Array<Any>> = listOf(false, true).map { arrayOf<Any>(it) }
+    }
+}
+
+/** The screenshots themselves; the subclasses pick the language. */
 @OptIn(ExperimentalRoborazziApi::class)
 @RunWith(ParameterizedRobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [35], qualifiers = "de-w392dp-h850dp-xxhdpi")
-class SettingsStyleScreens(
+abstract class SettingsStyleShots(
     private val dark: Boolean,
+    private val suffix: String,
 ) {
     @get:Rule
     val compose = createComposeRule()
@@ -53,19 +80,13 @@ class SettingsStyleScreens(
     @Test
     fun hub() {
         render(null)
-        captureScreenRoboImage("$OUT/styles/${name("settings")}.png")
+        captureScreenRoboImage("$OUT/styles/${name("settings")}$suffix.png")
     }
 
     @Test
     fun lookPage() {
         render(SettingsPage.LOOK)
-        captureScreenRoboImage("$OUT/styles/${name("settings_look")}.png")
-    }
-
-    companion object {
-        @JvmStatic
-        @ParameterizedRobolectricTestRunner.Parameters(name = "dark={0}")
-        fun params(): List<Array<Any>> = listOf(false, true).map { arrayOf<Any>(it) }
+        captureScreenRoboImage("$OUT/styles/${name("settings_look")}$suffix.png")
     }
 }
 

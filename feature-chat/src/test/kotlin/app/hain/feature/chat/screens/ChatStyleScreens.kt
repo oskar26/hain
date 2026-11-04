@@ -16,45 +16,70 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
- * The Lichtung style (docs/design/STYLE_OPTIONS.md) on the chat screens, light and dark. Only run
- * via CI workflow screens.yml; files land in build/outputs/roborazzi/styles/.
+ * The Lichtung style (docs/design/STYLE_OPTIONS.md) on the chat screens, light and dark, German.
+ * Only run via CI workflow screens.yml; files land in build/outputs/roborazzi/styles/.
  */
+@Config(sdk = [35], qualifiers = "de-w392dp-h850dp-xxhdpi")
+class ChatStyleScreens(
+    dark: Boolean,
+) : ChatStyleShots(dark, ShotTexts.DE, suffix = "") {
+    companion object {
+        @JvmStatic
+        @ParameterizedRobolectricTestRunner.Parameters(name = "dark={0}")
+        fun params(): List<Array<Any>> = styleParams()
+    }
+}
+
+/** The same chat screens in English for the English website (T-107), e.g. "lichtung_chat_empty_light_en". */
+@Config(sdk = [35], qualifiers = "en-w392dp-h850dp-xxhdpi")
+class ChatStyleScreensEn(
+    dark: Boolean,
+) : ChatStyleShots(dark, ShotTexts.EN, suffix = "_en") {
+    companion object {
+        @JvmStatic
+        @ParameterizedRobolectricTestRunner.Parameters(name = "dark={0}")
+        fun params(): List<Array<Any>> = styleParams()
+    }
+}
+
+/** The chat screenshots themselves; the subclasses pick the language. */
 @OptIn(ExperimentalRoborazziApi::class)
 @RunWith(ParameterizedRobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [35], qualifiers = "de-w392dp-h850dp-xxhdpi")
-class ChatStyleScreens(
+abstract class ChatStyleShots(
     private val dark: Boolean,
+    private val texts: ShotTexts,
+    private val suffix: String,
 ) {
     @get:Rule
     val compose = createComposeRule()
 
     private fun shot(name: String) {
         compose.waitForIdle()
-        captureScreenRoboImage("$OUT/styles/${styleShotName(dark, name)}.png")
+        captureScreenRoboImage("$OUT/styles/${styleShotName(dark, name)}$suffix.png")
     }
 
     @Test
     fun emptyChat() {
-        compose.setContent { Frame(dark) { ChatFrame(ChatUiState()) } }
+        compose.setContent { Frame(dark) { ChatFrame(ChatUiState(), texts = texts) } }
         shot("chat_empty")
     }
 
     @Test
     fun longAnswer() {
-        val question = UiMessage(1, true, "Vergleich bitte Fahrrad, Bus und Auto")
-        val state = ChatUiState(messages = listOf(question, UiMessage(2, false, LONG_MD)))
-        compose.setContent { Frame(dark) { ChatFrame(state, AnswerMode.THOROUGH) } }
+        val question = UiMessage(1, true, texts.compare)
+        val state = ChatUiState(messages = listOf(question, UiMessage(2, false, texts.longMarkdown)))
+        compose.setContent { Frame(dark) { ChatFrame(state, AnswerMode.THOROUGH, texts) } }
         shot("chat_long_answer")
     }
 
     @Test
     fun composerWithBrainPicker() {
-        val input = List(5) { "Zeile ${it + 1}: noch ein Gedanke für die Frage" }.joinToString("\n")
+        val input = List(5) { texts.composerLine(it + 1) }.joinToString("\n")
         compose.setContent {
-            Frame(dark) { ChatFrame(answerState().copy(input = input), AnswerMode.FAST) }
+            Frame(dark) { ChatFrame(answerState(texts).copy(input = input), AnswerMode.FAST, texts) }
         }
-        compose.onNodeWithContentDescription("Denk-Stufe", substring = true).performClick()
+        compose.onNodeWithContentDescription(texts.thinkingButton, substring = true).performClick()
         compose.waitForIdle()
         shot("chat_composer_picker")
     }
@@ -63,17 +88,11 @@ class ChatStyleScreens(
     fun drawer() {
         compose.setContent {
             Frame(dark) {
-                ChatFrame(answerState())
-                Drawer()
+                ChatFrame(answerState(texts), texts = texts)
+                Drawer(texts = texts)
             }
         }
         shot("drawer")
-    }
-
-    companion object {
-        @JvmStatic
-        @ParameterizedRobolectricTestRunner.Parameters(name = "dark={0}")
-        fun params(): List<Array<Any>> = styleParams()
     }
 }
 
