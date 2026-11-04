@@ -13,9 +13,14 @@ import app.hain.data.RoomNetworkLogStore
 import app.hain.feature.chat.internal.ChatStore
 import app.hain.feature.chat.internal.RoomChatPersistence
 import app.hain.llm.api.LlmEngine
+import app.hain.llm.api.TextEmbedder
+import app.hain.llm.internal.LlamaEmbedder
 import app.hain.llm.internal.LlamaEngine
 import app.hain.memory.api.HainMemory
 import app.hain.memory.api.MemoryStore
+import app.hain.memory.api.MemoryTurn
+import app.hain.memory.api.PackEmbedder
+import app.hain.models.api.ModelInfo
 import app.hain.models.api.ModelRepository
 import app.hain.models.internal.DefaultModelRepository
 import app.hain.tools.internal.net.HttpNetworkGate
@@ -100,13 +105,41 @@ object AppModule {
         return ChatStore(persistence = persistence, scope = scope)
     }
 
-    /** The memory (T-112): facts in the encrypted database, only on this phone; in memory if it cannot open. */
+    /** T-110: the small embedding model next to the brain (own thread, own context, loaded on demand). */
+    @Provides
+    @Singleton
+    fun textEmbedder(
+        @ApplicationContext context: Context,
+    ): TextEmbedder = LlamaEmbedder(context)
+
+    /**
+     * The memory (T-112): facts in the encrypted database, only on this phone; in memory if it cannot
+     * open. With the pack "Suche nach Bedeutung" (T-110) installed, recall is by meaning too.
+     */
     @Provides
     @Singleton
     fun memoryStore(
         @ApplicationContext context: Context,
         database: DatabaseHolder,
-    ): MemoryStore = HainMemory.store(context, database.db?.memory(), CoroutineScope(SupervisorJob() + Dispatchers.IO))
+        embedder: TextEmbedder,
+        models: ModelRepository,
+    ): MemoryStore {
+        val pack = models.catalog.firstOrNull { it.kind == ModelInfo.KIND_EMBED }
+        val packEmbedder =
+            pack?.let { info ->
+                PackEmbedder(embedder, info.id) { models.mainFile(info).takeIf { models.isInstalled(info) } }
+            }
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        return HainMemory.store(context, database.db?.memory(), scope, packEmbedder)
+    }
+
+    /** T-112/7b: the memory's part of each turn, one for the app (the chips read its [MemoryTurn.uses]). */
+    @Provides
+    @Singleton
+    fun memoryTurn(memory: MemoryStore): MemoryTurn {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        return MemoryTurn(memory, scope)
+    }
 }
 
 /** Wraps the database so Hilt can hand out a missing one. */

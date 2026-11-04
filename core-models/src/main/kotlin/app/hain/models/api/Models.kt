@@ -23,6 +23,14 @@ data class ModelInfo(
     val isDefault: Boolean,
 ) {
     val totalSize: Long get() = files.sumOf { it.size }
+
+    companion object {
+        /** The default chat brain. */
+        const val KIND_BRAIN = "brain"
+
+        /** The pack "Suche nach Bedeutung" for the memory (T-110, MEMORY.md §3). */
+        const val KIND_EMBED = "embed"
+    }
 }
 
 /** Progress of one model download. */

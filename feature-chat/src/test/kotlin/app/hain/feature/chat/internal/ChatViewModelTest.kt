@@ -35,6 +35,7 @@ class ChatViewModelTest {
         llm: FakeLlm,
         store: ChatStore = ChatStore(),
         brain: Boolean = true,
+        onAnswered: (Long) -> Unit = {},
     ): ChatViewModel {
         val vm =
             ChatViewModel(
@@ -44,6 +45,7 @@ class ChatViewModelTest {
                 modelPath = { "brain.gguf" },
                 brainInstalled = flowOf(brain),
                 streamThrottleMs = 0,
+                onAnswered = onAnswered,
             )
         // state is shared while subscribed, like the screen does
         watchers += CoroutineScope(Dispatchers.Main).launch { vm.state.collect { } }
@@ -80,6 +82,20 @@ class ChatViewModelTest {
         assertTrue(stopped.stopped)
         // what was shown stays (as answer or, while thinking, in the thinking block)
         assertEquals("Ich denke", stopped.text + stopped.reasoning.orEmpty())
+    }
+
+    @Test
+    fun aFinishedAnswerTellsTheMemoryButAStoppedOneDoesNot() {
+        val answered = mutableListOf<Long>()
+        val store = ChatStore()
+        viewModel(FakeLlm(listOf("Antwort"), listOf("Titel")), store, onAnswered = { answered += it }).say("Hallo")
+        assertEquals(listOf(store.only().id), answered)
+
+        val stopped = mutableListOf<Long>()
+        val vm = viewModel(FakeLlm(null), ChatStore(), onAnswered = { stopped += it })
+        vm.say("Warum?")
+        vm.stop()
+        assertTrue(stopped.isEmpty())
     }
 
     @Test

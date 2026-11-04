@@ -58,6 +58,8 @@ class ChatViewModel(
     private val messageRatings: MessageRatings = InMemoryRatings(),
     /** Context size for the next load (developer mode, T-211); a change loads the brain again. */
     private val contextSize: () -> Int = { CONTEXT_SIZE },
+    /** 7b: a chat got a finished answer (the memory looks for facts in it once the chat is quiet). */
+    private val onAnswered: (chatId: Long) -> Unit = {},
 ) : ViewModel() {
     private val local = MutableStateFlow(LocalState())
     private var job: Job? = null
@@ -367,6 +369,7 @@ class ChatViewModel(
         when (update.reason) {
             StopReason.CONTEXT_FULL -> local.update { it.copy(error = ChatError.CONTEXT_FULL) }
             StopReason.ERROR -> local.update { it.copy(error = ChatError.GENERATION) }
+            StopReason.END, StopReason.MAX_TOKENS -> onAnswered(chatId)
             else -> Unit
         }
     }

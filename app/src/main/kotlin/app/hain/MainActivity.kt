@@ -15,6 +15,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,7 +44,9 @@ import app.hain.feature.chat.internal.ChatEngine
 import app.hain.feature.chat.internal.ChatStore
 import app.hain.feature.chat.internal.ChatViewModel
 import app.hain.feature.chat.internal.PrefsRatings
+import app.hain.feature.memory.api.MemoryAnswerChips
 import app.hain.feature.memory.api.MemoryScreen
+import app.hain.feature.memory.api.SmartSearch
 import app.hain.feature.onboarding.api.OnboardingScreen
 import app.hain.feature.settings.api.AppInfo
 import app.hain.feature.settings.api.PacksScreen
@@ -55,11 +58,16 @@ import app.hain.feature.settings.api.UpdateBanner
 import app.hain.feature.settings.api.UpdateStatus
 import app.hain.llm.api.DevTuning
 import app.hain.llm.api.LlmEngine
+import app.hain.memory.api.MemoryExtraction
 import app.hain.memory.api.MemoryStore
 import app.hain.memory.api.MemoryTurn
 import app.hain.memory.api.RememberTool
 import app.hain.models.api.DevModels
+import app.hain.models.api.DeviceCheck
+import app.hain.models.api.DeviceProfile
 import app.hain.models.api.DownloadState
+import app.hain.models.api.Fit
+import app.hain.models.api.ModelInfo
 import app.hain.models.api.ModelRepository
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.ToolContext
@@ -71,9 +79,6 @@ import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainTween
 import app.hain.ui.theme.HainTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -96,8 +101,8 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var memory: MemoryStore
 
-    /** T-112/T-113: "merk dir …" and the fitting facts, in the line right before each answer. */
-    private val memoryTurn by lazy { MemoryTurn(memory, CoroutineScope(SupervisorJob() + Dispatchers.IO)) }
+    /** T-112/T-113/7b: "merk dir …" and the fitting facts before each answer; what it did, for the chips. */
+    @Inject lateinit var memoryTurn: MemoryTurn
 
     private fun settingsActions(
         onBack: () -> Unit,
@@ -190,11 +195,8 @@ class MainActivity : ComponentActivity() {
                     llm,
                     prompts::current,
                     answerMode = { LlmAnswerMode.fromKey(settings().answerMode.name.lowercase()) },
-                    turnHint = { messages ->
-                        listOfNotNull(prompts.turnHint(messages), memoryTurn.hint(messages, toolLanguage(settings())))
-                            .joinToString("\n")
-                    },
-                    tools = HainTools.router(networkGate, listOf(RememberTool(memory))),
+                    turnHint = prompts::turnHint,
+                    tools = HainTools.router(networkGate, listOf(RememberTool(memory, memoryTurn::onToolSaved))),
                     toolContext = {
                         val cfg = settings()
                         ToolContext(
@@ -208,6 +210,12 @@ class MainActivity : ComponentActivity() {
                     },
                     tuning = { settings().dev },
                     ownModel = { ownModelPath() != null },
+                    // 7b: off the main thread, may embed the question with the pack "Suche nach Bedeutung"
+                    memoryHint = { messages ->
+                        // the user writes again: a running background extraction gives the brain back
+                        MemoryExtraction.current?.yieldToChat()
+                        memoryTurn.hint(messages, toolLanguage(settings()))
+                    },
                 ),
             store = chatStore,
             modelPath = { ownModelPath() ?: models.mainFile(brain).absolutePath },
@@ -215,8 +223,13 @@ class MainActivity : ComponentActivity() {
             networkActive = networkGate.active.map { it > 0 },
             messageRatings = PrefsRatings(getSharedPreferences(RATINGS_PREFS, MODE_PRIVATE)),
             contextSize = { DevTuning.contextSize(settings().dev) },
+            // T-114: two minutes after the last answer the memory looks for facts in the chat
+            onAnswered = { chatId -> MemoryExtraction.current?.schedule(chatId) },
         )
     }
+
+    /** T-110: the pack "Suche nach Bedeutung" from the catalogue (kind `embed`). */
+    private val embedPack: ModelInfo? by lazy { models.catalog.firstOrNull { it.kind == ModelInfo.KIND_EMBED } }
 
     /** Language for Wikipedia and weather words: the answer language, or the phone's on "Automatisch". */
     private fun toolLanguage(settings: HainSettings): String =
@@ -316,6 +329,8 @@ class MainActivity : ComponentActivity() {
                                         showStats = dev.enabled && dev.showStats,
                                         rawThinking = dev.enabled && dev.showRawThinking,
                                         confirmActions = settings.confirmActions,
+                                        // 7b: "Gemerkt ✓ · Rückgängig" and "3 Erinnerungen genutzt" under answers
+                                        answerFooter = { userMessages -> MemoryAnswerChips(memoryTurn, userMessages) },
                                         debugInfo = { stats ->
                                             val model = File(ownModelPath() ?: models.mainFile(brain).absolutePath).name
                                             DevTuning.debugLine(model, current.dev, stats)
@@ -396,6 +411,8 @@ class MainActivity : ComponentActivity() {
                                         lifecycleScope.launch { settingsRepository.setAboutMe(text) }
                                     },
                                     onBack = { showMemory = false },
+                                    smartSearch = smartSearchState(models, embedPack, deviceRamGb()),
+                                    onGetSmartSearch = { embedPack?.let(models::startDownload) },
                                 )
                             }
                             AnimatedVisibility(
@@ -439,9 +456,34 @@ class MainActivity : ComponentActivity() {
         ) == 0f
 }
 
+/** Where the pack "Suche nach Bedeutung" stands, for the hint tile on the memory page (T-110). */
+@Composable
+private fun smartSearchState(
+    models: ModelRepository,
+    pack: ModelInfo?,
+    ramGb: Int,
+): SmartSearch {
+    if (pack == null) return SmartSearch.Hidden
+    val flow = remember(pack.id) { models.downloadState(pack) }
+    val state by flow.collectAsStateWithLifecycle(DownloadState.Idle)
+    val phase =
+        when {
+            state is DownloadState.Installed || models.isInstalled(pack) -> SmartSearch.Phase.INSTALLED
+            state is DownloadState.Running -> SmartSearch.Phase.RUNNING
+            state is DownloadState.Queued || state is DownloadState.Verifying -> SmartSearch.Phase.WAITING
+            state is DownloadState.Failed -> SmartSearch.Phase.FAILED
+            else -> SmartSearch.Phase.IDLE
+        }
+    val fit = DeviceCheck.fit(pack, DeviceProfile(ramGb, models.freeSpace()))
+    val fits = fit != Fit.TOO_SMALL && fit != Fit.NO_SPACE
+    val percent = ((state as? DownloadState.Running)?.fraction?.times(PERCENT_F))?.toInt() ?: 0
+    return SmartSearch.of(phase, fits, pack.totalSize, percent)
+}
+
 private const val SLIDE_DIV = 6
 private const val GAME_FROM = 0.9f
 private const val BYTES_PER_GB = 1_000_000_000.0
 private const val START_PREFS = "hain_start"
 private const val KEY_SKIPPED = "onboarding_skipped"
 private const val RATINGS_PREFS = "hain_ratings"
+private const val PERCENT_F = 100f

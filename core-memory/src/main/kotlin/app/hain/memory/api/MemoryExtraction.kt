@@ -110,7 +110,8 @@ class MemoryExtraction(
         val path = brainPath() ?: return true
         val job =
             scope.async {
-                if (!llm.load(path)) return@async
+                // the brain the chat has loaded is used as it is (no second load, no other context size)
+                if (llm.state.value !is EngineState.Ready && !llm.load(path)) return@async
                 val outcome = FactExtractor(store, LlmExtractionBrain(llm), prompts()).run(lines, chatId)
                 Log.i(TAG, "extraction: ${outcome.suggested.size} suggested, ${outcome.skipped} skipped")
             }

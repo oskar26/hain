@@ -136,7 +136,17 @@ class MemoryTurn(
         private const val MARGIN = 0.05
         private const val MAX = 3
 
-        /** One turn: all user messages of the chat up to the answer (so equal questions in other chats differ). */
-        fun key(userMessages: List<String>): String = userMessages.joinToString("\u0001") { it.trim() }
+        /** User messages a turn is known by (the prompt keeps the last 24 messages, the chat all of them). */
+        private const val KEY_MESSAGES = 3
+
+        /**
+         * One turn: the last [KEY_MESSAGES] user messages up to the answer, so the same question in
+         * another chat is mostly another turn, and the chat (all messages) and the prompt (the newest
+         * ones) find the same key.
+         */
+        fun key(userMessages: List<String>): String =
+            userMessages
+                .takeLast(KEY_MESSAGES)
+                .joinToString("\u0001") { it.trim() }
     }
 }

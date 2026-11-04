@@ -106,5 +106,7 @@ class MemoryTurnTest {
             assertEquals(listOf(fact), turn.uses.value[MemoryTurn.key(ask)]!!.saved)
             // equal last messages in different chats are different turns
             assertTrue(MemoryTurn.key(listOf("a", "Hallo")) != MemoryTurn.key(listOf("Hallo")))
+            // the chat may hold more user messages than the prompt: the newest ones decide
+            assertEquals(MemoryTurn.key(listOf("x", "a", "b", "c")), MemoryTurn.key(listOf("a", "b", "c")))
         }
 }
