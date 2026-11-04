@@ -219,4 +219,15 @@
     <string name="chat_pim_looking">Pim is looking it up…</string>
     <string name="chat_dev_stats">%1$s tokens/s · first token after %2$s s</string>
     <string name="chat_dev_copy_debug">Copy debug info</string>
+    <!-- T-057 versions (branches) and waiting messages -->
+    <string name="chat_branch_position">Version %1$d of %2$d</string>
+    <string name="chat_branch_previous">Previous version</string>
+    <string name="chat_branch_next">Next version</string>
+    <string name="chat_queued">waiting</string>
+    <string name="chat_queued_described">Waiting: %1$s</string>
+    <string name="chat_queued_cancel">Don\'t send</string>
+    <string name="chat_send_queue">Send after the answer</string>
+    <!-- T-058 scroll pill -->
+    <string name="chat_new_answer">New answer</string>
+    <string name="chat_scroll_down_new">New answer, jump down</string>
 </resources>
