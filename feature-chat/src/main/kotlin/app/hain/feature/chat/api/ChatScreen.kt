@@ -609,6 +609,7 @@ private fun AnswerActions(
                 .putExtra(Intent.EXTRA_TEXT, text)
         context.startActivity(Intent.createChooser(send, shareLabel))
     })
+    ReadAloudAction(text)
     MessageAction(
         MessageActionKind.THUMB_UP,
         stringResource(R.string.chat_good_answer),

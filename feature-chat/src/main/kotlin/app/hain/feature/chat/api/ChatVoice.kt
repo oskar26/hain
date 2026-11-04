@@ -6,10 +6,12 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import app.hain.common.api.net.GateRequest
 import app.hain.common.api.net.NetworkGate
 import app.hain.common.api.net.Purpose
+import app.hain.llm.internal.ReplyLanguagePolicy
 import app.hain.models.api.DownloadState
 import app.hain.models.api.ModelInfo
 import app.hain.models.api.ModelRepository
 import app.hain.voice.api.DictationController
+import app.hain.voice.api.ReadAloudController
 import app.hain.voice.api.VoiceEngines
 import app.hain.voice.api.VoicePacks
 import kotlinx.coroutines.CoroutineScope
@@ -26,6 +28,7 @@ import java.io.IOException
  */
 class ChatVoice(
     val dictation: DictationController,
+    val readAloud: ReadAloudController,
     private val models: ModelRepository,
     private val gate: NetworkGate?,
     /** Language for dictation: the answer language, or the phone's on "Automatisch" (`de`/`en`). */
@@ -58,8 +61,12 @@ class ChatVoice(
 
     fun cancelPack(pack: ModelInfo) = models.cancelDownload(pack)
 
-    /** Frees the dictation engine (the app went to the background). */
+    /** Language to read [text] in: what it is written in, else the dictation language. */
+    fun speechLanguage(text: String): String = ReplyLanguagePolicy.detectLanguage(text)?.tag ?: language()
+
+    /** Stops speaking and frees the dictation engine (the app went to the background). */
     fun pause() {
+        readAloud.stop()
         dictation.release()
     }
 
@@ -67,7 +74,6 @@ class ChatVoice(
         private const val TAG = "HainVoice"
 
         /** Moonshine from the installed pack, the system voice in Pim's pitch and speed. */
-        @Suppress("UnusedParameter", "UNUSED_PARAMETER") // the system voice arrives with read aloud (T-141)
         fun create(
             context: Context,
             models: ModelRepository,
@@ -83,6 +89,7 @@ class ChatVoice(
                     ?.let { VoiceEngines.moonshine(models.packDir(it)) }
             return ChatVoice(
                 dictation = DictationController(scope, VoiceEngines::microphone, ::loadStt),
+                readAloud = ReadAloudController(scope, VoiceEngines.systemSpeech(context)),
                 models = models,
                 gate = gate,
                 language = language,

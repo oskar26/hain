@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -72,6 +73,8 @@ import app.hain.models.api.DownloadState
 import app.hain.models.api.ModelInfo
 import app.hain.ui.HainIcons
 import app.hain.ui.components.HainIconButton
+import app.hain.ui.components.MessageAction
+import app.hain.ui.components.MessageActionKind
 import app.hain.ui.components.ProgressBar
 import app.hain.ui.components.PulsingDot
 import app.hain.ui.motion.HainHaptics
@@ -85,6 +88,8 @@ import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 import app.hain.voice.api.DictationError
 import app.hain.voice.api.DictationState
+import app.hain.voice.api.ReadAloudState
+import app.hain.voice.api.SpeechLabels
 import kotlinx.coroutines.delay
 
 /** What the voice card above the message box asks for before the first dictation. */
@@ -174,7 +179,10 @@ internal fun rememberVoiceUi(voice: ChatVoice): VoiceUi {
     DisposableEffect(owner, voice) {
         val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_STOP) voice.pause() }
         owner.lifecycle.addObserver(observer)
-        onDispose { owner.lifecycle.removeObserver(observer) }
+        onDispose {
+            owner.lifecycle.removeObserver(observer)
+            voice.readAloud.stop()
+        }
     }
     return ui
 }
@@ -534,6 +542,37 @@ private fun VoiceLine(text: String) {
         text,
         style = LocalHainTypography.current.bodySmall.copy(color = LocalHainColors.current.textMuted),
         modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.lg, vertical = spacing.xs),
+    )
+}
+
+/**
+ * "Vorlesen" in the row under an answer (T-141): reads the answer sentence by sentence in Pim's
+ * pitch and speed; the same button stops. Only there when the app gave the chat a voice.
+ */
+@Composable
+internal fun ReadAloudAction(text: String) {
+    val voice = LocalChatVoice.current ?: return
+    val context = LocalContext.current
+    val state by voice.readAloud.state.collectAsStateWithLifecycle()
+    val key = remember(text) { "answer-" + text.hashCode() + "-" + text.length }
+    val speaking = (state as? ReadAloudState.Speaking)?.key == key
+    val labels =
+        SpeechLabels(
+            codeSkipped = stringResource(R.string.chat_read_code),
+            formulaSkipped = stringResource(R.string.chat_read_formula),
+        )
+    val failed = stringResource(R.string.chat_read_failed)
+    LaunchedEffect(state) {
+        if ((state as? ReadAloudState.Failed)?.key == key) {
+            Toast.makeText(context, failed, Toast.LENGTH_LONG).show()
+            voice.readAloud.consume()
+        }
+    }
+    MessageAction(
+        MessageActionKind.SPEAK,
+        stringResource(if (speaking) R.string.chat_read_stop else R.string.chat_read_aloud),
+        onClick = { voice.readAloud.toggle(key, text, voice.speechLanguage(text), labels) },
+        selected = speaking,
     )
 }
 
