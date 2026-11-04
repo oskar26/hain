@@ -52,7 +52,7 @@ class ToolRouterTest {
         runTest {
             val router = ToolRouter(listOf(CalculatorTool()))
             assertEquals("unknown_tool", router.run(call("nope"), ctx).error)
-            assertEquals("bad_arguments", router.run(call("calculate"), ctx).error)
+            assertEquals("missing_argument", router.run(call("calculate"), ctx).error)
             assertEquals("bad_arguments", router.run(call("calculate", "expression" to "1/0"), ctx).error)
             assertTrue(router.run(call("nope"), ctx).forModel.startsWith("""{"error":"unknown_tool","hint":"""))
         }
@@ -76,6 +76,39 @@ class ToolRouterTest {
                     timeoutMs = 100,
                 )
             assertEquals("timeout", slow.run(call("fake"), ctx).error)
+        }
+
+    @Test
+    fun networkErrorIsTriedOnceMore() =
+        runTest {
+            var tries = 0
+            val flaky =
+                Fake(true) {
+                    tries++
+                    if (tries == 1) throw IOException("reset") else ToolResult("{\"ok\":1}")
+                }
+            val r = ToolRouter(listOf(flaky), retryDelayMs = 10).run(call("fake"), ctx)
+            assertNull(r.error)
+            assertEquals(2, tries)
+            var offlineTries = 0
+            val off =
+                Fake(true) {
+                    offlineTries++
+                    throw OfflineException()
+                }
+            assertEquals("offline", ToolRouter(listOf(off)).run(call("fake"), ctx).error)
+            assertEquals(1, offlineTries)
+        }
+
+    @Test
+    fun callsAreFixedBeforeTheyRun() =
+        runTest {
+            val router = ToolRouter(listOf(CalculatorTool()))
+            val r = router.run(call("calculator", "expr" to "12*7"), ctx)
+            assertNull(r.error)
+            assertEquals("12*7 = 84", r.label)
+            val missing = router.run(call("calculate", "foo" to "x"), ctx)
+            assertTrue(missing.forModel.contains("needs 'expression'"))
         }
 
     @Test
