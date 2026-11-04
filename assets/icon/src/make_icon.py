@@ -469,6 +469,20 @@ def main() -> None:
     if "--no-res" not in sys.argv:
         write_res("main", dev=False)
         write_res("debug", dev=True)
+        write_previews()
+
+
+def write_previews() -> None:
+    """T-103: small previews for the icon picker (onboarding + settings), in core-ui."""
+    d = os.path.join(ROOT, "core-ui", "src", "main", "res", "drawable-nodpi")
+    os.makedirs(d, exist_ok=True)
+    for look, name in (("3d", "hain_app_icon_3d"), ("flat", "hain_app_icon_flat")):
+        img = render(scene(look, 1024, "squircle", pim_k=TILE_K), 1024)
+        # cut the margin around the squircle (keeps a little room for the shadow)
+        m = int(1024 * 0.085)
+        img.crop((m, m, 1024 - m, 1024 - m)).resize((288, 288), Image.LANCZOS).save(
+            os.path.join(d, f"{name}.webp"), "WEBP", lossless=True
+        )
 
 
 if __name__ == "__main__":

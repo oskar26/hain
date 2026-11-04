@@ -2,6 +2,7 @@ package app.hain.feature.settings.api
 
 import app.hain.common.api.AnswerLanguage
 import app.hain.common.api.AnswerMode
+import app.hain.common.api.AppIcon
 import app.hain.common.api.HapticStrength
 import app.hain.common.api.ThemeChoice
 
@@ -23,4 +24,5 @@ class SettingsActions(
     val onClearNetworkLog: () -> Unit = {},
     val onSearxUrl: (String) -> Unit = {},
     val onHaptics: (HapticStrength) -> Unit = {},
+    val onAppIcon: (AppIcon) -> Unit = {},
 )

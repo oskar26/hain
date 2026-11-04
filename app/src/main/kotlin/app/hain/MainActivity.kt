@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.hain.common.api.AnswerLanguage
+import app.hain.common.api.AppIcon
 import app.hain.common.api.HainSettings
 import app.hain.common.api.SearxAddress
 import app.hain.common.api.SettingsRepository
@@ -93,6 +94,7 @@ class MainActivity : ComponentActivity() {
             onClearNetworkLog = networkGate::clearLog,
             onSearxUrl = { write { repo.setSearxUrl(it) } },
             onHaptics = { write { repo.setHaptics(it) } },
+            onAppIcon = { write { repo.setAppIcon(it) } },
         )
     }
 
@@ -160,8 +162,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val brain = models.defaultBrain
-        var current = HainSettings()
         val prompts = SystemPromptSource(applicationContext) { current }
+        lifecycleScope.launch { settingsRepository.settings.collect { storedIcon = it.appIcon } }
         setContent {
             val settings by settingsRepository.settings.collectAsStateWithLifecycle(HainSettings())
             current = settings
@@ -188,6 +190,12 @@ class MainActivity : ComponentActivity() {
                             models = models,
                             onDone = { installed = models.isInstalled(brain) },
                             onLanguage = { tag -> pickLanguage(tag) },
+                            iconFlat = settings.appIcon == AppIcon.FLAT,
+                            onIconFlat = { flat ->
+                                lifecycleScope.launch {
+                                    settingsRepository.setAppIcon(if (flat) AppIcon.FLAT else AppIcon.THREE_D)
+                                }
+                            },
                             onSkip = {
                                 startPrefs.edit().putBoolean(KEY_SKIPPED, true).apply()
                                 skipped = true
@@ -246,6 +254,22 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    /** Latest settings, read by the prompt source and [onStop]. */
+    private var current = HainSettings()
+
+    /** Stored icon choice; null until DataStore was read, so [onStop] never flips it by mistake. */
+    private var storedIcon: AppIcon? = null
+
+    /**
+     * T-103: the launcher alias follows the stored icon choice when you leave Hain. Switching it
+     * while Hain is in front can close the app on some phones; not on a rotation or language change.
+     */
+    override fun onStop() {
+        super.onStop()
+        val icon = storedIcon
+        if (icon != null && !isChangingConfigurations) AppIconSwitcher.apply(applicationContext, icon)
     }
 
     /** System "remove animations" (animator scale 0) → Pim and the glow stay still. */

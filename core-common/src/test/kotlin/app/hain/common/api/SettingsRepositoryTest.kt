@@ -1,6 +1,8 @@
 package app.hain.common.api
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -44,6 +46,34 @@ class SettingsRepositoryTest {
             assertEquals("Ich bin Oskar", s.aboutMe)
             r.reset()
             assertEquals(HainSettings(), r.settings.first())
+        }
+
+    @Test
+    fun appIconDefaultsTo3dAndIsKeptOnReset() =
+        runTest(UnconfinedTestDispatcher()) {
+            val r = repo()
+            assertEquals(AppIcon.THREE_D, r.settings.first().appIcon)
+            r.setAppIcon(AppIcon.FLAT)
+            assertEquals(AppIcon.FLAT, r.settings.first().appIcon)
+            r.setTheme(ThemeChoice.DARK)
+            r.reset()
+            val s = r.settings.first()
+            assertEquals(AppIcon.FLAT, s.appIcon)
+            assertEquals(ThemeChoice.SYSTEM, s.theme)
+            r.setAppIcon(AppIcon.THREE_D)
+            assertEquals(AppIcon.THREE_D, r.settings.first().appIcon)
+        }
+
+    @Test
+    fun unknownStoredAppIconFallsBackTo3d() =
+        runTest(UnconfinedTestDispatcher()) {
+            val store =
+                PreferenceDataStoreFactory.create(
+                    scope = backgroundScope,
+                    produceFile = { tmp.newFile("u.preferences_pb").also { it.delete() } },
+                )
+            store.edit { it[stringPreferencesKey("app_icon")] = "RAINBOW" }
+            assertEquals(AppIcon.THREE_D, SettingsRepository(store).settings.first().appIcon)
         }
 
     @Test

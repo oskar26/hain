@@ -12,12 +12,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.hain.common.api.AnswerLanguage
 import app.hain.common.api.AnswerMode
+import app.hain.common.api.AppIcon
 import app.hain.common.api.HainSettings
 import app.hain.common.api.HapticStrength
 import app.hain.common.api.SearxAddress
 import app.hain.common.api.ThemeChoice
 import app.hain.common.api.net.NetworkLogEntry
 import app.hain.feature.settings.R
+import app.hain.ui.components.AppIconPicker
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
@@ -43,6 +45,18 @@ internal fun SettingsPageContent(
                 ),
                 actions.onTheme,
             )
+            // T-103: launcher icon "Pim im Wald", 3D or flat
+            BasicText(
+                stringResource(R.string.settings_app_icon),
+                style = LocalHainTypography.current.body.copy(color = LocalHainColors.current.text),
+            )
+            AppIconPicker(
+                flat = settings.appIcon == AppIcon.FLAT,
+                label3d = stringResource(R.string.settings_app_icon_3d),
+                labelFlat = stringResource(R.string.settings_app_icon_flat),
+                onSelect = { flat -> actions.onAppIcon(if (flat) AppIcon.FLAT else AppIcon.THREE_D) },
+            )
+            Info(R.string.settings_app_icon_hint)
             Choice(
                 R.string.settings_haptics,
                 settings.haptics,

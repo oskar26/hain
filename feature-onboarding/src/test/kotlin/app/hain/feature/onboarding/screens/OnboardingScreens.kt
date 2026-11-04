@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
+import app.hain.feature.onboarding.api.IconStep
 import app.hain.feature.onboarding.api.SuccessScreen
 import app.hain.feature.onboarding.api.WelcomeTour
 import app.hain.ui.motion.LocalReduceMotion
@@ -40,6 +41,18 @@ class OnboardingScreens {
     fun welcomeDark() {
         compose.setContent { Frame(dark = true) { WelcomeTour(onFinish = {}) } }
         captureScreenRoboImage("$OUT/onboarding_dark.png")
+    }
+
+    @Test
+    fun iconStep() {
+        compose.setContent { Frame(dark = false) { IconStep(flat = false, onSelect = {}, onNext = {}) } }
+        captureScreenRoboImage("$OUT/onboarding_icon_light.png")
+    }
+
+    @Test
+    fun iconStepFlatDark() {
+        compose.setContent { Frame(dark = true) { IconStep(flat = true, onSelect = {}, onNext = {}) } }
+        captureScreenRoboImage("$OUT/onboarding_icon_dark.png")
     }
 
     @Test
