@@ -14,9 +14,11 @@ import kotlinx.serialization.json.putJsonObject
 /**
  * `remember` (T-112, MEMORY.md §2.2): the brain keeps a fact the user asked it to keep. Offline, on
  * the phone. Sensitive facts and health only become suggestions the user accepts on the memory page.
+ * In a private chat ([privateChat], T-056) nothing is saved.
  */
 class RememberTool(
     private val store: MemoryStore,
+    private val privateChat: () -> Boolean = { false },
 ) : Tool {
     override val online = false
     override val schema =
@@ -46,6 +48,7 @@ class RememberTool(
                 },
         )
 
+    @Suppress("ReturnCount") // private chat, memory off, saved
     override suspend fun run(
         args: Map<String, Any?>,
         ctx: ToolContext,
@@ -53,6 +56,12 @@ class RememberTool(
         val text =
             args["text"]?.toString()?.trim()?.takeIf { it.isNotEmpty() && it != "null" }
                 ?: throw IllegalArgumentException("Missing 'text'.")
+        if (privateChat()) {
+            return ToolResult(
+                forModel = json("error" to "This is a private chat: nothing is saved. Tell the user so."),
+                error = "private_chat",
+            )
+        }
         if (!store.enabled.value) {
             return ToolResult(
                 forModel = json("error" to "The memory is switched off in the settings."),

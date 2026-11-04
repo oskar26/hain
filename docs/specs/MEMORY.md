@@ -41,7 +41,7 @@ Relevant: - mag keine Pilze (2026-10-07) - spielt Gitarre (2026-10-20)
 
 ## 4. Privacy
 
-- Memory off → nothing read or written. Private chat → nothing written, nothing read except L0 if setting allows. T-056: a private chat lives only in `ChatStore` memory (`Chat.isPrivate`, `ChatStore.isPrivate(id)`), is never in the DB or the FTS index; the memory pipeline must skip every chat with `isPrivate = true`.
+- Memory off → nothing read or written. Private chat → nothing written, nothing read except L0 if setting allows. T-056: a private chat lives only in `ChatStore` memory (`Chat.isPrivate`, `ChatStore.isPrivate(id)`), is never in the DB or the FTS index; the memory pipeline must skip every chat with `isPrivate = true`. Done in the integration (#50): `MemoryTurn.hint(…, privateChat = true)` returns nothing (no save, no forget, no facts) and `RememberTool` answers `private_chat` without saving.
 - Delete fact → removed from fact table, vec table, FTS and any topic note containing it (LLM rewrite of that note, or remove the line).
 - Export: JSON (all layers) via SAF. Import validates schema.
 
@@ -54,5 +54,5 @@ Tabs: Über mich (editable text) · Themen · Alle (search, each fact shows orig
 - Done: tables + DAO (DB v3), explicit "merk dir / remember / vergiss nicht / don't forget" and "vergiss / forget" (`ExplicitMemory`, start of the message only; "merk dir das", questions and "vergiss alles" are left out), `remember` tool (sensitive/health → suggestion), keyword retrieval (`Ranking`: BM25 with loose endings, 0.75·keyword + 0.15·recency + 0.1·importance, ≥ 0.35, ≤ 8 facts, ≤ 1,800 chars; with a cosine the formula of §3), memory page (Erinnerungen with search/edit/delete/undo, Vorschläge, Über dich, on/off, export/import JSON via the system file picker, delete all).
 - The memory line goes into the per-turn hint after the history (`MemoryTurn`), never into the cached system prompt, so the brain's cache stays valid. A handled "merk dir" is not saved twice when the answer is regenerated.
 - On/off lives in SharedPreferences `hain_memory` (not DataStore), so the settings repository did not change.
-- Open: T-110 embedder + `memory_fact_vec`, T-114 background extraction (prompt `prompts/extract_facts.txt` is written), topics (table exists, no UI), chip "3 Erinnerungen genutzt" + "Gemerkt ✓ Rückgängig" under the answer (needs chat UI), L3 chat search, private chat rules (Häppchen 8).
+- Open: T-110 embedder + `memory_fact_vec`, T-114 background extraction (prompt `prompts/extract_facts.txt` is written), topics (table exists, no UI), chip "3 Erinnerungen genutzt" + "Gemerkt ✓ Rückgängig" under the answer (needs chat UI), L3 chat search.
 

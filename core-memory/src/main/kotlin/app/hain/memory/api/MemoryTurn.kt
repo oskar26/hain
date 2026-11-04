@@ -20,14 +20,18 @@ class MemoryTurn(
     /** Messages already acted on (a regenerated answer must not save or delete twice), with what it did. */
     private val handled = LinkedHashMap<String, String>()
 
-    /** The memory line for the answer to the newest of [userMessages] in [lang] (`de`/`en`), or `null`. */
+    /**
+     * The memory line for the answer to the newest of [userMessages] in [lang] (`de`/`en`), or `null`.
+     * In a [privateChat] (T-056) the memory neither saves, forgets nor reads anything.
+     */
     @Synchronized
     @Suppress("ReturnCount")
     fun hint(
         userMessages: List<String>,
         lang: String,
+        privateChat: Boolean = false,
     ): String? {
-        if (!store.enabled.value) return null
+        if (privateChat || !store.enabled.value) return null
         val last = userMessages.lastOrNull()?.trim().orEmpty()
         if (last.isEmpty()) return null
         handled[last]?.let { return it }

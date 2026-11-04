@@ -19,6 +19,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -115,6 +116,9 @@ class MainActivity : FragmentActivity() {
 
     /** T-112/T-113: "merk dir …" and the fitting facts, in the line right before each answer. */
     private val memoryTurn by lazy { MemoryTurn(memory, CoroutineScope(SupervisorJob() + Dispatchers.IO)) }
+
+    /** T-056 × T-112: a private chat is open; the memory then neither reads nor writes (MEMORY.md §3). */
+    @Volatile private var privateChatOpen = false
 
     @Inject lateinit var brainChoice: BrainChoiceStore
 
@@ -286,10 +290,13 @@ class MainActivity : FragmentActivity() {
                     prompts::current,
                     answerMode = { LlmAnswerMode.fromKey(settings().answerMode.name.lowercase()) },
                     turnHint = { messages ->
-                        listOfNotNull(prompts.turnHint(messages), memoryTurn.hint(messages, toolLanguage(settings())))
-                            .joinToString("\n")
+                        listOfNotNull(
+                            prompts.turnHint(messages),
+                            memoryTurn.hint(messages, toolLanguage(settings()), privateChat = privateChatOpen),
+                        ).joinToString("\n")
                     },
-                    tools = HainTools.router(networkGate, newsRepository, listOf(RememberTool(memory))),
+                    tools =
+                        HainTools.router(networkGate, newsRepository, listOf(RememberTool(memory) { privateChatOpen })),
                     toolContext = {
                         val cfg = settings()
                         ToolContext(
@@ -425,6 +432,7 @@ class MainActivity : FragmentActivity() {
                         } else {
                             val chatViewModel = viewModel { chatViewModel(prompts) { current } }
                             val chatState by chatViewModel.state.collectAsStateWithLifecycle()
+                            SideEffect { privateChatOpen = chatState.privateChat }
                             val brainPicker =
                                 remember(chatViewModel) {
                                     brainPicking.state(chatViewModel::switchBrain) { showPacks = true }

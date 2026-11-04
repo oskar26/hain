@@ -26,6 +26,18 @@ class MemoryTurnTest {
         }
 
     @Test
+    fun privateChatNeitherSavesNorReads() =
+        runTest(UnconfinedTestDispatcher()) {
+            val store = DefaultMemoryStore(InMemoryFactSource(), backgroundScope)
+            store.remember("mag keine Pilze")
+            val turn = MemoryTurn(store, backgroundScope)
+            assertNull(turn.hint(listOf("Merk dir, dass ich Gitarre spiele"), "de", privateChat = true))
+            assertNull(turn.hint(listOf("Vergiss, dass ich keine Pilze mag"), "de", privateChat = true))
+            assertNull(turn.hint(listOf("Hast du ein Rezept mit Pilzen?"), "de", privateChat = true))
+            assertEquals(listOf("mag keine Pilze"), store.facts.value.map { it.text })
+        }
+
+    @Test
     fun laterQuestionsGetTheFittingFact() =
         runTest(UnconfinedTestDispatcher()) {
             val store = DefaultMemoryStore(InMemoryFactSource(), backgroundScope)

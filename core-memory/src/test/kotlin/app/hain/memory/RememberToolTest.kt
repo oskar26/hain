@@ -49,6 +49,15 @@ class RememberToolTest {
         }
 
     @Test
+    fun privateChatSavesNothing() =
+        runTest(UnconfinedTestDispatcher()) {
+            val store = DefaultMemoryStore(InMemoryFactSource(), backgroundScope)
+            val result = RememberTool(store) { true }.run(mapOf("text" to "spielt Gitarre"), ctx)
+            assertEquals("private_chat", result.error)
+            assertTrue(store.facts.value.isEmpty())
+        }
+
+    @Test
     fun memoryOffIsAnError() =
         runTest(UnconfinedTestDispatcher()) {
             val store = DefaultMemoryStore(InMemoryFactSource(), backgroundScope)
