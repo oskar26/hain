@@ -54,7 +54,8 @@ class NewsTool(
         args: Map<String, Any?>,
         ctx: ToolContext,
     ): ToolResult {
-        val query = Args.string(args, "query") ?: Args.string(args, "topic")
+        // T-236: no topic, or only "news" / "Schlagzeilen" → the top headlines, never a question back
+        val query = NewsQuery.topic(Args.string(args, "query") ?: Args.string(args, "topic"))
         val lang = Args.string(args, "lang")?.lowercase(Locale.ROOT)?.takeIf { it == "de" || it == "en" }
         val items = repository.search(query, lang)
         if (items.isEmpty()) {

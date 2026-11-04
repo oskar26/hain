@@ -15,6 +15,7 @@ import kotlinx.serialization.json.JsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.IOException
 import java.time.ZonedDateTime
 
 /** 4d (T-183): wrong names, duplicates and repeated calls in the chat engine. */
@@ -77,6 +78,43 @@ class RobustCallsTest {
             assertEquals(1, weather.places.size)
             assertEquals("9 Grad in Bonn [1].", last.output.text)
             assertTrue(llm.prompts[2].contains("\"error\":\"repeat\""))
+            // T-236: the repeat is not a second line in the timeline
+            assertEquals(1, last.steps.size)
+        }
+
+    /** A web search whose service cannot be reached. */
+    private class DownSearch : Tool {
+        var runs = 0
+        override val online = true
+        override val schema = ToolSchema(ChatEngine.SEARCH_TOOL, "search.", JsonObject(emptyMap()))
+
+        override suspend fun run(
+            args: Map<String, Any?>,
+            ctx: ToolContext,
+        ): ToolResult {
+            runs++
+            throw IOException("HTTP 503")
+        }
+    }
+
+    @Test
+    fun searchThatIsDownIsNotTriedAgainInTheSameTurn() =
+        runTest {
+            val search = DownSearch()
+            val llm =
+                FakeLlm(
+                    listOf(call(ChatEngine.SEARCH_TOOL, "query", "Merz Pistorius")),
+                    listOf(call(ChatEngine.SEARCH_TOOL, "query", "Pistorius Umfrage")),
+                    listOf("Die Suche hat gerade nicht geklappt."),
+                )
+            val engine = ChatEngine(llm, { "SYS" }, tools = ToolRouter(listOf(search)), toolContext = { ctx })
+            val last =
+                engine.respond(listOf(ChatMessage(Role.USER, "Merz oder Pistorius?")), AnswerMode.AUTO).toList().last()
+                    as TurnUpdate.Finished
+            assertEquals(1, search.runs)
+            assertEquals(1, last.steps.size)
+            assertEquals("network", last.steps.single().error)
+            assertTrue(llm.prompts[2].contains("cannot be reached"))
         }
 
     @Test

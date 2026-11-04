@@ -146,7 +146,8 @@ private fun toolText(step: ToolStep): String {
     val tail =
         when {
             step.state == StepState.RUNNING && step.detail == null -> stringResource(R.string.chat_tool_running)
-            step.state == StepState.FAILED -> failureText(step.error)
+            // T-236: what was asked stays visible, and the reason is said plainly
+            step.state == StepState.FAILED -> failedTail(step)
             else -> step.detail
         }
     val fallback =
@@ -161,6 +162,14 @@ private fun toolText(step: ToolStep): String {
     return if (tail.isNullOrBlank()) head else "$head · $tail"
 }
 
+/** "„Merz Pistorius“ · Dienst gerade nicht erreichbar" (T-236). */
+@Composable
+private fun failedTail(step: ToolStep): String =
+    listOfNotNull(
+        step.detail?.takeIf { it.isNotBlank() }?.let { stringResource(R.string.chat_tool_quoted, it) },
+        failureText(step.error),
+    ).joinToString(" · ")
+
 @Composable
 private fun failureText(error: String?): String =
     when (error) {
@@ -170,6 +179,12 @@ private fun failureText(error: String?): String =
         "limit" -> stringResource(R.string.chat_tool_limit)
         "time_up" -> stringResource(R.string.chat_tool_time_up)
         "stopped" -> stringResource(R.string.chat_tool_stopped)
+        // T-236: plain reasons instead of "hat nicht geklappt" for everything
+        "network" -> stringResource(R.string.chat_tool_unreachable)
+        "timeout" -> stringResource(R.string.chat_tool_timeout)
+        "not_found" -> stringResource(R.string.chat_tool_not_found)
+        "missing_argument", "bad_arguments" -> stringResource(R.string.chat_tool_unclear)
+        "no_place" -> stringResource(R.string.chat_tool_no_place)
         else -> stringResource(R.string.chat_tool_failed)
     }
 

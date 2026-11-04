@@ -92,6 +92,12 @@
     <string name="chat_tool_route">Route</string>
     <string name="chat_tool_remember">Remembered</string>
     <string name="chat_tool_failed">didn’t work</string>
+    <string name="chat_tool_quoted">“%1$s”</string>
+    <string name="chat_tool_unreachable">service not reachable right now</string>
+    <string name="chat_tool_timeout">took too long</string>
+    <string name="chat_tool_not_found">nothing found</string>
+    <string name="chat_tool_unclear">request unclear</string>
+    <string name="chat_tool_no_place">no place given</string>
     <string name="chat_tool_offline">you’re offline</string>
     <string name="chat_tool_ask_first">asks first</string>
     <string name="chat_tool_search_off">web search is off</string>

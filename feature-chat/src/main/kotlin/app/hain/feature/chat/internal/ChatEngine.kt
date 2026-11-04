@@ -286,6 +286,9 @@ class ChatEngine(
 
         /** Calls already run in this turn ([ToolCallFixer.key]); a repeat gets a hint instead (4d). */
         val ranKeys = mutableSetOf<String>()
+
+        /** T-236: the web search could not be reached in this turn; more searches would fail the same way. */
+        var searchDown = false
         val reasoning = StringBuilder()
         var thinkingMs = 0L
         var searches = 0
@@ -369,15 +372,26 @@ class ChatEngine(
         turn.researching = true
         val planned =
             calls.map { call ->
-                val repeat = !turn.ranKeys.add(ToolCallFixer.key(call))
+                // T-236: the same call again, or a search while the search service is down this turn:
+                // the brain gets a hint, nothing runs and no second "Suche · hat nicht geklappt" shows
+                val repeat =
+                    !turn.ranKeys.add(ToolCallFixer.key(call)) || (call.name == SEARCH_TOOL && turn.searchDown)
                 val search = call.name == SEARCH_TOOL && !repeat
                 val refused = search && turn.searches >= turn.budget.maxSearches
                 if (search && !refused) turn.searches++
                 val step = ToolStep(call.name, detailOf(call), StepState.RUNNING, router.isOnline(call.name))
                 Planned(call, step, refused, repeat)
             }
-        val firstStep = turn.steps.size
-        planned.forEach { turn.steps += it.step }
+        // index of each call's line in the timeline; repeats have none
+        val stepAt =
+            planned.map { p ->
+                if (p.repeat) {
+                    null
+                } else {
+                    turn.steps += p.step
+                    turn.steps.lastIndex
+                }
+            }
         emitProgress(turn, thinking)
         val results =
             guarded(turn) {
@@ -386,6 +400,8 @@ class ChatEngine(
                         .map { p ->
                             async {
                                 when {
+                                    p.repeat && p.call.name == SEARCH_TOOL && turn.searchDown ->
+                                        ToolRouter.failure("repeat", SEARCH_DOWN_HINT)
                                     p.repeat -> ToolRouter.failure("repeat", REPEAT_HINT)
                                     p.refused -> ToolRouter.failure("limit", LIMIT_HINT)
                                     else -> router.run(p.call, ctx)
@@ -397,13 +413,16 @@ class ChatEngine(
         results.forEachIndexed { i, result ->
             // a Wikipedia call that became a web search used one of the searches
             if (result.via == SEARCH_TOOL && planned[i].call.name != SEARCH_TOOL) turn.searches++
-            turn.steps[firstStep + i] =
-                planned[i].step.copy(
-                    detail = result.label ?: planned[i].step.detail,
-                    state = if (result.error == null) StepState.DONE else StepState.FAILED,
-                    error = result.error,
-                    via = result.via,
-                )
+            if (planned[i].call.name == SEARCH_TOOL && result.error in SERVICE_DOWN) turn.searchDown = true
+            stepAt[i]?.let { at ->
+                turn.steps[at] =
+                    planned[i].step.copy(
+                        detail = result.label ?: planned[i].step.detail,
+                        state = if (result.error == null) StepState.DONE else StepState.FAILED,
+                        error = result.error,
+                        via = result.via,
+                    )
+            }
             // a phone action is only prepared here; the card under the answer asks before anything happens
             result.action?.let { turn.actions += ActionCard(it) }
             // T-072: headlines for the NewsCard, each article once
@@ -732,6 +751,12 @@ class ChatEngine(
         const val NOTES_STEP = "notes"
 
         private const val LIMIT_HINT = "No more searches for this answer. Answer with what you found."
+
+        /** T-236: errors that mean the search service itself is not reachable right now. */
+        private val SERVICE_DOWN = setOf("network", "timeout")
+        private const val SEARCH_DOWN_HINT =
+            "The web search cannot be reached right now. Do not search again; answer from what you know " +
+                "and say plainly that the search did not work."
         private const val REPEAT_HINT =
             "You already ran this exact call above. Answer from that result, or try other words once."
         private const val CUT_HINT = "The research was ended. Answer with what you found so far."
