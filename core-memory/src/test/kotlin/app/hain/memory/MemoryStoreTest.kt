@@ -112,7 +112,7 @@ class MemoryStoreTest {
             store.remember("spielt Gitarre")
             val context = store.context("Rezept mit Pilzen", "de", now = 2_000L)!!
             assertEquals(listOf("mag keine Pilze"), context.used.map { it.text })
-            assertTrue(context.block.startsWith("Das weißt du über den Nutzer"))
+            assertTrue(context.block.startsWith("Das hat der Nutzer dir über sich gesagt"))
             assertTrue(context.block.contains("- mag keine Pilze (1970-01-01)"))
         }
 

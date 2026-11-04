@@ -54,6 +54,8 @@ object MemoryBlock {
         }
 
     private val DAY = DateTimeFormatter.ISO_LOCAL_DATE
-    private const val HEAD_DE = "Das weißt du über den Nutzer (nur nutzen, wenn es zur Frage passt):"
-    private const val HEAD_EN = "What you know about the user (use it only when it fits the question):"
+
+    // the facts are often the user's own words ("ich keine Pilze mag"), so "ich" means the user
+    private const val HEAD_DE = "Das hat der Nutzer dir über sich gesagt (nur nutzen, wenn es zur Frage passt):"
+    private const val HEAD_EN = "What the user told you about themselves (use it only when it fits the question):"
 }
