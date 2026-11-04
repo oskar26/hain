@@ -103,9 +103,15 @@ object ToolSpecs {
             aliases = o.map("aliases"),
         )
 
-    private fun JsonObject.str(key: String): String = requireNotNull(this[key]?.jsonPrimitive?.content) { "missing $key" }
+    private fun JsonObject.str(key: String): String {
+        val value = this[key]?.jsonPrimitive?.content
+        return requireNotNull(value) { "missing $key" }
+    }
 
-    private fun JsonObject.list(key: String): List<String> = (this[key] as? JsonArray)?.map { it.jsonPrimitive.content }.orEmpty()
+    private fun JsonObject.list(key: String): List<String> {
+        val array = this[key] as? JsonArray ?: return emptyList()
+        return array.map { it.jsonPrimitive.content }
+    }
 
     private fun JsonObject.map(key: String): Map<String, String> =
         (this[key] as? JsonObject)?.mapValues { it.value.jsonPrimitive.content }.orEmpty()

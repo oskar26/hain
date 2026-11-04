@@ -58,7 +58,11 @@ internal fun say(
             PhoneAction.ADD_EVENT -> if (de) "Der Termin $label" else "The event $label"
             else -> if (de) "Die Route zu $label" else "The route to $label"
         }
-    return if (de) "$what ist vorbereitet – tipp auf der Karte auf den Knopf." else "$what is ready – tap the button on the card."
+    return if (de) {
+        "$what ist vorbereitet – tipp auf der Karte auf den Knopf."
+    } else {
+        "$what is ready – tap the button on the card."
+    }
 }
 
 private const val TAP_HINT = "Nothing is done yet. Answer with the sentence in say; never say it is set or added."

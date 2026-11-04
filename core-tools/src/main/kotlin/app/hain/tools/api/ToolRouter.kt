@@ -94,7 +94,10 @@ class ToolRouter(
     ): ToolResult {
         val tool =
             byName[call.name]
-                ?: return failure("unknown_tool", "There is no tool called ${call.name}. Use one of: ${byName.keys.joinToString()}.")
+                ?: return failure(
+                    "unknown_tool",
+                    "There is no tool called ${call.name}. Use one of: ${byName.keys.joinToString()}.",
+                )
         if (tool.online && ctx.offline) return failure("offline", OFFLINE_HINT)
         return try {
             withTimeout(timeoutMs) { attempt(tool, call, ctx) }

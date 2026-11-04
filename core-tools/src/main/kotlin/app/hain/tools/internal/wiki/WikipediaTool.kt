@@ -40,9 +40,15 @@ class WikipediaTool(
         val summary =
             lookUp(topic, lang)
                 ?: lookUp(topic, if (lang == "de") "en" else "de")
-                ?: return ToolRouter.failure("not_found", "Wikipedia has no page about '$topic'. Try web_search with other words.")
+                ?: return ToolRouter.failure(
+                    "not_found",
+                    "Wikipedia has no page about '$topic'. Try web_search with other words.",
+                )
         if (summary.disambiguation) {
-            return ToolRouter.failure("disambiguation", "'$topic' has several meanings on Wikipedia. Ask the user which one they mean.")
+            return ToolRouter.failure(
+                "disambiguation",
+                "'$topic' has several meanings on Wikipedia. Ask the user which one they mean.",
+            )
         }
         val json =
             buildJsonObject {

@@ -23,6 +23,8 @@ import kotlinx.serialization.json.jsonObject
 class RepairingToolCallParser(
     private val strict: XmlToolCallParser = XmlToolCallParser(),
 ) : ToolCallParser {
+    // Early returns keep the "strict first, repair only on error" order readable.
+    @Suppress("ReturnCount")
     override fun parse(output: String): ParsedOutput {
         val first = strict.parse(output)
         if (first.errors.isEmpty()) return first
@@ -48,7 +50,10 @@ class RepairingToolCallParser(
         private val BLOCK = Regex("""<tool_call>(.*?)</tool_call>""", RegexOption.DOT_MATCHES_ALL)
         private val FUNCTION = Regex("""^<function=([A-Za-z0-9_.\-]{1,64})>""")
         private val PARAM =
-            Regex("""<parameter=([A-Za-z0-9_.\-]{1,64})>(.*?)(?=</parameter>|<parameter=|$)""", RegexOption.DOT_MATCHES_ALL)
+            Regex(
+                """<parameter=([A-Za-z0-9_.\-]{1,64})>(.*?)(?=</parameter>|<parameter=|$)""",
+                RegexOption.DOT_MATCHES_ALL,
+            )
         private val PY_CALL = Regex("""^([A-Za-z_][A-Za-z0-9_.\-]{0,63})\((.*)\)$""", RegexOption.DOT_MATCHES_ALL)
         private val PY_ARG = Regex("""([A-Za-z_]\w*)\s*=\s*("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|[^,]+)""")
         private val lenientJson = Json { isLenient = true }
@@ -64,6 +69,8 @@ class RepairingToolCallParser(
             return Repaired(rest, calls)
         }
 
+        // One early return per call shape (XML, JSON, Python-like) reads clearer than a nested when.
+        @Suppress("ReturnCount")
         private fun block(
             body: String,
             index: Int,
@@ -110,7 +117,8 @@ class RepairingToolCallParser(
             val args =
                 when (rawArgs) {
                     is JsonObject -> rawArgs
-                    is JsonPrimitive -> runCatching { lenientJson.parseToJsonElement(rawArgs.content).jsonObject }.getOrNull()
+                    is JsonPrimitive ->
+                        runCatching { lenientJson.parseToJsonElement(rawArgs.content).jsonObject }.getOrNull()
                     else -> null
                 } ?: JsonObject(emptyMap())
             val values = args.mapValuesTo(linkedMapOf()) { (_, v) -> XmlToolCallParser.toValue(plain(v.toString())) }
