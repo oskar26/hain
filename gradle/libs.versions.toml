@@ -38,6 +38,7 @@ sqlcipher = "4.10.0"
 androidxSqlite = "2.5.2"
 robolectric = "4.16"
 androidxTestCore = "1.7.0"
+pdfboxAndroid = "2.0.27.0"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
@@ -89,6 +90,9 @@ androidx-sqlite = { module = "androidx.sqlite:sqlite", version.ref = "androidxSq
 androidx-sqlite-bundled-jvm = { module = "androidx.sqlite:sqlite-bundled-jvm", version.ref = "androidxSqlite" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
+
+# Documents (DOCS_OCR.md, Häppchen 9) — see LICENSES.md
+pdfbox-android = { module = "com.tom-roush:pdfbox-android", version.ref = "pdfboxAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
