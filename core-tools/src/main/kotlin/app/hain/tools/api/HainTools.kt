@@ -9,8 +9,8 @@ import app.hain.tools.internal.phone.SetTimerTool
 import app.hain.tools.internal.search.PageReader
 import app.hain.tools.internal.search.ReadPageTool
 import app.hain.tools.internal.search.SearchTool
-import app.hain.tools.internal.weather.WeatherTool
 import app.hain.tools.internal.time.ClockAnswer
+import app.hain.tools.internal.weather.WeatherTool
 import app.hain.tools.internal.wiki.WikipediaTool
 import java.time.ZonedDateTime
 

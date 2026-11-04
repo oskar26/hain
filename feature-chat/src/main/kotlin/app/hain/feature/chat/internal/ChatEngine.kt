@@ -18,6 +18,7 @@ import app.hain.llm.internal.ThinkingPolicy
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.ResearchBudget
 import app.hain.tools.api.ResearchNotes
+import app.hain.tools.api.ToolCallFixer
 import app.hain.tools.api.ToolContext
 import app.hain.tools.api.ToolResult
 import app.hain.tools.api.ToolRouter
@@ -155,7 +156,12 @@ class ChatEngine(
             val system = systemPrompt(promptAnchor())
             val schemas = tools?.schemas(ctx.offline).orEmpty()
             val researchHint = if (schemas.isNotEmpty() && !ctx.offline) researchHint(mode, ctx.lang) else null
-            val base = withLanguageHint(history, lastUser, researchHint)
+            val online = schemas.any { tools?.isOnline(it.name) == true }
+            val followUp =
+                (if (online) FollowUp.link(history, ctx.lang) else null)
+                    ?: if (schemas.isNotEmpty()) FollowUp.hint(history, ctx.lang) else null
+            val hints = listOfNotNull(researchHint, followUp).joinToString(" ").ifBlank { null }
+            val base = withLanguageHint(history, lastUser, hints)
             val turn = Turn(budget, lastUser)
             active = turn
             try {
@@ -176,8 +182,13 @@ class ChatEngine(
                         round = budget.maxRounds
                         continue
                     }
-                    val calls = result.output.toolCalls.take(budget.callsPerRound)
                     val router = tools
+                    // 4d: real names and parameters, dates relative to now, the same call only once
+                    val calls =
+                        router
+                            ?.let { r -> ToolCallFixer.dedupe(result.output.toolCalls.map { r.fix(it, ctx).call }) }
+                            .orEmpty()
+                            .take(budget.callsPerRound)
                     val answered = calls.isEmpty() || roundTools.isEmpty() || result.reason != StopReason.END
                     if (router == null || answered) {
                         val earlier = turn.reasoning.toString().trim()
@@ -228,6 +239,9 @@ class ChatEngine(
         val notes = ResearchNotes()
         val readUrls = mutableSetOf<String>()
         val readSites = mutableSetOf<String>()
+
+        /** Calls already run in this turn ([ToolCallFixer.key]); a repeat gets a hint instead (4d). */
+        val ranKeys = mutableSetOf<String>()
         val reasoning = StringBuilder()
         var thinkingMs = 0L
         var searches = 0
@@ -289,6 +303,7 @@ class ChatEngine(
         val call: ToolCall,
         val step: ToolStep,
         val refused: Boolean,
+        val repeat: Boolean = false,
     )
 
     /**
@@ -309,11 +324,12 @@ class ChatEngine(
         turn.researching = true
         val planned =
             calls.map { call ->
-                val search = call.name == SEARCH_TOOL
+                val repeat = !turn.ranKeys.add(ToolCallFixer.key(call))
+                val search = call.name == SEARCH_TOOL && !repeat
                 val refused = search && turn.searches >= turn.budget.maxSearches
                 if (search && !refused) turn.searches++
                 val step = ToolStep(call.name, detailOf(call), StepState.RUNNING, router.isOnline(call.name))
-                Planned(call, step, refused)
+                Planned(call, step, refused, repeat)
             }
         val firstStep = turn.steps.size
         planned.forEach { turn.steps += it.step }
@@ -324,7 +340,11 @@ class ChatEngine(
                     planned
                         .map { p ->
                             async {
-                                if (p.refused) ToolRouter.failure("limit", LIMIT_HINT) else router.run(p.call, ctx)
+                                when {
+                                    p.repeat -> ToolRouter.failure("repeat", REPEAT_HINT)
+                                    p.refused -> ToolRouter.failure("limit", LIMIT_HINT)
+                                    else -> router.run(p.call, ctx)
+                                }
                             }
                         }.awaitAll()
                 }
@@ -556,6 +576,9 @@ class ChatEngine(
     ): TurnUpdate.Finished? {
         if (tools == null) return null
         val last = history.lastOrNull()?.takeIf { it.role == Role.USER } ?: return null
+        HainTools.clockAnswer(last.content, ctx.now, ctx.lang)?.let { clock ->
+            return TurnUpdate.Finished(ParsedOutput(null, clock, emptyList()), StopReason.END, null, emptyList())
+        }
         val answer = HainTools.quickAnswer(last.content, ctx.lang) ?: return null
         return TurnUpdate.Finished(
             ParsedOutput(null, answer, emptyList()),
@@ -635,6 +658,8 @@ class ChatEngine(
         const val NOTES_STEP = "notes"
 
         private const val LIMIT_HINT = "No more searches for this answer. Answer with what you found."
+        private const val REPEAT_HINT =
+            "You already ran this exact call above. Answer from that result, or try other words once."
         private const val CUT_HINT = "The research was ended. Answer with what you found so far."
         private const val OTHER_HITS = 3
         private const val COMPACT_CHARS = 400

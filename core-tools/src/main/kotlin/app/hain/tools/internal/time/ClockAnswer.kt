@@ -12,14 +12,35 @@ import java.util.Locale
 internal object ClockAnswer {
     private val TIME =
         listOf(
-            "wie spät ist es", "wie spaet ist es", "wie spät is es", "wieviel uhr ist es", "wie viel uhr ist es",
-            "uhrzeit", "wie spät", "what time is it", "whats the time", "what's the time", "what is the time", "time",
+            "wie spät ist es",
+            "wie spaet ist es",
+            "wie spät is es",
+            "wieviel uhr ist es",
+            "wie viel uhr ist es",
+            "uhrzeit",
+            "wie spät",
+            "what time is it",
+            "whats the time",
+            "what's the time",
+            "what is the time",
+            "time",
         )
     private val DATE =
         listOf(
-            "welcher tag ist heute", "welcher tag ist", "welches datum ist heute", "welches datum haben wir",
-            "der wievielte ist heute", "was ist heute für ein tag", "datum", "what day is it", "what day is it today",
-            "what's the date", "whats the date", "what is the date", "what's today's date", "what is today's date",
+            "welcher tag ist heute",
+            "welcher tag ist",
+            "welches datum ist heute",
+            "welches datum haben wir",
+            "der wievielte ist heute",
+            "was ist heute für ein tag",
+            "datum",
+            "what day is it",
+            "what day is it today",
+            "what's the date",
+            "whats the date",
+            "what is the date",
+            "what's today's date",
+            "what is today's date",
         )
     private val CLEAN = Regex("""[?!.,]+""")
 
