@@ -428,6 +428,8 @@ internal fun MessageList(
                         cheer = cheerId == message.id,
                         latest = message.id == last?.id,
                         extras = extras,
+                        // 7b: the user messages up to this answer, for the memory chips
+                        userMessages = { userMessagesBefore(state.messages, message.id) },
                         rating = ratings[message.id],
                         canRetry = !state.isGenerating,
                         onRetry = { onRetry(message.id) },
@@ -450,6 +452,12 @@ internal fun MessageList(
         )
     }
 }
+
+/** 7b: the user messages of the chat up to the answer [answerId]. */
+internal fun userMessagesBefore(
+    messages: List<UiMessage>,
+    answerId: Long,
+): List<String> = messages.takeWhile { it.id != answerId }.filter { it.isUser }.map { it.text }
 
 /** Own message: a short tap shows edit and copy below it, on the right (T-057, like Gemini). */
 @Composable
@@ -509,6 +517,7 @@ private fun Answer(
     extras: ChatExtras = ChatExtras(),
     modifier: Modifier = Modifier,
     branch: @Composable () -> Unit = {},
+    userMessages: () -> List<String> = { emptyList() },
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
@@ -562,6 +571,7 @@ private fun Answer(
                 // T-072: headlines of the news tool
                 if (message.news.isNotEmpty()) AnswerNews(message.news)
                 SourceChips(message.sources)
+                extras.answerFooter?.let { footer -> footer(remember(message.id) { userMessages() }) }
             }
             if (message.stopped) {
                 BasicText(stringResource(R.string.chat_stopped), style = type.label.copy(color = colors.textMuted))

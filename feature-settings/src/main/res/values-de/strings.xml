@@ -201,4 +201,5 @@
     <string name="settings_export_title">Export</string>
     <string name="settings_export_all">Alle Chats exportieren</string>
     <string name="settings_export_all_hint">Eine ZIP-Datei mit jedem Chat als Markdown-Datei. Du wählst, wo sie gespeichert wird.</string>
+    <string name="packs_embed_desc">Suche nach Bedeutung: Pim findet deine Erinnerungen auch, wenn du andere Worte benutzt. Klein, läuft offline, und alles bleibt auf dem Handy.</string>
 </resources>

@@ -24,8 +24,11 @@ android {
 dependencies {
     implementation(project(":core-data"))
     api(project(":core-tools"))
+    api(project(":core-llm"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.core)
+    // T-114: background extraction after a chat
+    implementation(libs.androidx.work.runtime.ktx)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

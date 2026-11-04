@@ -535,3 +535,20 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Modelle: `Masterx/moonshine-streaming-small-de-ONNX@5d6dadc…` und `Masterx/moonshine-streaming-small-ONNX@dafc41f…` (MIT, Export der offiziellen moonshine-ai-Gewichte mit dem offiziellen Rezept); SHA-256 aus den LFS-OIDs bzw. selbst berechnet und auf dem Host gegengeprüft. Offizielles EN-ONNX von moonshine-ai gibt es nur als `.ort` und fp32-Decoder (größer), offizielles DE nur als safetensors.
 - Pocket-TTS-Stand: öffentliche ONNX-Exporte nur Englisch mit fest eingebauter Stimme `alba` (soniqo, Exporter csukuangfj/pocket-tts-onnx-export); Arms DE-Paket braucht deren geschlossene Engine. Für „anna“ + Deutsch braucht es einen eigenen Export (T-143).
 - Gradle nicht lokal (Sprint-Regel) → CI. ktlint 1.5.0 + detekt 1.23.8 CLI auf allen geänderten Dateien grün, `check_strings.py` OK.
+
+## 2026-11-04 · T-110, T-114, T-116, T-117 (0.1.7.1 – Gedächtnis Teil 2) · review · harness: Hark · model: Hark · branch `hark/day-7b` (Draft-PR #46, Basis `hark/day-7`)
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-110 | review | `VectorsTest` (Kosinus, Kalibrierung, Bytes), `HybridRecallTest` (Gewichte der Spec, Bedeutung ohne gemeinsame Wörter, ohne Paket nur Stichwörter, Vektor neu nach Bearbeiten, nächster Fakt), `HainMigrationTest.version3MigratesToVersion5WithVectors`; nativer Teil nur in CI (apk.yml) gebaut, auf dem Host mit echtem Modell gemessen (1024 Werte, ~45 ms/Fakt, 2 Kerne) | `hain_llm.cpp` (Init mit Mutex, 3 JNI-Funktionen), `NativeLlm.kt`, `MemoryDao`, `HainDatabase` (v5) | RAM neben dem Gehirn auf dem Handy nicht gemessen; kein instrumentierter Test |
+| T-114 | review | `FactExtractorTest` (nur Vorschläge, Duplikate, update → Vorschlag mit `replaces` + Annehmen setzt `superseded_by`, Kosinus-Schwellen mit Embedder, Gedächtnis aus/Gehirn scheitert, strenges JSON, Wortähnlichkeit, ≤ 12 Nachrichten), `ExtractionAssetsTest` (Prompts = Assets, Akku-Regel), `MemoryTurnTest` | `LlmEngine`/`LlamaEngine` (`SamplingParams.grammar`), `RememberTool` (`onSaved`) | Läuft auf dem Gehirn des Chats (Cache danach neu); Worker ohne Gerätetest |
+| T-116 | review | `MemoryListTest` (Themen, „Ersetzt“, Chips, Kachel-Zustand), `AnswerFooterTest`; Screenshots `memory_topics_light`, `memory_suggestions_replaces_dark`, `memory_smart_search_dark`, `memory_answer_chips_light` | `feature-chat` (`ChatExtras.answerFooter`, ChatScreen: Slot unter der Antwort), `feature-settings` (Beschreibung kind `embed`) | Chips nur im Speicher (nach Neustart weg) |
+| T-117 | review | `CatalogParserTest.bundledCatalogHasTheEmbedderPack`, `ChatEngineTest.memoryLineFollowsTheLanguageHintOffTheMainThread`, `ChatViewModelTest.aFinishedAnswerTellsTheMemoryButAStoppedOneDoesNot` | `HainApp` (Hilt-Felder), `AppModule`, `MainActivity` | – |
+
+- Ablauf: der vorige Lauf hatte den Code geschrieben, aber nichts committet (Sicherung `/workspace/work/hain-7b-wip/tree`); dieser Lauf hat ihn übernommen, lint-sauber gemacht, als T-110/T-114 committet und UI + Verdrahtung ergänzt.
+- DB: Version 5. Version 4 gehört Häppchen 8b; hier ist `MIGRATION_3_4` ein leerer Platzhalter mit gleichem Namen (beim Mergen von 8b dessen Migration behalten, Platzhalter löschen). `schemas/…/5.json` aus dem CI-Artifact `room-schemas` eingecheckt.
+- Abweichung von MEMORY.md §2.3: die Extraktion legt **alles** als Vorschlag ab (nicht nur Heikles) – Oskar entscheidet, ob Unheikles direkt aktiv werden soll. sqlite-vec nicht genutzt (Kosinus in Kotlin).
+- Konflikt erwartet mit `hark/rest-tools-cards` (ändert ebenfalls `hain_llm.cpp`/`hain_session.h` und `LlmEngine` für Grammatik während der Antwort): dort nicht eingegriffen.
+- Gradle nicht lokal (Vorgabe): ktlint 1.5.0 + detekt 1.23.8 CLI + `check_strings.py` lokal grün; Rest über CI, APK, Screens.
+- Nächstes: Oskar lädt unter Einstellungen → Gedächtnis „Suche nach Bedeutung“, merkt sich „Ich mag keine Pilze“ und fragt „Was soll ich heute kochen?“ (Chip „1 Erinnerung genutzt“); nach einem Chat über Familie 2 min warten → Vorschläge.
+

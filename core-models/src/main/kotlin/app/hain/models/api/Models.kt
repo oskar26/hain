@@ -28,6 +28,14 @@ data class ModelInfo(
 
     /** Packs of several files (dictation: graphs + tokenizer) live in their own folder (T-140). */
     val isMultiFile: Boolean get() = files.size > 1
+
+    companion object {
+        /** The default chat brain. */
+        const val KIND_BRAIN = "brain"
+
+        /** The pack "Suche nach Bedeutung" for the memory (T-110, MEMORY.md §3). */
+        const val KIND_EMBED = "embed"
+    }
 }
 
 /** Progress of one model download. */

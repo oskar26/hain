@@ -13,6 +13,8 @@ data class SamplingParams(
     val repeatLastN: Int = 64,
     val maxTokens: Int = 1024,
     val seed: Int = -1,
+    /** GBNF grammar the answer must follow (rule `root`), e.g. JSON for the memory (T-114); `null` = free text. */
+    val grammar: String? = null,
 ) {
     fun toArray(): FloatArray =
         floatArrayOf(

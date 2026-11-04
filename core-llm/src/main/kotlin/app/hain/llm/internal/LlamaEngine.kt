@@ -125,7 +125,7 @@ class LlamaEngine(
                     prompt.encodeToByteArray(),
                     byteOffsets(prompt, checkpoints),
                     params.toArray(),
-                    null,
+                    params.grammar,
                 ) { bytes ->
                     if (first) {
                         first = false

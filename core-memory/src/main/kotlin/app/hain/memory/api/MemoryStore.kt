@@ -11,6 +11,9 @@ interface MemoryStore {
     /** Active and suggested facts, newest first. */
     val facts: StateFlow<List<MemoryFact>>
 
+    /** Topics with the user's own notes (MEMORY.md L1, "Themen" tab). */
+    val topics: StateFlow<List<MemoryTopic>>
+
     /** "Gedächtnis" switch on the memory page; on by default. */
     val enabled: StateFlow<Boolean>
 
@@ -20,12 +23,14 @@ interface MemoryStore {
      * Keeps [text] (trimmed, at most [MemoryFact.MAX_CHARS]). Returns the new fact, the existing one
      * when the same text is already kept, or `null` when the memory is off or the text is empty.
      */
+    @Suppress("LongParameterList") // all optional, named at the call
     suspend fun remember(
         text: String,
         category: MemoryCategory = MemoryCategory.OTHER,
         sensitive: Boolean = false,
         suggested: Boolean = false,
         originChatId: Long? = null,
+        replaces: Long? = null,
     ): MemoryFact?
 
     suspend fun edit(
@@ -39,7 +44,7 @@ interface MemoryStore {
     /** Puts a fact deleted a moment ago back ("Rückgängig"). */
     suspend fun restore(fact: MemoryFact)
 
-    /** A suggestion becomes a normal fact. */
+    /** A suggestion becomes a normal fact; one that [MemoryFact.replaces] an older fact puts that one out of use. */
     suspend fun accept(id: Long)
 
     suspend fun deleteAll()
@@ -58,6 +63,31 @@ interface MemoryStore {
         now: Long = System.currentTimeMillis(),
     ): MemoryContext?
 
+    /**
+     * Like [context], but with the embedder (T-110) when its pack is installed: the question is
+     * embedded and the ranking is hybrid (MEMORY.md §3); without the pack, keywords only.
+     */
+    suspend fun recall(
+        query: String,
+        lang: String,
+        now: Long = System.currentTimeMillis(),
+    ): MemoryContext? = context(query, lang, now)
+
+    /**
+     * The kept or suggested fact closest in meaning to [text] and its cosine (T-114 dedupe), or
+     * `null` without the embedder or without facts.
+     */
+    suspend fun nearest(text: String): Nearest? = null
+
+    /** True when the embedder pack is installed, so recall is by meaning too. */
+    fun smartSearch(): Boolean = false
+
+    /** Sets the note of the topic [title]; an empty note removes it. */
+    suspend fun setTopicNote(
+        title: String,
+        note: String,
+    )
+
     /** All facts as JSON for the user's own backup (MEMORY.md §4). */
     fun exportJson(): String
 
@@ -69,4 +99,10 @@ interface MemoryStore {
 data class MemoryContext(
     val block: String,
     val used: List<MemoryFact>,
+)
+
+/** The closest fact to a text by meaning and their cosine (−1..1). */
+data class Nearest(
+    val fact: MemoryFact,
+    val cosine: Double,
 )

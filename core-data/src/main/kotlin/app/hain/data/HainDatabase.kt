@@ -16,6 +16,7 @@ import app.hain.data.entities.ChatEntity
 import app.hain.data.entities.ChatSummaryEntity
 import app.hain.data.entities.MemoryFactEntity
 import app.hain.data.entities.MemoryFactFts
+import app.hain.data.entities.MemoryFactVecEntity
 import app.hain.data.entities.MemoryTopicEntity
 import app.hain.data.entities.MessageEntity
 import app.hain.data.entities.MessageFts
@@ -33,9 +34,10 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
         MemoryFactEntity::class,
         MemoryFactFts::class,
         MemoryTopicEntity::class,
+        MemoryFactVecEntity::class,
     ],
-    // 3 = Häppchen 7 memory (PR #38); 4 = T-057 branches (selected_at + parent_id filled in, PR #47)
-    version = 4,
+    // 3 = memory (PR #38); 4 = T-057 branches (PR #47); 5 = memory part 2: vectors + `replaces` (PR #46)
+    version = 5,
     exportSchema = true,
 )
 abstract class HainDatabase : RoomDatabase() {
@@ -108,6 +110,22 @@ abstract class HainDatabase : RoomDatabase() {
                 }
             }
 
+        /**
+         * Version 5 (7b, T-110/T-114): fact vectors in `memory_fact_vec` and `memory_fact.replaces`
+         * for suggestions that would replace an older fact. Same SQL as Room generates (HainMigrationTest).
+         */
+        @Suppress("MagicNumber") // schema versions
+        val MIGRATION_4_5 =
+            object : Migration(4, 5) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    MEMORY_V5_SQL.forEach(db::execSQL)
+                }
+
+                override fun migrate(connection: SQLiteConnection) {
+                    MEMORY_V5_SQL.forEach { connection.execSQL(it) }
+                }
+            }
+
         /** Opens the encrypted database. The key comes from [KeyProvider] and never leaves memory unwrapped. */
         fun open(
             context: Context,
@@ -120,7 +138,7 @@ abstract class HainDatabase : RoomDatabase() {
             return Room
                 .databaseBuilder(context.applicationContext, HainDatabase::class.java, NAME)
                 .openHelperFactory(factory)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                 .build()
         }
     }
@@ -166,3 +184,13 @@ internal object BranchSql {
         return listOfNotNull(add, LINK_PARENTS)
     }
 }
+
+/** Vectors and the `replaces` link of the memory (DB version 5, 7b). */
+internal val MEMORY_V5_SQL =
+    listOf(
+        "ALTER TABLE `memory_fact` ADD COLUMN `replaces` INTEGER",
+        "CREATE TABLE IF NOT EXISTS `memory_fact_vec` (`fact_id` INTEGER NOT NULL, `model` TEXT NOT NULL, " +
+            "`text_hash` INTEGER NOT NULL, `dim` INTEGER NOT NULL, `vector` BLOB NOT NULL, " +
+            "PRIMARY KEY(`fact_id`), FOREIGN KEY(`fact_id`) REFERENCES `memory_fact`(`id`) " +
+            "ON UPDATE NO ACTION ON DELETE CASCADE )",
+    )

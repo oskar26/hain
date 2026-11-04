@@ -32,6 +32,7 @@ import app.hain.tools.internal.search.PageReader
 import app.hain.tools.internal.search.ReadPage
 import app.hain.tools.internal.search.SearchTool
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -44,6 +45,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -120,6 +122,11 @@ class ChatEngine(
     private val tuning: () -> DevSettings = { DevSettings() },
     /** `true` while an own GGUF from developer mode is the brain: its template, no tools (T-211). */
     private val ownModel: () -> Boolean = { false },
+    /**
+     * 7b: the memory's line for this turn (facts that fit, "Gemerkt"), after [turnHint]. It may embed
+     * the question with the memory pack, so it runs off the main thread and may suspend.
+     */
+    private val memoryHint: (suspend (userMessages: List<String>) -> String?)? = null,
 ) {
     private val ggufBuilder = GgufPromptBuilder(llm::applyTemplate)
 
@@ -677,14 +684,19 @@ class ChatEngine(
      * History plus the one-line language hint and, for a research, how to research (not stored,
      * after the cached part of the prompt).
      */
-    private fun withLanguageHint(
+    private suspend fun withLanguageHint(
         history: List<ChatMessage>,
         lastUser: String,
         research: String? = null,
     ): List<ChatMessage> {
         val userMessages = history.filter { it.role == Role.USER }.map { it.content }.ifEmpty { listOf(lastUser) }
+        val memory = memoryHint?.let { hint -> withContext(Dispatchers.Default) { hint(userMessages) } }
+        val lines =
+            listOfNotNull(turnHint(userMessages), memory)
+                .filter { it.isNotBlank() }
+                .joinToString("\n")
         val hint =
-            listOfNotNull(turnHint(userMessages)?.takeIf { it.isNotBlank() }, research)
+            listOfNotNull(lines.ifBlank { null }, research)
                 .joinToString(" ")
                 .ifBlank { null } ?: return history
         return history + ChatMessage(Role.SYSTEM, hint)

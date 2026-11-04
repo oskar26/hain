@@ -18,7 +18,8 @@ import java.io.File
 
 /**
  * T-057: a chat written by version 2 (built from the exported schema `schemas/…/2.json`) opens with
- * version 4, through the memory tables of version 3 (#38) and the branches of version 4 (#47).
+ * the current version 5, through the memory tables of version 3 (#38), the branches of version 4 (#47)
+ * and the memory vectors of version 5 (#46).
  * Room checks every table against the entities; old messages become one straight line
  * (each one's parent is the message before it), and the new `selected_at` column can be used.
  */
@@ -104,8 +105,12 @@ class BranchMigrationTest {
         Room
             .databaseBuilder(ApplicationProvider.getApplicationContext(), HainDatabase::class.java, file.absolutePath)
             .setDriver(BundledSQLiteDriver())
-            .addMigrations(HainDatabase.MIGRATION_1_2, HainDatabase.MIGRATION_2_3, HainDatabase.MIGRATION_3_4)
-            .build()
+            .addMigrations(
+                HainDatabase.MIGRATION_1_2,
+                HainDatabase.MIGRATION_2_3,
+                HainDatabase.MIGRATION_3_4,
+                HainDatabase.MIGRATION_4_5,
+            ).build()
 
     private fun message(
         id: Long,

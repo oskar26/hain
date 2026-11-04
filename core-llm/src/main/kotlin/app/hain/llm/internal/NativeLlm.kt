@@ -85,4 +85,19 @@ internal object NativeLlm {
         contents: Array<ByteArray>,
         addAssistant: Boolean,
     ): ByteArray?
+
+    /** T-110: loads an embedding GGUF with its own context of [nCtx] tokens; 0 on failure. */
+    external fun nativeEmbedLoad(
+        path: String,
+        nCtx: Int,
+        nThreads: Int,
+    ): Long
+
+    external fun nativeEmbedFree(handle: Long)
+
+    /** L2-normalised vector of [textUtf8], `null` when it failed. */
+    external fun nativeEmbed(
+        handle: Long,
+        textUtf8: ByteArray,
+    ): FloatArray?
 }

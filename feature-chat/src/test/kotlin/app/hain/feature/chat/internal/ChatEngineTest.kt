@@ -97,6 +97,29 @@ class ChatEngineTest {
         }
 
     @Test
+    fun memoryLineFollowsTheLanguageHintOffTheMainThread() =
+        runTest {
+            val llm = FakeLlm(listOf("Ohne Pilze."))
+            var thread = ""
+            val engine =
+                ChatEngine(
+                    llm,
+                    { "S" },
+                    turnHint = { "Antworte auf Deutsch." },
+                    memoryHint = { messages ->
+                        thread = Thread.currentThread().name
+                        "Relevant: - mag keine Pilze (${messages.size})"
+                    },
+                )
+            engine.respond(user("Rezept?"), AnswerMode.FAST).toList()
+            val prompt = llm.lastPrompt
+            // one system line after the history: language first, then the memory
+            val line = prompt.indexOf("system\nAntworte auf Deutsch.\nRelevant: - mag keine Pilze (1)")
+            assertTrue(prompt, line > prompt.indexOf("Rezept?"))
+            assertTrue(thread, thread.startsWith("DefaultDispatcher"))
+        }
+
+    @Test
     fun noHintWhenNoneIsGiven() =
         runTest {
             val llm = FakeLlm(listOf("A"))

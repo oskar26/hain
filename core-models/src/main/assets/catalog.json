@@ -124,6 +124,22 @@
       "licence": "MIT",
       "licence_url": "https://huggingface.co/moonshine-ai/moonshine-streaming-small",
       "default": false
+    },
+    {
+      "id": "lfm2.5-embedding-350m-q4_0",
+      "name": "LFM2.5 Embedding 350M",
+      "kind": "embed",
+      "lang": ["de", "en", "fr", "es", "it", "pt", "nl", "pl"],
+      "files": [
+        {
+          "url": "https://huggingface.co/LiquidAI/LFM2.5-Embedding-350M-GGUF/resolve/main/LFM2.5-Embedding-350M-Q4_0.gguf",
+          "sha256": "08bb9bfdfb516146b7aeb6d51994206b38e8b31c9e6e66a7bdcebbbc0afa3cea",
+          "size": 219308800
+        }
+      ],
+      "min_ram_gb": 3,
+      "licence": "LFM Open License v1.0",
+      "licence_url": "https://huggingface.co/LiquidAI/LFM2.5-Embedding-350M-GGUF/blob/main/LICENSE"
     }
   ]
 }

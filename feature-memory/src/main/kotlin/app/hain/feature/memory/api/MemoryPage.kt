@@ -38,6 +38,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import app.hain.feature.memory.R
 import app.hain.memory.api.MemoryFact
+import app.hain.memory.api.MemoryTopic
 import app.hain.ui.HainIcons
 import app.hain.ui.components.EmptyState
 import app.hain.ui.components.HainButton
@@ -68,7 +69,58 @@ data class MemoryPageState(
     val notice: String? = null,
     /** The last deleted fact, while "Rückgängig" can still bring it back. */
     val undo: MemoryFact? = null,
+    /** The user's notes on the topics (7b, "Themen" tab). */
+    val topics: List<MemoryTopic> = emptyList(),
+    /** The optional pack for recall by meaning (T-110). */
+    val smartSearch: SmartSearch = SmartSearch.Hidden,
 )
+
+/** Where the pack "Suche nach Bedeutung" stands (T-110), as the memory page shows it. */
+sealed interface SmartSearch {
+    /** Not offered (the phone has too little memory or the build has no native library). */
+    data object Hidden : SmartSearch
+
+    /** Can be downloaded; [sizeMb] for the button. */
+    data class Offer(
+        val sizeMb: Int,
+        val failed: Boolean = false,
+    ) : SmartSearch
+
+    /** Downloading; [percent] `null` while it waits or checks the file. */
+    data class Loading(
+        val percent: Int?,
+    ) : SmartSearch
+
+    /** Installed: recall works by meaning too. */
+    data object On : SmartSearch
+
+    /** How the pack's download stands, in plain values (so this module needs no model types). */
+    enum class Phase { IDLE, WAITING, RUNNING, FAILED, INSTALLED }
+
+    companion object {
+        private const val MB = 1_000_000L
+
+        /**
+         * The tile for a pack of [sizeBytes]: hidden when the phone [fits] it not at all (too little
+         * memory or space) and it is not there yet; [percent] while [Phase.RUNNING].
+         */
+        fun of(
+            phase: Phase,
+            fits: Boolean,
+            sizeBytes: Long,
+            percent: Int = 0,
+        ): SmartSearch =
+            when (phase) {
+                Phase.INSTALLED -> On
+                Phase.RUNNING -> Loading(percent.coerceIn(0, PERCENT))
+                Phase.WAITING -> Loading(null)
+                Phase.FAILED, Phase.IDLE ->
+                    if (fits) Offer(((sizeBytes + MB / 2) / MB).toInt(), failed = phase == Phase.FAILED) else Hidden
+            }
+
+        private const val PERCENT = 100
+    }
+}
 
 /** Everything the memory page can do; each callback does one thing. */
 @Suppress("LongParameterList") // one callback per action, all with defaults
@@ -83,10 +135,14 @@ class MemoryActions(
     val onAboutMe: (String) -> Unit = {},
     val onExport: () -> Unit = {},
     val onImport: () -> Unit = {},
+    /** 7b: sets the note of a topic (title = kind key); empty removes it. */
+    val onTopicNote: (String, String) -> Unit = { _, _ -> },
+    /** T-110: starts the download of the pack "Suche nach Bedeutung". */
+    val onGetSmartSearch: () -> Unit = {},
 )
 
-/** Tabs of the page (MEMORY.md §5): kept facts, suggestions waiting for a yes, "Über dich". */
-enum class MemoryTab { FACTS, SUGGESTIONS, YOU }
+/** Tabs of the page (MEMORY.md §5): kept facts, topics, suggestions waiting for a yes, "Über dich". */
+enum class MemoryTab { FACTS, TOPICS, SUGGESTIONS, YOU }
 
 /** The memory page itself, without the store (previews, screenshots, tests). */
 @Composable
@@ -120,6 +176,7 @@ fun MemoryPage(
                     options =
                         listOf(
                             stringResource(R.string.memory_tab_facts),
+                            stringResource(R.string.memory_tab_topics),
                             if (waiting > 0) "$suggestionsLabel ($waiting)" else suggestionsLabel,
                             stringResource(R.string.memory_tab_you),
                         ),
@@ -128,6 +185,7 @@ fun MemoryPage(
                 )
                 when (tab) {
                     MemoryTab.FACTS -> FactsTab(state, actions)
+                    MemoryTab.TOPICS -> TopicsTab(state, actions)
                     MemoryTab.SUGGESTIONS -> SuggestionsTab(state, actions)
                     MemoryTab.YOU -> YouTab(state, actions)
                 }
@@ -166,6 +224,7 @@ private fun FactsTab(
             shown.forEach { fact -> FactRow(fact, actions) }
         }
     }
+    SmartSearchTile(state.smartSearch, actions.onGetSmartSearch)
     Spacer(Modifier.height(spacing.sm))
     SettingsTile(state, actions)
 }
@@ -186,7 +245,16 @@ private fun SuggestionsTab(
     Tile(GlowHue.ROSE) {
         waiting.forEach { fact ->
             Row(verticalAlignment = Alignment.CenterVertically) {
-                FactText(fact, Modifier.weight(1f))
+                Column(Modifier.weight(1f)) {
+                    FactText(fact)
+                    // 7b: a suggestion from the chats can replace an older fact (kept, but out of use)
+                    MemoryList.replaced(fact, state.facts)?.let { old ->
+                        BasicText(
+                            stringResource(R.string.memory_replaces, old.text),
+                            style = type.label.copy(color = colors.textMuted),
+                        )
+                    }
+                }
                 HainIconButton(HainIcons.check, stringResource(R.string.memory_accept), { actions.onAccept(fact.id) })
                 HainIconButton(HainIcons.close, stringResource(R.string.memory_reject), { actions.onDelete(fact) })
             }
@@ -414,7 +482,7 @@ private fun Notice(
 
 /** A calm glass tile like the settings pages (Lichtung). */
 @Composable
-private fun Tile(
+internal fun Tile(
     hue: GlowHue,
     content: @Composable () -> Unit,
 ) {

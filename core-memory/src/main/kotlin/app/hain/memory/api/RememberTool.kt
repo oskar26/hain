@@ -18,6 +18,8 @@ import kotlinx.serialization.json.putJsonObject
  */
 class RememberTool(
     private val store: MemoryStore,
+    /** A fact was kept (not a suggestion): the chat shows "Gemerkt ✓ · Rückgängig" (7b). */
+    private val onSaved: (MemoryFact) -> Unit = {},
     private val privateChat: () -> Boolean = { false },
 ) : Tool {
     override val online = false
@@ -74,6 +76,7 @@ class RememberTool(
         val fact =
             store.remember(text, category, sensitive, suggested = sensitive)
                 ?: throw IllegalArgumentException("Nothing to remember.")
+        if (!fact.suggested) onSaved(fact)
         val forModel =
             if (fact.suggested) {
                 json("suggested" to fact.text, "note" to PRIVATE_NOTE)

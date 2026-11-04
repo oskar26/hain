@@ -201,4 +201,5 @@
     <string name="settings_export_title">Export</string>
     <string name="settings_export_all">Export all chats</string>
     <string name="settings_export_all_hint">One ZIP file with every chat as a Markdown file. You choose where it’s saved.</string>
+    <string name="packs_embed_desc">Search by meaning: Pim finds your memories even when you use other words. Small, works offline, and everything stays on your phone.</string>
 </resources>
