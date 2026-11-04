@@ -78,7 +78,13 @@ class SystemPromptSource(
 
     /** "Uhrzeit: 21:07." / "Time: 21:07." in the prompt's language. */
     private fun clockLine(language: ReplyLanguage): String {
-        val time = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+        val time =
+            java.time.LocalTime
+                .now()
+                .format(
+                    java.time.format.DateTimeFormatter
+                        .ofPattern("HH:mm"),
+                )
         return if (language == ReplyLanguage.DE) "Uhrzeit: $time." else "Time: $time."
     }
 
