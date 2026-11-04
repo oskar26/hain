@@ -7,6 +7,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -70,8 +71,15 @@ const val FROST_TINT_DARK = 0.72f
 /** The quiet dimming of the rest of the screen while a card is open, as a share of the theme's `scrim`. */
 const val MENU_DIM_SHARE = 0.35f
 
+/**
+ * [overlay] draws on top of the dimming, outside the Haze source, in the same window. Only the
+ * screenshot tests use it, to show a frosted card where Robolectric can really blur it.
+ */
 @Composable
-fun HainMenuBackdrop(content: @Composable () -> Unit) {
+fun HainMenuBackdrop(
+    overlay: @Composable BoxScope.() -> Unit = {},
+    content: @Composable () -> Unit,
+) {
     val state = remember { MenuBackdropState() }
     val reduce = LocalReduceMotion.current
     val colors = LocalHainColors.current
@@ -88,6 +96,7 @@ fun HainMenuBackdrop(content: @Composable () -> Unit) {
                         .background(colors.scrim.copy(alpha = colors.scrim.alpha * MENU_DIM_SHARE)),
                 )
             }
+            overlay()
         }
     }
 }
@@ -146,8 +155,9 @@ fun Modifier.frostedGlass(shape: Shape): Modifier {
 }
 
 /**
- * Screenshot hook (Robolectric draws in software, where Haze falls back to a solid tint): `true`
- * asks Haze to blur anyway, so the frosted cards can be checked in the screenshots.
+ * Screenshot hook: `true` asks Haze to blur even where it would not by default. Robolectric draws
+ * popup windows in software (Haze then shows the solid fallback), so the screenshot tests put the
+ * card into [HainMenuBackdrop]'s overlay, which is in the main window and really blurs.
  */
 val LocalForceFrost = staticCompositionLocalOf { false }
 

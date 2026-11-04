@@ -173,6 +173,18 @@ private fun MenuTile(
     )
 }
 
+/**
+ * The open menu card without its popup window, for the screenshot tests: there only the main
+ * window really blurs, so they show it in the overlay of a `HainMenuBackdrop`.
+ */
+@Composable
+internal fun HainMenuCard(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    MenuTile(modifier, { 1f }, TransformOrigin.Center, content)
+}
+
 /** One row of a [HainPopupMenu]: icon and label; [danger] paints it red. */
 @Composable
 fun HainPopupItem(

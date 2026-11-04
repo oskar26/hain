@@ -3,6 +3,7 @@ package app.hain.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,10 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
 import app.hain.ui.HainIcons
+import app.hain.ui.components.HainMenuCard
 import app.hain.ui.components.HainPopupItem
-import app.hain.ui.components.HainPopupMenu
 import app.hain.ui.effects.HainMenuBackdrop
 import app.hain.ui.effects.LocalForceFrost
+import app.hain.ui.effects.rememberMenuBackdrop
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.pim.Pim
 import app.hain.ui.pim.PimState
@@ -65,7 +67,9 @@ private fun Frame(dark: Boolean) {
     HainTheme(darkTheme = dark) {
         CompositionLocalProvider(LocalReduceMotion provides true, LocalForceFrost provides true) {
             Box(Modifier.fillMaxSize().background(LocalHainColors.current.bg)) {
-                HainMenuBackdrop { Page() }
+                // the card sits in the backdrop's overlay (main window): Robolectric draws popup
+                // windows in software, where Haze cannot blur
+                HainMenuBackdrop(overlay = { Card() }) { Page() }
             }
         }
     }
@@ -85,11 +89,6 @@ private fun Page() {
         }
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
             BasicText("⋯", style = type.title.copy(color = colors.text))
-            HainPopupMenu(expanded = true, onDismiss = {}) {
-                HainPopupItem(HainIcons.pin, "Anheften", {})
-                HainPopupItem(HainIcons.edit, "Umbenennen", {})
-                HainPopupItem(HainIcons.delete, "Löschen", {}, danger = true)
-            }
         }
         repeat(LINES) {
             BasicText(
@@ -100,4 +99,16 @@ private fun Page() {
     }
 }
 
+/** The open ⋯ menu, frosted, over the busy lines below the ⋯ (with the light dimming). */
+@Composable
+private fun BoxScope.Card() {
+    rememberMenuBackdrop(open = true)
+    HainMenuCard(Modifier.align(Alignment.TopEnd).padding(top = CARD_TOP.dp, end = 12.dp)) {
+        HainPopupItem(HainIcons.pin, "Anheften", {})
+        HainPopupItem(HainIcons.edit, "Umbenennen", {})
+        HainPopupItem(HainIcons.delete, "Löschen", {}, danger = true)
+    }
+}
+
 private const val LINES = 5
+private const val CARD_TOP = 470
