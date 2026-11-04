@@ -46,8 +46,9 @@ pdfboxAndroid = "2.0.27.0"
 # T-140: Moonshine dictation (MIT). Pinned to 1.28.0: from 1.29 the Android AAR ships Microsoft 1DS
 # telemetry (TelemetryInitializer → mobile.events.data.microsoft.com); Hain has no telemetry.
 onnxruntime = "1.28.0"
-# T-237: zstd for the offline Wikipedia packs (Kiwix ZIM clusters), BSD-2-Clause; the Android AAR is 16 KB aligned
-zstdJni = "1.5.7-25"
+# T-237: zstd for the offline Wikipedia packs (Kiwix ZIM clusters), BSD-2-Clause; the Android AAR is 16 KB aligned.
+# Pinned to 1.5.7-12: from 1.5.7-13 on the AAR demands compileSdk 37 (we build against 36).
+zstdJni = "1.5.7-12"
 
 [libraries]
 zstd-jni = { module = "com.github.luben:zstd-jni", version.ref = "zstdJni" }

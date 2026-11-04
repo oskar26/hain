@@ -8,7 +8,7 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | AndroidX DataStore (preferences) | Apache-2.0 | ok |
 | LFM3 models (1.7B, VL, Omni, Audio) | LFM Open License v1.0 (free < $10M revenue) | ok for non-commercial/small; show in About |
 | LFM2.5-Embedding-350M | LFM Open License v1.0 (`lfm1.0`, checked 04.11.2026 on the Hugging Face model card) | ok, same terms as the brain; optional pack |
-| zstd-jni (com.github.luben:zstd-jni 1.5.7-25, Android AAR, T-237) | BSD-2-Clause (zstd itself: BSD-3-Clause) | ok with GPL-3.0; reads the offline Wikipedia packs |
+| zstd-jni (com.github.luben:zstd-jni 1.5.7-12, Android AAR, T-237) | BSD-2-Clause (zstd itself: BSD-3-Clause) | ok with GPL-3.0; reads the offline Wikipedia packs |
 | Wikipedia texts in the knowledge packs (Kiwix ZIM "mini", T-237) | CC BY-SA 4.0 (Wikipedia authors), packaged by Kiwix / openZIM | ok; downloaded only on request, not in the APK; source and licence shown in Settings → Modelle & Pakete → Wissen |
 | sherpa-onnx | Apache-2.0 | ok |
 | Piper (engine, current) | GPL-3.0 | ok with GPL app |
