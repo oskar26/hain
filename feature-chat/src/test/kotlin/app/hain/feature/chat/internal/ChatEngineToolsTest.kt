@@ -70,8 +70,9 @@ class ChatEngineToolsTest {
     fun afterTheRoundBudgetTheBrainMustAnswerWithoutTools() =
         runTest {
             val weather = FakeWeather()
-            val loop = listOf(call("weather", "place", "Köln"))
-            val llm = FakeLlm(loop, loop, listOf("Fertig."))
+            // 4d: a repeated identical call no longer runs, so each round asks for another place
+            val llm =
+                FakeLlm(listOf(call("weather", "place", "Köln")), listOf(call("weather", "place", "Bonn")), listOf("Fertig."))
             val engine = ChatEngine(llm, { "SYS" }, tools = ToolRouter(listOf(weather)), toolContext = { ctx })
             val last = engine.respond(user("Wetter?"), AnswerMode.FAST).toList().last() as TurnUpdate.Finished
             assertEquals("Fertig.", last.output.text)

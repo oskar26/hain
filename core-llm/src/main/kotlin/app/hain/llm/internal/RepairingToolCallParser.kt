@@ -27,7 +27,8 @@ class RepairingToolCallParser(
     @Suppress("ReturnCount")
     override fun parse(output: String): ParsedOutput {
         val first = strict.parse(output)
-        if (first.errors.isEmpty()) return first
+        // LFM's own call tags are no error for the strict parser, so they are repaired as well
+        if (first.errors.isEmpty() && LFM_OPEN !in output) return first
         val answer = output.substringAfterLast(THINK_CLOSE, output)
         val repaired = repair(answer)
         if (repaired.calls.isEmpty()) return first

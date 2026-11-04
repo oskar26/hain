@@ -8,6 +8,7 @@ import app.hain.tools.api.Tool
 import app.hain.tools.api.ToolContext
 import app.hain.tools.api.ToolResult
 import app.hain.tools.api.ToolRouter
+import app.hain.tools.api.ToolSource
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
@@ -30,7 +31,8 @@ class RobustCallsTest {
             ctx: ToolContext,
         ): ToolResult {
             places += args["place"]
-            return ToolResult("{\"place\":\"${args["place"]}\",\"t\":9}", args["place"].toString())
+            val source = ToolSource("Open-Meteo", "https://open-meteo.com/")
+            return ToolResult("{\"place\":\"${args["place"]}\",\"t\":9}", args["place"].toString(), listOf(source))
         }
     }
 
