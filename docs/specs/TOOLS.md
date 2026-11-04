@@ -2,6 +2,28 @@
 
 Research: `docs/concept/research/keyless_search.md`.
 
+## 0. Bestandsaufnahme (4d, 04.11.2026)
+
+Alle Werkzeuge in `core-tools` (Stand `main` + #27/4c), so wie das Gehirn sie vor 4d sah. Zeit und Datum
+sind **kein** Werkzeug: sie stehen im System-Prompt (`# Kontext`) und im `ToolContext.now`.
+
+| Name | Klasse | Online | Beschreibung (vor 4d, ans Modell) | Parameter | Rückgabe ans Modell | Typische Fehler |
+|---|---|---|---|---|---|---|
+| `calculate` | `CalculatorTool` | nein | "Exact maths and unit conversion, e.g. '12*7', '15% * 80', '5 km in mi', '70 F in C'." | `expression` (str, Pflicht) | `{"expression","result"}` | `bad_arguments` (Division durch 0, unbekanntes Zeichen, `Unknown name`), Modell schreibt Text statt Formel ("15 Prozent von 80"), Währungen (gibt es nicht) |
+| `weather` | `WeatherTool` | ja | "Current weather and forecast for a place." | `place` (str, Pflicht), `days` (int 1–7) | `{"place","now":{t,wind_kmh,rain_mm,sky},"days":[{date,day,max,min,rain_chance,sky}]}` | `not_found` (Ort unbekannt), `bad_arguments` (kein Ort: "Wetter morgen?"), `days` als Text ("morgen"), `network`/`timeout` |
+| `wikipedia` | `WikipediaTool` | ja | "Short encyclopedia summary about a person, place or thing." | `topic` (str, Pflicht), `lang` (str "de or en") | `{"title","extract"(bis ~1200 Zeichen),"url"}` | `not_found` → Fallback `web_search` (4c), `disambiguation`, Modell nimmt es für Aktuelles (Preise, News) |
+| `web_search` | `SearchTool` | ja | "Search the web for current or detailed information. Hain then reads the best pages for you." | `query` (str, Pflicht) | `{"query","results":[{title,url,snippet}]}` + gelesene Seiten (`read.pages`) | `not_found`, DDG-Bot-Check (Back-off 10 min), ganze Frage als `query`, `limit` (Such-Budget), `network`/`timeout` |
+| `read_page` | `ReadPageTool` | ja | "Read the text of one web page, e.g. a link from the user." | `url` (str, Pflicht) | `{"pages":[{n,title,url,text}]}` (bis 3000 Zeichen) | `empty` (keine lesbare Seite, PDF), URL ohne `https://`, erfundene URLs |
+| `set_alarm` | `SetAlarmTool` | nein | "Prepare an alarm clock on the phone. The user confirms it on a card." | `time` (HH:mm, Pflicht), `label` | `{"prepared","time","status":"waiting_for_tap","hint"}` + ActionCard | `bad_arguments` (Uhrzeit "halb 7"), Antwort "Wecker gestellt" obwohl erst die Karte kommt |
+| `set_timer` | `SetTimerTool` | nein | "Prepare a countdown timer on the phone. The user confirms it on a card." | `seconds` (int, Pflicht), `label` | wie oben (`seconds`) | Minuten statt Sekunden (`seconds=10` für 10 Minuten), `duration`/`minutes` statt `seconds` (schon als Alias), > 24 h |
+| `add_calendar_event` | `AddCalendarEventTool` | nein | "Prepare a calendar event. Opens the calendar app filled in after the user confirms." | `title` (Pflicht), `start` (ISO oder "tomorrow 15:00", Pflicht), `end`, `location` | wie oben (`title`,`start`,`location`) | falsches Jahr/Datum (Modell rechnet "Freitag" selbst), `date`+`time` getrennt, kein Titel |
+| `navigate` | `NavigateTool` | nein | "Prepare a route to a place in the user's map app. The user confirms it on a card." | `destination` (Pflicht), `mode` (walk/drive/bike/transit) | wie oben (`destination`,`mode`) | `mode` auf Deutsch ("zu Fuß", "Auto"), Ziel fehlt |
+
+Router-Fehler für alle: `unknown_tool` (erfundene Namen wie `search`, `get_weather`), `offline`, `timeout` (12 s),
+`network`, `failed`. Parser (`XmlToolCallParser`): ein kaputter `<tool_call>`-Block (fehlendes `</tool_call>`,
+`</function>`, `</parameter>`, JSON statt XML) verwirft **alle** Aufrufe der Antwort; der rohe Block landet dann als Text
+im Chat. Doppelte gleiche Aufrufe in einer Runde laufen doppelt.
+
 ## 1. NetworkGate (every outbound request)
 
 ```kotlin
