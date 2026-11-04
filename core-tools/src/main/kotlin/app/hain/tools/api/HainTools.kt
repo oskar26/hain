@@ -20,9 +20,11 @@ import app.hain.tools.internal.wiki.WikipediaTool
  * of the user's news mode (T-072) (online, all through [gate], so every request shows in the network log).
  */
 object HainTools {
+    /** All tools; [extra] are tools of other modules, e.g. `remember` from the memory (T-112). */
     fun router(
         gate: NetworkGate,
         news: NewsRepository? = null,
+        extra: List<Tool> = emptyList(),
     ): ToolRouter {
         val reader = PageReader(gate)
         val tools =
@@ -36,7 +38,7 @@ object HainTools {
                 SetTimerTool(),
                 AddCalendarEventTool(),
                 NavigateTool(),
-            ) + listOfNotNull(news?.let(::NewsTool))
+            ) + listOfNotNull(news?.let(::NewsTool)) + extra
         return ToolRouter(tools, pages = reader, fallbacks = FALLBACKS)
     }
 

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="memory_title">Gedächtnis</string>
+    <string name="memory_back">Zurück</string>
+    <string name="memory_intro">Was Pim sich über dich merkt. Alles bleibt auf diesem Handy, und du kannst alles ändern oder löschen.</string>
+    <string name="memory_tab_facts">Erinnerungen</string>
+    <string name="memory_tab_suggestions">Vorschläge</string>
+    <string name="memory_tab_you">Über dich</string>
+    <string name="memory_search">Erinnerungen durchsuchen</string>
+    <string name="memory_empty_title">Noch nichts gemerkt</string>
+    <string name="memory_empty_body">Sag einfach: „Merk dir, dass ich Gitarre spiele.“</string>
+    <string name="memory_no_match">Keine Erinnerung passt zu deiner Suche.</string>
+    <string name="memory_suggestions_empty">Keine Vorschläge. Private Dinge wie Gesundheit landen erst hier, und Pim nutzt sie erst nach deinem Ja.</string>
+    <string name="memory_suggestions_hint">Diese privaten Dinge möchte Pim sich merken. Sie werden erst nach deinem Ja genutzt.</string>
+    <string name="memory_edit">Bearbeiten</string>
+    <string name="memory_save">Speichern</string>
+    <string name="memory_delete">Löschen</string>
+    <string name="memory_accept">Behalten</string>
+    <string name="memory_reject">Nicht behalten</string>
+    <string name="memory_deleted">Gelöscht</string>
+    <string name="memory_undo">Rückgängig</string>
+    <string name="memory_you_label">Über dich</string>
+    <string name="memory_you_hint">Das weiß Pim immer, z. B. dein Name, dein Alter, was du magst.</string>
+    <string name="memory_settings">Einstellungen</string>
+    <string name="memory_switch">Gedächtnis nutzen</string>
+    <string name="memory_switch_hint">Aus: Pim merkt sich nichts Neues und nutzt nichts Gespeichertes.</string>
+    <string name="memory_export">Exportieren</string>
+    <string name="memory_import">Importieren</string>
+    <string name="memory_backup_hint">Eine JSON-Datei, die du selbst aufbewahrst. Nichts wird hochgeladen.</string>
+    <string name="memory_delete_all">Alles löschen</string>
+    <string name="memory_delete_all_confirm">Wirklich alle Erinnerungen löschen?</string>
+    <string name="memory_cancel">Abbrechen</string>
+    <string name="memory_exported">Erinnerungen in der Datei gespeichert.</string>
+    <string name="memory_import_failed">Das ist keine Gedächtnis-Datei von Hain.</string>
+    <plurals name="memory_imported">
+        <item quantity="one">%d Erinnerung hinzugefügt.</item>
+        <item quantity="other">%d Erinnerungen hinzugefügt.</item>
+    </plurals>
+    <string name="memory_cat_preference">Vorlieben</string>
+    <string name="memory_cat_person">Menschen</string>
+    <string name="memory_cat_place">Orte</string>
+    <string name="memory_cat_work">Schule &amp; Arbeit</string>
+    <string name="memory_cat_health">Gesundheit</string>
+    <string name="memory_cat_other">Sonstiges</string>
+</resources>

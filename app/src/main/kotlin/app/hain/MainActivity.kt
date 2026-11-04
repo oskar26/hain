@@ -43,6 +43,7 @@ import app.hain.feature.chat.internal.ChatEngine
 import app.hain.feature.chat.internal.ChatStore
 import app.hain.feature.chat.internal.ChatViewModel
 import app.hain.feature.chat.internal.PrefsRatings
+import app.hain.feature.memory.api.MemoryScreen
 import app.hain.feature.news.api.NewsScreen
 import app.hain.feature.onboarding.api.OnboardingScreen
 import app.hain.feature.settings.api.AppInfo
@@ -55,6 +56,9 @@ import app.hain.feature.settings.api.UpdateBanner
 import app.hain.feature.settings.api.UpdateStatus
 import app.hain.llm.api.DevTuning
 import app.hain.llm.api.LlmEngine
+import app.hain.memory.api.MemoryStore
+import app.hain.memory.api.MemoryTurn
+import app.hain.memory.api.RememberTool
 import app.hain.models.api.DevModels
 import app.hain.models.api.DownloadState
 import app.hain.models.api.ModelRepository
@@ -69,6 +73,9 @@ import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainTween
 import app.hain.ui.theme.HainTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -91,9 +98,15 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var newsRepository: NewsRepository
 
+    @Inject lateinit var memory: MemoryStore
+
+    /** T-112/T-113: "merk dir …" and the fitting facts, in the line right before each answer. */
+    private val memoryTurn by lazy { MemoryTurn(memory, CoroutineScope(SupervisorJob() + Dispatchers.IO)) }
+
     private fun settingsActions(
         onBack: () -> Unit,
         onOpenPacks: () -> Unit,
+        onOpenMemory: () -> Unit = {},
     ): SettingsActions {
         val repo = settingsRepository
 
@@ -130,6 +143,7 @@ class MainActivity : ComponentActivity() {
             onUpdateCheck = { write { repo.setUpdateCheck(it) } },
             onUpdateChannel = { write { repo.setUpdateChannel(it) } },
             onCheckUpdate = { checkForUpdate() },
+            onOpenMemory = onOpenMemory,
         )
     }
 
@@ -186,8 +200,11 @@ class MainActivity : ComponentActivity() {
                     llm,
                     prompts::current,
                     answerMode = { LlmAnswerMode.fromKey(settings().answerMode.name.lowercase()) },
-                    turnHint = prompts::turnHint,
-                    tools = HainTools.router(networkGate, newsRepository),
+                    turnHint = { messages ->
+                        listOfNotNull(prompts.turnHint(messages), memoryTurn.hint(messages, toolLanguage(settings())))
+                            .joinToString("\n")
+                    },
+                    tools = HainTools.router(networkGate, newsRepository, listOf(RememberTool(memory))),
                     toolContext = {
                         val cfg = settings()
                         ToolContext(
@@ -256,6 +273,7 @@ class MainActivity : ComponentActivity() {
             current = settings
             var showSettings by rememberSaveable { mutableStateOf(false) }
             var showPacks by rememberSaveable { mutableStateOf(false) }
+            var showMemory by rememberSaveable { mutableStateOf(false) }
             var showGame by rememberSaveable { mutableStateOf(false) }
             var showNews by rememberSaveable { mutableStateOf(false) }
             HainTheme(
@@ -385,9 +403,30 @@ class MainActivity : ComponentActivity() {
                                 val log by networkGate.log.collectAsStateWithLifecycle()
                                 SettingsScreen(
                                     settings,
-                                    settingsActions({ showSettings = false }, { showPacks = true }),
+                                    settingsActions(
+                                        onBack = { showSettings = false },
+                                        onOpenPacks = { showPacks = true },
+                                        onOpenMemory = { showMemory = true },
+                                    ),
                                     networkLog = log,
                                     extras = SettingsExtras(appInfo, updateStatus, devModels),
+                                )
+                            }
+                            // T-115: Settings → Gedächtnis
+                            AnimatedVisibility(
+                                visible = showMemory,
+                                enter =
+                                    fadeIn(hainTween(HainMotion.PAGE_MS)) +
+                                        slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
+                                exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+                            ) {
+                                MemoryScreen(
+                                    store = memory,
+                                    aboutMe = settings.aboutMe,
+                                    onAboutMe = { text ->
+                                        lifecycleScope.launch { settingsRepository.setAboutMe(text) }
+                                    },
+                                    onBack = { showMemory = false },
                                 )
                             }
                             AnimatedVisibility(

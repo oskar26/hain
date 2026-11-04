@@ -23,8 +23,9 @@ android {
 
 dependencies {
     implementation(project(":core-data"))
-    implementation(project(":core-llm"))
+    api(project(":core-tools"))
     implementation(libs.androidx.core.ktx)
+    implementation(libs.kotlinx.coroutines.core)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

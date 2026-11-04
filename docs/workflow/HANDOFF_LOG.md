@@ -419,6 +419,20 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - README (Funktionstabelle Werkzeuge ✅ + „Neu“), Website EN + /de (Wikipedia & Wetter, Handy-Aktionen, Netzwerk-Log), `TOOLS.md`, `SETTINGS.md` nachgezogen.
 - Nicht gemacht: Favicons (T-064c, Bilder müssten durchs Gate), ConfirmCard nach core-cards (T-068e, reiner Umbau ohne Nutzen für 0.2), Host-Test mit echtem LFM3 für `days`/Wetter ohne Ort (kein Host-Lauf in diesem Durchgang).
 - Nächstes: Oskar testet auf dem Handy: „Weck mich werktags um 6:30“, Schalter „Handy-Aktionen bestätigen“ aus, „Wie wird das Wetter?“ mit Standort, Websuche „Erst fragen“.
+## 2026-11-04 · T-111, T-112, T-113, T-115 (0.1.7 – Gedächtnis) · review · harness: Hark · model: Hark · branch `hark/day-7` (Draft-PR #38)
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-111 | review | `MemoryDaoTest` (Einfügen, Suche FTS, Bearbeiten/Löschen hält den Index aktuell, Themen), `HainMigrationTest` (v2-Datei aus `2.json` → v3) | – | `schemas/…/3.json` entsteht beim ersten Gradle-Build und sollte nachgetragen werden; `memory_fact_vec` erst mit T-110 |
+| T-112 | review | `ExplicitMemoryTest` (DE/EN merken, „vergiss nicht“, vergessen, 9 Nicht-Befehle, Kürzen), `MemoryStoreTest` (Duplikate, Vorschläge, Bearbeiten/Löschen/Rückgängig, Vergessen, Aus, Export/Import), `RememberToolTest` | `core-tools/.../HainTools.kt` (`extra`-Werkzeuge), `feature-chat/.../ToolTimeline.kt` + Strings („Gemerkt“), `app/.../AppModule.kt`, `MainActivity.kt` | „Gemerkt ✓ Rückgängig“-Chip unter der Antwort fehlt (Chat-UI), dafür Werkzeugzeile + Pims Bestätigung |
+| T-113 | review | `RankingTest` (Wortstämme, Stoppwörter, passende Erinnerung gewinnt, Vorschläge nie, alte Treffer zählen, Budget, Hybrid-Formel), `MemoryTurnTest` | – | ohne Embedder nur Stichwörter („Abendessen“ findet „Pilze“ nicht) |
+| T-115 | review | `MemoryListTest` (Tabs, Suche, Datum DE/EN); Screenshots `memory_light/dark`, `memory_suggestions_light`, `memory_empty_light` (screens.yml) | `feature-settings` (Kachel „Gedächtnis“ im Hub, `onOpenMemory`), `.github/workflows/screens.yml` (+ `:feature-memory`) | Themen-Tab fehlt (keine Themen ohne T-114) |
+
+- Wie es zusammenhängt: `MemoryTurn.hint()` hängt sich an den bestehenden Zug-Hinweis (`turnHint` in `MainActivity`): ein „merk dir …“ am Anfang der neuesten Nachricht wird sofort gespeichert (bei „Nochmal“ nicht doppelt) und Pim bekommt „Du hast dir gerade gemerkt: …“; sonst die passenden Erinnerungen + eine Zeile zum `remember`-Werkzeug. Der gecachte System-Prompt bleibt gleich. „Über dich“ ist weiter die Einstellung `about_me` (keine eigene Tabelle `memory_profile`). An/aus in SharedPreferences `hain_memory`.
+- DB-Version: 3. Andere offene Branches (3b-2/4b-2, 5, 6) können ebenfalls Version 3 nehmen → wer später gemergt wird, nimmt die nächste freie Nummer.
+- Gradle nicht lokal (Vorgabe): reine Logik (core-memory, 28 Tests) lokal mit kotlinc 2.1 + JUnit grün, ktlint 1.5.0 + detekt 1.23.8 CLI grün, `check_strings.py` grün; Rest über CI, APK, Screens.
+- Version: `hain.versionName=0.1.7`.
+- Nächstes: Oskar testet „Merk dir, dass ich keine Pilze mag“ → neuer Chat „Rezept mit Pilzen?“ → „Vergiss, dass ich keine Pilze mag“; dann T-110/T-114.
 
 ## 2026-11-04 · T-071 bis T-074 (0.1.5 – Nachrichten) · review · harness: Hark · model: Hark · branch `hark/day-5` (Draft-PR #39)
 
