@@ -130,8 +130,11 @@ class SystemPromptSource(
 
         // Werkzeuge I+II (T-062, T-066, T-067): calculator offline, the rest online. Rule against copied
         // "looked it up" answers: every new question calls the tool again (Oskar's test of #19).
+        // Weather without a place (T-064b): LFM3 asked "Wo bist du?" on "Wie wird das Wetter morgen?"
+        // until the hint in brackets (host test 04.11.).
         const val TOOLS_DE =
-            "Werkzeuge: calculate für genaues Rechnen und Einheiten, weather für Wetter, " +
+            "Werkzeuge: calculate für genaues Rechnen und Einheiten, weather für Wetter " +
+                "(nennt der Nutzer keinen Ort, rufe weather ohne place auf, dann gilt der Standort des Handys), " +
                 "wikipedia für Fakten über Personen, Orte und Dinge, web_search für Aktuelles und Details " +
                 "(Hain liest dann die besten Seiten), read_page für einen Link. " +
                 "Für jede neue Frage, die Fakten, Wetter oder Aktuelles braucht, rufe das Werkzeug neu auf, " +
@@ -143,7 +146,8 @@ class SystemPromptSource(
                 "Klappt ein Werkzeug nicht, sag das ehrlich. " +
                 PHONE_DE
         const val TOOLS_EN =
-            "Tools: calculate for exact maths and units, weather for forecasts, " +
+            "Tools: calculate for exact maths and units, weather for forecasts " +
+                "(if the user names no place, call weather without place, then the phone's location is used), " +
                 "wikipedia for facts about people, places and things, web_search for current news and details " +
                 "(Hain then reads the best pages), read_page for a link. " +
                 "For every new question that needs facts, weather or current events, call the tool again, " +
