@@ -2,6 +2,8 @@ package app.hain.tools.api
 
 import app.hain.common.api.net.NetworkGate
 import app.hain.tools.internal.calc.CalculatorTool
+import app.hain.tools.internal.news.NewsRepository
+import app.hain.tools.internal.news.NewsTool
 import app.hain.tools.internal.phone.AddCalendarEventTool
 import app.hain.tools.internal.phone.NavigateTool
 import app.hain.tools.internal.phone.SetAlarmTool
@@ -14,13 +16,14 @@ import app.hain.tools.internal.wiki.WikipediaTool
 
 /**
  * The tools: calculator and the phone actions (offline; alarm, timer, calendar, route only after a
- * tap on their card); weather, Wikipedia, web search and page reading (online, all
- * through [gate], so every request shows in the network log). [extra] adds tools of other modules
- * (Häppchen 9: `search_document`).
+ * tap on their card); weather, Wikipedia, web search, page reading and, with [news], the headlines
+ * of the user's news mode (T-072) (online, all through [gate], so every request shows in the network log).
+ * [extra] adds tools of other modules (Häppchen 9: `search_document`).
  */
 object HainTools {
     fun router(
         gate: NetworkGate,
+        news: NewsRepository? = null,
         extra: List<Tool> = emptyList(),
     ): ToolRouter {
         val reader = PageReader(gate)
@@ -35,7 +38,7 @@ object HainTools {
                 SetTimerTool(),
                 AddCalendarEventTool(),
                 NavigateTool(),
-            ) + extra // Häppchen 9: search_document from core-docs
+            ) + listOfNotNull(news?.let(::NewsTool)) + extra // Häppchen 9: search_document
         return ToolRouter(tools, pages = reader, fallbacks = FALLBACKS)
     }
 
@@ -50,6 +53,12 @@ object HainTools {
                     tool = SearchTool.NAME,
                     note = "Wikipedia had nothing about this. Here is a web search instead.",
                 ) { args -> mapOf("query" to (args["topic"] ?: args["query"])) },
+            // T-072: no headline about the topic in the feeds → a web search (NEWS.md §4)
+            NewsTool.NAME to
+                Fallback(
+                    tool = SearchTool.NAME,
+                    note = "The news feeds had no headline about this. Here is a web search instead.",
+                ) { args -> mapOf("query" to (args["query"] ?: args["topic"] ?: "news")) },
         )
 
     /** A pure sum or conversion answered without the brain ("12 × 7 = 84"); `null` otherwise. */

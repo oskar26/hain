@@ -57,6 +57,7 @@ enum class Hain3D(
     PARCEL(R.drawable.icl_package),
     GLOBE(R.drawable.icl_globe),
     HEAD(R.drawable.icl_user_round),
+    NEWS(R.drawable.icl_newspaper),
 }
 
 /** One icon of the set in a quiet text colour; decorative by default (the row next to it speaks for TalkBack). */

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- T-073 / T-074 news screen -->
+    <string name="news_title">Nachrichten</string>
+    <string name="news_back">Zurück</string>
+    <string name="news_refresh">Aktualisieren</string>
+    <string name="news_mode_standard">Standard</string>
+    <string name="news_mode_plus_own">Standard + eigene</string>
+    <string name="news_mode_own">Nur eigene</string>
+    <string name="news_today">Heute</string>
+    <string name="news_yesterday">Gestern</string>
+    <string name="news_older">Älter</string>
+    <string name="news_own_feeds">Meine Feeds</string>
+    <string name="news_own_feeds_count">Meine Feeds · %1$d</string>
+    <string name="news_empty_own">Füge einen Feed hinzu</string>
+    <string name="news_empty_own_hint">Unter „Meine Feeds“ kannst du jede RSS- oder Atom-Adresse hinzufügen.</string>
+    <string name="news_empty">Noch keine Nachrichten</string>
+    <string name="news_empty_hint">Tippe auf Aktualisieren, um die Schlagzeilen zu laden.</string>
+    <string name="news_offline">Offline: das sind die Schlagzeilen, die auf deinem Handy gespeichert sind.</string>
+    <string name="news_loading">Lade Schlagzeilen…</string>
+    <string name="news_mix_hint">Ein fester Mix aus öffentlichen, großen und linken Medien auf Deutsch und Englisch.</string>
+    <string name="news_summarize">Zusammenfassen</string>
+    <string name="news_summarizing">Pim fasst zusammen…</string>
+    <string name="news_summary_hide">Ausblenden</string>
+    <string name="news_not_readable">Artikel nicht frei lesbar</string>
+    <string name="news_open_link">Im Browser öffnen</string>
+    <string name="news_summary_offline">Du bist offline. Zusammenfassen braucht das Internet.</string>
+    <string name="news_summary_no_brain">Lade zuerst das Gehirn herunter, dann kann Pim zusammenfassen.</string>
+    <string name="news_summary_failed">Das hat nicht geklappt. Versuch es später noch mal.</string>
+    <string name="news_share">Link teilen</string>
+    <string name="news_feed_add_hint">Feed-Adresse (https://…)</string>
+    <string name="news_feed_add">Hinzufügen</string>
+    <string name="news_feed_adding">Prüfe…</string>
+    <string name="news_feed_rename">Umbenennen</string>
+    <string name="news_feed_delete">Löschen</string>
+    <string name="news_feed_save">Speichern</string>
+    <string name="news_feed_broken">liefert gerade nichts</string>
+    <string name="news_feed_error_not_a_feed">Unter dieser Adresse ist kein RSS- oder Atom-Feed.</string>
+    <string name="news_feed_error_duplicate">Diesen Feed gibt es schon.</string>
+    <string name="news_feed_error_full">Mehr als 50 eigene Feeds gehen nicht.</string>
+    <string name="news_feed_error_offline">Du bist offline.</string>
+    <string name="news_feed_error_failed">Die Adresse war nicht erreichbar.</string>
+    <string name="news_feeds_hint">Deine Feeds kommen zu den Nachrichten dazu, wenn „Standard + eigene“ oder „Nur eigene“ gewählt ist.</string>
+    <string name="news_feeds_empty">Noch keine eigenen Feeds.</string>
+</resources>

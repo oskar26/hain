@@ -72,6 +72,7 @@
     <string name="settings_log_other">Andere</string>
     <string name="settings_log_place">Ortssuche</string>
     <string name="settings_log_download">Download</string>
+    <string name="settings_log_news">Nachrichten</string>
     <string name="settings_log_empty">Noch nichts. Hain war noch nicht online.</string>
     <string name="settings_log_detail">Ganze Adressen zeigen</string>
     <string name="settings_log_detail_hint">Speichert auch, wonach gesucht wurde. Standard: aus.</string>

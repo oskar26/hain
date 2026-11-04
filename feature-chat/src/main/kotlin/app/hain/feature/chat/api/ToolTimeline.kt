@@ -45,6 +45,7 @@ import app.hain.feature.chat.internal.SourceRef
 import app.hain.feature.chat.internal.StepState
 import app.hain.feature.chat.internal.ToolStep
 import app.hain.tools.api.PhoneAction
+import app.hain.tools.internal.news.NewsTool
 import app.hain.ui.components.Hain3D
 import app.hain.ui.components.Hain3DIcon
 import app.hain.ui.components.HainChip
@@ -91,6 +92,7 @@ internal fun toolIcon(name: String): Hain3D =
         "calculate" -> Hain3D.CALCULATOR
         "weather" -> Hain3D.WEATHER
         "wikipedia" -> Hain3D.BOOK
+        NewsTool.NAME -> Hain3D.NEWS
         ChatEngine.SEARCH_TOOL -> Hain3D.SEARCH
         "read_page", ChatEngine.READ_STEP -> Hain3D.DOCUMENT
         ChatEngine.NOTES_STEP -> Hain3D.SPARKLES
@@ -106,6 +108,7 @@ internal fun toolHue(name: String): GlowHue =
         "calculate" -> GlowHue.PEACH
         "weather" -> GlowHue.SUN
         "wikipedia" -> GlowHue.SKY
+        NewsTool.NAME -> GlowHue.SUN
         ChatEngine.SEARCH_TOOL -> GlowHue.LILAC
         "read_page", ChatEngine.READ_STEP -> GlowHue.TEAL
         else -> GlowHue.MINT
@@ -148,9 +151,11 @@ private fun toolText(step: ToolStep): String {
             else -> step.detail
         }
     val fallback =
-        when (step.via) {
-            ChatEngine.SEARCH_TOOL -> stringResource(R.string.chat_tool_wiki_to_web)
-            "wikipedia" -> stringResource(R.string.chat_tool_web_to_wiki)
+        when {
+            step.via == ChatEngine.SEARCH_TOOL && step.name == NewsTool.NAME ->
+                stringResource(R.string.chat_tool_news_to_web)
+            step.via == ChatEngine.SEARCH_TOOL -> stringResource(R.string.chat_tool_wiki_to_web)
+            step.via == "wikipedia" -> stringResource(R.string.chat_tool_web_to_wiki)
             else -> null
         }
     val head = fallback ?: name
@@ -190,6 +195,7 @@ private fun toolName(name: String): Int =
         "calculate" -> R.string.chat_tool_calculate
         "weather" -> R.string.chat_tool_weather
         "wikipedia" -> R.string.chat_tool_wikipedia
+        NewsTool.NAME -> R.string.chat_tool_news
         ChatEngine.SEARCH_TOOL -> R.string.chat_tool_search
         "read_page" -> R.string.chat_tool_read_page
         PhoneAction.SET_ALARM -> R.string.chat_tool_alarm

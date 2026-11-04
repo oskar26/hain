@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -57,6 +58,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.hain.cards.api.NewsCard
+import app.hain.cards.api.NewsCardItem
 import app.hain.common.api.AnswerMode
 import app.hain.feature.chat.R
 import app.hain.feature.chat.internal.ActionEvent
@@ -68,6 +71,7 @@ import app.hain.feature.chat.internal.StepState
 import app.hain.feature.chat.internal.UiMessage
 import app.hain.llm.api.EngineState
 import app.hain.llm.api.GenerationStats
+import app.hain.tools.api.NewsHeadline
 import app.hain.ui.HainIcons
 import app.hain.ui.components.AssistantBlock
 import app.hain.ui.components.Composer
@@ -109,6 +113,7 @@ fun ChatScreen(
     onOpenGame: () -> Unit = {},
     extras: ChatExtras = ChatExtras(),
     banner: @Composable () -> Unit = {},
+    onOpenNews: (() -> Unit)? = null,
     /** Häppchen 9: attach files (paper clip, "Meine Dateien"); `null` = no files. */
     docs: ChatDocs? = null,
 ) {
@@ -252,6 +257,13 @@ fun ChatScreen(
                         drawerOpen = false
                         onOpenSettings()
                     },
+                    onNews =
+                        onOpenNews?.let { open ->
+                            {
+                                drawerOpen = false
+                                open()
+                            }
+                        },
                 ),
         )
         if (showFiles && docs != null) {
@@ -541,6 +553,8 @@ private fun Answer(
                 }
                 // 3b-2: what the weather or Wikipedia tool found, as a card
                 message.cards.take(MAX_INFO_CARDS).forEach { InfoCardView(it) }
+                // T-072: headlines of the news tool
+                if (message.news.isNotEmpty()) AnswerNews(message.news)
                 SourceChips(message.sources)
             }
             if (message.stopped) {
@@ -793,3 +807,13 @@ private const val PEEK_TILT = -8f
 private const val MS_PER_S = 1000f
 
 private const val MAX_INFO_CARDS = 3
+
+/** T-072: the headlines of the `news` tool as a card; a tap opens the article in the browser. */
+@Composable
+private fun AnswerNews(news: List<NewsHeadline>) {
+    val uri = LocalUriHandler.current
+    NewsCard(
+        items = news.map { NewsCardItem(it.source, it.title, it.url, it.publishedAt, it.paywall) },
+        onOpen = { url -> runCatching { uri.openUri(url) } },
+    )
+}

@@ -3,6 +3,7 @@ package app.hain.feature.chat.internal
 import app.hain.docs.api.DocAttachment
 import app.hain.llm.api.GenerationStats
 import app.hain.tools.api.InfoCard
+import app.hain.tools.api.NewsHeadline
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +31,8 @@ data class UiMessage(
     val trace: List<ToolTrace> = emptyList(),
     /** Phone actions waiting for (or done after) the user's tap on their card (T-068). */
     val actions: List<ActionCard> = emptyList(),
+    /** Headlines of the `news` tool, shown as a NewsCard (T-072). */
+    val news: List<NewsHeadline> = emptyList(),
     /** Research clock while a thorough answer is still looking things up (T-069; not stored). */
     val research: ResearchClock? = null,
     /** Speed of this answer for developer mode (T-211; not stored). */

@@ -392,6 +392,7 @@ class ChatViewModel(
                 sources = update.sources,
                 trace = update.trace,
                 actions = update.actions,
+                news = update.news,
                 stats = update.stats,
                 cards = update.cards,
             ),

@@ -8,6 +8,7 @@
     <string name="chat_stop">Stopp</string>
     <string name="chat_menu">Chats öffnen</string>
     <string name="chat_settings">Einstellungen</string>
+    <string name="chat_news">Nachrichten</string>
     <string name="chat_new">Neuer Chat</string>
     <string name="chat_copy">Kopieren</string>
     <string name="chat_copied">Kopiert</string>
@@ -55,6 +56,7 @@
     <string name="chat_tool_calculate">Rechner</string>
     <string name="chat_tool_weather">Wetter</string>
     <string name="chat_tool_wikipedia">Wikipedia</string>
+    <string name="chat_tool_news">Nachrichten</string>
     <string name="chat_tool_search">Suche</string>
     <string name="chat_tool_read_page">Seite</string>
     <string name="chat_tool_pages">Seiten</string>
@@ -68,6 +70,7 @@
     </plurals>
     <string name="chat_tool_wiki_to_web">Wikipedia hatte nichts → suche im Web</string>
     <string name="chat_tool_web_to_wiki">im Web nichts → Wikipedia</string>
+    <string name="chat_tool_news_to_web">Nachrichten hatten nichts → suche im Web</string>
     <string name="chat_tool_limit">genug gesucht</string>
     <string name="chat_tool_time_up">Zeit um</string>
     <string name="chat_tool_stopped">gestoppt</string>

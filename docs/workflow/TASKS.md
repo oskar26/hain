@@ -81,10 +81,10 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-064c | Favicons at the source chips (needs image fetch through the NetworkGate) | ui | S | A | T-059,T-060 | todo |
 | T-068e | ConfirmCard into core-cards (needs a chat-free card state) | refactor | S | A | T-068 | todo |
 | T-070 | Feed parser RSS2/Atom/RDF | feature | S | B | T-002 | review |
-| T-071 | Standard feed list + repository | feature | S | B | T-070,T-060 | todo |
-| T-072 | news tool + NewsCard | feature | S | B | T-071,T-062 | todo |
-| T-073 | News screen (3-mode switch, own feeds) | ui | M | B | T-072 | todo |
-| T-074 | Article summary on demand | feature | S | B | T-073,T-067 | todo |
+| T-071 | Standard feed list + repository | feature | S | B | T-070,T-060 | review |
+| T-072 | news tool + NewsCard | feature | S | B | T-071,T-062 | review |
+| T-073 | News screen (3-mode switch, own feeds) | ui | M | B | T-072 | review |
+| T-074 | Article summary on demand | feature | S | B | T-073,T-067 | review |
 | T-110 | Embedder (LFM2.5-Embedding via llama.cpp) | native | S | C | T-030 | todo |
 | T-111 | Memory tables + DAO | feature | S | C | T-020 | todo |
 | T-112 | Explicit remember/forget + remember tool | feature | S | C | T-111,T-062 | todo |

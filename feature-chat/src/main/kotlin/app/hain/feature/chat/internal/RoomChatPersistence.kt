@@ -73,6 +73,7 @@ internal fun MessageEntity.toUi(): UiMessage {
         trace = ToolStepsJson.decodeTrace(toolCallsJson),
         actions = ToolStepsJson.decodeActions(sourcesJson),
         cards = ToolStepsJson.decodeCards(sourcesJson),
+        news = ToolStepsJson.decodeNews(sourcesJson),
         attachments = DocAttachment.decode(attachmentsJson),
     )
 }
@@ -86,7 +87,7 @@ internal fun UiMessage.toEntity(
     role = if (isUser) MessageEntity.ROLE_USER else MessageEntity.ROLE_ASSISTANT,
     content = text,
     reasoning = reasoning,
-    sourcesJson = ToolStepsJson.encode(steps, sources, actions, cards),
+    sourcesJson = ToolStepsJson.encode(steps, sources, actions, cards, news),
     toolCallsJson = ToolStepsJson.encodeTrace(trace),
     attachmentsJson = DocAttachment.encode(attachments),
     createdAt = createdAt,

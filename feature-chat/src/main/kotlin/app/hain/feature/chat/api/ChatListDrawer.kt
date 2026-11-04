@@ -149,6 +149,9 @@ internal fun ChatListDrawer(
             )
             Spacer(Modifier.height(spacing.md))
             DrawerList(hasChats, groups, searchQuery, currentChatId, actions, Modifier.weight(1f))
+            actions.onNews?.let { openNews ->
+                HainMenuRow(HainIcons.news, stringResource(R.string.chat_news), openNews, Modifier.fillMaxWidth())
+            }
             HainMenuRow(
                 HainIcons.settings,
                 stringResource(R.string.chat_settings),
