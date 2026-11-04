@@ -108,7 +108,11 @@ TEAL (about, pages read, forest), CLEAR (menus). `glowStrength(dark)` holds the 
 inner light and shadow are stronger and the edge fainter, so the light really *glows* on dark glass.
 
 Radii: SMALL 12, MEDIUM 20, **TILE 24** (glass tiles), LARGE 28 (sheets, **the composer card**), capsule
-(buttons, pills). Real blur (Haze) stays limited to surfaces over scrolling content.
+(buttons, pills). Real blur (Haze) stays limited to surfaces over scrolling content and to the
+**menu backdrop** (T-104): while a ⋯ menu, a long-press menu (chats in the drawer) or a popover is open,
+`HainMenuBackdrop` blurs the screen behind it softly (14 dp, 16 % page tint, no noise); below Android 12
+a dimming with 75 % of `scrim` instead. It fades with the menu in `MENU_MS`; with "reduce motion" it is
+just there, without animation.
 
 ### 3D icons
 

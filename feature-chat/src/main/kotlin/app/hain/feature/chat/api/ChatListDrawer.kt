@@ -358,6 +358,8 @@ private fun ChatRow(
             label = chat.title,
             onClick = { actions.onOpen(chat.id) },
             modifier = Modifier.weight(1f),
+            // T-104: long press = the same ⋯ menu (with the soft blur behind it)
+            onLongClick = { if (!expanded) onToggle() },
         )
         Box {
             HainIconButton(HainIcons.more, stringResource(R.string.chat_more), onToggle, tint = colors.icon)

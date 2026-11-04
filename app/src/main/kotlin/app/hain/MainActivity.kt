@@ -44,6 +44,7 @@ import app.hain.models.api.DownloadState
 import app.hain.models.api.ModelRepository
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.ToolContext
+import app.hain.ui.effects.HainMenuBackdrop
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.HapticLevel
 import app.hain.ui.motion.LocalHapticLevel
@@ -183,72 +184,76 @@ class MainActivity : ComponentActivity() {
                     LocalReduceMotion provides (settings.reduceMotion || systemReducesMotion()),
                     LocalHapticLevel provides HapticLevel.entries[settings.haptics.ordinal],
                 ) {
-                    var installed by remember { mutableStateOf(models.isInstalled(brain)) }
-                    var skipped by remember { mutableStateOf(startPrefs.getBoolean(KEY_SKIPPED, false)) }
-                    if (!installed && !skipped) {
-                        OnboardingScreen(
-                            models = models,
-                            onDone = { installed = models.isInstalled(brain) },
-                            onLanguage = { tag -> pickLanguage(tag) },
-                            iconFlat = settings.appIcon == AppIcon.FLAT,
-                            onIconFlat = { flat ->
-                                lifecycleScope.launch {
-                                    settingsRepository.setAppIcon(if (flat) AppIcon.FLAT else AppIcon.THREE_D)
-                                }
-                            },
-                            onSkip = {
-                                startPrefs.edit().putBoolean(KEY_SKIPPED, true).apply()
-                                skipped = true
-                            },
-                        )
-                    } else {
-                        val chatViewModel = viewModel { chatViewModel(prompts) { current } }
-                        ChatScreen(
-                            viewModel = chatViewModel,
-                            onOpenSettings = { showSettings = true },
-                            onGetBrain = { showPacks = true },
-                            answerMode = settings.answerMode,
-                            onAnswerMode = { mode -> lifecycleScope.launch { settingsRepository.setAnswerMode(mode) } },
-                            onOpenGame = { showGame = true },
-                        )
-                        // T-098: the 2048 easter egg opens right after Pim's burst
-                        AnimatedVisibility(
-                            visible = showGame,
-                            enter =
-                                fadeIn(hainTween(HainMotion.PAGE_MS)) +
-                                    scaleIn(hainTween(HainMotion.PAGE_MS), GAME_FROM),
-                            exit = fadeOut(hainTween(HainMotion.FAST_MS)),
-                        ) {
-                            Game2048Screen(
-                                best = settings.game2048Best,
-                                onScore = { score ->
-                                    lifecycleScope.launch { settingsRepository.recordGame2048(score) }
+                    HainMenuBackdrop {
+                        var installed by remember { mutableStateOf(models.isInstalled(brain)) }
+                        var skipped by remember { mutableStateOf(startPrefs.getBoolean(KEY_SKIPPED, false)) }
+                        if (!installed && !skipped) {
+                            OnboardingScreen(
+                                models = models,
+                                onDone = { installed = models.isInstalled(brain) },
+                                onLanguage = { tag -> pickLanguage(tag) },
+                                iconFlat = settings.appIcon == AppIcon.FLAT,
+                                onIconFlat = { flat ->
+                                    lifecycleScope.launch {
+                                        settingsRepository.setAppIcon(if (flat) AppIcon.FLAT else AppIcon.THREE_D)
+                                    }
                                 },
-                                onClose = { showGame = false },
+                                onSkip = {
+                                    startPrefs.edit().putBoolean(KEY_SKIPPED, true).apply()
+                                    skipped = true
+                                },
                             )
-                        }
-                        AnimatedVisibility(
-                            visible = showSettings,
-                            enter =
-                                fadeIn(hainTween(HainMotion.PAGE_MS)) +
-                                    slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
-                            exit = fadeOut(hainTween(HainMotion.FAST_MS)),
-                        ) {
-                            val log by networkGate.log.collectAsStateWithLifecycle()
-                            SettingsScreen(
-                                settings,
-                                settingsActions({ showSettings = false }, { showPacks = true }),
-                                networkLog = log,
+                        } else {
+                            val chatViewModel = viewModel { chatViewModel(prompts) { current } }
+                            ChatScreen(
+                                viewModel = chatViewModel,
+                                onOpenSettings = { showSettings = true },
+                                onGetBrain = { showPacks = true },
+                                answerMode = settings.answerMode,
+                                onAnswerMode = { mode ->
+                                    lifecycleScope.launch { settingsRepository.setAnswerMode(mode) }
+                                },
+                                onOpenGame = { showGame = true },
                             )
-                        }
-                        AnimatedVisibility(
-                            visible = showPacks,
-                            enter =
-                                fadeIn(hainTween(HainMotion.PAGE_MS)) +
-                                    slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
-                            exit = fadeOut(hainTween(HainMotion.FAST_MS)),
-                        ) {
-                            PacksScreen(models, deviceRamGb(), { showPacks = false })
+                            // T-098: the 2048 easter egg opens right after Pim's burst
+                            AnimatedVisibility(
+                                visible = showGame,
+                                enter =
+                                    fadeIn(hainTween(HainMotion.PAGE_MS)) +
+                                        scaleIn(hainTween(HainMotion.PAGE_MS), GAME_FROM),
+                                exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+                            ) {
+                                Game2048Screen(
+                                    best = settings.game2048Best,
+                                    onScore = { score ->
+                                        lifecycleScope.launch { settingsRepository.recordGame2048(score) }
+                                    },
+                                    onClose = { showGame = false },
+                                )
+                            }
+                            AnimatedVisibility(
+                                visible = showSettings,
+                                enter =
+                                    fadeIn(hainTween(HainMotion.PAGE_MS)) +
+                                        slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
+                                exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+                            ) {
+                                val log by networkGate.log.collectAsStateWithLifecycle()
+                                SettingsScreen(
+                                    settings,
+                                    settingsActions({ showSettings = false }, { showPacks = true }),
+                                    networkLog = log,
+                                )
+                            }
+                            AnimatedVisibility(
+                                visible = showPacks,
+                                enter =
+                                    fadeIn(hainTween(HainMotion.PAGE_MS)) +
+                                        slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
+                                exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+                            ) {
+                                PacksScreen(models, deviceRamGb(), { showPacks = false })
+                            }
                         }
                     }
                 }

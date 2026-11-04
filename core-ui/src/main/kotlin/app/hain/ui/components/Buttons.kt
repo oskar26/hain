@@ -5,6 +5,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
@@ -206,6 +207,7 @@ fun HainIconButton(
 }
 
 /** Row used by drawers and lists: icon + label, rounded row shape, [selected] = soft grey fill. */
+@Suppress("LongParameterList") // optional selection and long press with defaults
 @Composable
 fun HainMenuRow(
     icon: Painter?,
@@ -213,6 +215,7 @@ fun HainMenuRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     selected: Boolean = false,
+    onLongClick: (() -> Unit)? = null,
 ) {
     val colors = LocalHainColors.current
     val spacing = LocalHainSpacing.current
@@ -221,7 +224,8 @@ fun HainMenuRow(
             modifier
                 .clip(LocalHainShapes.current.row)
                 .background(if (selected) colors.surface else Color.Transparent)
-                .clickable(onClick = onClick)
+                // T-104: a long press opens the row's menu (chats in the drawer)
+                .combinedClickable(onLongClick = onLongClick, onClick = onClick)
                 .padding(horizontal = spacing.md, vertical = spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
