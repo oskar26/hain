@@ -88,7 +88,7 @@ internal fun SettingsBody(
             title = stringResource(current?.title ?: R.string.settings_title),
             leading = {
                 HainIconButton(
-                    if (current == null) HainIcons.close else HainIcons.chevronRight,
+                    if (current == null) HainIcons.close else HainIcons.back,
                     stringResource(R.string.settings_back),
                     { if (current != null) page = null else actions.onBack() },
                 )

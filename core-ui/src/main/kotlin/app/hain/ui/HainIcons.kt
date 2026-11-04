@@ -40,6 +40,9 @@ object HainIcons {
     val check: Painter @Composable get() = painterResource(R.drawable.ic_check)
     val close: Painter @Composable get() = painterResource(R.drawable.ic_x)
     val chevronRight: Painter @Composable get() = painterResource(R.drawable.ic_chevron_right)
+
+    /** Back button in top bars (T-216); mirrors itself in RTL layouts. */
+    val back: Painter @Composable get() = painterResource(R.drawable.ic_chevron_left)
     val delete: Painter @Composable get() = painterResource(R.drawable.ic_trash_2)
     val download: Painter @Composable get() = painterResource(R.drawable.ic_download)
     val globe: Painter @Composable get() = painterResource(R.drawable.ic_globe)
@@ -89,6 +92,7 @@ internal fun HainIconsPreview() {
                 HainIcons.check,
                 HainIcons.close,
                 HainIcons.chevronRight,
+                HainIcons.back,
                 HainIcons.delete,
                 HainIcons.download,
                 HainIcons.globe,

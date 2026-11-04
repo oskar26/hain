@@ -121,6 +121,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-213 | Pim in the chat more often and bigger: thinking row 40 dp, 24 dp Pim at the newest answer (peeks in while tools run, cheers when done, fright on errors), empty chat 96 dp | ui | S | B | T-163 | review (04.11., extras PR) |
 | T-211 | Developer mode (7× tap on the version): own GGUF from Hugging Face, sampling, context, thinking, own system prompt, speed + debug info | feature | M | C | T-214,T-032 | review (04.11., extras PR) |
 | T-212 | Update check: version.json on nightly + v* releases, optional daily check via NetworkGate (purpose UPDATE), one-time ask card, calm banner → release page | feature | S | C | T-214,T-215 | review (04.11., extras PR) |
+| T-216 | Zurück-Pfeil zeigt nach links: Einstellungs-Unterseiten nutzen `HainIcons.back` (Lucide chevron-left, autoMirrored) statt chevron-right | fix | XS | B | T-214 | review (04.11., extras PR) |
 
 ## M0 · Device check & setup (human)
 
@@ -1162,3 +1163,15 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
   - Oskars Beispiel wird zu reinem Text ohne [1], Quellenzeile, Werkzeug-Satz und „Fakt:“
   - Antworten mit Quellen behalten gültige Marker; Code bleibt gleich
 - check: `./gradlew :feature-chat:testDebugUnitTest :core-llm:testDebugUnitTest ktlintCheck detekt` (CI)
+
+### T-216 · Zurück-Pfeil zeigt nach links
+
+- type: `fix` · size: `XS` · lane: `B` · depends: T-214
+- files: core-ui/src/main/res/drawable/ic_chevron_left.xml, core-ui/.../HainIcons.kt, feature-settings/.../SettingsScreen.kt
+- warum: In den Einstellungs-Unterseiten (Aussehen, Entwickler, Über Hain, …) zeigte der Zurück-Knopf oben links nach rechts (`HainIcons.chevronRight`).
+- do:
+  1. Lucide `chevron-left` als Vector-Drawable (gleicher Strich wie die anderen, `autoMirrored` für RTL), `HainIcons.back`.
+  2. Zurück-Knopf in `SettingsScreen` nutzt `HainIcons.back`; Hub behält das ✕. Andere `chevronRight`-Stellen (Zeilen-Chevron, gedrehter „nach unten“-Knopf im Chat) sind keine Zurück-Knöpfe und bleiben.
+- accept:
+  - Alle Unterseiten zeigen einen nach links zeigenden Pfeil
+- check: `ktlintCheck detekt` + Screens (CI)

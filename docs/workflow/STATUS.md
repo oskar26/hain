@@ -118,5 +118,6 @@ _Agents add ideas here instead of doing them._
 - **T-213 Pim im Chat:** Denk-Zeile 40 dp, kleiner Pim (24 dp) an der neuesten Antwort (schaut bei Werkzeugen rein, freut sich am Ende, erschrickt bei Fehlern), leerer Chat 96 dp.
 - **T-214 Über Hain:** zentrierter Kopf mit Pim, Zeilen mit Icon für Website, GitHub, Version, Lizenz, Open-Source-Lizenzen, Update-Block, Entwicklermodus aus.
 - **T-215 Version:** `hain.versionName=0.1.3.1` in `gradle.properties`, `BuildConfig.GIT_SHA` / `BUILD_DATE` (CI setzt sie), Schema in `docs/workflow/VERSIONING.md`.
+- **T-216 Zurück-Pfeil:** Einstellungs-Unterseiten zeigen jetzt einen Pfeil nach links (`HainIcons.back`, Lucide chevron-left, spiegelt sich bei RTL) statt nach rechts.
 - **Hinweis Kontext:** Der Auftrag nannte als Standard 2048, die App lädt seit T-088 aber mit 8192 (2048 beendete lange Chats). Standard bleibt 8192, im Entwicklermodus wählbar.
 - **Offen:** Download großer GGUF-Dateien läuft weiter direkt im Paket-Downloader (wie das Gehirn); durch das Gate geht nur eine kurze HEAD-Anfrage, damit er im Netzwerk-Log steht. Denk-Budget = Token-Grenze einer Antwort mit Denken (kein hartes Abschneiden nur des Denkens).
