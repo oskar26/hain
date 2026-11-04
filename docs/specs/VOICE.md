@@ -12,7 +12,7 @@ All via **sherpa-onnx** Android AAR (Apache-2.0). Models are packs (MODELS.md).
 > states) → encoder → adapter (`pos_offset` 0) → cross K/V → greedy decoder with self K/V cache from length 0, max
 > 6.5 tokens/s. The whole utterance runs after you stop (≈0.6 s for 6 s of speech on 2 desktop cores); live partials
 > and Silero VAD are not in v1 — leading/trailing silence is cut by energy (−42 dBFS, 30 ms windows, 250 ms margin).
-> Mic: AudioRecord VOICE_RECOGNITION at 16 kHz, else 48/44.1 kHz + resample. Max 60 s per dictation.
+> Download: the normal pack downloader (resume, SHA-256) through the NetworkGate (MODEL_DOWNLOAD). Mic: AudioRecord VOICE_RECOGNITION at 16 kHz, else 48/44.1 kHz + resample. Max 60 s per dictation.
 
 - Default: **Moonshine Small Streaming** (MIT) — DE WER 7.5 %, EN 7.8 %. Streaming partial results into the composer.
 - Optional pack: Parakeet TDT 0.6B v3 (better, bigger; check licence CC-BY-4.0 → attribution in About).
