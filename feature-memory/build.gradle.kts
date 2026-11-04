@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.roborazzi)
 }
 
 android {
@@ -24,6 +25,12 @@ android {
     buildFeatures {
         compose = true
     }
+    // T-115 screenshots: Roborazzi on the JVM via Robolectric (CI workflow screens.yml)
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 dependencies {
@@ -34,7 +41,9 @@ dependencies {
     implementation(project(":core-ui"))
     implementation(project(":core-memory"))
 
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.kotlinx.coroutines.core)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -45,4 +54,20 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    // T-115 screenshots (only run with -Phain.screens, see .github/workflows/screens.yml)
+    testImplementation(composeBom)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+    testImplementation(libs.roborazzi.junit.rule)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+// Screenshot tests are slow and need native graphics: they only run when asked for (T-115).
+tasks.withType<Test>().configureEach {
+    if (!project.hasProperty("hain.screens")) {
+        exclude("**/screens/**")
+        failOnNoDiscoveredTests.set(false)
+    }
 }

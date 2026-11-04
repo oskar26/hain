@@ -35,4 +35,6 @@ class SettingsActions(
     val onUpdateChannel: (UpdateChannel) -> Unit = {},
     /** "Jetzt prüfen" in "Über Hain". */
     val onCheckUpdate: () -> Unit = {},
+    /** Opens the memory page (T-115, :feature-memory). */
+    val onOpenMemory: () -> Unit = {},
 )

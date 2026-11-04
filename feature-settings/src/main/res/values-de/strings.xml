@@ -176,4 +176,6 @@
         <item quantity="one">Noch 1×…</item>
         <item quantity="other">Noch %d×…</item>
     </plurals>
+    <string name="settings_memory">Gedächtnis</string>
+    <string name="settings_memory_hint">Was Pim sich über dich merkt</string>
 </resources>

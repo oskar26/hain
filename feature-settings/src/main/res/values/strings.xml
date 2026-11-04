@@ -176,4 +176,6 @@
         <item quantity="one">One more tap…</item>
         <item quantity="other">%d more taps…</item>
     </plurals>
+    <string name="settings_memory">Memory</string>
+    <string name="settings_memory_hint">What Pim keeps about you</string>
 </resources>

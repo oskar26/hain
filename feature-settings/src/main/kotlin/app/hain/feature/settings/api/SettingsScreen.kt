@@ -150,6 +150,8 @@ private fun Hub(
     Tile(Hain3D.HEART, GlowHue.ROSE, R.string.settings_group_you, R.string.settings_you_hint) {
         open(SettingsPage.YOU)
     }
+    // T-115: what Pim keeps about you, on its own page
+    Tile(Hain3D.BULB, GlowHue.LILAC, R.string.settings_memory, R.string.settings_memory_hint, actions.onOpenMemory)
     Tile(Hain3D.PARCEL, GlowHue.SUN, R.string.settings_packs, R.string.settings_packs_hint, actions.onOpenPacks)
     Tile(Hain3D.SHIELD, GlowHue.SKY, R.string.settings_group_privacy, R.string.settings_privacy_hint) {
         open(SettingsPage.PRIVACY)

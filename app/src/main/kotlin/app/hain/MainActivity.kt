@@ -41,6 +41,7 @@ import app.hain.feature.chat.internal.ChatEngine
 import app.hain.feature.chat.internal.ChatStore
 import app.hain.feature.chat.internal.ChatViewModel
 import app.hain.feature.chat.internal.PrefsRatings
+import app.hain.feature.memory.api.MemoryScreen
 import app.hain.feature.onboarding.api.OnboardingScreen
 import app.hain.feature.settings.api.AppInfo
 import app.hain.feature.settings.api.PacksScreen
@@ -99,6 +100,7 @@ class MainActivity : ComponentActivity() {
     private fun settingsActions(
         onBack: () -> Unit,
         onOpenPacks: () -> Unit,
+        onOpenMemory: () -> Unit = {},
     ): SettingsActions {
         val repo = settingsRepository
 
@@ -126,6 +128,7 @@ class MainActivity : ComponentActivity() {
             onUpdateCheck = { write { repo.setUpdateCheck(it) } },
             onUpdateChannel = { write { repo.setUpdateChannel(it) } },
             onCheckUpdate = { checkForUpdate() },
+            onOpenMemory = onOpenMemory,
         )
     }
 
@@ -241,6 +244,7 @@ class MainActivity : ComponentActivity() {
             current = settings
             var showSettings by rememberSaveable { mutableStateOf(false) }
             var showPacks by rememberSaveable { mutableStateOf(false) }
+            var showMemory by rememberSaveable { mutableStateOf(false) }
             var showGame by rememberSaveable { mutableStateOf(false) }
             HainTheme(
                 darkTheme =
@@ -348,9 +352,30 @@ class MainActivity : ComponentActivity() {
                                 val log by networkGate.log.collectAsStateWithLifecycle()
                                 SettingsScreen(
                                     settings,
-                                    settingsActions({ showSettings = false }, { showPacks = true }),
+                                    settingsActions(
+                                        onBack = { showSettings = false },
+                                        onOpenPacks = { showPacks = true },
+                                        onOpenMemory = { showMemory = true },
+                                    ),
                                     networkLog = log,
                                     extras = SettingsExtras(appInfo, updateStatus, devModels),
+                                )
+                            }
+                            // T-115: Settings → Gedächtnis
+                            AnimatedVisibility(
+                                visible = showMemory,
+                                enter =
+                                    fadeIn(hainTween(HainMotion.PAGE_MS)) +
+                                        slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
+                                exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+                            ) {
+                                MemoryScreen(
+                                    store = memory,
+                                    aboutMe = settings.aboutMe,
+                                    onAboutMe = { text ->
+                                        lifecycleScope.launch { settingsRepository.setAboutMe(text) }
+                                    },
+                                    onBack = { showMemory = false },
                                 )
                             }
                             AnimatedVisibility(
