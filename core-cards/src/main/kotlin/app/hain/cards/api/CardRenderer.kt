@@ -231,7 +231,6 @@ private fun CheckRow(
 private fun Table(block: CardBlock.Table) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
-    val spacing = LocalHainSpacing.current
     val shape = LocalHainShapes.current.chip
     Column(
         Modifier
@@ -249,7 +248,6 @@ private fun Table(block: CardBlock.Table) {
             TableRow(row, type.bodySmall.copy(color = colors.text))
         }
     }
-    Spacer(Modifier.height(spacing.xs))
 }
 
 @Composable

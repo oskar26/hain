@@ -1,6 +1,10 @@
 package app.hain.feature.chat.screens
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.junit4.createComposeRule
+import app.hain.feature.chat.api.CardHandler
+import app.hain.feature.chat.api.LocalCardHandler
 import app.hain.feature.chat.internal.ChatUiState
 import app.hain.feature.chat.internal.UiMessage
 import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
@@ -26,21 +30,27 @@ class CardScreens {
 
     private fun shot(name: String) = captureScreenRoboImage("$OUT/cards/$name.png")
 
+    /** Like in the app: the "ask" button is live (without a handler it would look disabled). */
+    @Composable
+    private fun Chat(state: ChatUiState) {
+        CompositionLocalProvider(LocalCardHandler provides CardHandler(onAsk = {})) { ChatFrame(state) }
+    }
+
     @Test
     fun planCardLight() {
-        compose.setContent { Frame(dark = false) { ChatFrame(planState()) } }
+        compose.setContent { Frame(dark = false) { Chat(planState()) } }
         shot("cards_light")
     }
 
     @Test
     fun planCardDark() {
-        compose.setContent { Frame(dark = true) { ChatFrame(planState()) } }
+        compose.setContent { Frame(dark = true) { Chat(planState()) } }
         shot("cards_dark")
     }
 
     @Test
     fun listCardLight() {
-        compose.setContent { Frame(dark = false) { ChatFrame(listState()) } }
+        compose.setContent { Frame(dark = false) { Chat(listState()) } }
         shot("cards_list_light")
     }
 
