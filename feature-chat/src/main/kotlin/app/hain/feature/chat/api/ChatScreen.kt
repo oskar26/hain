@@ -111,6 +111,7 @@ fun ChatScreen(
     onOpenGame: () -> Unit = {},
     extras: ChatExtras = ChatExtras(),
     banner: @Composable () -> Unit = {},
+    onOpenNews: (() -> Unit)? = null,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var drawerOpen by rememberSaveable { mutableStateOf(false) }
@@ -231,6 +232,13 @@ fun ChatScreen(
                         drawerOpen = false
                         onOpenSettings()
                     },
+                    onNews =
+                        onOpenNews?.let { open ->
+                            {
+                                drawerOpen = false
+                                open()
+                            }
+                        },
                 ),
         )
     }

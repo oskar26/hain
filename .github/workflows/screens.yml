@@ -35,7 +35,7 @@ jobs:
       - name: Record screenshots
         run: >
           ./gradlew :core-ui:testDebugUnitTest :feature-chat:testDebugUnitTest
-          :feature-settings:testDebugUnitTest :feature-onboarding:testDebugUnitTest
+          :feature-settings:testDebugUnitTest :feature-onboarding:testDebugUnitTest :feature-news:testDebugUnitTest
           --tests '*.screens.*' --continue -Phain.native=false -Phain.screens=true -Proborazzi.test.record=true --stacktrace
 
       - name: Upload screenshots
