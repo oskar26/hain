@@ -371,3 +371,18 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Geprüft mit Playwright (Chromium) bei 1366×1024 (hell + dunkel) und 390×844, EN + /de: alle Bilder laden, kein waagerechter Überlauf, /de zeigt weiter die deutschen Bilder. Vorher/Nachher in `docs/design/web/t107-*.png`. `npm ci && npm run build` grün. Gradle nicht lokal (zu langsam) → CI, APK, Screens.
 - Dateien: feature-chat/src/test/.../screens/{ChatScreens,ChatStyleScreens}.kt, feature-onboarding/src/test/.../screens/OnboardingStyleScreens.kt, feature-settings/src/test/.../screens/SettingsStyleScreens.kt, website/src/components/{Hero,Sections}.tsx, website/src/content.ts, website/public/screenshots/*-en.webp, docs/design/web/t107-*.png, docs/workflow/{TASKS,STATUS,HANDOFF_LOG}.md.
 - Nächstes: Oskar schaut sich die EN-Seite an; evtl. die deutschen Screenshots auf den aktuellen Stand bringen.
+
+## 2026-11-04 · T-210 bis T-215 (0.1.3.1 – Extras) · review · harness: Hark · model: Hark · branch `hark/extras` (Draft-PR #36)
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-210 | review | `MenuBackdropTest` (24 dp, Tönung 60–75 %, Fallback deckend, leichte Abdunklung); Screenshots `menu_frosted_light/dark` | `MenuBackdrop.kt`, `PopupMenu.kt`, `DESIGN_LANGUAGE.md` | Blur in Popups braucht Haze-Quelle im Hauptfenster (`HainMenuBackdrop`) – Dialoge außerhalb davon bleiben deckend |
+| T-211 | review | `DevTuningTest`, `GgufPromptBuilderTest`, `HuggingFaceTest`, `SettingsRepositoryTest` (Dev-Werte), `DeveloperPageTest` | `hain_llm.cpp` + `NativeLlm` (Chat-Template aus GGUF), `LlamaEngine` (Kontext-Neuladen, Statistik), `ChatEngine`, `ChatViewModel`, `ModelDownloadWorker` (sha optional), `DefaultModelRepository` (Größe unbekannt), `MainActivity` | eigene Modelle ohne Werkzeuge; Download nicht durch das Gate (nur HEAD-Vorabfrage) |
+| T-212 | review | `UpdateRulesTest` (JSON, Vergleich, Adressen, täglich, einmal fragen, Gate-Zweck UPDATE) | `apk.yml` (version.json, `v*`-Tags), `NetworkGate` (`Purpose.UPDATE`), `NetworkLogSection` | Kanal „Stabil“ findet erst etwas, wenn es ein `v*`-Release gibt |
+| T-213 | review | `AnswerPimTest`; bestehende Pim-Tests unverändert (Blatt bleibt dran); Screenshot `chat_pim_tools` | `ChatScreen.kt`, `StartPage.kt` | – |
+| T-214 | review | `AboutTapsTest`; Screenshots `lichtung_settings_about_*` | Icons `ic_github/scale/info/code/tag`, `SettingsScreen/Page/Pages/Rows` | – |
+| T-215 | review | `AppInfoTest` | `app/build.gradle.kts` (`buildConfig = true`), `gradle.properties` | – |
+
+- Gradle lokal nicht gestartet (qemu, gemeinsamer RAM): ktlint 1.5.0 CLI lokal, Rest über CI (CI, APK, Screens).
+- README (Funktionstabelle + „Neu im Testbuild“), Website (EN + /de: Update-Prüfung, Entwicklermodus) und `SETTINGS.md` aktualisiert.
+- Nächstes: Oskar testet die APK (Milchglas hell/dunkel, Entwicklermodus mit einem zweiten GGUF, Update-Banner mit Kanal Nightly); für „Stabil“ ein erstes `v0.1.3.1`-Tag setzen, wenn gewünscht.

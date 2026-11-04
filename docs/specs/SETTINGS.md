@@ -56,6 +56,18 @@ Level 1 = visible directly; level 2 = under "Erweitert / Advanced".
 | | auto_delete_days | 0(off)/7/30/90 | 0 | 1 |
 | Energy | battery_saver_threshold | 0/15/30 % | 15 | 2 |
 | | show_energy_per_answer | bool | false | 2 |
+| Updates (T-212) | update_check | off/daily (once a day at start, via NetworkGate purpose UPDATE) | off (asked once after the 3rd chat) | 1 (About Hain) |
+| | update_channel | stable/nightly | stable | 1 (About Hain) |
+| | update_asked | bool (one-time card answered) | false | – |
+| | update_last_check | ms | 0 | – |
+| Developer (T-211, hidden: tap version 7× in About Hain; only used while dev_enabled) | dev_enabled | bool | false | 3 |
+| | dev_temperature, dev_top_k, dev_top_p, dev_min_p, dev_repeat_penalty | numbers | 0.1, 50, 1.0, 0.0, 1.1 | 3 |
+| | dev_context | 512–8192 (a change reloads the model) | 8192 | 3 |
+| | dev_max_tokens, dev_seed | int | 1024, -1 (random) | 3 |
+| | dev_thinking, dev_thinking_budget, dev_raw_thinking | auto/on/off, int, bool | auto, 4096, false | 3 |
+| | dev_system_prompt | text (empty = Hain's prompt) | "" | 3 |
+| | dev_stats | bool (tokens/s + time to first token, copy debug info) | false | 3 |
+| | dev_model_path, dev_model_name | own GGUF on the phone (empty = Hain brain) | "" | 3 |
 
 Actions (not keys): export all, delete all, reset settings, manage packs, device check, view system prompt, licences.
 News has **no** per-source settings (ADR-14) — only mode, languages, interval, Wi-Fi, own feed list.

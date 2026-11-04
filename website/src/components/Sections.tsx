@@ -1,7 +1,7 @@
 import {
   ShieldCheck, WifiOff, PiggyBank, Leaf, MessageCircle, Lock, Calculator, Newspaper, Brain, EyeOff, SlidersHorizontal, Trees,
   Download, Smartphone, Sparkles, Check, X, ChevronDown, ArrowUpRight, Bug, Languages, CodeXml, Globe, CloudSun, BookOpen,
-  Search, Link, AlarmClock, Package, NotebookPen, LayoutList, FileText, Mic, Clock, Share2, ImageIcon, Heart,
+  Search, Link, AlarmClock, Package, NotebookPen, LayoutList, FileText, Mic, Clock, Share2, ImageIcon, Heart, RefreshCw,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { COPY, LINKS, SCREENSHOTS, type Lang, type Status } from '../content'
@@ -45,6 +45,7 @@ const FEATURE_ICONS: Record<string, LucideIcon> = {
   chat: MessageCircle, lock: Lock, brain: Brain, search: Search, book: BookOpen, link: Link, alarm: AlarmClock,
   shield: ShieldCheck, sliders: SlidersHorizontal, languages: Languages, package: Package, news: Newspaper,
   memory: NotebookPen, private: EyeOff, cards: LayoutList, file: FileText, mic: Mic, trees: Trees, calc: Calculator, share: Share2, image: ImageIcon,
+  update: RefreshCw, code: CodeXml,
 }
 
 export function StatusBadge({ s, label }: { s: Status; label: string }) {
