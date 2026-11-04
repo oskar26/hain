@@ -71,6 +71,7 @@ internal fun MessageEntity.toUi(): UiMessage {
         sources = sources,
         trace = ToolStepsJson.decodeTrace(toolCallsJson),
         actions = ToolStepsJson.decodeActions(sourcesJson),
+        cardState = cardsJson,
     )
 }
 
@@ -85,6 +86,7 @@ internal fun UiMessage.toEntity(
     reasoning = reasoning,
     sourcesJson = ToolStepsJson.encode(steps, sources, actions),
     toolCallsJson = ToolStepsJson.encodeTrace(trace),
+    cardsJson = cardState,
     createdAt = createdAt,
     thinkingMillis = thinkingSeconds?.let { it * MS_PER_S },
     status =

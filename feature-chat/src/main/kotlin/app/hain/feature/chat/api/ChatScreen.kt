@@ -33,6 +33,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,7 +68,6 @@ import app.hain.feature.chat.internal.UiMessage
 import app.hain.llm.api.EngineState
 import app.hain.llm.api.GenerationStats
 import app.hain.ui.HainIcons
-import app.hain.ui.components.AssistantBlock
 import app.hain.ui.components.Composer
 import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.MessageAction
@@ -170,15 +170,19 @@ fun ChatScreen(
                         Greeting(onSuggestion = { viewModel.onInputChange(it) }, onEgg = onOpenGame)
                     } else {
                         val ratings by viewModel.ratings.collectAsStateWithLifecycle()
-                        MessageList(
-                            state,
-                            ratings = ratings,
-                            onRetry = { viewModel.regenerate(it) },
-                            onEdit = viewModel::startEdit,
-                            onRate = viewModel::rate,
-                            onAction = viewModel::resolveAction,
-                            extras = extras,
-                        )
+                        // T-131: checklist ticks are saved, card buttons can ask the next question
+                        val cards = remember(viewModel) { CardHandler(viewModel::updateCards, viewModel::ask) }
+                        CompositionLocalProvider(LocalCardHandler provides cards) {
+                            MessageList(
+                                state,
+                                ratings = ratings,
+                                onRetry = { viewModel.regenerate(it) },
+                                onEdit = viewModel::startEdit,
+                                onRate = viewModel::rate,
+                                onAction = viewModel::resolveAction,
+                                extras = extras,
+                            )
+                        }
                     }
                 }
             }
@@ -474,13 +478,14 @@ private fun Answer(
                 BasicText(stringResource(R.string.chat_thinking), style = type.bodySmall.copy(color = colors.textMuted))
             }
         } else {
-            AssistantBlock(
-                markdown = message.text,
+            // T-131: answer text with its cards
+            AnswerBody(
+                message,
                 actions =
                     if (message.streaming) {
                         null
                     } else {
-                        { AnswerActions(message.text, rating, canRetry, onRetry, onRate) }
+                        { AnswerActions(message.plainAnswer(), rating, canRetry, onRetry, onRate) }
                     },
             )
             if (!message.streaming) {

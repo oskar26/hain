@@ -400,3 +400,16 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 ## 2026-11-04 · T-216 (Zurück-Pfeil zeigt nach links) · review · harness: Hark · model: Hark · branch `hark/extras` (Draft-PR #36)
 - Fehler: Zurück-Knopf in den Einstellungs-Unterseiten war `HainIcons.chevronRight` (zeigte nach rechts). Neu `ic_chevron_left.xml` (Lucide, Strich 2.1 wie die anderen, `autoMirrored`) + `HainIcons.back`, in `SettingsScreen` verwendet. Ganze App durchsucht: sonst kein Zurück-Knopf mit chevronRight (`PacksScreen` nutzt ✕, `chevronRight` bleibt als Zeilen-Chevron und gedreht im „nach unten“-Knopf des Chats).
 - ktlint 1.5.0 + detekt 1.23.8 CLI lokal grün, Gradle nicht lokal → CI, APK, Screens.
+
+## 2026-11-04 · T-130, T-131 (0.1.6 – Antwort-Karten) · review · harness: Hark · model: Hark · branch `hark/day-6`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-130 | review | `CardParserTest` (19), `AnswerPartsTest` (10), `CardStateTest` (3) lokal mit kotlinc 2.1 + JUnit grün | `AnswerParts.kt`, `CardText.kt`, `CardState.kt`, `ModelCard.kt` (gleiches Paket) | – |
+| T-131 | review | `CardGrammarTest`, `CardActionsTest` (feature-chat), `python3 tools/check_gbnf.py` ok (17 Regeln, 5 gute / 7 schlechte Beispiele); Screenshots `cards_light/dark`, `cards_list_light` (screens.yml) | `ChatScreen.kt` (AnswerBody statt AssistantBlock, CardHandler), `CardHandler.kt`, `ChatStore.kt` (`cardState`), `RoomChatPersistence.kt` (`cards_json`, Spalte gab es schon → keine Migration), `ChatViewModel.kt` (`updateCards`, `ask`), `Messages.kt` (`AnswerActionRow` herausgezogen), `prompts/system_full.*` + Assets, `tools/check_gbnf.py`, README, Website, `HAPTICS.md`, `CARDS.md`, `gradle.properties` | GBNF zur Laufzeit nicht aktiv (JNI: eine Grammatik pro Generierung, kein Umschalten mitten in der Antwort); Chart/Image nicht gerendert; kein C++-Compiler in der Sandbox → `llama-gbnf-validator` ersetzt durch eigenes Python-Prüfskript |
+
+- Ablauf im Chat: `AnswerBody` zerlegt die Antwort mit `AnswerParts.split(text, streaming)`; ohne Karte bleibt es der bisherige `AssistantBlock` (kein Unterschied für normale Antworten). Eine offene Karte wächst beim Streamen mit, Knöpfe sind bis zum Ende gesperrt. Kaputte Karte → bleibt als Codeblock stehen.
+- Haken: `CardState` (`{"checked":{"karte.block.punkt":true}}`, nur geänderte Punkte) über `ChatViewModel.updateCards` → `cards_json`. Knopf `ask:"…"` → `ChatViewModel.ask` (setzt Eingabe + sendet; nicht während Pim antwortet). Kopieren/Teilen der ganzen Antwort = Klartext mit Haken (`UiMessage.plainAnswer`).
+- Prompt: neuer Abschnitt „# Karten“/„# Cards“ mit einem Beispiel (≈100 Token mehr im gecachten System-Prompt). Mit echtem LFM3 auf dem Host nicht geprüft (kein C++-Build in dieser Sandbox) → Oskar bitte mit „Schreib mir eine Einkaufsliste für Pfannkuchen“ und „Lernplan Mathe bis Freitag“ testen.
+- Version `hain.versionName=0.1.6`. Gradle lokal nicht gestartet: ktlint 1.5.0 + detekt 1.23.8 CLI lokal grün, Rest über CI (CI, APK, Screens).
+- Parallel laufen `hark/day-3b2-4b2`, `hark/day-5`, `hark/day-7`: Konflikte in README/STATUS/HANDOFF_LOG/Website/gradle.properties beim Mergen → beide Blöcke behalten, Version = höchste.

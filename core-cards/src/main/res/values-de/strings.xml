@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- T-131 Antwort-Karten (CARDS.md §4) -->
+    <string name="card_copied">Kopiert</string>
+    <string name="card_share_title">Karte teilen</string>
+    <string name="card_progress">%1$d Prozent</string>
+    <string name="card_item_done">erledigt</string>
+    <string name="card_item_open">offen</string>
+    <string name="card_writing">Pim schreibt noch…</string>
+</resources>

@@ -95,7 +95,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | ⏰ Phone actions | Alarm, timer, calendar entry, navigation – prepared by Pim as a glass card, done only after your tap | ✅ |
 | 🛡️ Network log | Every tool request goes through one gate: orange "Online" dot while it runs, offline mode, log of the last 7 days in Settings → Privacy. The log now stays after a restart (7 days, encrypted). Still open: brain download through the gate | 🚧 |
 | 📰 News | Standard mix (incl. junge Welt), standard + own feeds, or only own feeds | 🗓️ |
-| 🃏 Answer cards | Lists, tables, checklists, weather and source cards instead of plain text | 🗓️ |
+| 🃏 Answer cards | Lists, tables, checklists, progress bars and buttons right in the answer: tick items off (saved with the chat), copy, share or ask the next question with one tap. Still open: charts and pictures in cards | ✅ |
 | 🧠 Memory | "Remember that …", a memory page you can edit, forget anything | 🗓️ |
 | 🔒 Private chats | Chats that are never saved, app lock with fingerprint | 🗓️ |
 | 📄 Documents | Ask your PDFs and photos of text (PP-OCRv5), answers with sources | 🗓️ |
@@ -108,6 +108,7 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Answer cards (0.1.6).** For shopping lists, to-dos, study plans, comparisons or progress, Pim can now answer with a calm card instead of plain text: a **list**, a **table**, a **checklist** you tick off with a tap (the ticks stay with the chat), a **progress bar** and up to three **buttons** – *copy*, *share* or *ask* the next question for you. Try “Schreib mir eine Einkaufsliste für Pfannkuchen” or “Mach mir einen Lernplan für Mathe bis Freitag”. If the small brain writes a card that does not work, you simply see the text. Copying or sharing the answer gives readable text with your ticks.
 - **Version 0.1.3.1.** Hain now shows its version in **Settings → About Hain** (with build number and commit). How the numbers work is in [docs/workflow/VERSIONING.md](docs/workflow/VERSIONING.md).
 - **Frosted glass menus.** The ⋯ menu, the long-press menu in the side panel and the thinking picker are now real frosted glass: the chat behind them shows through, softly blurred, with a thin light edge and a soft shadow. The rest of the screen only dims a little. On phones older than Android 12 the menus are a solid card.
 - **More Pim in the chat.** Pim is bigger while he thinks, sits small next to the newest answer, peeks in while he looks something up, is happy for a moment when the answer is done and gets a fright on an error. On the empty chat he is a bit bigger too. "Reduce motion" keeps him still.

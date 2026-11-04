@@ -32,6 +32,8 @@ data class UiMessage(
     val research: ResearchClock? = null,
     /** Speed of this answer for developer mode (T-211; not stored). */
     val stats: GenerationStats? = null,
+    /** Checklist ticks the user set on this answer's cards (T-131, `cards_json`, see CardState). */
+    val cardState: String? = null,
 )
 
 data class Chat(

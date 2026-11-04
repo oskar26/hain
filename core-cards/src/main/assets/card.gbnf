@@ -1,0 +1,30 @@
+# card.gbnf — model cards (docs/specs/CARDS.md §2-3, T-131), llama.cpp GBNF.
+# Covers the body of a ```card block: from the line after "```card" up to and including the
+# closing fence. List, checklist, table, progress and buttons; the app's parser (CardParser) is
+# more lenient and also reads what the brain writes without this grammar.
+# Limits: up to 8 blocks, 12 items or 10 table rows per block, 5 columns, 60 characters per quoted
+# value, 80 per item (about the 30 lines of CARDS.md).
+
+root      ::= title? block block? block? block? block? block? block? block? "```"
+title     ::= "Card title=" str nl
+block     ::= list | checklist | table | progress | button
+
+list      ::= "List" nl item{1,12}
+item      ::= "- " text nl
+
+checklist ::= "Checklist" nl check{1,12}
+check     ::= "- " text " [x]"? nl
+
+table     ::= "Table" nl row row{1,10}
+row       ::= "|" cell{1,5} nl
+cell      ::= " " [^|\n]{1,40} " |"
+
+progress  ::= "Progress value=" pct (" label=" str)? nl
+pct       ::= "100" | [1-9] [0-9] | [0-9]
+
+button    ::= "Button label=" str " action=" action nl
+action    ::= "copy" | "share" | "ask:" str
+
+str       ::= "\"" [^"\n]{1,60} "\""
+text      ::= [^\n\[]{1,80}
+nl        ::= "\n"
