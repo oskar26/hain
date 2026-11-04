@@ -400,3 +400,18 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 ## 2026-11-04 · T-216 (Zurück-Pfeil zeigt nach links) · review · harness: Hark · model: Hark · branch `hark/extras` (Draft-PR #36)
 - Fehler: Zurück-Knopf in den Einstellungs-Unterseiten war `HainIcons.chevronRight` (zeigte nach rechts). Neu `ic_chevron_left.xml` (Lucide, Strich 2.1 wie die anderen, `autoMirrored`) + `HainIcons.back`, in `SettingsScreen` verwendet. Ganze App durchsucht: sonst kein Zurück-Knopf mit chevronRight (`PacksScreen` nutzt ✕, `chevronRight` bleibt als Zeilen-Chevron und gedreht im „nach unten“-Knopf des Chats).
 - ktlint 1.5.0 + detekt 1.23.8 CLI lokal grün, Gradle nicht lokal → CI, APK, Screens.
+
+## 2026-11-04 · T-056 + T-054 (0.1.8 – Privat & Export) · review · harness: Hark · model: Hark · branch `hark/day-8a`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-056 | review | `PrivateChatTest` (keine DB-Aufrufe, nicht in Suche/Seitenleiste, Löschen beim Verlassen/Umschalten/anderen Chat öffnen, Werkzeug-Schleife wie gewohnt), `AppLockGateTest` (sofort/1/5 min, Uhr rückwärts, System-Prompt sperrt nicht erneut, Dateiauswahl/Teilen sperrt nicht außer > 5 min), `SettingsRepositoryTest` (Sperr-Einstellungen bleiben beim Zurücksetzen) | `MainActivity` (jetzt `FragmentActivity`, Sperre/FLAG_SECURE/ZIP), `HainSettings`/`SettingsRepository`, `SettingsActions/Extras/Pages`, `core-ui` (`ic_eye_off`, `LocalExternalLaunch`), `libs.versions.toml`, `app/build.gradle.kts` | Gedächtnis (Häppchen 7) muss `Chat.isPrivate` / `ChatStore.isPrivate()` beachten; ohne Bildschirmsperre am Handy öffnet sich Hain (sonst Aussperren) |
+| T-054 | review | `ChatMarkdownTest` (Format, Weglassen von Denken/Fehlern, sichere Links/Dateinamen, ZIP ohne private/leere Chats, eindeutige Namen), `MarkdownBlocksTest`, `PdfLayoutTest` (Umbruch, Seitenaufteilung, nichts außerhalb des Satzspiegels, Rolle nie allein unten, Code über Seitengrenze mit Hintergrund) | `ChatScreen` (Teilen-Knopf + Privat-Knopf), `ChatListDrawer`/`DrawerActions` (⋯ → Exportieren), `feature-chat/AndroidManifest.xml` (FileProvider) | JSON-Export laut Sprint-Liste durch PDF ersetzt; PDF-Inline-Fett/Kursiv wird als normaler Text gesetzt |
+
+- Privater Chat: `Chat.isPrivate`, `ChatStore.createPrivate/discardPrivate/isPrivate`; alle Schreibwege prüfen `writeFor(chatId)`. Kein Auto-Titel. „Verlassen“ = neuer Chat, anderer Chat, „Beenden“, Augen-Knopf, App geschlossen (ViewModel weg).
+- App-Sperre: Logik rein in `core-common/api/lock/AppLockGate.kt` (JVM-Tests), Android-Teil `app/lock/AppLock.kt` (BiometricPrompt im onCreate, `BIOMETRIC_WEAK or DEVICE_CREDENTIAL`, weil STRONG+Credential auf Android 10 nicht erlaubt ist), Uhr = `SystemClock.elapsedRealtime()`. Schalter, Verzögerung und Screenshot-Sperre werden zusätzlich in `hain_start` gespiegelt, damit ein Kaltstart sofort gesperrt ist und FLAG_SECURE vor dem ersten Bild gilt. Einschalten fragt einmal nach Fingerabdruck/PIN.
+- Export: Markdown-Format und PDF-Satz in reinen Klassen (`ChatMarkdown`, `MarkdownBlocks`, `PdfLayout`), Zeichnen in `ChatPdf` (Hanken Grotesk/JetBrains Mono aus core-ui). Teilen schreibt nach `cache/exports` (ältere als 10 min werden gelöscht).
+- Gradle lokal nicht gestartet (Sprint-Regel): ktlint 1.5.0 + detekt 1.23.8 CLI + `check_strings.py` lokal grün, Rest über CI.
+- Version `hain.versionName=0.1.8`. README (Tabelle + „New in the latest test build“), Website (EN + /de) und SETTINGS/MEMORY/DATA/LICENSES aktualisiert.
+- Konflikte erwartet mit `hark/day-8b`: `ChatScreen.kt`, `website/src/content.ts` (Zeile „Export & share“ aufgeteilt), README, STATUS/HANDOFF_LOG/TASKS, `gradle.properties`, `libs.versions.toml`.
+

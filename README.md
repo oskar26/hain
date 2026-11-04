@@ -89,7 +89,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🔄 Update check | Optional: once a day at start Hain asks GitHub if a newer version is out (stable or nightly) and shows a calm hint that opens the release page. Off until you say yes, nothing is installed by itself, the request shows in the network log | ✅ |
 | 🛠️ Developer mode | Hidden: tap the version in "About Hain" 7 times. Own GGUF model from Hugging Face (size, RAM hint, download with progress), sampling, context size, thinking, own system prompt, tokens per second under answers | ✅ |
 | ✏️ Chat extras | Automatic chat titles; tap your own message to edit or copy it. Chat list: small glass menu at each chat (pin, rename, delete), smooth drawer | ✅ |
-| 📤 Export | Export a chat as Markdown or PDF | 🗓️ |
+| 📤 Export | Save or share a chat as Markdown or as a tidy PDF (title, date, roles, code, page numbers); all chats at once as a Markdown ZIP in Settings → Privacy | ✅ |
 | 🧭 Settings, part 2 | Glass tiles with their own colour and 3D icon, sub pages, own "reduce motion" switch, glossy 3D Pim, new first start. Language step at first start is in. Still open: brain picker in the top bar | 🚧 |
 | 🔧 Tools | Calculator and units, weather (Open-Meteo), Wikipedia (German/English), web search without API key that reads several pages (or your own SearXNG), reading a link, alarm, timer, calendar entry and route with a confirm card – Pim shows each step and its sources under the answer. Still open: weather card, repeating alarms | 🚧 |
 | ⏰ Phone actions | Alarm, timer, calendar entry, navigation – prepared by Pim as a glass card, done only after your tap | ✅ |
@@ -97,7 +97,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 📰 News | Standard mix (incl. junge Welt), standard + own feeds, or only own feeds | 🗓️ |
 | 🃏 Answer cards | Lists, tables, checklists, weather and source cards instead of plain text | 🗓️ |
 | 🧠 Memory | "Remember that …", a memory page you can edit, forget anything | 🗓️ |
-| 🔒 Private chats | Chats that are never saved, app lock with fingerprint | 🗓️ |
+| 🔒 Private chats | Private chat (eye button at the top): never saved, never searched, deleted when you leave it, tools still work. App lock with fingerprint or the phone's PIN (right away / 1 min / 5 min), block screenshots | ✅ |
 | 📄 Documents | Ask your PDFs and photos of text (PP-OCRv5), answers with sources | 🗓️ |
 | 🎙️ Voice | Dictation (Moonshine), read aloud, Pim's own voice | 🗓️ |
 | 📲 On the phone | Share menu target, widget, quick tile, default assistant | 🗓️ |
@@ -108,6 +108,12 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Version 0.1.8 – private chat, app lock and export.**
+- **Private chat.** Tap the **eye** at the top of an empty chat. A green bar says "Privater Chat": nothing is saved, the chat never shows up in the list or the search, the memory never sees it, and it is deleted as soon as you leave it (new chat, other chat, "Beenden" or closing Hain). Tools like weather and search still work.
+- **App lock.** **Settings → Privacy → App lock**: Hain asks for your fingerprint (or face) or your phone's PIN, pattern or password when you come back – right away, after 1 minute or after 5 minutes. Switching it on asks once to confirm it's you. Hain stores nothing for this; your phone checks. Without a screen lock on the phone you get a short hint instead. Coming back from the file picker or share sheet you opened in Hain does not lock.
+- **Block screenshots.** Also in **Privacy**: no screenshots or screen recordings of Hain, and a blank preview in recent apps.
+- **Export a chat.** In an open chat tap **Share** at the top (or ⋯ → **Exportieren** in the side panel): **PDF** or **Markdown**, to **share** with any app or to **save** where you choose. The PDF is set like a little document: title, date, "Du" and "Hain" (in green), paragraphs, lists, code on a grey band, page numbers. The thinking is left out.
+- **Export all chats.** **Settings → Privacy → Export all chats** saves one ZIP with every chat as a Markdown file (private chats are never in it).
 - **Version 0.1.3.1.** Hain now shows its version in **Settings → About Hain** (with build number and commit). How the numbers work is in [docs/workflow/VERSIONING.md](docs/workflow/VERSIONING.md).
 - **Frosted glass menus.** The ⋯ menu, the long-press menu in the side panel and the thinking picker are now real frosted glass: the chat behind them shows through, softly blurred, with a thin light edge and a soft shadow. The rest of the screen only dims a little. On phones older than Android 12 the menus are a solid card.
 - **More Pim in the chat.** Pim is bigger while he thinks, sits small next to the newest answer, peeks in while he looks something up, is happy for a moment when the answer is done and gets a fright on an error. On the empty chat he is a bit bigger too. "Reduce motion" keeps him still.

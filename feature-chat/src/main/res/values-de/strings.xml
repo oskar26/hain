@@ -219,4 +219,25 @@
     <string name="chat_pim_looking">Pim schaut nach…</string>
     <string name="chat_dev_stats">%1$s Token/s · erstes Token nach %2$s s</string>
     <string name="chat_dev_copy_debug">Debug-Infos kopieren</string>
+    <!-- T-056 private chat, T-054 export -->
+    <string name="chat_private_title">Privater Chat</string>
+    <string name="chat_private_start">Privaten Chat starten</string>
+    <string name="chat_private_end">Privaten Chat beenden</string>
+    <string name="chat_private_on">An</string>
+    <string name="chat_private_off">Aus</string>
+    <string name="chat_private_banner">Privater Chat: wird nicht gespeichert, nicht durchsucht und beim Verlassen gelöscht.</string>
+    <string name="chat_private_end_short">Beenden</string>
+    <string name="chat_export">Exportieren</string>
+    <string name="chat_export_pdf_share">Als PDF teilen</string>
+    <string name="chat_export_pdf_save">Als PDF speichern</string>
+    <string name="chat_export_md_share">Als Markdown teilen</string>
+    <string name="chat_export_md_save">Als Markdown speichern</string>
+    <string name="chat_export_share_title">Chat teilen</string>
+    <string name="chat_export_saved">Gespeichert</string>
+    <string name="chat_export_failed">Export hat nicht geklappt</string>
+    <string name="chat_export_you">Du</string>
+    <string name="chat_export_line">Chat vom %1$s · exportiert aus Hain</string>
+    <string name="chat_export_sources">Quellen</string>
+    <string name="chat_export_page">Seite %1$d von %2$d</string>
+    <string name="chat_export_untitled">Chat</string>
 </resources>

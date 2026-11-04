@@ -57,6 +57,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import app.hain.feature.chat.R
+import app.hain.feature.chat.export.ExportItems
 import app.hain.feature.chat.internal.Chat
 import app.hain.feature.chat.internal.ChatGroup
 import app.hain.ui.HainIcons
@@ -390,7 +391,13 @@ private fun RowMenu(
                 IntOffset(MENU_SHADOW_ROOM.dp.roundToPx(), (MENU_OFFSET - MENU_SHADOW_ROOM).dp.roundToPx())
             },
     ) {
-        if (mode == RowMode.CONFIRM_DELETE) {
+        if (mode == RowMode.EXPORT) {
+            // T-054: PDF or Markdown, share or save
+            ExportItems { format, share ->
+                onToggle()
+                actions.onExport(chat.id, format, share)
+            }
+        } else if (mode == RowMode.CONFIRM_DELETE) {
             ConfirmDelete(
                 onDelete = {
                     actions.onDelete(chat.id)
@@ -408,6 +415,7 @@ private fun RowMenu(
                 },
             )
             HainPopupItem(HainIcons.edit, stringResource(R.string.chat_rename), { onMode(RowMode.RENAME) })
+            HainPopupItem(HainIcons.share, stringResource(R.string.chat_export), { onMode(RowMode.EXPORT) })
             HainPopupItem(
                 HainIcons.delete,
                 stringResource(R.string.chat_delete_short),
@@ -418,7 +426,7 @@ private fun RowMenu(
     }
 }
 
-private enum class RowMode { MENU, RENAME, CONFIRM_DELETE }
+private enum class RowMode { MENU, RENAME, CONFIRM_DELETE, EXPORT }
 
 /** Inline title editor; [onDone] gets the new title, or `null` when cancelled. */
 @Composable
