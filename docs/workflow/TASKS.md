@@ -80,6 +80,13 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-064b | Weather without a place = last known location (setting `weather_location`, asks first) | feature | S | A | T-064 | review (04.11., 0.1.4) |
 | T-064c | Favicons at the source chips (needs image fetch through the NetworkGate) | ui | S | A | T-059,T-060 | todo |
 | T-068e | ConfirmCard into core-cards (needs a chat-free card state) | refactor | S | A | T-068 | todo |
+| T-180 | Tool inventory (name, description, parameters, typical errors) in TOOLS.md §0 | docs | S | C | T-062 | review (4d) |
+| T-181 | Tool eval: 52 questions DE/EN + host harness (`tools/eval`), baseline before 4d | test | M | C | T-062 | review (4d) |
+| T-182 | Tool definitions for the small brain (`tools.json`: one sentence when/when not, flat params, enums; compact results, errors with a hint) | feature | M | C | T-181 | review (4d) |
+| T-183 | Robust tool calls (repair broken calls, name/parameter aliases, dates relative to now, missing values → ask, duplicates once, retry) | feature | M | C | T-182 | review (4d) |
+| T-184 | Tool prompts DE/EN in `assets/prompts/tools.<lang>.txt`, turn hint, follow-up + link hint, token budget | feature | S | C | T-182 | review (4d) |
+| T-185 | Tool eval after 4d: before/after table in TOOLS.md §8 | test | S | C | T-184 | review (4d) |
+| T-186 | Unit tests: repair parser, fixer/aliases, specs, prompt templates, follow-ups, engine dedupe | test | S | C | T-183 | review (4d) |
 | T-070 | Feed parser RSS2/Atom/RDF | feature | S | B | T-002 | review |
 | T-071 | Standard feed list + repository | feature | S | B | T-070,T-060 | review |
 | T-072 | news tool + NewsCard | feature | S | B | T-071,T-062 | review |

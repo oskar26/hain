@@ -108,6 +108,7 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Version 0.1.4.1 – Pim picks the right tool more often.** All tools were reworked for the small brain: shorter, clearer tool descriptions, "8 min" really becomes an 8-minute timer, "Freitag 18 Uhr" lands on the right day, "zu Fuß" or "Fahrrad" work for routes, and a half-broken tool call from the brain is repaired instead of showing up as code in the chat. If something is missing (a route without a destination, the weather without a place while location is off), Pim asks. Follow-ups like "und in München?" call the tool again, links you send are read. Spoken sums ("was ist 17 mal 23") and "Wie spät ist es?" are answered instantly without the brain. Measured with 52 test questions: right tool 88.5 % → 96.2 %.
 - **Version 0.1.4 – tools, the rest.**
   - **Repeating alarms.** "Weck mich jeden Werktag um 6:30", "täglich um 7", "montags und donnerstags um 8": the card shows the days (Mo–Fr, Jeden Tag …) and your clock app gets a repeating alarm.
   - **Pim says what really happened.** After an alarm, timer, event or route Pim now says "vorbereitet – tipp auf Stellen" instead of "eingestellt", because nothing happens before your tap. The card says it too.

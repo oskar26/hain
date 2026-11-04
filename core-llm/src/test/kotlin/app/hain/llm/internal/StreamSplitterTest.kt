@@ -116,10 +116,25 @@ class StreamSplitterTest {
     }
 
     @Test
-    fun unterminatedToolCallStillAnnouncedAndFinalIsText() {
+    fun unterminatedToolCallIsRepaired() {
+        // 4d: the brain stopped before </parameter></function></tool_call>; the call still runs
         val output = "</think>Moment.<tool_call>\n<function=weather>\n<parameter=city>\nKöln"
         val run = runChunks(output, true, charByChar(output))
         assertEquals(listOf<String?>("weather"), run.deltas.filterIsInstance<UiDelta.ToolCallStarted>().map { it.name })
+        assertEquals(
+            mapOf("city" to "Köln"),
+            run.parsed.toolCalls
+                .single()
+                .arguments,
+        )
+        assertTrue(run.parsed.errors.isEmpty())
+        assertEquals("Moment.", run.parsed.text)
+    }
+
+    @Test
+    fun unreadableToolCallStaysText() {
+        val output = "</think>Moment.<tool_call>\nkaputt"
+        val run = runChunks(output, true, charByChar(output))
         assertTrue(run.parsed.toolCalls.isEmpty())
         assertTrue(run.parsed.errors.isNotEmpty())
         assertTrue(run.parsed.text.startsWith("Moment."))

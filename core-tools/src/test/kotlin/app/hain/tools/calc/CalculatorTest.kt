@@ -86,9 +86,20 @@ class CalculatorTest {
         assertEquals("12*7 = 84", CalculatorTool.directAnswer("12*7", "de"))
         assertEquals("3,5*2 = 7", CalculatorTool.directAnswer("3,5*2 =", "de"))
         assertEquals("5 km = 5000 m", CalculatorTool.directAnswer("5 km in m", "en"))
-        assertNull(CalculatorTool.directAnswer("Was ist 2+2?", "de"))
+        assertNull(CalculatorTool.directAnswer("Was ist Liebe?", "de"))
+        assertNull(CalculatorTool.directAnswer("Was ist 2+2 für ein Lied?", "de"))
         assertNull(CalculatorTool.directAnswer("Hallo", "de"))
         assertNull(CalculatorTool.directAnswer("42", "de"))
         assertNull(CalculatorTool.directAnswer("Wie wird das Wetter in Köln?", "de"))
+    }
+
+    @Test
+    fun spokenSumsAreAnsweredAtOnce() {
+        assertEquals("2+2 = 4", CalculatorTool.directAnswer("Was ist 2+2?", "de"))
+        assertEquals("17 * 23 = 391", CalculatorTool.directAnswer("was ist 17 mal 23", "de"))
+        assertEquals("15% * 80 = 12", CalculatorTool.directAnswer("wieviel sind 15 prozent von 80", "de"))
+        assertEquals("12% * 250 = 30", CalculatorTool.directAnswer("what is 12 percent of 250", "en"))
+        assertEquals("2^10 = 1024", CalculatorTool.directAnswer("whats 2^10", "en"))
+        assertEquals("17 * 23", CalculatorTool.spoken("Was ist 17 mal 23?"))
     }
 }

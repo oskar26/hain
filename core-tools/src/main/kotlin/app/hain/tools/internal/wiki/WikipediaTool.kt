@@ -3,14 +3,15 @@ package app.hain.tools.internal.wiki
 import app.hain.common.api.net.GateRequest
 import app.hain.common.api.net.NetworkGate
 import app.hain.common.api.net.Purpose
-import app.hain.llm.api.ToolSchema
 import app.hain.tools.api.Args
+import app.hain.tools.api.Compact
 import app.hain.tools.api.InfoCard
 import app.hain.tools.api.Tool
 import app.hain.tools.api.ToolContext
 import app.hain.tools.api.ToolResult
 import app.hain.tools.api.ToolRouter
 import app.hain.tools.api.ToolSource
+import app.hain.tools.api.ToolSpecs
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -19,8 +20,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-import kotlinx.serialization.json.putJsonArray
-import kotlinx.serialization.json.putJsonObject
 import java.io.IOException
 import java.net.URLEncoder
 
@@ -29,26 +28,7 @@ class WikipediaTool(
     private val gate: NetworkGate,
 ) : Tool {
     override val online = true
-    override val schema =
-        ToolSchema(
-            name = "wikipedia",
-            description = "Short encyclopedia summary about a person, place or thing.",
-            parameters =
-                buildJsonObject {
-                    put("type", "object")
-                    putJsonObject("properties") {
-                        putJsonObject("topic") {
-                            put("type", "string")
-                            put("description", "What to look up")
-                        }
-                        putJsonObject("lang") {
-                            put("type", "string")
-                            put("description", "de or en")
-                        }
-                    }
-                    putJsonArray("required") { add(JsonPrimitive("topic")) }
-                },
-        )
+    override val schema = ToolSpecs.of("wikipedia").schema
 
     @Suppress("ReturnCount")
     override suspend fun run(
@@ -61,14 +41,20 @@ class WikipediaTool(
         val summary =
             lookUp(topic, lang)
                 ?: lookUp(topic, if (lang == "de") "en" else "de")
-                ?: return ToolRouter.failure("not_found", "Wikipedia has no page about '$topic'.")
+                ?: return ToolRouter.failure(
+                    "not_found",
+                    "Wikipedia has no page about '$topic'. Try web_search with other words.",
+                )
         if (summary.disambiguation) {
-            return ToolRouter.failure("disambiguation", "'$topic' has several meanings on Wikipedia.")
+            return ToolRouter.failure(
+                "disambiguation",
+                "'$topic' has several meanings on Wikipedia. Ask the user which one they mean.",
+            )
         }
         val json =
             buildJsonObject {
                 put("title", summary.title)
-                put("extract", summary.extract)
+                put("extract", Compact.facts(summary.extract))
                 put("url", summary.url)
             }
         return ToolResult(

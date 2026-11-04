@@ -461,3 +461,18 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Prompt: neuer Abschnitt „# Karten“/„# Cards“ mit einem Beispiel (≈100 Token mehr im gecachten System-Prompt). Mit echtem LFM3 auf dem Host nicht geprüft (kein C++-Build in dieser Sandbox) → Oskar bitte mit „Schreib mir eine Einkaufsliste für Pfannkuchen“ und „Lernplan Mathe bis Freitag“ testen.
 - Version `hain.versionName=0.1.6`. Gradle lokal nicht gestartet: ktlint 1.5.0 + detekt 1.23.8 CLI lokal grün, Rest über CI (CI, APK, Screens).
 - Parallel laufen `hark/day-3b2-4b2`, `hark/day-5`, `hark/day-7`: Konflikte in README/STATUS/HANDOFF_LOG/Website/gradle.properties beim Mergen → beide Blöcke behalten, Version = höchste.
+
+## 2026-11-04 · Werkzeuge 4d – alle Tools + Prompts · review · harness: Hark · branch `hark/day-4d`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-180 | review | TOOLS.md §0 table (9 tools, params, typical errors) | – | – |
+| T-181 | review | `tools/eval/tool_eval.jsonl` (52 questions), `tool_eval.py` host harness, `results/baseline.json` | – | eval uses mock tool results (no network); LFM3 on the host, not the phone |
+| T-182 | review | `ToolSpecsTest`, `CompactTest`, `ClockAnswerTest`, `CalculatorTest.spokenSumsAreAnsweredAtOnce` | `HainTools` (clock answer), `PhoneTools` (`say`), all tool classes (schema from `tools.json`) | `wikipedia.lang` and `set_timer.seconds` no longer shown to the brain (still accepted) |
+| T-183 | review | `ToolCallFixerTest`, `RepairingToolCallParserTest`, `ToolRouterTest` (retry, fix), `RobustCallsTest`, `StreamSplitterTest` (repair) | `StreamSplitter` (repairing parser by default) | – |
+| T-184 | review | `PromptTemplatesTest` (sections, budget, every tool named, no quoted replies), `FollowUpTest` | `SystemPromptSource` (templates from assets), `ChatEngine` (follow-up/link hint, clock answer, dedupe) | example dialogs measured worse → left out (TOOLS.md §8) |
+| T-185 | review | before/after table in TOOLS.md §8 and the PR: right tool 88.5 → 96.2 %, args 94.3 → 97.5 %, hallucinations 6 → 1 | README, website (tool text), STATUS, TASKS | host timing not comparable (host was busy) |
+| T-186 | review | unit tests above | – | – |
+
+- Next: device test of tools (Oskar), 3b (weather card), 5 (news).
+
