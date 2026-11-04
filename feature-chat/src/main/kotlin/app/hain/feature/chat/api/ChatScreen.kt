@@ -115,6 +115,8 @@ fun ChatScreen(
     var drawerOpen by rememberSaveable { mutableStateOf(false) }
     val colors = LocalHainColors.current
     val haptics = rememberHainHaptics()
+    // T-054: export of one chat; T-056: private chats are never exported
+    val export = rememberChatExport { id -> state.chats.firstOrNull { it.id == id } }
 
     BackHandler(enabled = drawerOpen) { drawerOpen = false }
     // T-096: a soft double tick when an answer is done, a short "no" on an error; never while streaming
@@ -143,8 +145,6 @@ fun ChatScreen(
                 .navigationBarsPadding()
                 .imePadding(),
         ) {
-            // T-054: export of one chat; T-056: private chats are never exported
-            val export = rememberChatExport { id -> state.chats.firstOrNull { it.id == id } }
             TopBar(
                 title = stringResource(if (state.privateChat) R.string.chat_private_title else R.string.chat_title),
                 subtitle = engineLine(state),
