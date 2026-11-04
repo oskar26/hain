@@ -95,6 +95,7 @@ import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainTween
 import app.hain.ui.motion.motionSpec
 import app.hain.ui.motion.rememberHainHaptics
+import app.hain.ui.openExternally
 import app.hain.ui.pim.LivePim
 import app.hain.ui.pim.PimState
 import app.hain.ui.theme.LocalHainColors
@@ -880,8 +881,9 @@ private const val MAX_INFO_CARDS = 3
 @Composable
 private fun AnswerNews(news: List<NewsHeadline>) {
     val uri = LocalUriHandler.current
+    val external = LocalExternalLaunch.current
     NewsCard(
         items = news.map { NewsCardItem(it.source, it.title, it.url, it.publishedAt, it.paywall) },
-        onOpen = { url -> runCatching { uri.openUri(url) } },
+        onOpen = { url -> openExternally(external) { uri.openUri(url) } },
     )
 }

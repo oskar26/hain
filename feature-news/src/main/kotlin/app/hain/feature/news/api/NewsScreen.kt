@@ -44,10 +44,12 @@ import app.hain.feature.news.R
 import app.hain.tools.internal.news.NewsItem
 import app.hain.tools.internal.news.NewsMode
 import app.hain.ui.HainIcons
+import app.hain.ui.LocalExternalLaunch
 import app.hain.ui.components.EmptyState
 import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.SegmentedControl
 import app.hain.ui.components.TopBar
+import app.hain.ui.openExternally
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
@@ -82,6 +84,7 @@ fun NewsScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val uri = LocalUriHandler.current
     val context = LocalContext.current
+    val external = LocalExternalLaunch.current
     val shareTitle = stringResource(R.string.news_share)
     LaunchedEffect(Unit) { viewModel.start() }
     NewsBody(
@@ -91,7 +94,7 @@ fun NewsScreen(
                 onBack = onBack,
                 onRefresh = viewModel::refresh,
                 onMode = viewModel::setMode,
-                onOpen = { item -> item.link?.let { runCatching { uri.openUri(it) } } },
+                onOpen = { item -> item.link?.let { link -> openExternally(external) { uri.openUri(link) } } },
                 onShare = { item ->
                     item.link?.let { link ->
                         val send =
@@ -99,7 +102,7 @@ fun NewsScreen(
                                 .setType("text/plain")
                                 .putExtra(Intent.EXTRA_SUBJECT, item.title)
                                 .putExtra(Intent.EXTRA_TEXT, link)
-                        runCatching { context.startActivity(Intent.createChooser(send, shareTitle)) }
+                        openExternally(external) { context.startActivity(Intent.createChooser(send, shareTitle)) }
                     }
                 },
                 onSummarize = viewModel::summarize,
