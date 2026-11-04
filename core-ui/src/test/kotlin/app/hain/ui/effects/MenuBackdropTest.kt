@@ -15,6 +15,7 @@ class MenuBackdropTest {
         assertEquals(bg, light.backgroundColor)
         assertEquals(1, light.tints.size)
         assertEquals(Color.White.copy(alpha = FROST_TINT_LIGHT), light.tints.first().color)
+        assertTrue("no sharp text through the fallback", light.fallbackTint.color.alpha > 0.95f)
         val dark = frostedStyle(Color.Black, Color(0xFF171B19), dark = true)
         assertEquals(
             FROST_TINT_DARK,

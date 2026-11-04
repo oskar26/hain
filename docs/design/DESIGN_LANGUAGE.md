@@ -113,7 +113,7 @@ Radii: SMALL 12, MEDIUM 20, **TILE 24** (glass tiles), LARGE 28 (sheets, **the c
 (thinking picker) are frosted glass — `Modifier.frostedGlass(shape)` blurs the screen behind the card
 through the card (Haze, 24 dp, white tint 66 % / dark tint 72 %, no noise), with a thin edge that is
 light at the top and a soft 12 dp shadow. The rest of the screen only gets a light dimming (35 % of
-`scrim`), so the card stands out. Below Android 12 the card is an almost opaque tinted surface. It fades
+`scrim`), so the card stands out. Below Android 12 the card is an opaque tinted surface. It fades
 with the menu in `MENU_MS`; with "reduce motion" it is just there, without animation.
 
 ### 3D icons

@@ -103,6 +103,8 @@ internal fun frostedStyle(
         tints = listOf(HazeTint(tint.copy(alpha = if (dark) FROST_TINT_DARK else FROST_TINT_LIGHT))),
         blurRadius = FROST_BLUR_RADIUS,
         noiseFactor = 0f,
+        // where Haze cannot blur (software drawing), never show sharp text through the card
+        fallbackTint = HazeTint(frostedFallback(tint, dark)),
     )
 
 /** Fill of a frosted card where nothing can be blurred (below Android 12, outside a backdrop). */
@@ -114,13 +116,14 @@ internal fun frostedFallback(
 /**
  * T-210: makes a floating card frosted glass. The screen behind shows through blurred (Haze, API
  * 31+, inside a [HainMenuBackdrop]); a soft shadow lifts it and a thin edge, light at the top, frames
- * it. Below API 31 an almost opaque tinted surface.
+ * it. Below API 31 an opaque tinted surface.
  */
 @Composable
 fun Modifier.frostedGlass(shape: Shape): Modifier {
     val c = LocalHainColors.current
     val dark = isHainDark()
     val state = LocalMenuBackdrop.current
+    val force = LocalForceFrost.current
     val tint = if (dark) c.surface else Color.White
     val edge =
         Brush.verticalGradient(
@@ -135,12 +138,18 @@ fun Modifier.frostedGlass(shape: Shape): Modifier {
             .clip(shape)
     val glass =
         if (state != null && Build.VERSION.SDK_INT >= BLUR_MIN_SDK) {
-            lifted.hazeEffect(state.haze, frostedStyle(c.bg, tint, dark))
+            lifted.hazeEffect(state.haze, frostedStyle(c.bg, tint, dark)) { if (force) blurEnabled = true }
         } else {
             lifted.background(frostedFallback(tint, dark), shape)
         }
     return glass.border(EDGE_WIDTH.dp, edge, shape)
 }
+
+/**
+ * Screenshot hook (Robolectric draws in software, where Haze falls back to a solid tint): `true`
+ * asks Haze to blur anyway, so the frosted cards can be checked in the screenshots.
+ */
+val LocalForceFrost = staticCompositionLocalOf { false }
 
 /** Asks for the backdrop while [open] is true; does nothing outside a [HainMenuBackdrop]. */
 @Composable
@@ -159,5 +168,5 @@ private const val EDGE_WIDTH = 1
 private const val EDGE_TOP_DARK = 0.22f
 private const val EDGE_BOTTOM_DARK = 0.6f
 private const val EDGE_BOTTOM_LIGHT = 0.9f
-private const val FALLBACK_LIGHT = 0.97f
-private const val FALLBACK_DARK = 0.98f
+private const val FALLBACK_LIGHT = 1f
+private const val FALLBACK_DARK = 1f

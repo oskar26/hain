@@ -18,6 +18,7 @@ import app.hain.ui.HainIcons
 import app.hain.ui.components.HainPopupItem
 import app.hain.ui.components.HainPopupMenu
 import app.hain.ui.effects.HainMenuBackdrop
+import app.hain.ui.effects.LocalForceFrost
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.pim.Pim
 import app.hain.ui.pim.PimState
@@ -62,7 +63,7 @@ private const val OUT = "build/outputs/roborazzi"
 @Composable
 private fun Frame(dark: Boolean) {
     HainTheme(darkTheme = dark) {
-        CompositionLocalProvider(LocalReduceMotion provides true) {
+        CompositionLocalProvider(LocalReduceMotion provides true, LocalForceFrost provides true) {
             Box(Modifier.fillMaxSize().background(LocalHainColors.current.bg)) {
                 HainMenuBackdrop { Page() }
             }

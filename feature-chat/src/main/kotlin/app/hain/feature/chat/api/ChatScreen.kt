@@ -526,7 +526,7 @@ private fun AnswerPim(
             AVATAR_PIM.dp,
             Modifier.graphicsLayer {
                 // a calm peek: leans in from the left and tilts a little
-                translationX = -PEEK_SHIFT * size.width * (1f - peek) * if (tooling) 1f else 0f
+                translationX = if (tooling && !reduce) -PEEK_SHIFT * size.width * (1f - peek) else 0f
                 rotationZ = PEEK_TILT * peek
             },
             tappable = false,
