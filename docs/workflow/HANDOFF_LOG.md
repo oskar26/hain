@@ -325,3 +325,9 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 
 - Oskar's correction 03.11. 23:26: Pim only a little bigger; the easter egg only after 5 s holding without a break, grows slowly to 5×, then bursts into the 2048 game; subtle haptics everywhere.
 - Still open from the polish list: compact ⋯ menu, About page with website/GitHub, screenshot fixes (composer lines, back arrow, segments), usability pass, new screenshots → next run.
+
+## 2026-11-04 · Day 3b (part 1): network log stays after restart · review · harness: Hark · branch `hark/day-3b`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-060 | review | `NetworkLogStoreTest` (store, load, prune, clear); DB version 2 + migration 1→2 | `AppModule` (shared `DatabaseHolder`) | brain download via gate, per-purpose switches, WeatherCard/WikiCard still open → 3b-2 |
