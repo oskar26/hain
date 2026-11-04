@@ -3,13 +3,13 @@ package app.hain.tools.internal.weather
 import app.hain.common.api.net.GateRequest
 import app.hain.common.api.net.NetworkGate
 import app.hain.common.api.net.Purpose
-import app.hain.llm.api.ToolSchema
 import app.hain.tools.api.Args
 import app.hain.tools.api.Tool
 import app.hain.tools.api.ToolContext
 import app.hain.tools.api.ToolResult
 import app.hain.tools.api.ToolRouter
 import app.hain.tools.api.ToolSource
+import app.hain.tools.api.ToolSpecs
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -34,26 +34,7 @@ class WeatherTool(
     private val gate: NetworkGate,
 ) : Tool {
     override val online = true
-    override val schema =
-        ToolSchema(
-            name = "weather",
-            description = "Current weather and forecast for a place.",
-            parameters =
-                buildJsonObject {
-                    put("type", "object")
-                    putJsonObject("properties") {
-                        putJsonObject("place") {
-                            put("type", "string")
-                            put("description", "City or place name")
-                        }
-                        putJsonObject("days") {
-                            put("type", "integer")
-                            put("description", "Days of forecast from today, 1 to 7")
-                        }
-                    }
-                    putJsonArray("required") { add(JsonPrimitive("place")) }
-                },
-        )
+    override val schema = ToolSpecs.of("weather").schema
 
     override suspend fun run(
         args: Map<String, Any?>,

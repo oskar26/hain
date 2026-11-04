@@ -4,7 +4,6 @@ import app.hain.common.api.net.GateRequest
 import app.hain.common.api.net.NetworkGate
 import app.hain.common.api.net.OfflineException
 import app.hain.common.api.net.Purpose
-import app.hain.llm.api.ToolSchema
 import app.hain.tools.api.Args
 import app.hain.tools.api.Tool
 import app.hain.tools.api.ToolContext
@@ -12,13 +11,12 @@ import app.hain.tools.api.ToolHit
 import app.hain.tools.api.ToolResult
 import app.hain.tools.api.ToolRouter
 import app.hain.tools.api.ToolSource
+import app.hain.tools.api.ToolSpecs
 import kotlinx.coroutines.CancellationException
-import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
-import kotlinx.serialization.json.putJsonObject
 import java.io.IOException
 import java.net.URLEncoder
 
@@ -45,24 +43,7 @@ class SearchTool(
     fun isPaused(service: String): Boolean = (pausedUntil[service] ?: 0L) > clock()
 
     override val online = true
-    override val schema =
-        ToolSchema(
-            name = NAME,
-            description =
-                "Search the web for current or detailed information. " +
-                    "Hain then reads the best pages for you.",
-            parameters =
-                buildJsonObject {
-                    put("type", "object")
-                    putJsonObject("properties") {
-                        putJsonObject("query") {
-                            put("type", "string")
-                            put("description", "A few search words")
-                        }
-                    }
-                    putJsonArray("required") { add(JsonPrimitive("query")) }
-                },
-        )
+    override val schema = ToolSpecs.of(NAME).schema
 
     override suspend fun run(
         args: Map<String, Any?>,
@@ -75,7 +56,12 @@ class SearchTool(
         val hits =
             (if (found.fromWikipedia) usable.distinctBy { it.url } else onePerSite(usable))
                 .take(ctx.hits.coerceIn(1, MAX_HITS))
-        if (hits.isEmpty()) return ToolRouter.failure("not_found", "The search found nothing for '$query'.")
+        if (hits.isEmpty()) {
+            return ToolRouter.failure(
+                "not_found",
+                "The search found nothing for '$query'. Try 2 to 4 other key words once, else say you found nothing.",
+            )
+        }
         val json =
             buildJsonObject {
                 put("query", query)

@@ -10,7 +10,9 @@ import app.hain.tools.internal.search.PageReader
 import app.hain.tools.internal.search.ReadPageTool
 import app.hain.tools.internal.search.SearchTool
 import app.hain.tools.internal.weather.WeatherTool
+import app.hain.tools.internal.time.ClockAnswer
 import app.hain.tools.internal.wiki.WikipediaTool
+import java.time.ZonedDateTime
 
 /**
  * The tools: calculator and the phone actions (offline; alarm, timer, calendar, route only after a
@@ -53,4 +55,11 @@ object HainTools {
         message: String,
         lang: String,
     ): String? = CalculatorTool.directAnswer(message, lang)
+
+    /** "Wie spät ist es?" / "Welcher Tag ist heute?" answered from [now] without the brain (4d); `null` otherwise. */
+    fun clockAnswer(
+        message: String,
+        now: ZonedDateTime,
+        lang: String,
+    ): String? = ClockAnswer.direct(message, now, lang)
 }

@@ -1,18 +1,15 @@
 package app.hain.tools.internal.phone
 
-import app.hain.llm.api.ToolSchema
 import app.hain.tools.api.Args
 import app.hain.tools.api.BadArgumentsException
 import app.hain.tools.api.PhoneAction
 import app.hain.tools.api.Tool
 import app.hain.tools.api.ToolContext
 import app.hain.tools.api.ToolResult
+import app.hain.tools.api.ToolSpecs
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import kotlinx.serialization.json.putJsonArray
-import kotlinx.serialization.json.putJsonObject
 import java.time.Duration
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -23,62 +20,53 @@ import java.util.Locale
  * only the user's tap starts the Android intent. The brain is told so in the result.
  */
 
-/** Small schema helper: an object with string/integer properties; `required` first. */
-private fun schema(
-    name: String,
-    description: String,
-    props: List<Triple<String, String, String>>,
-    required: List<String>,
-) = ToolSchema(
-    name = name,
-    description = description,
-    parameters =
-        buildJsonObject {
-            put("type", "object")
-            putJsonObject("properties") {
-                props.forEach { (key, type, desc) ->
-                    putJsonObject(key) {
-                        put("type", type)
-                        put("description", desc)
-                    }
-                }
-            }
-            putJsonArray("required") { required.forEach { add(JsonPrimitive(it)) } }
-        },
-)
-
-/** What the brain reads back: what was prepared, and that the user still has to tap. */
+/**
+ * What the brain reads back: what was prepared, that the user still has to tap, and the sentence
+ * to answer with (4d: [say], in the user's language). Host eval: with only the hint, the small
+ * brain still wrote "Wecker eingestellt"; with a ready sentence it copies it.
+ */
 private fun prepared(
     fields: Map<String, String>,
     label: String,
     action: PhoneAction,
+    lang: String,
 ): ToolResult {
     val json =
         JsonObject(
             mapOf("prepared" to JsonPrimitive(action.kind)) +
                 fields.mapValues { JsonPrimitive(it.value) } +
-                mapOf("status" to JsonPrimitive("waiting_for_tap"), "hint" to JsonPrimitive(TAP_HINT)),
+                mapOf(
+                    "status" to JsonPrimitive("waiting_for_tap"),
+                    "say" to JsonPrimitive(say(action.kind, label, lang)),
+                    "hint" to JsonPrimitive(TAP_HINT),
+                ),
         )
     return ToolResult(forModel = json.toString(), label = label, action = action)
 }
 
-private const val TAP_HINT =
-    "Nothing is done yet, so never say it is set or added. A card under your answer shows it. " +
-        "In one short sentence say what you prepared and that a tap on the card's button does it."
+/** "Wecker für 06:30 ist vorbereitet – tipp auf der Karte auf „Stellen“." */
+internal fun say(
+    kind: String,
+    label: String,
+    lang: String,
+): String {
+    val de = lang == "de"
+    val what =
+        when (kind) {
+            PhoneAction.SET_ALARM -> if (de) "Der Wecker für $label" else "The alarm for $label"
+            PhoneAction.SET_TIMER -> if (de) "Der Timer über $label" else "The $label timer"
+            PhoneAction.ADD_EVENT -> if (de) "Der Termin $label" else "The event $label"
+            else -> if (de) "Die Route zu $label" else "The route to $label"
+        }
+    return if (de) "$what ist vorbereitet – tipp auf der Karte auf den Knopf." else "$what is ready – tap the button on the card."
+}
+
+private const val TAP_HINT = "Nothing is done yet. Answer with the sentence in say; never say it is set or added."
 
 /** `set_alarm`: AlarmClock.ACTION_SET_ALARM after the tap. */
 class SetAlarmTool : Tool {
     override val online = false
-    override val schema =
-        schema(
-            PhoneAction.SET_ALARM,
-            "Prepare an alarm clock on the phone. The user confirms it on a card.",
-            listOf(
-                Triple("time", "string", "Time of day, HH:mm, e.g. 06:30"),
-                Triple("label", "string", "Optional short text for the alarm"),
-            ),
-            listOf("time"),
-        )
+    override val schema = ToolSpecs.of(PhoneAction.SET_ALARM).schema
 
     override suspend fun run(
         args: Map<String, Any?>,
@@ -88,23 +76,14 @@ class SetAlarmTool : Tool {
         val time = TimeParser.clock(raw) ?: throw BadArgumentsException("Cannot read the time '$raw'. Use HH:mm.")
         val action = PhoneAction.Alarm(time.hour, time.minute, Args.string(args, "label"))
         val fields = listOfNotNull("time" to action.clock, action.label?.let { "label" to it }).toMap()
-        return prepared(fields, action.clock, action)
+        return prepared(fields, action.clock, action, ctx.lang)
     }
 }
 
 /** `set_timer`: AlarmClock.ACTION_SET_TIMER after the tap. */
 class SetTimerTool : Tool {
     override val online = false
-    override val schema =
-        schema(
-            PhoneAction.SET_TIMER,
-            "Prepare a countdown timer on the phone. The user confirms it on a card.",
-            listOf(
-                Triple("seconds", "integer", "Length in seconds, e.g. 600 for 10 minutes"),
-                Triple("label", "string", "Optional short text for the timer"),
-            ),
-            listOf("seconds"),
-        )
+    override val schema = ToolSpecs.of(PhoneAction.SET_TIMER).schema
 
     override suspend fun run(
         args: Map<String, Any?>,
@@ -119,7 +98,7 @@ class SetTimerTool : Tool {
         val action = PhoneAction.Timer(seconds, Args.string(args, "label"))
         val label = durationLabel(seconds, ctx.lang)
         val fields = listOfNotNull("seconds" to "$seconds", action.label?.let { "label" to it }).toMap()
-        return prepared(fields, label, action)
+        return prepared(fields, label, action, ctx.lang)
     }
 
     companion object {
@@ -144,18 +123,7 @@ class SetTimerTool : Tool {
 /** `add_calendar_event`: opens the calendar app's new-event screen, filled in (no calendar permission). */
 class AddCalendarEventTool : Tool {
     override val online = false
-    override val schema =
-        schema(
-            PhoneAction.ADD_EVENT,
-            "Prepare a calendar event. Opens the calendar app filled in after the user confirms.",
-            listOf(
-                Triple("title", "string", "What the event is, e.g. Zahnarzt"),
-                Triple("start", "string", "Start, e.g. 2026-11-04T15:00 or 'tomorrow 15:00'"),
-                Triple("end", "string", "Optional end, same format"),
-                Triple("location", "string", "Optional place"),
-            ),
-            listOf("title", "start"),
-        )
+    override val schema = ToolSpecs.of(PhoneAction.ADD_EVENT).schema
 
     @Suppress("CyclomaticComplexMethod") // optional arguments, each with its fallback
     override suspend fun run(
@@ -203,7 +171,7 @@ class AddCalendarEventTool : Tool {
                 put("start", start.date.toString() + (start.time?.let { " $it" } ?: " (all day)"))
                 location?.let { put("location", it) }
             }
-        return prepared(fields, "$title · $whenText", action)
+        return prepared(fields, "$title · $whenText", action, ctx.lang)
     }
 
     private companion object {
@@ -215,16 +183,7 @@ class AddCalendarEventTool : Tool {
 /** `navigate`: `geo:0,0?q=<destination>`; the phone lets the user pick the map app. */
 class NavigateTool : Tool {
     override val online = false
-    override val schema =
-        schema(
-            PhoneAction.NAVIGATE,
-            "Prepare a route to a place in the user's map app. The user confirms it on a card.",
-            listOf(
-                Triple("destination", "string", "Place or address, e.g. Kölner Dom"),
-                Triple("mode", "string", "Optional: walk, drive, bike or transit"),
-            ),
-            listOf("destination"),
-        )
+    override val schema = ToolSpecs.of(PhoneAction.NAVIGATE).schema
 
     override suspend fun run(
         args: Map<String, Any?>,
@@ -234,7 +193,7 @@ class NavigateTool : Tool {
         val mode = Args.string(args, "mode")?.lowercase()?.takeIf { it in MODES }
         val action = PhoneAction.Navigate(destination, mode)
         val fields = listOfNotNull("destination" to destination, mode?.let { "mode" to it }).toMap()
-        return prepared(fields, destination, action)
+        return prepared(fields, destination, action, ctx.lang)
     }
 
     private companion object {
