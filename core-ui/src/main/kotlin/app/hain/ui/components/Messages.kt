@@ -235,9 +235,9 @@ fun MessageAction(
 enum class MessageActionKind { COPY, SHARE, THUMB_UP, THUMB_DOWN, SPEAK, RETRY, EDIT }
 
 /** Icon buttons are 48 dp with a centred 18 dp icon: this much empty room on each side. */
+private const val ACTION_ICON = 18
 private const val ICON_INSET = (ICON_BUTTON_TOUCH - ACTION_ICON) / 2
 private const val ACTION_GAP = 0
-private const val ACTION_ICON = 18
 private const val BUBBLE_FRACTION = 0.85f
 private const val BUBBLE_MAX = 560
 private const val COLLAPSED_LINES = 14
