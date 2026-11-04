@@ -110,6 +110,7 @@ class MainActivity : ComponentActivity() {
             onClearNetworkLog = networkGate::clearLog,
             onSearxUrl = { write { repo.setSearxUrl(it) } },
             onConfirmActions = { write { repo.setConfirmActions(it) } },
+            onWebSearch = { write { repo.setWebSearch(it) } },
             onHaptics = { write { repo.setHaptics(it) } },
             onAppIcon = { write { repo.setAppIcon(it) } },
             onDev = { write { repo.setDev(it) } },
@@ -169,6 +170,7 @@ class MainActivity : ComponentActivity() {
                             ZonedDateTime.now(),
                             cfg.offlineMode,
                             searxUrl = SearxAddress.normalize(cfg.searxUrl),
+                            webSearch = cfg.webSearch,
                         )
                     },
                     tuning = { settings().dev },

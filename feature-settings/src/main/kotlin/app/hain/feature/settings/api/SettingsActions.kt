@@ -8,6 +8,7 @@ import app.hain.common.api.HapticStrength
 import app.hain.common.api.ThemeChoice
 import app.hain.common.api.UpdateChannel
 import app.hain.common.api.UpdateCheck
+import app.hain.common.api.WebSearch
 
 /** What the settings screen can change; every callback writes one value (T-101). */
 @Suppress("LongParameterList") // one callback per setting
@@ -28,6 +29,8 @@ class SettingsActions(
     val onSearxUrl: (String) -> Unit = {},
     /** Phone actions: ask first (default) or start after 3 s with undo (4b-2). */
     val onConfirmActions: (Boolean) -> Unit = {},
+    /** Web search on / ask first / off (3b-2). */
+    val onWebSearch: (WebSearch) -> Unit = {},
     val onHaptics: (HapticStrength) -> Unit = {},
     val onAppIcon: (AppIcon) -> Unit = {},
     /** Developer mode on/off and all its values at once (T-211). */

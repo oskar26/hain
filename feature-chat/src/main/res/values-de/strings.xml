@@ -114,6 +114,8 @@
     <string name="chat_action_no_maps">Auf deinem Handy ist noch keine Karten-App. Organic Maps oder OsmAnd sind kostenlos – danach klappt es.</string>
     <string name="chat_tool_failed">hat nicht geklappt</string>
     <string name="chat_tool_offline">du bist offline</string>
+    <string name="chat_tool_ask_first">fragt erst</string>
+    <string name="chat_tool_search_off">Websuche ist aus</string>
     <string name="chat_tool_running">schaut nach…</string>
     <string name="chat_sources">Quellen</string>
     <string name="chat_online">Online</string>

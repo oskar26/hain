@@ -1,5 +1,6 @@
 package app.hain.tools.api
 
+import app.hain.common.api.WebSearch
 import app.hain.llm.api.ToolSchema
 import java.time.ZonedDateTime
 
@@ -14,6 +15,10 @@ data class ToolContext(
     val searxUrl: String? = null,
     /** Search hits a web search keeps, one per site (4c: up to 8). */
     val hits: Int = MAX_HITS,
+    /** Web search on, ask first or off (3b-2, setting `web_search`). */
+    val webSearch: WebSearch = WebSearch.ON,
+    /** With [WebSearch.ASK]: the user just said yes to Pim's question whether he may search. */
+    val searchApproved: Boolean = false,
 ) {
     companion object {
         const val DEFAULT_PAGES = 3

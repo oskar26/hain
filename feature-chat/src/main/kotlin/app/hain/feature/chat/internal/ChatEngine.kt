@@ -163,7 +163,11 @@ class ChatEngine(
         flow {
             val lastUser = history.lastOrNull()?.content.orEmpty()
             val budget = ResearchBudget.of(mode)
-            val ctx = toolContext().copy(pagesToRead = budget.pagesPerSearch)
+            val ctx =
+                toolContext().copy(
+                    pagesToRead = budget.pagesPerSearch,
+                    searchApproved = SearchConsent.approved(history),
+                )
             val quick = quickAnswer(history, ctx)
             if (quick != null) {
                 emit(quick)
@@ -172,7 +176,7 @@ class ChatEngine(
             val dev = tuning()
             val thinking = DevTuning.thinking(dev, ThinkingPolicy.decide(lastUser, mode))
             val system = DevTuning.systemPrompt(dev, systemPrompt(promptAnchor()))
-            val schemas = if (ownModel()) emptyList() else tools?.schemas(ctx.offline).orEmpty()
+            val schemas = if (ownModel()) emptyList() else tools?.schemas(ctx.offline, ctx.webSearch).orEmpty()
             val researchHint = if (schemas.isNotEmpty() && !ctx.offline) researchHint(mode, ctx.lang) else null
             val base = withLanguageHint(history, lastUser, researchHint)
             val turn = Turn(budget, lastUser, dev)
@@ -610,7 +614,8 @@ class ChatEngine(
 
     private fun schemas(): List<ToolSchema> {
         if (ownModel()) return emptyList()
-        return tools?.schemas(toolContext().offline).orEmpty()
+        val ctx = toolContext()
+        return tools?.schemas(ctx.offline, ctx.webSearch).orEmpty()
     }
 
     /**
