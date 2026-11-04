@@ -1,6 +1,7 @@
 package app.hain.tools.api
 
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
@@ -9,6 +10,7 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
 
 /**
  * Something Pim wants to do on the phone (T-068): set an alarm or a timer, put an event in the
@@ -23,11 +25,16 @@ sealed interface PhoneAction {
         val hour: Int,
         val minute: Int,
         val label: String? = null,
+        /** 4b-2: days the alarm repeats on, ISO numbers 1 = Monday … 7 = Sunday, sorted; empty = once. */
+        val days: List<Int> = emptyList(),
     ) : PhoneAction {
         override val kind = SET_ALARM
 
         /** "06:30". */
         val clock: String get() = "%02d:%02d".format(hour, minute)
+
+        /** The [days] as `java.util.Calendar` numbers (Sunday = 1 … Saturday = 7) for `AlarmClock.EXTRA_DAYS`. */
+        val calendarDays: List<Int> get() = days.map { it % DAYS_PER_WEEK + 1 }
     }
 
     data class Timer(
@@ -60,6 +67,7 @@ sealed interface PhoneAction {
         const val SET_TIMER = "set_timer"
         const val ADD_EVENT = "add_calendar_event"
         const val NAVIGATE = "navigate"
+        const val DAYS_PER_WEEK = 7
 
         fun toJson(action: PhoneAction): JsonObject =
             buildJsonObject {
@@ -69,6 +77,9 @@ sealed interface PhoneAction {
                         put("hour", action.hour)
                         put("minute", action.minute)
                         action.label?.let { put("label", it) }
+                        if (action.days.isNotEmpty()) {
+                            putJsonArray("days") { action.days.forEach { add(JsonPrimitive(it)) } }
+                        }
                     }
                     is Timer -> {
                         put("seconds", action.seconds)
@@ -97,7 +108,8 @@ sealed interface PhoneAction {
 
             fun long(k: String) = (o[k] as? JsonPrimitive)?.longOrNull
             return when (str("kind")) {
-                SET_ALARM -> Alarm(int("hour") ?: return null, int("minute") ?: return null, str("label"))
+                SET_ALARM ->
+                    Alarm(int("hour") ?: return null, int("minute") ?: return null, str("label"), days(o["days"]))
                 SET_TIMER -> Timer(int("seconds") ?: return null, str("label"))
                 ADD_EVENT ->
                     CalendarEvent(
@@ -111,6 +123,15 @@ sealed interface PhoneAction {
                 else -> null
             }
         }
+
+        /** Repeat days from the stored JSON; anything that is not a day number 1–7 is left out. */
+        private fun days(element: Any?): List<Int> =
+            (element as? JsonArray)
+                ?.mapNotNull { (it as? JsonPrimitive)?.intOrNull }
+                ?.filter { it in 1..DAYS_PER_WEEK }
+                ?.distinct()
+                ?.sorted()
+                .orEmpty()
 
         fun fromJson(text: String): PhoneAction? {
             val o = runCatching { Json.parseToJsonElement(text).jsonObject }.getOrNull() ?: return null

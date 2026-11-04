@@ -91,11 +91,11 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | ✏️ Chat extras | Automatic chat titles; tap your own message to edit or copy it. Chat list: small glass menu at each chat (pin, rename, delete), smooth drawer | ✅ |
 | 📤 Export | Export a chat as Markdown or PDF | 🗓️ |
 | 🧭 Settings, part 2 | Glass tiles with their own colour and 3D icon, sub pages, own "reduce motion" switch, glossy 3D Pim, new first start. Language step at first start is in. Still open: brain picker in the top bar | 🚧 |
-| 🔧 Tools | Calculator and units, weather (Open-Meteo), Wikipedia (German/English), web search without API key that reads several pages (or your own SearXNG), reading a link, alarm, timer, calendar entry and route with a confirm card – Pim shows each step and its sources under the answer. Still open: weather card, repeating alarms | 🚧 |
+| 🔧 Tools | Calculator and units, weather (Open-Meteo), Wikipedia (German/English), web search without API key that reads several pages (or your own SearXNG), reading a link, alarm (also repeating, e.g. every weekday), timer, calendar entry and route with a confirm card (or start after 3 s with Undo), weather and Wikipedia cards under the answer, weather for your location if you allow it, web search on / ask first / off – Pim shows each step and its sources under the answer. Still open: favicons at the sources | ✅ |
 | ⏰ Phone actions | Alarm, timer, calendar entry, navigation – prepared by Pim as a glass card, done only after your tap | ✅ |
-| 🛡️ Network log | Every tool request goes through one gate: orange "Online" dot while it runs, offline mode, log of the last 7 days in Settings → Privacy. The log now stays after a restart (7 days, encrypted). Still open: brain download through the gate | 🚧 |
+| 🛡️ Network log | Every tool request goes through one gate: orange "Online" dot while it runs, offline mode, log of the last 7 days in Settings → Privacy. The log now stays after a restart (7 days, encrypted), and the brain download goes through the gate too | ✅ |
 | 📰 News | Standard mix (incl. junge Welt), standard + own feeds, or only own feeds | 🗓️ |
-| 🃏 Answer cards | Lists, tables, checklists, progress bars and buttons right in the answer: tick items off (saved with the chat), copy, share or ask the next question with one tap. Still open: charts and pictures in cards | ✅ |
+| 🃏 Answer cards | Lists, tables, checklists, progress bars and buttons right in the answer: tick items off (saved with the chat), copy, share or ask the next question with one tap. Weather and Wikipedia show as their own cards under the answer. Still open: charts and pictures in cards | ✅ |
 | 🧠 Memory | "Remember that …", a memory page you can edit, forget anything | 🗓️ |
 | 🔒 Private chats | Chats that are never saved, app lock with fingerprint | 🗓️ |
 | 📄 Documents | Ask your PDFs and photos of text (PP-OCRv5), answers with sources | 🗓️ |
@@ -108,6 +108,14 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Version 0.1.4 – tools, the rest.**
+  - **Repeating alarms.** "Weck mich jeden Werktag um 6:30", "täglich um 7", "montags und donnerstags um 8": the card shows the days (Mo–Fr, Jeden Tag …) and your clock app gets a repeating alarm.
+  - **Pim says what really happened.** After an alarm, timer, event or route Pim now says "vorbereitet – tipp auf Stellen" instead of "eingestellt", because nothing happens before your tap. The card says it too.
+  - **Without asking, if you like.** New switch **Settings → Privacy → Confirm phone actions** (on by default). Off: the card counts down 3 seconds with **Undo**, then your clock, calendar or map app opens by itself. Only for answers written just now, never when you open an old chat.
+  - **Weather and Wikipedia as cards.** Under the answer you now see a small weather card (place, temperature now, one line per day with rain chance and high/low) or a Wikipedia card (title, three lines, "Auf Wikipedia lesen" – opens only when you tap).
+  - **Weather where you are.** Switch on **Settings → Privacy → Location for weather** and Android asks once. Then "Wie wird das Wetter?" without a place uses your phone's last rough location (no GPS search, no Google services); only about 1 km goes to Open-Meteo.
+  - **Web search: on, ask first, off.** In **Settings → Privacy**. "Ask first": Pim asks "Darf ich kurz im Web suchen?" and searches only after your yes. "Off": no web search at all, Wikipedia and weather keep working.
+  - **The brain download shows in the network log** like every other request, with the orange online dot while it runs.
 - **Answer cards (0.1.6).** For shopping lists, to-dos, study plans, comparisons or progress, Pim can now answer with a calm card instead of plain text: a **list**, a **table**, a **checklist** you tick off with a tap (the ticks stay with the chat), a **progress bar** and up to three **buttons** – *copy*, *share* or *ask* the next question for you. Try “Schreib mir eine Einkaufsliste für Pfannkuchen” or “Mach mir einen Lernplan für Mathe bis Freitag”. If the small brain writes a card that does not work, you simply see the text. Copying or sharing the answer gives readable text with your ticks.
 - **Version 0.1.3.1.** Hain now shows its version in **Settings → About Hain** (with build number and commit). How the numbers work is in [docs/workflow/VERSIONING.md](docs/workflow/VERSIONING.md).
 - **Frosted glass menus.** The ⋯ menu, the long-press menu in the side panel and the thinking picker are now real frosted glass: the chat behind them shows through, softly blurred, with a thin light edge and a soft shadow. The rest of the screen only dims a little. On phones older than Android 12 the menus are a solid card.
