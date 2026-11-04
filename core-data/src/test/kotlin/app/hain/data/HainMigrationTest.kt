@@ -6,9 +6,12 @@ import androidx.sqlite.execSQL
 import androidx.test.core.app.ApplicationProvider
 import app.hain.data.dao.FtsQuery
 import app.hain.data.entities.MemoryFactEntity
+import app.hain.data.entities.MemoryFactVecEntity
 import kotlinx.coroutines.test.runTest
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -17,28 +20,20 @@ import org.robolectric.annotation.ConscryptMode
 import java.io.File
 
 /**
- * T-111: a database written by version 2 (built from the exported schema `schemas/…/2.json`) opens
- * with version 3 through [HainDatabase.MIGRATION_2_3]; Room checks every table against the entities.
+ * T-111 / 7b: databases written by version 2 and 3 (built from the exported schemas `schemas/…/N.json`)
+ * open with the current version through the migrations; Room checks every table against the entities.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 @ConscryptMode(ConscryptMode.Mode.OFF)
 class HainMigrationTest {
     @Test
-    fun version2MigratesToVersion3() =
+    fun version2MigratesToTheCurrentVersion() =
         runTest {
             val file = File.createTempFile("hain-v2", ".db").also { it.delete() }
-            createVersion2(file)
+            createFromSchema(file, SCHEMA_V2, 2)
 
-            val db =
-                Room
-                    .databaseBuilder(
-                        ApplicationProvider.getApplicationContext(),
-                        HainDatabase::class.java,
-                        file.absolutePath,
-                    ).setDriver(BundledSQLiteDriver())
-                    .addMigrations(HainDatabase.MIGRATION_1_2, HainDatabase.MIGRATION_2_3)
-                    .build()
+            val db = open(file)
             try {
                 assertEquals("Alt", db.chats().byId(1)!!.title)
                 val id =
@@ -61,8 +56,79 @@ class HainMigrationTest {
             }
         }
 
-    private fun createVersion2(file: File) {
-        val schema = JSONObject(File(SCHEMA_V2).readText()).getJSONObject("database")
+    /** 7b: a version-3 memory (facts, a topic) reaches version 5 with vectors that go with their fact. */
+    @Test
+    fun version3MigratesToVersion5WithVectors() =
+        runTest {
+            val file = File.createTempFile("hain-v3", ".db").also { it.delete() }
+            createFromSchema(
+                file,
+                SCHEMA_V3,
+                3,
+                listOf(
+                    "INSERT INTO memory_fact (id, text, category, status, sensitive, importance, origin_chat_id, " +
+                        "created_at, superseded_by) " +
+                        "VALUES (7, 'spielt Gitarre', 'preference', 'active', 0, 0.5, 1, 3, NULL)",
+                    "INSERT INTO memory_topic (id, title, note, updated_at) VALUES (1, 'work', '10. Klasse', 2)",
+                ),
+            )
+            val db = open(file)
+            try {
+                val dao = db.memory()
+                val old = dao.byId(7)!!
+                assertEquals("spielt Gitarre", old.text)
+                assertNull(old.replaces)
+                assertEquals(listOf(7L), dao.search(FtsQuery.of("gitarre")!!).map { it.id })
+                assertEquals("10. Klasse", dao.topicByTitle("work")!!.note)
+
+                dao.upsertVector(MemoryFactVecEntity(7, "lfm2.5-embed", 42, 2, byteArrayOf(0, 0, 0x80.toByte(), 0x3f)))
+                assertEquals(listOf(7L), dao.vectors().map { it.factId })
+
+                val newer =
+                    dao.insert(
+                        MemoryFactEntity(
+                            text = "spielt jetzt E-Gitarre",
+                            category = "preference",
+                            status = MemoryFactEntity.SUGGESTED,
+                            sensitive = false,
+                            importance = 0.5,
+                            originChatId = 1,
+                            createdAt = 9,
+                            supersededBy = null,
+                            replaces = 7,
+                        ),
+                    )
+                assertEquals(7L, dao.byId(newer)!!.replaces)
+                dao.supersede(7, newer)
+                assertEquals(listOf(newer), dao.all().map { it.id })
+
+                // deleting a fact takes its vector with it (foreign key, ON DELETE CASCADE)
+                dao.delete(7)
+                assertTrue(dao.vectors().isEmpty())
+            } finally {
+                db.close()
+                file.delete()
+            }
+        }
+
+    private fun open(file: File): HainDatabase =
+        Room
+            .databaseBuilder(ApplicationProvider.getApplicationContext(), HainDatabase::class.java, file.absolutePath)
+            .setDriver(BundledSQLiteDriver())
+            .addMigrations(
+                HainDatabase.MIGRATION_1_2,
+                HainDatabase.MIGRATION_2_3,
+                HainDatabase.MIGRATION_3_4,
+                HainDatabase.MIGRATION_4_5,
+            ).build()
+
+    private fun createFromSchema(
+        file: File,
+        path: String,
+        version: Int,
+        rows: List<String> = emptyList(),
+    ) {
+        val schema = JSONObject(File(path).readText()).getJSONObject("database")
         val statements = mutableListOf<String>()
         val entities = schema.getJSONArray("entities")
         for (i in 0 until entities.length()) statements += entitySql(entities.getJSONObject(i))
@@ -71,7 +137,8 @@ class HainMigrationTest {
         statements +=
             "INSERT INTO chat (id, title, created_at, updated_at, model_id, pinned, private, archived) " +
             "VALUES (1, 'Alt', 1, 1, NULL, 0, 0, 0)"
-        statements += "PRAGMA user_version = 2"
+        statements += rows
+        statements += "PRAGMA user_version = $version"
         val connection = BundledSQLiteDriver().open(file.absolutePath)
         try {
             statements.forEach { connection.execSQL(it) }
@@ -97,6 +164,7 @@ class HainMigrationTest {
 
     private companion object {
         const val SCHEMA_V2 = "schemas/app.hain.data.HainDatabase/2.json"
+        const val SCHEMA_V3 = "schemas/app.hain.data.HainDatabase/3.json"
         const val PLACEHOLDER = "\${TABLE_NAME}"
     }
 }

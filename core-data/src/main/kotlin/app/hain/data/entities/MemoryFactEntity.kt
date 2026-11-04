@@ -10,6 +10,8 @@ import androidx.room.PrimaryKey
  * fact points the old one out of use with [supersededBy]; the user can edit and delete.
  *
  * @property status `active` (used in answers), `suggested` (waits for the user's yes) or `deleted`.
+ * @property replaces a suggestion from the background extraction (T-114) that would replace this
+ *   older fact once the user accepts it; the old one then gets [supersededBy] (DB version 5).
  */
 @Entity(tableName = "memory_fact", indices = [Index("status")])
 data class MemoryFactEntity(
@@ -22,6 +24,7 @@ data class MemoryFactEntity(
     @ColumnInfo(name = "origin_chat_id") val originChatId: Long?,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "superseded_by") val supersededBy: Long?,
+    val replaces: Long? = null,
 ) {
     companion object {
         const val ACTIVE = "active"
