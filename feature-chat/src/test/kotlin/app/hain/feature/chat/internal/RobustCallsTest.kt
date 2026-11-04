@@ -111,7 +111,8 @@ class RobustCallsTest {
             val last =
                 engine.respond(listOf(ChatMessage(Role.USER, "Merz oder Pistorius?")), AnswerMode.AUTO).toList().last()
                     as TurnUpdate.Finished
-            assertEquals(1, search.runs)
+            // one search with the router's single retry after a network error (4d); the second is not run
+            assertEquals(2, search.runs)
             assertEquals(1, last.steps.size)
             assertEquals("network", last.steps.single().error)
             assertTrue(llm.prompts[2].contains("cannot be reached"))
