@@ -241,7 +241,7 @@ class NewsRepository(
         if (due.isEmpty()) return RefreshResult(0, 0)
         val failed = AtomicInteger(0)
         try {
-            // T-230: every feed on its own, each shown as soon as it is there; a slow or broken feed
+            // T-075: every feed on its own, each shown as soon as it is there; a slow or broken feed
             // neither holds the others back nor stops them (time limit per feed)
             coroutineScope {
                 due.forEach { feed ->
@@ -414,7 +414,7 @@ class NewsRepository(
         const val KEEP_MS = 7 * 24 * 60 * 60 * 1000L
         const val DEDUP_MS = 24 * 60 * 60 * 1000L
 
-        /** One feed may take this long; then it counts as failed for this refresh (T-230). */
+        /** One feed may take this long; then it counts as failed for this refresh (T-075). */
         const val FEED_TIMEOUT_MS = 15_000L
         const val PAGE_IMAGE_PARALLEL = 3
         private const val MIX_WINDOW = 12
@@ -449,7 +449,7 @@ class NewsRepository(
         }
 
         /**
-         * The list as the user sees it (T-230): newest first, but sources take turns when others are
+         * The list as the user sees it (T-075): newest first, but sources take turns when others are
          * close behind (looks [MIX_WINDOW] items ahead), so a feed that publishes 30 articles at once
          * does not fill the whole first screen.
          */

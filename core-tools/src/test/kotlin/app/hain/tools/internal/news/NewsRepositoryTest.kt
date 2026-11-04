@@ -38,7 +38,7 @@ class NewsRepositoryTest {
     ) = NewsRepository(gate, store, standard, FeedParser { KXmlParser() }, clock = { now })
 
     @Test fun standardListHasNineteenFeedsInBothLanguagesWithJungeWelt() {
-        // T-230: public broadcasters, big papers and left media in German and English
+        // T-075: public broadcasters, big papers and left media in German and English
         assertEquals(19, standard.size)
         assertTrue(standard.any { it.id == "jungewelt" && it.lang == "de" })
         assertTrue(standard.count { it.lang == "de" } >= 9)
@@ -240,7 +240,7 @@ class NewsRepositoryTest {
 
     @Test fun brokenFeedsDoNotStopTheFirstScreen() =
         runTest {
-            // T-230: even with four feeds failing, the first open has plenty of headlines of many sources
+            // T-075: even with four feeds failing, the first open has plenty of headlines of many sources
             now = Instant.parse("2026-11-05T06:00:00Z").toEpochMilli() // after the newest saved feed
             val broken = standard.map { it.url }.take(4).toSet()
             val repo = repo(fixtureGate { req -> if (req.url in broken) GateResponse(500, "") else null })

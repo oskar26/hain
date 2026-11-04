@@ -68,7 +68,11 @@ import app.hain.feature.chat.internal.PrefsRatings
 import app.hain.feature.memory.api.MemoryAnswerChips
 import app.hain.feature.memory.api.MemoryScreen
 import app.hain.feature.memory.api.SmartSearch
+import app.hain.feature.news.api.BriefingDaily
+import app.hain.feature.news.api.FileBriefingStore
+import app.hain.feature.news.api.NewsImages
 import app.hain.feature.news.api.NewsScreen
+import app.hain.feature.news.api.SharedNewsPrefs
 import app.hain.feature.onboarding.api.OnboardingScreen
 import app.hain.feature.settings.api.AppInfo
 import app.hain.feature.settings.api.PacksScreen
@@ -409,15 +413,27 @@ class MainActivity : FragmentActivity() {
     /** T-144: counts up when the message box should open the keyboard. */
     private var composerFocus by mutableIntStateOf(0)
 
+    /** T-079: the briefing notification asks to open the news page. */
+    private var openNewsRequest by mutableStateOf(false)
+
+    /** T-075: news pictures through the gate, kept in the app's cache folder. */
+    private val newsImages by lazy { NewsImages(networkGate, File(cacheDir, "news-images")) }
+
+    /** T-076/T-079: the news settings (own small file) and today's briefing. */
+    private val newsPrefs by lazy { SharedNewsPrefs(applicationContext) }
+    private val briefingStore by lazy { FileBriefingStore(File(filesDir, "news/briefing.json")) }
+
     @Suppress("LongMethod", "CyclomaticComplexMethod") // compose root: theme, onboarding, chat, settings overlays
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         if (savedInstanceState == null) launchRequest = LaunchIntents.of(intent)
+        if (intent?.getStringExtra(BriefingDaily.EXTRA_OPEN) == BriefingDaily.OPEN_NEWS) openNewsRequest = true
         // singleTask: share sheet, widget and tile reach the open Hain here
         addOnNewIntentListener { next ->
             setIntent(next)
             LaunchIntents.of(next)?.let { launchRequest = it }
+            if (next.getStringExtra(BriefingDaily.EXTRA_OPEN) == BriefingDaily.OPEN_NEWS) openNewsRequest = true
         }
         // T-144: the home screen widget shows the newest chat; redraw it when that changes (also when
         // the app lock is switched, T-056: then the widget hides the title)
@@ -459,6 +475,12 @@ class MainActivity : FragmentActivity() {
             var showMemory by rememberSaveable { mutableStateOf(false) }
             var showGame by rememberSaveable { mutableStateOf(false) }
             var showNews by rememberSaveable { mutableStateOf(false) }
+            LaunchedEffect(openNewsRequest) {
+                if (openNewsRequest) {
+                    showNews = true
+                    openNewsRequest = false
+                }
+            }
             HainTheme(
                 darkTheme =
                     when (settings.theme) {
@@ -605,13 +627,24 @@ class MainActivity : FragmentActivity() {
                                 val newsViewModel =
                                     viewModel {
                                         newsScreenModel(
-                                            NewsParts(newsRepository, networkGate, llm),
+                                            NewsParts(newsRepository, networkGate, llm, newsPrefs, briefingStore),
                                             modelPath = brainPath,
                                             contextSize = { DevTuning.contextSize(current.dev) },
                                             lang = { toolLanguage(current) },
                                         )
                                     }
-                                NewsScreen(newsViewModel, { showNews = false })
+                                NewsScreen(
+                                    newsViewModel,
+                                    { showNews = false },
+                                    images = newsImages,
+                                    // T-078: "Im Chat weiterführen" opens a new chat with the article and Pim's answer
+                                    onContinueInChat = { text ->
+                                        showNews = false
+                                        chatViewModel.newChatWith(text)
+                                        composerFocus++
+                                    },
+                                    onBriefingSchedule = { on -> BriefingDaily.schedule(applicationContext, on) },
+                                )
                             }
                             AnimatedVisibility(
                                 visible = showSettings,

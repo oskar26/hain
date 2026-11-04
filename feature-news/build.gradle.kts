@@ -51,6 +51,11 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.foundation)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    // T-075: frosted top bar (hainGlass takes a HazeState)
+    implementation(libs.haze)
+    // T-079: briefing kept as JSON, optional morning note as a daily background job
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.work.runtime.ktx)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

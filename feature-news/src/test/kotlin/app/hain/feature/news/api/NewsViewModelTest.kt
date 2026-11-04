@@ -9,6 +9,7 @@ import app.hain.tools.internal.news.NewsRepository
 import app.hain.tools.internal.news.NewsSnapshot
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -17,6 +18,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -31,6 +33,8 @@ class NewsViewModelTest {
             NewsItem("tagesschau", "tagesschau", "Haushalt beschlossen", "https://t.de/1", "t1", now - 1, now, ""),
             NewsItem("own-1", "Mein Blog", "Neuer Beitrag", "https://blog.example.org/1", "b1", now - 2, now, ""),
         )
+
+    private lateinit var repoUsed: NewsRepository
 
     // Not backgroundScope: advanceUntilIdle() skips work that only runs there.
     private val scopes = mutableListOf<CoroutineScope>()
@@ -47,7 +51,15 @@ class NewsViewModelTest {
         val repo = NewsRepository(gate, MemoryNewsStore(snapshot), standard)
         val scope = CoroutineScope(StandardTestDispatcher(testScheduler) + SupervisorJob())
         scopes += scope
-        return NewsViewModel(repo, SummarizeArticle(gate, brain), { "de" }, scope)
+        repoUsed = repo
+        return NewsViewModel(
+            repository = repo,
+            reader = ArticleReader(gate, Dispatchers.Unconfined),
+            asker = ArticleAsk(brain),
+            briefings = BriefingMaker(MemoryBriefingStore(), brain = null, clock = { now }),
+            lang = { "de" },
+            scope = scope,
+        )
     }
 
     @Test fun modeSwitchPicksTheFeeds() =
@@ -109,29 +121,116 @@ class NewsViewModelTest {
             )
         }
 
-    @Test fun summaryRunsOnTapAndIsOnlyKeptInMemory() =
+    @Test fun openingAnArticleReadsItInTheAppAndMarksOnlyCutOffOnes() =
         runTest {
-            val sentence = "Ein langer Satz über den Haushalt des Bundes. ".repeat(3)
-            val article = "<html><body>" + "<p>$sentence</p>".repeat(10)
-            val answer = CompletableDeferred<String>()
-            val vm = viewModel(FakeGate { GateResponse(200, article) }, BrainCall { _, _ -> answer.await() })
+            val free =
+                "<html><head><title>Haushalt beschlossen</title></head><body><article>" +
+                    "<p>Ein langer Satz über den Haushalt des Bundes, mit vielen Details und Zahlen.</p>".repeat(8) +
+                    "</article></body></html>"
+            val vm = viewModel(FakeGate { GateResponse(200, free) })
             vm.start()
             advanceUntilIdle()
             val item =
                 vm.state.value.items
-                    .first()
-            vm.summarize(item)
+                    .first { it.title == "Haushalt beschlossen" }
+            vm.open(item)
             advanceUntilIdle()
-            assertEquals(SummaryState.Loading, vm.state.value.summaries[item.guid])
-            answer.complete("- Eins\n- Zwei")
-            advanceUntilIdle()
-            val ready = vm.state.value.summaries[item.guid] as SummaryState.Ready
-            assertEquals(SummaryResult.Bullets(listOf("Eins", "Zwei")), ready.result)
-            vm.hideSummary(item.guid)
-            advanceUntilIdle()
-            assertTrue(
-                vm.state.value.summaries
-                    .isEmpty(),
+            val open = vm.state.value.open!!
+            val ready = open.result as ReaderResult.Ready
+            assertTrue(ready.article.textLength > 400)
+            assertFalse(ready.article.locked)
+            assertFalse(
+                vm.state.value.items
+                    .first { it.guid == item.guid }
+                    .paywall,
             )
+            vm.close()
+            advanceUntilIdle()
+            assertEquals(null, vm.state.value.open)
+        }
+
+    @Test fun cutOffArticleGetsThePaywallMarkAfterReading() =
+        runTest {
+            val teaser =
+                "<html><head><script type=\"application/ld+json\">{\"isAccessibleForFree\":false}</script></head>" +
+                    "<body><article><p>Nur der Anfang des Artikels, dann ist Schluss, leider, ganz ehrlich, " +
+                    "es geht hier nicht weiter, und das ist schade, weil es spannend wäre, mehr zu lesen.</p>" +
+                    "<p>Weiterlesen mit Abo, Sie haben bereits ein Abo? Anmelden, bitte, hier oder dort.</p>" +
+                    "</article></body></html>"
+            val vm = viewModel(FakeGate { GateResponse(200, teaser) })
+            vm.start()
+            advanceUntilIdle()
+            val item =
+                vm.state.value.items
+                    .first { it.title == "Haushalt beschlossen" }
+            assertFalse(item.paywall)
+            vm.open(item)
+            advanceUntilIdle()
+            val ready =
+                vm.state.value.open!!
+                    .result as ReaderResult.Ready
+            assertTrue(ready.article.locked)
+            assertTrue(
+                vm.state.value.items
+                    .first { it.guid == item.guid }
+                    .paywall,
+            )
+            assertTrue(
+                repoUsed.state.value.locked
+                    .contains(item.link),
+            )
+        }
+
+    @Test fun pimAnswersAboutTheOpenArticleAndHandsItToTheChat() =
+        runTest {
+            val page =
+                "<html><body><article>" + "<p>Der Bundestag hat den Haushalt beschlossen, knapp.</p>".repeat(10) +
+                    "</article></body></html>"
+            val answer = CompletableDeferred<String>()
+            var context = ""
+            val vm =
+                viewModel(
+                    FakeGate { GateResponse(200, page) },
+                    BrainCall { _, user ->
+                        context = user
+                        answer.await()
+                    },
+                )
+            vm.start()
+            advanceUntilIdle()
+            vm.open(
+                vm.state.value.items
+                    .first { it.title == "Haushalt beschlossen" },
+            )
+            advanceUntilIdle()
+            vm.ask("Worum geht es?")
+            advanceUntilIdle()
+            assertEquals(AskState("Worum geht es?"), vm.state.value.ask)
+            answer.complete("Um den Haushalt.")
+            advanceUntilIdle()
+            assertEquals(
+                AskResult.Answer("Um den Haushalt."),
+                vm.state.value.ask
+                    ?.result,
+            )
+            assertTrue(context.contains("Der Bundestag hat den Haushalt beschlossen"))
+            assertTrue(context.endsWith("Worum geht es?"))
+            val handOff = vm.chatHandOff()!!
+            assertTrue(handOff.contains("Worum geht es?") && handOff.contains("Um den Haushalt."))
+            assertTrue(handOff.contains("https://t.de/1"))
+            vm.closeAsk()
+            advanceUntilIdle()
+            assertEquals(null, vm.state.value.ask)
+        }
+
+    @Test fun settingsChangeRightAway() =
+        runTest {
+            val vm = viewModel()
+            vm.updatePrefs { it.copy(textScale = 1.3f, theme = ReaderTheme.SEPIA, listImages = false) }
+            advanceUntilIdle()
+            assertEquals(1.3f, vm.state.value.prefs.textScale)
+            assertEquals(ReaderTheme.SEPIA, vm.state.value.prefs.theme)
+            assertFalse(vm.state.value.prefs.listImages)
+            assertFalse(vm.state.value.prefs.briefingNotification)
         }
 }
