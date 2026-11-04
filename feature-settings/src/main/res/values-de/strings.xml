@@ -51,6 +51,8 @@
     <string name="settings_about_text">Hain ist ein kleiner Helfer, der auf deinem Handy denkt, ohne Cloud. Pim ist der kleine Tropfen, der dich begleitet. Hain ist frei und quelloffen (GPL-3.0).</string>
     <string name="settings_offline">Offline-Modus</string>
     <string name="settings_offline_hint">Pim geht nie ins Internet. Wetter und Wikipedia machen Pause.</string>
+    <string name="settings_confirm_actions">Handy-Aktionen bestätigen</string>
+    <string name="settings_confirm_actions_hint">Wecker, Timer, Termine und Routen warten auf deinen Tipp. Aus: Sie starten nach 3 Sekunden, mit „Rückgängig“.</string>
     <string name="settings_searx">Eigene Suche (SearXNG)</string>
     <string name="settings_searx_placeholder">https://searx.example.org</string>
     <string name="settings_searx_hint">Du hast ein eigenes SearXNG? Trag die Adresse ein, dann fragt Pim zuerst dort. Leer = Hains übliche Quellen.</string>

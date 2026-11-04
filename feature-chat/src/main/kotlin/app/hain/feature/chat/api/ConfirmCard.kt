@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions") // one small composable or label helper per part of the card
+
 package app.hain.feature.chat.api
 
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +13,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -34,6 +41,7 @@ import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 import app.hain.ui.theme.glassTile
+import kotlinx.coroutines.delay
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.ZoneId
@@ -52,6 +60,7 @@ internal fun ConfirmCard(
     card: ActionCard,
     onEvent: (ActionEvent) -> Unit,
     modifier: Modifier = Modifier,
+    autoStart: Boolean = false,
 ) {
     val colors = LocalHainColors.current
     val spacing = LocalHainSpacing.current
@@ -80,7 +89,7 @@ internal fun ConfirmCard(
                 }
             }
         }
-        CardFooter(card, onEvent)
+        CardFooter(card, onEvent, autoStart)
     }
 }
 
@@ -89,6 +98,7 @@ internal fun ConfirmCard(
 private fun CardFooter(
     card: ActionCard,
     onEvent: (ActionEvent) -> Unit,
+    autoStart: Boolean,
 ) {
     val colors = LocalHainColors.current
     val spacing = LocalHainSpacing.current
@@ -96,20 +106,31 @@ private fun CardFooter(
     val context = LocalContext.current
     when (card.state) {
         ActionState.PENDING ->
-            // T-085: with big fonts the two buttons wrap instead of running off the card
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-                verticalArrangement = Arrangement.spacedBy(spacing.sm),
-            ) {
-                HainButton(
-                    stringResource(confirmLabel(card.action)),
-                    onClick = { onEvent(PhoneIntents.launch(context, card.action)) },
-                )
-                HainButton(
-                    stringResource(R.string.chat_action_cancel),
-                    onClick = { onEvent(ActionEvent.CANCELLED) },
-                    style = HainButtonStyle.SECONDARY,
-                )
+            if (autoStart) {
+                AutoStartFooter(card, onEvent)
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
+                    // 4b-2: says plainly that nothing has happened yet
+                    BasicText(
+                        stringResource(R.string.chat_action_pending_hint, stringResource(confirmLabel(card.action))),
+                        style = type.bodySmall.copy(color = colors.textMuted),
+                    )
+                    // T-085: with big fonts the two buttons wrap instead of running off the card
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+                        verticalArrangement = Arrangement.spacedBy(spacing.sm),
+                    ) {
+                        HainButton(
+                            stringResource(confirmLabel(card.action)),
+                            onClick = { onEvent(PhoneIntents.launch(context, card.action)) },
+                        )
+                        HainButton(
+                            stringResource(R.string.chat_action_cancel),
+                            onClick = { onEvent(ActionEvent.CANCELLED) },
+                            style = HainButtonStyle.SECONDARY,
+                        )
+                    }
+                }
             }
         ActionState.DONE ->
             BasicText(
@@ -126,6 +147,42 @@ private fun CardFooter(
                 stringResource(noAppLabel(card.action)),
                 style = type.bodySmall.copy(color = colors.textMuted),
             )
+    }
+}
+
+/**
+ * 4b-2, setting "Handy-Aktionen bestätigen" off: the card counts down 3 s, then the phone's app opens
+ * by itself. "Rückgängig" stops it; nothing has happened before the countdown ends.
+ */
+@Composable
+private fun AutoStartFooter(
+    card: ActionCard,
+    onEvent: (ActionEvent) -> Unit,
+) {
+    val colors = LocalHainColors.current
+    val spacing = LocalHainSpacing.current
+    val type = LocalHainTypography.current
+    val context = LocalContext.current
+    var left by remember(card) { mutableIntStateOf(AUTO_START_SECONDS) }
+    LaunchedEffect(card) {
+        while (left > 0) {
+            delay(ONE_SECOND_MS)
+            left--
+        }
+        onEvent(PhoneIntents.launch(context, card.action))
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        BasicText(
+            stringResource(R.string.chat_action_auto_in, left),
+            style = type.bodySmall.copy(color = colors.textMuted),
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(Modifier.width(spacing.sm))
+        HainButton(
+            stringResource(R.string.chat_action_undo),
+            onClick = { onEvent(ActionEvent.CANCELLED) },
+            style = HainButtonStyle.SECONDARY,
+        )
     }
 }
 
@@ -221,4 +278,6 @@ private fun duration(seconds: Int): String {
 private const val SECONDS_PER_HOUR = 3600
 private const val SECONDS_PER_MINUTE = 60
 private const val DAYS_PER_WEEK = 7
+private const val AUTO_START_SECONDS = 3
+private const val ONE_SECOND_MS = 1000L
 private const val WORK_DAYS = 5

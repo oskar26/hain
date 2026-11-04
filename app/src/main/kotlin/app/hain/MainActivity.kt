@@ -109,6 +109,7 @@ class MainActivity : ComponentActivity() {
             onNetworkLogDetail = { write { repo.setNetworkLogDetail(it) } },
             onClearNetworkLog = networkGate::clearLog,
             onSearxUrl = { write { repo.setSearxUrl(it) } },
+            onConfirmActions = { write { repo.setConfirmActions(it) } },
             onHaptics = { write { repo.setHaptics(it) } },
             onAppIcon = { write { repo.setAppIcon(it) } },
             onDev = { write { repo.setDev(it) } },
@@ -278,6 +279,7 @@ class MainActivity : ComponentActivity() {
                                     ChatExtras(
                                         showStats = dev.enabled && dev.showStats,
                                         rawThinking = dev.enabled && dev.showRawThinking,
+                                        confirmActions = settings.confirmActions,
                                         debugInfo = { stats ->
                                             val model = File(ownModelPath() ?: models.mainFile(brain).absolutePath).name
                                             DevTuning.debugLine(model, current.dev, stats)

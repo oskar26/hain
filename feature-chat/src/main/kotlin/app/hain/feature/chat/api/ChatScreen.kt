@@ -455,6 +455,9 @@ private fun Answer(
     val type = LocalHainTypography.current
     Column(Modifier.fillMaxWidth()) {
         val waiting = message.text.isEmpty() && message.reasoning == null && message.steps.isEmpty()
+        // true once this answer was seen while it was still being written (4b-2)
+        var fresh by remember(message.id) { mutableStateOf(message.streaming) }
+        LaunchedEffect(message.id, message.streaming) { if (message.streaming) fresh = true }
         // T-213: a small Pim next to the newest answer; he peeks in while tools run, cheers when done
         if (latest && !(message.streaming && waiting)) AnswerPim(message, cheer)
         ToolTimeline(message.steps, research = message.research.takeIf { message.streaming })
@@ -484,7 +487,12 @@ private fun Answer(
                     },
             )
             if (!message.streaming) {
-                message.actions.forEachIndexed { index, card -> ConfirmCard(card, { onAction(index, it) }) }
+                // 4b-2: without confirmation only an answer that was written just now starts by itself,
+                // never one of an older chat that is opened again
+                val autoStart = !extras.confirmActions && fresh
+                message.actions.forEachIndexed { index, card ->
+                    ConfirmCard(card, { onAction(index, it) }, autoStart = autoStart)
+                }
                 SourceChips(message.sources)
             }
             if (message.stopped) {

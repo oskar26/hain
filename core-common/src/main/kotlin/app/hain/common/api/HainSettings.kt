@@ -85,6 +85,11 @@ data class HainSettings(
     val networkLogDetail: Boolean = false,
     /** Own SearXNG address, asked first by the web search (SETTINGS.md `searxng_url`); empty = none. */
     val searxUrl: String = "",
+    /**
+     * Phone actions wait for a tap on their card (SETTINGS.md `confirm_actions`, 4b-2). Off: the card
+     * counts down 3 s with "Rückgängig", then the phone's app opens by itself.
+     */
+    val confirmActions: Boolean = true,
     /** Haptics, Settings → Look → "Vibration" (SETTINGS.md `haptics`). */
     val haptics: HapticStrength = HapticStrength.SUBTLE,
     /** Launcher icon, Settings → Look → "App icon" and onboarding (T-103). */

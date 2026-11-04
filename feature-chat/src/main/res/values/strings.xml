@@ -93,6 +93,9 @@
     <string name="chat_action_minutes">%1$d min</string>
     <string name="chat_action_seconds">%1$d s</string>
     <string name="chat_action_all_day">all day</string>
+    <string name="chat_action_pending_hint">Prepared – tap “%1$s” to do it.</string>
+    <string name="chat_action_auto_in">Starts in %1$d s …</string>
+    <string name="chat_action_undo">Undo</string>
     <string name="chat_action_every_day">Every day</string>
     <string name="chat_action_weekdays">Mon–Fri</string>
     <string name="chat_action_weekend">Weekends</string>

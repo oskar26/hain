@@ -26,6 +26,8 @@ class SettingsActions(
     val onNetworkLogDetail: (Boolean) -> Unit = {},
     val onClearNetworkLog: () -> Unit = {},
     val onSearxUrl: (String) -> Unit = {},
+    /** Phone actions: ask first (default) or start after 3 s with undo (4b-2). */
+    val onConfirmActions: (Boolean) -> Unit = {},
     val onHaptics: (HapticStrength) -> Unit = {},
     val onAppIcon: (AppIcon) -> Unit = {},
     /** Developer mode on/off and all its values at once (T-211). */
