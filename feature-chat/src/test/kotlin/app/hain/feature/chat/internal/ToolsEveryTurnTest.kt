@@ -158,7 +158,7 @@ class ToolsEveryTurnTest {
             assertEquals(listOf("https://a.de/1", "https://c.de/3"), last.sources.map { it.url })
             val reading = updates.filterIsInstance<TurnUpdate.Streaming>().flatMap { it.steps }
             assertTrue(reading.any { it.name == ChatEngine.READ_STEP && it.state == StepState.RUNNING })
-            assertTrue(llm.prompts[1].contains("{\"search\":{\"query\":\"Photosynthese\""))
+            assertTrue(llm.prompts[1].contains("{\"query\":\"Photosynthese\",\"pages\":[{\"n\":1"))
             assertTrue(llm.prompts[1].contains("Pflanzen machen Zucker"))
             assertEquals(3, gate.log.value.size)
             assertEquals("web_search", last.trace.single().name)

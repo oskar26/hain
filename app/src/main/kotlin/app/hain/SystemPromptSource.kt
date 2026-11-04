@@ -121,6 +121,7 @@ class SystemPromptSource(
                 "auch wenn du es vorher schon benutzt hast. " +
                 "Sag nie, dass du nachgeschaut hast, wenn du in dieser Antwort kein Werkzeug benutzt hast. " +
                 "Antworte danach aus dem Ergebnis und nenne die Quellen als [1], [2]. " +
+                "Stütze Fakten wenn möglich auf 2 Quellen; widersprechen sie sich, sag das. " +
                 "Klappt ein Werkzeug nicht, sag das ehrlich. " +
                 PHONE_DE
         const val TOOLS_EN =
@@ -130,7 +131,9 @@ class SystemPromptSource(
                 "For every new question that needs facts, weather or current events, call the tool again, " +
                 "even if you used it before. " +
                 "Never say you looked something up if you used no tool in this answer. " +
-                "Then answer from the result and cite the sources as [1], [2]. If a tool fails, say so plainly. " +
+                "Then answer from the result and cite the sources as [1], [2]. " +
+                "Back facts with 2 sources when you can; if they contradict each other, say so. " +
+                "If a tool fails, say so plainly. " +
                 PHONE_EN
 
         const val TOOL_NUDGE_DE =

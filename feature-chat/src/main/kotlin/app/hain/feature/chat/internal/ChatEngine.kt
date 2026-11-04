@@ -16,12 +16,36 @@ import app.hain.llm.internal.LfmPromptBuilder
 import app.hain.llm.internal.StreamSplitter
 import app.hain.llm.internal.ThinkingPolicy
 import app.hain.tools.api.HainTools
+import app.hain.tools.api.ResearchBudget
+import app.hain.tools.api.ResearchNotes
 import app.hain.tools.api.ToolContext
 import app.hain.tools.api.ToolResult
 import app.hain.tools.api.ToolRouter
+import app.hain.tools.internal.search.PageReader
+import app.hain.tools.internal.search.ReadPage
+import app.hain.tools.internal.search.SearchTool
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.transformWhile
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.addJsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
 import java.time.ZonedDateTime
 
 /** What the UI sees while one answer is produced. Text fields hold everything so far. */
@@ -31,6 +55,8 @@ sealed interface TurnUpdate {
         val text: String,
         val thinking: Boolean,
         val steps: List<ToolStep> = emptyList(),
+        /** Running research clock (Gründlich, T-069); `null` = no time display. */
+        val research: ResearchClock? = null,
     ) : TurnUpdate
 
     data class Finished(
@@ -44,11 +70,19 @@ sealed interface TurnUpdate {
     ) : TurnUpdate
 }
 
+/** When the research of an answer started and how long it may take, for a quiet time display. */
+data class ResearchClock(
+    val startedAt: Long,
+    val budgetMs: Long,
+)
+
 /**
  * One user turn: system prompt + history → prompt → stream → [StreamSplitter] for the live view →
- * strict parse at the end. With [tools] the brain may call tools (T-062, LLM.md §8): at most
- * [MAX_TOOL_ROUNDS] rounds, then one last round without tools so it has to answer. A message that is
- * only a sum ("12*7") is answered by the calculator at once, without the brain.
+ * strict parse at the end. With [tools] the brain may call tools (T-062, LLM.md §8) within the
+ * [ResearchBudget] of the answer mode (T-069: rounds, searches, pages, time), then one last round
+ * without tools so it has to answer. Tools of one round run at the same time; pages are read as
+ * excerpts and older results shrink to [ResearchNotes]. A message that is only a sum ("12*7") is
+ * answered by the calculator at once, without the brain.
  *
  * Speed (2d-2): the system prompt is filled with the time of [promptAnchor], which only moves on
  * every [ANCHOR_MS], so the prompt start stays the same and the brain does not re-read the chat.
@@ -86,14 +120,32 @@ class ChatEngine(
         return llm.prefill(prompt, listOfNotNull(fixedSystemEnd(prompt, system)))
     }
 
+    /**
+     * Stops the research of the running answer (T-069): no more tools, Pim answers right away with
+     * what it collected. Only while it is still looking things up; `false` when there is nothing to
+     * stop that way (no tool yet, or the answer is already being written), then the caller stops
+     * the whole answer instead.
+     */
+    fun stopResearch(): Boolean {
+        val turn = active
+        if (turn == null || !turn.canStop) return false
+        turn.stopRequested = true
+        turn.stopSignal.value = true
+        llm.cancel()
+        return true
+    }
+
+    @Volatile private var active: Turn? = null
+
+    @Suppress("CyclomaticComplexMethod", "LongMethod") // the research loop: one place for its rules
     fun respond(
         history: List<ChatMessage>,
         mode: AnswerMode = answerMode(),
     ): Flow<TurnUpdate> =
         flow {
             val lastUser = history.lastOrNull()?.content.orEmpty()
-            val fast = mode == AnswerMode.FAST
-            val ctx = toolContext().let { if (fast) it.copy(pagesToRead = ToolContext.FAST_PAGES) else it }
+            val budget = ResearchBudget.of(mode)
+            val ctx = toolContext().copy(pagesToRead = budget.pagesPerSearch)
             val quick = quickAnswer(history, ctx)
             if (quick != null) {
                 emit(quick)
@@ -102,52 +154,128 @@ class ChatEngine(
             val thinking = ThinkingPolicy.decide(lastUser, mode)
             val system = systemPrompt(promptAnchor())
             val schemas = tools?.schemas(ctx.offline).orEmpty()
-            val base = withLanguageHint(history, lastUser)
-            val turn = Turn()
-            var round = 0
-            while (true) {
-                val roundTools = if (round < MAX_TOOL_ROUNDS) schemas else emptyList()
-                val result = generateRound(system, roundTools, base + turn.messages, history, thinking, turn)
-                turn.thinkingMs += result.thinkingMs ?: 0L
-                val calls = result.output.toolCalls.take(MAX_CALLS_PER_ROUND)
-                val router = tools
-                val answered = calls.isEmpty() || roundTools.isEmpty() || result.reason != StopReason.END
-                if (router == null || answered) {
-                    val earlier = turn.reasoning.toString().trim()
-                    val reasoning =
-                        listOfNotNull(earlier.ifBlank { null }, result.output.reasoning?.ifBlank { null })
-                            .joinToString("\n\n")
-                            .ifBlank { null }
-                    emit(
-                        TurnUpdate.Finished(
-                            result.output.copy(reasoning = reasoning),
-                            result.reason,
-                            if (thinking) turn.thinkingMs else null,
-                            turn.steps.toList(),
-                            turn.sources.toList(),
-                            turn.trace.toList(),
-                            turn.actions.toList(),
-                        ),
-                    )
-                    return@flow
+            val researchHint = if (schemas.isNotEmpty() && !ctx.offline) researchHint(mode, ctx.lang) else null
+            val base = withLanguageHint(history, lastUser, researchHint)
+            val turn = Turn(budget, lastUser)
+            active = turn
+            try {
+                var round = 0
+                while (true) {
+                    val final =
+                        round >= budget.maxRounds || turn.stopRequested || budget.timeUp(turn.startedAt, clock())
+                    turn.finalRound = final
+                    turn.textStarted = false
+                    val roundTools = if (final) emptyList() else schemas
+                    val closing = if (final && turn.researching) listOf(closingLine(ctx.lang)) else emptyList()
+                    val messages = base + turn.promptMessages(round) + closing
+                    val result = generateRound(system, roundTools, messages, history, thinking, turn)
+                    turn.thinkingMs += result.thinkingMs ?: 0L
+                    // stopped or out of time while the brain was still choosing tools: answer with what is there
+                    if (!final && result.reason == StopReason.CANCELLED && turn.cut) {
+                        result.output.reasoning?.let { turn.reasoning.append(it).append("\n\n") }
+                        round = budget.maxRounds
+                        continue
+                    }
+                    val calls = result.output.toolCalls.take(budget.callsPerRound)
+                    val router = tools
+                    val answered = calls.isEmpty() || roundTools.isEmpty() || result.reason != StopReason.END
+                    if (router == null || answered) {
+                        val earlier = turn.reasoning.toString().trim()
+                        val reasoning =
+                            listOfNotNull(earlier.ifBlank { null }, result.output.reasoning?.ifBlank { null })
+                                .joinToString("\n\n")
+                                .ifBlank { null }
+                        emit(
+                            TurnUpdate.Finished(
+                                result.output.copy(reasoning = reasoning),
+                                result.reason,
+                                if (thinking) turn.thinkingMs else null,
+                                turn.steps.toList(),
+                                turn.sources.toList(),
+                                turn.trace.toList(),
+                                turn.actions.toList(),
+                            ),
+                        )
+                        return@flow
+                    }
+                    result.output.reasoning?.let { turn.reasoning.append(it).append("\n\n") }
+                    turn.add(ChatMessage(Role.ASSISTANT, result.output.text, calls, result.output.reasoning), round)
+                    runCalls(router, calls, ctx, turn, thinking, round)
+                    round++
                 }
-                result.output.reasoning?.let { turn.reasoning.append(it).append("\n\n") }
-                turn.messages += ChatMessage(Role.ASSISTANT, result.output.text, calls, result.output.reasoning)
-                calls.forEach { call -> runTool(router, call, ctx, turn, thinking, mode == AnswerMode.FAST) }
-                round++
+            } finally {
+                if (active === turn) active = null
             }
         }
 
     /** What one user turn collected so far across tool rounds. */
-    private class Turn {
-        val messages = mutableListOf<ChatMessage>()
+    private class Turn(
+        val budget: ResearchBudget,
+        val question: String,
+    ) {
+        /** One message of the research; [compact] replaces it once a newer round exists (T-069). */
+        class Entry(
+            val message: ChatMessage,
+            val round: Int,
+            val compact: String? = null,
+        )
+
+        val entries = mutableListOf<Entry>()
         val steps = mutableListOf<ToolStep>()
         val sources = mutableListOf<SourceRef>()
         val trace = mutableListOf<ToolTrace>()
         val actions = mutableListOf<ActionCard>()
+        val notes = ResearchNotes()
+        val readUrls = mutableSetOf<String>()
+        val readSites = mutableSetOf<String>()
         val reasoning = StringBuilder()
         var thinkingMs = 0L
         var searches = 0
+        var startedAt: Long? = null
+
+        @Volatile var researching = false
+
+        @Volatile var finalRound = false
+
+        @Volatile var textStarted = false
+
+        @Volatile var stopRequested = false
+
+        /** The research time ran out while the brain was still choosing tools. */
+        @Volatile var timeCut = false
+        val stopSignal = MutableStateFlow(false)
+
+        val cut: Boolean get() = stopRequested || timeCut
+
+        /** Stop can still end only the research: tools ran, no answer text yet, not stopped before. */
+        val canStop: Boolean get() = researching && !finalRound && !answering
+
+        private val answering: Boolean get() = textStarted || stopRequested
+
+        fun add(
+            message: ChatMessage,
+            round: Int,
+            compact: String? = null,
+        ) {
+            entries += Entry(message, round, compact)
+        }
+
+        /** Messages for round [round]: results of the last round in full, older ones as notes. */
+        fun promptMessages(round: Int): List<ChatMessage> =
+            entries.map { e ->
+                if (e.compact != null && e.round < round - 1) e.message.copy(content = e.compact) else e.message
+            }
+
+        /** Number of the source [url] (its chip), adding it when new. */
+        fun sourceNumber(
+            title: String,
+            url: String,
+        ): Int {
+            val i = sources.indexOfFirst { it.url == url }
+            if (i >= 0) return i + 1
+            sources += SourceRef(title, url)
+            return sources.size
+        }
     }
 
     private data class RoundResult(
@@ -156,64 +284,184 @@ class ChatEngine(
         val thinkingMs: Long?,
     )
 
-    @Suppress("LongParameterList") // one tool call needs the whole turn
-    private suspend fun FlowCollector<TurnUpdate>.runTool(
+    /** One tool call of a round, its timeline line and whether the search budget refused it. */
+    private class Planned(
+        val call: ToolCall,
+        val step: ToolStep,
+        val refused: Boolean,
+    )
+
+    /**
+     * Runs the tool calls of one round (T-069): all at the same time, then the pages of every search
+     * at the same time, one line each in the timeline. Stop or the end of the research time cuts it
+     * short; what was found until then is kept.
+     */
+    @Suppress("LongParameterList", "LongMethod", "CyclomaticComplexMethod") // one round needs the whole turn
+    private suspend fun FlowCollector<TurnUpdate>.runCalls(
         router: ToolRouter,
-        call: ToolCall,
+        calls: List<ToolCall>,
         ctx: ToolContext,
         turn: Turn,
         thinking: Boolean,
-        fast: Boolean,
+        round: Int,
     ) {
-        val step = ToolStep(call.name, detailOf(call), StepState.RUNNING, router.isOnline(call.name))
-        turn.steps += step
-        emit(TurnUpdate.Streaming(turn.reasoning.toString().trim(), "", thinking, turn.steps.toList()))
-        val isSearch = call.name == SEARCH_TOOL
-        val result =
-            if (isSearch && turn.searches >= maxSearches(fast)) {
-                ToolRouter.failure("limit", "No more searches for this answer. Answer with what you found.")
-            } else {
-                router.run(call, ctx)
+        if (turn.startedAt == null) turn.startedAt = clock()
+        turn.researching = true
+        val planned =
+            calls.map { call ->
+                val search = call.name == SEARCH_TOOL
+                val refused = search && turn.searches >= turn.budget.maxSearches
+                if (search && !refused) turn.searches++
+                val step = ToolStep(call.name, detailOf(call), StepState.RUNNING, router.isOnline(call.name))
+                Planned(call, step, refused)
             }
-        if (isSearch) turn.searches++
-        turn.steps[turn.steps.lastIndex] =
-            step.copy(
-                detail = result.label ?: step.detail,
-                state = if (result.error == null) StepState.DONE else StepState.FAILED,
-                error = result.error,
-            )
-        // a phone action is only prepared here; the card under the answer asks before anything happens
-        result.action?.let { turn.actions += ActionCard(it) }
-        val pages = readPages(router, result, ctx, turn, thinking)
-        (pages?.sources ?: result.sources).forEach { s ->
-            if (turn.sources.none { it.url == s.url }) turn.sources += SourceRef(s.title, s.url)
+        val firstStep = turn.steps.size
+        planned.forEach { turn.steps += it.step }
+        emitProgress(turn, thinking)
+        val results =
+            guarded(turn) {
+                coroutineScope {
+                    planned
+                        .map { p ->
+                            async {
+                                if (p.refused) ToolRouter.failure("limit", LIMIT_HINT) else router.run(p.call, ctx)
+                            }
+                        }.awaitAll()
+                }
+            } ?: planned.map { ToolRouter.failure(if (turn.stopRequested) "stopped" else "time_up", CUT_HINT) }
+        results.forEachIndexed { i, result ->
+            // a Wikipedia call that became a web search used one of the searches
+            if (result.via == SEARCH_TOOL && planned[i].call.name != SEARCH_TOOL) turn.searches++
+            turn.steps[firstStep + i] =
+                planned[i].step.copy(
+                    detail = result.label ?: planned[i].step.detail,
+                    state = if (result.error == null) StepState.DONE else StepState.FAILED,
+                    error = result.error,
+                    via = result.via,
+                )
+            // a phone action is only prepared here; the card under the answer asks before anything happens
+            result.action?.let { turn.actions += ActionCard(it) }
         }
-        val content = if (pages == null) result.forModel else combine(result.forModel, pages.forModel)
-        turn.messages += ChatMessage(Role.TOOL, content, toolCallId = call.id)
-        turn.trace += ToolTrace(call.name, call.arguments.mapValues { it.value?.toString().orEmpty() }, content)
-        emit(TurnUpdate.Streaming(turn.reasoning.toString().trim(), "", thinking, turn.steps.toList()))
+        val pages = readPages(router, planned.map { it.call }, results, ctx, turn, thinking)
+        results.forEachIndexed { i, result ->
+            val call = planned[i].call
+            val read = pages[i]
+            val numbered = read.map { turn.sourceNumber(it.title, it.url) }
+            if (read.isEmpty()) result.sources.forEach { turn.sourceNumber(it.title, it.url) }
+            numbered.zip(read).forEach { (n, page) -> turn.notes.add(n, page.text, focusOf(call, turn)) }
+            val content = if (read.isEmpty()) result.forModel else withPages(result, read, numbered)
+            val compact = if (read.isEmpty()) compactOf(content) else notesOf(result, numbered, turn)
+            turn.add(ChatMessage(Role.TOOL, content, toolCallId = call.id), round, compact)
+            turn.trace += ToolTrace(call.name, call.arguments.mapValues { it.value?.toString().orEmpty() }, compact)
+        }
+        if (turn.budget.liveNotes && turn.notes.facts > 0) {
+            turn.steps.removeAll { it.name == NOTES_STEP }
+            turn.steps += ToolStep(NOTES_STEP, "${turn.notes.facts}/${turn.notes.sources}", StepState.DONE, false)
+        }
+        emitProgress(turn, thinking)
     }
 
-    /** After a web search: read the best pages at once, shown as its own line ("Lese 3 Seiten"). */
+    /**
+     * After the searches of a round: reads their best pages, each from a site not read yet, within
+     * the page budget, all at once; one timeline line ("Lese 4 Seiten …"). One list per result.
+     */
+    @Suppress("LongParameterList")
     private suspend fun FlowCollector<TurnUpdate>.readPages(
         router: ToolRouter,
-        result: ToolResult,
+        calls: List<ToolCall>,
+        results: List<ToolResult>,
         ctx: ToolContext,
         turn: Turn,
         thinking: Boolean,
-    ): ToolResult? {
-        if (result.error != null || result.readUrls.isEmpty()) return null
-        val step = ToolStep(READ_STEP, result.readUrls.size.toString(), StepState.RUNNING, online = true)
+    ): List<List<ReadPage>> {
+        var left = turn.budget.maxPages - turn.readUrls.size
+        val picks =
+            results.map { result ->
+                if (result.error != null || left <= 0) return@map emptyList()
+                val urls =
+                    result.readUrls
+                        .filter { it !in turn.readUrls && SearchTool.siteOf(it) !in turn.readSites }
+                        .distinctBy { SearchTool.siteOf(it) }
+                        .take(minOf(turn.budget.pagesPerSearch, left))
+                left -= urls.size
+                urls.forEach {
+                    turn.readUrls += it
+                    turn.readSites += SearchTool.siteOf(it)
+                }
+                urls
+            }
+        val total = picks.sumOf { it.size }
+        if (total == 0) return results.map { emptyList() }
+        val step = ToolStep(READ_STEP, total.toString(), StepState.RUNNING, online = true)
         turn.steps += step
-        emit(TurnUpdate.Streaming(turn.reasoning.toString().trim(), "", thinking, turn.steps.toList()))
-        val pages = router.readPages(result.readUrls, ctx)
-        turn.steps[turn.steps.lastIndex] =
-            if (pages == null) {
+        val at = turn.steps.lastIndex
+        emitProgress(turn, thinking)
+        val read =
+            guarded(turn) {
+                coroutineScope {
+                    picks
+                        .mapIndexed { i, urls ->
+                            async {
+                                val left = turn.budget.remaining(turn.startedAt, clock())
+                                val limit = minOf(ToolRouter.READ_TIMEOUT_MS, left)
+                                router.readExcerpts(urls, ctx, turn.budget.charsPerPage, focusOf(calls[i], turn), limit)
+                            }
+                        }.awaitAll()
+                }
+            } ?: picks.map { emptyList() }
+        val count = read.sumOf { it.size }
+        turn.steps[at] =
+            if (count == 0) {
                 step.copy(state = StepState.FAILED, error = "failed")
             } else {
-                step.copy(detail = pages.label, state = StepState.DONE)
+                step.copy(detail = "$count", state = StepState.DONE)
             }
-        return pages
+        return read
+    }
+
+    /**
+     * Runs [block] unless the research time is up or Stop was pressed; Stop or the end of the time
+     * cancels it midway. `null` = cut short.
+     */
+    @Suppress("SwallowedException")
+    private suspend fun <T> guarded(
+        turn: Turn,
+        block: suspend () -> T,
+    ): T? {
+        val left = turn.budget.remaining(turn.startedAt, clock())
+        if (left <= 0L || turn.stopRequested) return null
+        return coroutineScope {
+            val work = async { block() }
+            val watch =
+                launch {
+                    turn.stopSignal.first { it }
+                    work.cancel()
+                }
+            try {
+                withTimeoutOrNull(left) { work.await() }
+            } catch (e: CancellationException) {
+                currentCoroutineContext().ensureActive()
+                null
+            } finally {
+                watch.cancel()
+                work.cancel()
+            }
+        }
+    }
+
+    private suspend fun FlowCollector<TurnUpdate>.emitProgress(
+        turn: Turn,
+        thinking: Boolean,
+    ) {
+        emit(TurnUpdate.Streaming(turn.reasoning.toString().trim(), "", thinking, turn.steps.toList(), clockOf(turn)))
+    }
+
+    /** The research clock for the live time display (Gründlich only, while still researching). */
+    @Suppress("ReturnCount")
+    private fun clockOf(turn: Turn): ResearchClock? {
+        val start = turn.startedAt ?: return null
+        if (!turn.budget.liveNotes || turn.finalRound) return null
+        return ResearchClock(start, turn.budget.timeMs)
     }
 
     @Suppress("LongParameterList", "CyclomaticComplexMethod") // one generation needs all of these
@@ -261,16 +509,28 @@ class ChatEngine(
             }
         }
 
-        llm.generate(prompt, params, checkpoints).collect { event ->
-            when (event) {
-                is GenerationEvent.Token -> {
-                    apply(splitter.feed(event.text))
-                    val steps = turn.steps + listOfNotNull(pending)
-                    emit(TurnUpdate.Streaming((earlier + reasoning).trim(), text.toString(), thinking, steps))
+        // T-069: while research runs, Stop or the end of the research time ends a tool round early
+        val mayCut = roundTools.isNotEmpty() && turn.researching
+        llm
+            .generate(prompt, params, checkpoints)
+            .transformWhile { event ->
+                emit(event)
+                val outOfTime = mayCut && turn.budget.timeUp(turn.startedAt, clock())
+                if (outOfTime && text.isEmpty()) turn.timeCut = true
+                !(mayCut && text.isEmpty() && turn.cut)
+            }.collect { event ->
+                when (event) {
+                    is GenerationEvent.Token -> {
+                        apply(splitter.feed(event.text))
+                        if (text.isNotEmpty()) turn.textStarted = true
+                        val steps = turn.steps + listOfNotNull(pending)
+                        val shown = (earlier + reasoning).trim()
+                        emit(TurnUpdate.Streaming(shown, text.toString(), thinking, steps, clockOf(turn)))
+                    }
+                    is GenerationEvent.Done -> reason = event.reason
                 }
-                is GenerationEvent.Done -> reason = event.reason
             }
-        }
+        if (mayCut && turn.cut && reason != StopReason.END) reason = StopReason.CANCELLED
         val (rest, parsed) = splitter.finish()
         apply(rest)
         val thoughtFor = if (thinking) (thinkingEnd ?: clock()) - start else null
@@ -332,13 +592,20 @@ class ChatEngine(
         return cleanTitle(out.toString())
     }
 
-    /** History plus the one-line language hint (not stored, after the cached part of the prompt). */
+    /**
+     * History plus the one-line language hint and, for a research, how to research (not stored,
+     * after the cached part of the prompt).
+     */
     private fun withLanguageHint(
         history: List<ChatMessage>,
         lastUser: String,
+        research: String? = null,
     ): List<ChatMessage> {
         val userMessages = history.filter { it.role == Role.USER }.map { it.content }.ifEmpty { listOf(lastUser) }
-        val hint = turnHint(userMessages)?.takeIf { it.isNotBlank() } ?: return history
+        val hint =
+            listOfNotNull(turnHint(userMessages)?.takeIf { it.isNotBlank() }, research)
+                .joinToString(" ")
+                .ifBlank { null } ?: return history
         return history + ChatMessage(Role.SYSTEM, hint)
     }
 
@@ -359,28 +626,104 @@ class ChatEngine(
     }
 
     companion object {
-        /**
-         * Tool rounds per user turn before the brain must answer (LLM.md §8). Four, so a research
-         * can search, read, search again and still look something up (Werkzeuge II).
-         */
-        const val MAX_TOOL_ROUNDS = 4
-
-        /** Web searches per answer; the "Schnell" mode allows one (with one page read). */
-        private const val MAX_SEARCHES = 2
         const val SEARCH_TOOL = "web_search"
 
         /** Timeline line for the pages read after a search; its detail is the number of pages. */
         const val READ_STEP = "read_pages"
 
-        private fun maxSearches(fast: Boolean) = if (fast) 1 else MAX_SEARCHES
+        /** Timeline line for the research notes (Gründlich); its detail is "facts/sources". */
+        const val NOTES_STEP = "notes"
 
-        /** Search hits and the pages read from them as one tool answer. */
-        internal fun combine(
-            search: String,
-            pages: String,
-        ): String = "{\"search\":$search,\"read\":$pages}"
+        private const val LIMIT_HINT = "No more searches for this answer. Answer with what you found."
+        private const val CUT_HINT = "The research was ended. Answer with what you found so far."
+        private const val OTHER_HITS = 3
+        private const val COMPACT_CHARS = 400
 
-        private const val MAX_CALLS_PER_ROUND = 3
+        /** The words a page excerpt is picked for: the search words and the user's question. */
+        private fun focusOf(
+            call: ToolCall,
+            turn: Turn,
+        ): String = listOfNotNull(detailOf(call), turn.question).joinToString(" ")
+
+        /**
+         * A search result with the pages read from it, for the brain: the pages' best parts under
+         * their source numbers, plus a few hits that were not read.
+         */
+        internal fun withPages(
+            result: ToolResult,
+            pages: List<ReadPage>,
+            numbers: List<Int>,
+        ): String {
+            val root = runCatching { Json.parseToJsonElement(result.forModel).jsonObject }.getOrNull()
+            val inner = (root?.get("result") as? JsonObject) ?: root
+            val readUrls = pages.map { it.url }.toSet()
+            val json =
+                buildJsonObject {
+                    (inner?.get("query") as? JsonPrimitive)?.let { put("query", it) }
+                    ((root?.get("note") ?: inner?.get("note")) as? JsonPrimitive)?.let { put("note", it) }
+                    val read = Json.parseToJsonElement(PageReader.forModel(pages, numbers)).jsonObject
+                    put("pages", read.getValue("pages"))
+                    val other = result.hits.filter { it.url !in readUrls }.take(OTHER_HITS)
+                    if (other.isNotEmpty()) {
+                        putJsonArray("other") {
+                            other.forEach { h ->
+                                addJsonObject {
+                                    put("title", h.title)
+                                    put("snippet", h.snippet)
+                                }
+                            }
+                        }
+                    }
+                }
+            return json.toString()
+        }
+
+        /** What an older search result shrinks to: its search words and its notes ("[2] …"). */
+        private fun notesOf(
+            result: ToolResult,
+            numbers: List<Int>,
+            turn: Turn,
+        ): String {
+            val lines = numbers.flatMap { turn.notes.lines(it) }.distinct()
+            return buildJsonObject {
+                result.label?.let { put("query", it) }
+                putJsonArray("notes") { lines.forEach { add(JsonPrimitive(it)) } }
+            }.toString()
+        }
+
+        private fun compactOf(content: String): String = PromptHistory.cut(content, COMPACT_CHARS)
+
+        /** How to research in this mode, after the history; `null` = the system prompt is enough. */
+        internal fun researchHint(
+            mode: AnswerMode,
+            lang: String,
+        ): String? =
+            when {
+                mode != AnswerMode.THOROUGH -> null
+                lang == "de" -> THOROUGH_DE
+                else -> THOROUGH_EN
+            }
+
+        /** Last line before the answer once tools are over. */
+        internal fun finalHint(lang: String): String = if (lang == "de") FINAL_DE else FINAL_EN
+
+        private fun closingLine(lang: String) = ChatMessage(Role.SYSTEM, finalHint(lang))
+
+        private const val THOROUGH_DE =
+            "Gründliche Recherche: Du hast bis zu einer Minute. Suche mit mehreren Anfragen, " +
+                "auch umformuliert und auf Englisch, und nutze verschiedene Seiten. Du darfst bis zu " +
+                "3 Werkzeuge auf einmal aufrufen. Stütze Fakten auf mindestens 2 Quellen und nenne Widersprüche."
+        private const val THOROUGH_EN =
+            "Thorough research: you have up to one minute. Search with several queries, also reworded " +
+                "and in German, and use different pages. You may call up to 3 tools at once. " +
+                "Back facts with at least 2 sources and point out contradictions."
+        private const val FINAL_DE =
+            "Die Recherche ist beendet. Antworte jetzt nur aus den Ergebnissen oben, nenne die Quellen " +
+                "als [1], [2] und sag, wenn Quellen sich widersprechen."
+        private const val FINAL_EN =
+            "The research is over. Answer now only from the results above, cite the sources as [1], [2] " +
+                "and say when sources contradict each other."
+
         private val DETAIL_KEYS =
             listOf("place", "topic", "expression", "query", "url", "time", "title", "destination")
 

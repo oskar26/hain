@@ -70,6 +70,22 @@
         <item quantity="one">%d Seite gelesen</item>
         <item quantity="other">%d Seiten gelesen</item>
     </plurals>
+    <string name="chat_tool_wiki_to_web">Wikipedia hatte nichts → suche im Web</string>
+    <string name="chat_tool_web_to_wiki">im Web nichts → Wikipedia</string>
+    <string name="chat_tool_limit">genug gesucht</string>
+    <string name="chat_tool_time_up">Zeit um</string>
+    <string name="chat_tool_stopped">gestoppt</string>
+    <string name="chat_tool_notes">Notizen: %1$s aus %2$s</string>
+    <plurals name="chat_tool_facts">
+        <item quantity="one">%d Fakt</item>
+        <item quantity="other">%d Fakten</item>
+    </plurals>
+    <plurals name="chat_tool_sources">
+        <item quantity="one">%d Quelle</item>
+        <item quantity="other">%d Quellen</item>
+    </plurals>
+    <string name="chat_research_clock">%1$s von %2$s</string>
+    <string name="chat_research_clock_label">Recherche-Zeit</string>
     <string name="chat_tool_other">Werkzeug</string>
     <string name="chat_tool_alarm">Wecker</string>
     <string name="chat_tool_timer">Timer</string>
