@@ -45,7 +45,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-059 | ToolTimeline + SourceChips | ui | S | E | T-052,T-062 | review |
 | T-053 | Drawer: chat list, search, rename, delete, pin | ui | M | E | T-052,T-015 | review (redesign 03.11.: glass context menu with scale+fade, marked row, spring drawer + list motion) |
 | T-054 | Export & share chat | feature | S | E | T-053 | todo |
-| T-055 | Model picker in top bar | ui | S | E | T-052,T-081 | todo |
+| T-055 | Model picker in top bar | ui | S | E | T-052,T-081 | partly (language step + localeConfig done; picker open) |
 | T-056 | Private chat + app lock | feature | S | E | T-053 | todo |
 | T-080 | Fill model catalogue with real URLs + sha256 | plan | S | F | - | review (brain now QAD-Q4_0, day 2) |
 | T-081 | Catalog + DeviceCheck | feature | S | F | T-002 | review (DeviceCheck pure rules + Packs screen) |
