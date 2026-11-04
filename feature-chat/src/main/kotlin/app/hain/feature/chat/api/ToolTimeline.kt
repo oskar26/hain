@@ -97,6 +97,7 @@ internal fun toolIcon(name: String): Hain3D =
         PhoneAction.ADD_EVENT -> Hain3D.CALENDAR
         PhoneAction.NAVIGATE -> Hain3D.GLOBE
         PhoneAction.SET_ALARM, PhoneAction.SET_TIMER -> Hain3D.PHONE
+        REMEMBER -> Hain3D.BULB
         else -> Hain3D.SPARKLES
     }
 
@@ -194,6 +195,7 @@ private fun toolName(name: String): Int =
         PhoneAction.SET_TIMER -> R.string.chat_tool_timer
         PhoneAction.ADD_EVENT -> R.string.chat_tool_event
         PhoneAction.NAVIGATE -> R.string.chat_tool_route
+        REMEMBER -> R.string.chat_tool_remember
         else -> R.string.chat_tool_other
     }
 
@@ -295,3 +297,6 @@ private const val POP_START = 0.4f
 private const val TICK_MS = 1_000L
 private const val MS_PER_S = 1_000L
 private const val S_PER_MIN = 60
+
+/** The memory's tool (T-112, `RememberTool.NAME` in :core-memory). */
+private const val REMEMBER = "remember"

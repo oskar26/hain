@@ -18,7 +18,11 @@ import app.hain.tools.internal.wiki.WikipediaTool
  * through [gate], so every request shows in the network log).
  */
 object HainTools {
-    fun router(gate: NetworkGate): ToolRouter {
+    /** All tools; [extra] are tools of other modules, e.g. `remember` from the memory (T-112). */
+    fun router(
+        gate: NetworkGate,
+        extra: List<Tool> = emptyList(),
+    ): ToolRouter {
         val reader = PageReader(gate)
         val tools =
             listOf(
@@ -31,7 +35,7 @@ object HainTools {
                 SetTimerTool(),
                 AddCalendarEventTool(),
                 NavigateTool(),
-            )
+            ) + extra
         return ToolRouter(tools, pages = reader, fallbacks = FALLBACKS)
     }
 

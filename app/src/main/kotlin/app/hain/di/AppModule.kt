@@ -13,6 +13,8 @@ import app.hain.feature.chat.internal.ChatStore
 import app.hain.feature.chat.internal.RoomChatPersistence
 import app.hain.llm.api.LlmEngine
 import app.hain.llm.internal.LlamaEngine
+import app.hain.memory.api.HainMemory
+import app.hain.memory.api.MemoryStore
 import app.hain.models.api.ModelRepository
 import app.hain.models.internal.DefaultModelRepository
 import app.hain.tools.internal.net.HttpNetworkGate
@@ -96,6 +98,14 @@ object AppModule {
             database.db?.let { RoomChatPersistence(it) }
         return ChatStore(persistence = persistence, scope = scope)
     }
+
+    /** The memory (T-112): facts in the encrypted database, only on this phone; in memory if it cannot open. */
+    @Provides
+    @Singleton
+    fun memoryStore(
+        @ApplicationContext context: Context,
+        database: DatabaseHolder,
+    ): MemoryStore = HainMemory.store(context, database.db?.memory(), CoroutineScope(SupervisorJob() + Dispatchers.IO))
 }
 
 /** Wraps the database so Hilt can hand out a missing one. */

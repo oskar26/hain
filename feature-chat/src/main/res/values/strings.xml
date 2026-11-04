@@ -87,6 +87,7 @@
     <string name="chat_tool_timer">Timer</string>
     <string name="chat_tool_event">Calendar</string>
     <string name="chat_tool_route">Route</string>
+    <string name="chat_tool_remember">Remembered</string>
     <string name="chat_action_alarm">Alarm at %1$s</string>
     <string name="chat_action_timer">Timer for %1$s</string>
     <string name="chat_action_hours">%1$d h</string>

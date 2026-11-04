@@ -52,6 +52,9 @@ import app.hain.feature.settings.api.UpdateBanner
 import app.hain.feature.settings.api.UpdateStatus
 import app.hain.llm.api.DevTuning
 import app.hain.llm.api.LlmEngine
+import app.hain.memory.api.MemoryStore
+import app.hain.memory.api.MemoryTurn
+import app.hain.memory.api.RememberTool
 import app.hain.models.api.DevModels
 import app.hain.models.api.DownloadState
 import app.hain.models.api.ModelRepository
@@ -65,6 +68,9 @@ import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainTween
 import app.hain.ui.theme.HainTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -84,6 +90,11 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var settingsRepository: SettingsRepository
 
     @Inject lateinit var networkGate: NetworkGate
+
+    @Inject lateinit var memory: MemoryStore
+
+    /** T-112/T-113: "merk dir …" and the fitting facts, in the line right before each answer. */
+    private val memoryTurn by lazy { MemoryTurn(memory, CoroutineScope(SupervisorJob() + Dispatchers.IO)) }
 
     private fun settingsActions(
         onBack: () -> Unit,
@@ -159,8 +170,11 @@ class MainActivity : ComponentActivity() {
                     llm,
                     prompts::current,
                     answerMode = { LlmAnswerMode.fromKey(settings().answerMode.name.lowercase()) },
-                    turnHint = prompts::turnHint,
-                    tools = HainTools.router(networkGate),
+                    turnHint = { messages ->
+                        listOfNotNull(prompts.turnHint(messages), memoryTurn.hint(messages, toolLanguage(settings())))
+                            .joinToString("\n")
+                    },
+                    tools = HainTools.router(networkGate, listOf(RememberTool(memory))),
                     toolContext = {
                         val cfg = settings()
                         ToolContext(
