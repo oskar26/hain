@@ -1,67 +1,48 @@
-# Hain app icon (3D Pim)
+# Hain app icon (T-088, glossy Pim)
 
-Status: **design ready, not yet built into the app.** The website already uses it (favicon, header, hero, social preview).
+Status: **in the app** (launcher icon, adaptive + themed), on the website and in the README.
 
 ![Hain icon](../../assets/icon/hain-icon-rounded-1024.png)
 
 ## What it shows
 
-Pim as a soft, glossy 3D creature: a mint-green jelly drop with a small leaf sprout on top and two oval white eyes, lit from inside. Background: a calm gradient from Hain green `#16A36B` (top) to mint and a touch of turquoise (bottom). No text. Style follows Oskar's style reference "App-Icon" (glossy 3D creature, light-to-saturated gradient, inner glow), drawn new for Hain.
+Pim in the current v2.1 shape: a mint drop with a small leaf whose stem grows out of the top of the head (so the leaf is fixed to Pim), two dot eyes with a tiny catch-light. Drawn like a modern macOS app icon:
+
+- **Tile:** continuous-corner squircle (superellipse n = 5, 824/1024 like the macOS grid), soft vertical gradient `#5FDCA6` → Hain green `#16A36B`-ish `#22B47A` → `#0B7A4F`, a white glow top-left, a darker pool bottom-right, a thin light edge (glass rim) and a soft drop shadow.
+- **Pim:** glass look — radial mint gradient (almost white → `#7EDDB0` → `#3DBF85`), white inner glow along the edge, a specular highlight top-left, a light edge on top, a mint bounce light at the bottom, a contact shadow.
+- Calm and adult: no text, no outlines, no extra props. Recognisable at 48 px (checked masked round and squircle).
+
+**Debug build:** same icon with a small dark pill “dev” at the bottom (inside the safe zone), so the debug app (`app.hain.debug`) is easy to tell apart.
+
+## Source
+
+`assets/icon/src/make_icon.py` builds everything from one SVG description (pure vector, gradients + Gaussian blur, rendered with resvg). Pim's paths are copied 1:1 from `assets/mascot/v2/static/pim_idle.svg`.
+
+```bash
+pip install resvg-py pillow
+python3 assets/icon/src/make_icon.py          # assets/icon + app/src/main/res + app/src/debug/res
+python3 assets/icon/src/make_icon.py --no-res # only assets/icon
+```
+
+Own work, no image model and no third-party artwork. The SVGs are in `assets/icon/src/` (`hain-icon.svg` full-bleed master, `hain-icon-macos.svg` squircle, `hain-icon-dev.svg`).
 
 ## Files (`assets/icon/`)
 
 | File | Size | Use |
 |---|---|---|
-| `hain-icon-1024.png` | 1024 × 1024, full-bleed square | **Master.** Store listings, F-Droid, source for every other size |
-| `hain-icon-512.png` | 512 × 512 | Play Store / F-Droid listing icon |
-| `hain-icon-rounded-1024.png` | 1024 × 1024, transparent corners | Website, docs, README, social media |
-| `hain-icon-foreground.png` | 1024 × 1024, transparent | Adaptive icon **foreground** layer (Pim only, ~58 % of the canvas, inside the 66 % safe zone) |
-| `hain-icon-background.png` | 1024 × 1024 | Adaptive icon **background** layer (gradient only) |
+| `hain-icon-1024.png` | 1024², full-bleed square | Master; stores, F-Droid |
+| `hain-icon-512.png` | 512², full-bleed | Play Store listing (Play masks it) |
+| `hain-icon-rounded-1024.png` | 1024², squircle on transparent | Website, README, docs, social |
+| `hain-icon-dev-1024.png` | 1024², squircle | Debug variant |
+| `hain-icon-foreground.png` | 1024², transparent | Adaptive foreground (Pim inside the 66 dp safe zone) |
+| `hain-icon-background.png` | 1024² | Adaptive background (gradient tile) |
 
-How they were made: generated with an image model (Hark `generate_image`, several variants, the best one picked), then cut out and resized with Pillow. No third-party artwork is included.
+## In the app (`app/src/main/res`, `app/src/debug/res`)
 
-## Building it into the app later (adaptive icon)
+- `mipmap-anydpi-v26/ic_launcher.xml` + `ic_launcher_round.xml`: adaptive icon with background, foreground and **monochrome** layer.
+- `mipmap-{m,h,xh,xxh,xxxh}dpi/`: `ic_launcher_foreground.webp`, `ic_launcher_background.webp` (108 dp layers) and the legacy `ic_launcher.webp` (squircle) / `ic_launcher_round.webp` (48 dp).
+- `drawable/ic_launcher_monochrome.xml`: themed icon (Android 13+), Pim silhouette with the eyes cut out, vector.
+- The debug source set only overrides the mipmaps (with the “dev” pill); the monochrome layer comes from `main`.
+- `AndroidManifest.xml`: `android:icon="@mipmap/ic_launcher"`, `android:roundIcon="@mipmap/ic_launcher_round"`.
 
-Do this in a separate task (the app module is `app/`). Don't change the launcher icon in the same PR as unrelated work.
-
-1. **Export the layers** for each density. Adaptive icon layers are 108 dp; only the inner 72 dp (66 %) are always visible.
-
-   | Folder | Layer size (108 dp) | Legacy icon (48 dp) |
-   |---|---|---|
-   | `mipmap-mdpi` | 108 px | 48 px |
-   | `mipmap-hdpi` | 162 px | 72 px |
-   | `mipmap-xhdpi` | 216 px | 96 px |
-   | `mipmap-xxhdpi` | 324 px | 144 px |
-   | `mipmap-xxxhdpi` | 432 px | 192 px |
-
-   ```bash
-   for d in mdpi:108:48 hdpi:162:72 xhdpi:216:96 xxhdpi:324:144 xxxhdpi:432:192; do
-     IFS=: read name layer legacy <<< "$d"
-     out=app/src/main/res/mipmap-$name; mkdir -p "$out"
-     magick assets/icon/hain-icon-foreground.png -resize ${layer}x${layer} "$out/ic_launcher_foreground.webp"
-     magick assets/icon/hain-icon-background.png -resize ${layer}x${layer} "$out/ic_launcher_background.webp"
-     magick assets/icon/hain-icon-rounded-1024.png -resize ${legacy}x${legacy} "$out/ic_launcher.webp"
-   done
-   ```
-
-   Optional: replace the background PNG with a vector gradient (`drawable/ic_launcher_background.xml`, `#16A36B` → `#79EBC5`/`#78DEE0`) to save space.
-
-2. **Add** `app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml` (and the same as `ic_launcher_round.xml`):
-
-   ```xml
-   <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-       <background android:drawable="@mipmap/ic_launcher_background" />
-       <foreground android:drawable="@mipmap/ic_launcher_foreground" />
-       <monochrome android:drawable="@drawable/ic_launcher_monochrome" />
-   </adaptive-icon>
-   ```
-
-3. **Themed icon (Android 13+):** `ic_launcher_monochrome` should be a flat single-colour silhouette of Pim (drop + leaf, eyes cut out) as a vector drawable, sized like the foreground. The existing flat Pim SVGs in `assets/mascot/v2/static/` are a good starting point.
-
-4. Make sure `AndroidManifest.xml` uses `android:icon="@mipmap/ic_launcher"` and `android:roundIcon="@mipmap/ic_launcher_round"`.
-
-5. Check on a real phone with circle, squircle and rounded-square masks, light and dark wallpaper, and with themed icons on. Pim's eyes must stay fully visible in the circle mask.
-
-## Website use
-
-`website/public/img/hain-icon.webp` (512 px, from the rounded master), `website/public/favicon.png` (64 px), `website/public/apple-touch-icon.png` (180 px), `website/public/og.png` (1200 × 630 social preview), `website/public/img/pim-3d.webp` (the cut-out 3D Pim used in the hero).
+Replaces the earlier 3D icon (02.11., image model), which was never built into the app.

@@ -297,6 +297,13 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Next: 4c (rest), then the plan order 2e-2+2f, 3b, 5 …
 
 
+## 2026-11-03 · T-088 + T-089 (app icon, website "Lichtung") · review · harness: Hark · model: Hark
+- What: T-088 app icon: Pim v2.1 shapes (pim_idle.svg) as a glossy glass drop with leaf (stem grows from the head) on a macOS-like squircle, gradients #5FDCA6 → #22B47A → #0B7A4F, light edge, inner glow, specular highlight, soft shadow. Own SVG + resvg, no image model. Adaptive icon (webp layers mdpi–xxxhdpi, legacy squircle + round), monochrome vector for themed icons, debug variant with a "dev" pill, manifest icon/roundIcon. T-089 website: restyled to style A "Lichtung" (tokens = HainStyle LICHTUNG light/dark), Hanken Grotesk self-hosted (Inter removed), new icon everywhere, feature list with status (12 available, 9 coming soon, from the README feature table), style A screenshots light/dark, "Made in Cologne" and the Köln examples removed, bubbles/3D Pim/grain/tilt/parallax removed. README: icon on top + two "new" bullets.
+- Files: assets/icon/**, app/src/main/res/{mipmap-*,drawable/ic_launcher_monochrome.xml}, app/src/debug/res/**, app/src/main/AndroidManifest.xml, docs/design/ICON.md, website/**, README.md, docs/workflow/{TASKS,STATUS,HANDOFF_LOG}.md.
+- Checks: icon checked at 48/72/96 px, masked round and squircle, safe zone; `npm ci && npm run build` green; Chromium screenshots desktop/mobile, light/dark. Gradle not run locally (parallel run) → CI + APK workflow.
+- Notes/risks: T-089 is a new ID (T-087 may be used by the parallel polish run). Regenerate icons: `pip install resvg-py pillow && python3 assets/icon/src/make_icon.py`.
+- Next: Oskar checks the icon on the phone (themed icon on Android 13+).
+
 ## 2026-11-04 · Lichtung + Pim + 2048 + Haptik (Feinschliff) · review · harness: Hark · branch `hark/polish`
 
 | task | status | check result | files outside list (reason) | open issues |
