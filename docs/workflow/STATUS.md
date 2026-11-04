@@ -4,6 +4,7 @@
 
 ## Now
 
+- **Day 2f (04.11., `hark/day-2f`):** T-055a: first onboarding screen asks Deutsch / English (sets answer language + app language on Android 13+), manifest `localeConfig` so the system language picker lists Hain. Brain picker in the top bar → 2f-2.
 - **App icon + website (03.11. night, `hark/lichtung-web`):** T-088 launcher icon = glossy glass Pim on a green squircle (own SVG, `assets/icon/src/make_icon.py`), adaptive + round + themed (monochrome vector) in `app/src/main/res`, debug build with a small “dev” pill in `app/src/debug/res`; `docs/design/ICON.md`. T-089 website in style A “Lichtung” (white, hairlines, Hanken Grotesk, Lucide line icons, light/dark, style A screenshots as WebP, feature list with “Available now / Coming soon” badges, new icon as favicon/OG/apple-touch, no location mentions).
 - **Phase:** M1–M3 core + M4 MVP on main (PR #1, #2 merged 2026-11-01). **Day 1 of the v0.2 plan in review** on `hark/day-1`: chats are saved in an encrypted Room DB (T-020) and the drawer has search, rename, pin, delete and day sections (T-053).
 - **APK:** every push builds one (Actions → APK). Pushes to main refresh the `nightly` pre-release with `hain-debug.apk` (shared debug key in `app/signing/`, installs as update).
