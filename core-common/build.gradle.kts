@@ -15,6 +15,8 @@ kotlin {
 
 dependencies {
     implementation(libs.kotlinx.coroutines.core)
+    // T-212: reads version.json of the GitHub release (already used by core-llm / core-models)
+    implementation(libs.kotlinx.serialization.json)
     api(libs.androidx.datastore.preferences)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
