@@ -1,0 +1,196 @@
+{
+ "note": "Tool schemas and argument aliases as in main+#27 before 4d (snapshot for the baseline).",
+ "tools": [
+  {
+   "name": "calculate",
+   "description": "Exact maths and unit conversion, e.g. '12*7', '15% * 80', '5 km in mi', '70 F in C'.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "expression": {
+      "type": "string",
+      "description": "The expression or conversion"
+     }
+    },
+    "required": [
+     "expression"
+    ]
+   }
+  },
+  {
+   "name": "weather",
+   "description": "Current weather and forecast for a place.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "place": {
+      "type": "string",
+      "description": "City or place name"
+     },
+     "days": {
+      "type": "integer",
+      "description": "Days of forecast from today, 1 to 7"
+     }
+    },
+    "required": [
+     "place"
+    ]
+   }
+  },
+  {
+   "name": "wikipedia",
+   "description": "Short encyclopedia summary about a person, place or thing.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "topic": {
+      "type": "string",
+      "description": "What to look up"
+     },
+     "lang": {
+      "type": "string",
+      "description": "de or en"
+     }
+    },
+    "required": [
+     "topic"
+    ]
+   }
+  },
+  {
+   "name": "web_search",
+   "description": "Search the web for current or detailed information. Hain then reads the best pages for you.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "query": {
+      "type": "string",
+      "description": "A few search words"
+     }
+    },
+    "required": [
+     "query"
+    ]
+   }
+  },
+  {
+   "name": "read_page",
+   "description": "Read the text of one web page, e.g. a link from the user.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "url": {
+      "type": "string",
+      "description": "The full address, starting with https://"
+     }
+    },
+    "required": [
+     "url"
+    ]
+   }
+  },
+  {
+   "name": "set_alarm",
+   "description": "Prepare an alarm clock on the phone. The user confirms it on a card.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "time": {
+      "type": "string",
+      "description": "Time of day, HH:mm, e.g. 06:30"
+     },
+     "label": {
+      "type": "string",
+      "description": "Optional short text for the alarm"
+     }
+    },
+    "required": [
+     "time"
+    ]
+   }
+  },
+  {
+   "name": "set_timer",
+   "description": "Prepare a countdown timer on the phone. The user confirms it on a card.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "seconds": {
+      "type": "integer",
+      "description": "Length in seconds, e.g. 600 for 10 minutes"
+     },
+     "label": {
+      "type": "string",
+      "description": "Optional short text for the timer"
+     }
+    },
+    "required": [
+     "seconds"
+    ]
+   }
+  },
+  {
+   "name": "add_calendar_event",
+   "description": "Prepare a calendar event. Opens the calendar app filled in after the user confirms.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "title": {
+      "type": "string",
+      "description": "What the event is, e.g. Zahnarzt"
+     },
+     "start": {
+      "type": "string",
+      "description": "Start, e.g. 2026-11-04T15:00 or 'tomorrow 15:00'"
+     },
+     "end": {
+      "type": "string",
+      "description": "Optional end, same format"
+     },
+     "location": {
+      "type": "string",
+      "description": "Optional place"
+     }
+    },
+    "required": [
+     "title",
+     "start"
+    ]
+   }
+  },
+  {
+   "name": "navigate",
+   "description": "Prepare a route to a place in the user's map app. The user confirms it on a card.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "destination": {
+      "type": "string",
+      "description": "Place or address, e.g. Kölner Dom"
+     },
+     "mode": {
+      "type": "string",
+      "description": "Optional: walk, drive, bike or transit"
+     }
+    },
+    "required": [
+     "destination"
+    ]
+   }
+  }
+ ],
+ "aliases": {
+  "set_timer": {
+   "duration": "seconds",
+   "length": "seconds",
+   "time": "seconds",
+   "minutes": "seconds"
+  },
+  "add_calendar_event": {
+   "date": "start"
+  },
+  "navigate": {
+   "place": "destination"
+  }
+ }
+}

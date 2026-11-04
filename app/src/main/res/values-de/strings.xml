@@ -12,4 +12,27 @@
     <string name="cancel">Abbrechen</string>
     <string name="ok">OK</string>
     <string name="delete">Löschen</string>
+
+    <!-- T-056 app lock, T-054 export all -->
+    <string name="lock_title">Hain ist gesperrt</string>
+    <string name="lock_hint">Entsperre mit deinem Fingerabdruck oder der PIN deines Handys.</string>
+    <string name="lock_unlock">Entsperren</string>
+    <string name="lock_prompt_title">Hain entsperren</string>
+    <string name="lock_prompt_subtitle">Deine Chats bleiben privat.</string>
+    <string name="lock_enable_title">App-Sperre einschalten</string>
+    <string name="lock_enable_subtitle">Bestätige, dass du es bist.</string>
+    <plurals name="export_all_done">
+        <item quantity="one">%1$d Chat exportiert</item>
+        <item quantity="other">%1$d Chats exportiert</item>
+    </plurals>
+    <string name="export_all_failed">Export hat nicht geklappt</string>
+    <!-- T-144 Teilen-Ziel, Widget, Schnellkachel -->
+    <string name="share_target_label">Frag Pim</string>
+    <string name="widget_label">Frag Pim</string>
+    <string name="widget_description">Frag Pim, starte einen neuen Chat oder geh zurück zu deinem letzten Chat.</string>
+    <string name="widget_ask">Frag Pim …</string>
+    <string name="widget_new_chat">Neuer Chat</string>
+    <string name="widget_last_chat">Letzter Chat: %1$s</string>
+    <string name="widget_last_chat_locked">Letzter Chat</string>
+    <string name="tile_new_chat">Neuer Chat</string>
 </resources>

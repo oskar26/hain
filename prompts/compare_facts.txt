@@ -1,0 +1,6 @@
+You compare two short facts about the same user. "Old" is already saved, "New" was just found in a chat.
+same: New says the same as Old, maybe in other words.
+update: New is a newer state of the same thing (moved, other school, new favourite).
+contradiction: New says the opposite of Old.
+new: New is about something else.
+Answer only with JSON: {"label":"same|update|new|contradiction"}

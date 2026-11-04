@@ -4,13 +4,13 @@ import app.hain.common.api.net.GateRequest
 import app.hain.common.api.net.NetworkGate
 import app.hain.common.api.net.OfflineException
 import app.hain.common.api.net.Purpose
-import app.hain.llm.api.ToolSchema
 import app.hain.tools.api.Args
 import app.hain.tools.api.Tool
 import app.hain.tools.api.ToolContext
 import app.hain.tools.api.ToolResult
 import app.hain.tools.api.ToolRouter
 import app.hain.tools.api.ToolSource
+import app.hain.tools.api.ToolSpecs
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -19,9 +19,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
-import kotlinx.serialization.json.putJsonObject
 import java.io.IOException
 
 /** One page that was read: where, its title and its text, already cut. */
@@ -123,22 +120,7 @@ class ReadPageTool(
     private val reader: PageReader,
 ) : Tool {
     override val online = true
-    override val schema =
-        ToolSchema(
-            name = NAME,
-            description = "Read the text of one web page, e.g. a link from the user.",
-            parameters =
-                buildJsonObject {
-                    put("type", "object")
-                    putJsonObject("properties") {
-                        putJsonObject("url") {
-                            put("type", "string")
-                            put("description", "The full address, starting with https://")
-                        }
-                    }
-                    put("required", JsonArray(listOf(JsonPrimitive("url"))))
-                },
-        )
+    override val schema = ToolSpecs.of(NAME).schema
 
     override suspend fun run(
         args: Map<String, Any?>,
@@ -147,7 +129,10 @@ class ReadPageTool(
         val url = Args.required(args, "url")
         val page =
             reader.read(url, MAX_CHARS)
-                ?: return ToolRouter.failure("empty", "The page has no text Hain can read.")
+                ?: return ToolRouter.failure(
+                    "empty",
+                    "The page has no text Hain can read. Tell the user and offer a web search on the topic.",
+                )
         return ToolResult(
             forModel = PageReader.forModel(listOf(page)),
             label = PageReader.hostOf(url),

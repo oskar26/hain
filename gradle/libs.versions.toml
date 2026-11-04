@@ -22,6 +22,7 @@ androidxTestExt = "1.3.0"
 androidxTestRunner = "1.7.0"
 compose-unstyled = "2.6.0"
 haze = "1.7.0"
+glance = "1.1.1"
 capsule = "2.1.3"
 backdrop = "2.0.0-alpha03"
 shimmer = "1.3.2"
@@ -38,8 +39,16 @@ sqlcipher = "4.10.0"
 androidxSqlite = "2.5.2"
 robolectric = "4.16"
 androidxTestCore = "1.7.0"
+profileinstaller = "1.4.1"
+biometric = "1.1.0"
+fragment = "1.8.9"
+pdfboxAndroid = "2.0.27.0"
+# T-140: Moonshine dictation (MIT). Pinned to 1.28.0: from 1.29 the Android AAR ships Microsoft 1DS
+# telemetry (TelemetryInitializer → mobile.events.data.microsoft.com); Hain has no telemetry.
+onnxruntime = "1.28.0"
 
 [libraries]
+onnxruntime-android = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxruntime" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidxComposeBom" }
@@ -66,6 +75,8 @@ hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", ve
 # UI libraries (UI_LIBRARIES.md §2) — all GPL-3.0 compatible, see LICENSES.md
 compose-unstyled = { module = "com.composables:composeunstyled", version.ref = "compose-unstyled" }
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
+# T-144: home screen widget (Apache-2.0)
+androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
 capsule = { module = "io.github.kyant0:capsule", version.ref = "capsule" }
 backdrop = { module = "io.github.kyant0:backdrop", version.ref = "backdrop" }
 compose-shimmer = { module = "com.valentinilk.shimmer:compose-shimmer", version.ref = "shimmer" }
@@ -89,6 +100,14 @@ androidx-sqlite = { module = "androidx.sqlite:sqlite", version.ref = "androidxSq
 androidx-sqlite-bundled-jvm = { module = "androidx.sqlite:sqlite-bundled-jvm", version.ref = "androidxSqlite" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
+
+# Speed (T-190): installs the baseline profile on phones without Play (GitHub / F-Droid APKs), Apache-2.0
+androidx-profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
+# App lock (T-056) — Apache-2.0, see LICENSES.md
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
+androidx-fragment = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment" }
+# Documents (DOCS_OCR.md, Häppchen 9) — see LICENSES.md
+pdfbox-android = { module = "com.tom-roush:pdfbox-android", version.ref = "pdfboxAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

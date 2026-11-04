@@ -143,15 +143,21 @@ fun AssistantBlock(
                 retainState = true,
             )
         }
-        if (actions != null) {
-            // quiet grey row, evenly spaced; shifted so the first icon lines up with the text
-            Row(
-                Modifier.padding(top = LocalHainSpacing.current.xs).offset(x = -ICON_INSET.dp),
-                horizontalArrangement = Arrangement.spacedBy(ACTION_GAP.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) { actions() }
-        }
+        if (actions != null) AnswerActionRow(actions)
     }
+}
+
+/**
+ * The quiet grey row of icons under an answer (T-057), evenly spaced and shifted so the first icon
+ * lines up with the text. Public for answers built from several parts (text + cards, T-131).
+ */
+@Composable
+fun AnswerActionRow(actions: @Composable () -> Unit) {
+    Row(
+        Modifier.padding(top = LocalHainSpacing.current.xs).offset(x = -ICON_INSET.dp),
+        horizontalArrangement = Arrangement.spacedBy(ACTION_GAP.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) { actions() }
 }
 
 /** Collapsed thinking ("Gedacht für 4 s"); tap to expand. */

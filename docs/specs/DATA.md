@@ -1,21 +1,21 @@
 # DATA.md — database & storage
 
 Room database `hain.db`, encrypted with **SQLCipher** (key in Android Keystore-wrapped random 32 bytes, DataStore holds the wrapped key).
-SQLite build: SQLCipher for Android (`net.zetetic:sqlcipher-android`), decided in T-020 (STATUS.md → Pinned versions). Full-text tables are **FTS4** (Room `@Fts4`, tokenizer unicode61); sqlite-vec decided in T-110.
+SQLite build: SQLCipher for Android (`net.zetetic:sqlcipher-android`), decided in T-020 (STATUS.md → Pinned versions). Full-text tables are **FTS4** (Room `@Fts4`, tokenizer unicode61); sqlite-vec decided in T-110: **not used** – vectors are a plain BLOB table and the cosine runs in Kotlin (a few thousand facts × 1024 floats are a few MB; no extra native library).
 
 ## Tables
 
 | table | columns |
 |---|---|
-| `chat` | id PK, title, created_at, updated_at, model_id, pinned bool, private bool, archived bool |
-| `message` | id PK, chat_id FK, role (system/user/assistant/tool), content TEXT, reasoning TEXT?, tool_calls_json TEXT?, tool_call_id TEXT?, cards_json TEXT?, sources_json TEXT?, attachments_json TEXT?, created_at, tokens INT?, parent_id (for edit/regenerate branches), thinking_ms INT?, status (ok/stopped/failed) |
+| `chat` | id PK, title, created_at, updated_at, model_id, pinned bool, private bool, archived bool (T-056: private chats are never written, so `private` stays false in the DB; no schema change) |
+| `message` | id PK, chat_id FK, role (system/user/assistant/tool), content TEXT, reasoning TEXT?, tool_calls_json TEXT?, tool_call_id TEXT?, cards_json TEXT?, sources_json TEXT?, attachments_json TEXT?, created_at, tokens INT?, parent_id (for edit/regenerate branches; 0 = first message), thinking_ms INT?, status (ok/stopped/failed), selected_at INT? (T-057: when this version was picked among its siblings; newest pick is shown) |
 | `message_fts` | FTS4(content, content='message'), unicode61 — Room keeps it in sync |
 | `chat_summary` | chat_id PK, summary, updated_at |
-| `memory_profile` | id=1, text, updated_at |
+| `memory_profile` | not a table (T-111): L0 "Über dich" is the setting `about_me` (DataStore), already in the system prompt; the memory page edits it |
 | `memory_topic` | id, title UNIQUE, note, updated_at |
-| `memory_fact` | id, text, category, status (active/suggested/deleted), sensitive bool, importance REAL, origin_chat_id?, created_at, superseded_by? |
-| `memory_fact_fts` | FTS5(text) |
-| `memory_fact_vec` | vec0(embedding float[1024]) rowid = fact id (dimension from model, check T-110) |
+| `memory_fact` | id, text, category, status (active/suggested/deleted), sensitive bool, importance REAL, origin_chat_id?, created_at, superseded_by?, replaces? (v5: a suggestion that would replace this older fact once accepted) |
+| `memory_fact_fts` | FTS4(text, content='memory_fact'), unicode61 — Room keeps it in sync (DB version 3, T-111) |
+| `memory_fact_vec` | fact_id PK → memory_fact(id) ON DELETE CASCADE, model TEXT, text_hash INT, dim INT, vector BLOB (little-endian float32, L2-normalised). LFM2.5-Embedding-350M: **dim 1024** (measured on the host 04.11.). A different model or an edited text (other hash) gets a new vector (T-110, DB version 5) |
 | `document` | id, name, uri, mime, pages, added_at, status |
 | `doc_chunk` | id, document_id, page, text, ocr bool, confidence REAL? |
 | `doc_chunk_fts`, `doc_chunk_vec` | as above |
@@ -26,6 +26,15 @@ SQLite build: SQLCipher for Android (`net.zetetic:sqlcipher-android`), decided i
 | `installed_model` | id, file_path, sha256, size, installed_at, version |
 
 Migrations: every schema change = new Room version + migration test (`MigrationTestHelper`).
+
+Versions: 1 chats/messages (T-020) · 2 `network_log` (3b) · **3 memory: `memory_fact` (+ index on status), `memory_fact_fts`, `memory_topic` (T-111, `MIGRATION_2_3`, PR #38)** · **4 branches (T-057, `MIGRATION_3_4`, PR #47)**: adds `message.selected_at` and fills empty `parent_id` with the message before it by id (per chat), so old chats stay one line; safe to run twice · **5 memory part 2 (7b, `MIGRATION_4_5`, PR #46)**: `memory_fact.replaces` and the table `memory_fact_vec` (fact_id PK/FK ON DELETE CASCADE, model, text_hash, dim, vector BLOB). Path on the phone: 2 → 3 → 4 → 5. In the integration PR #50 the placeholders were dropped (8b's empty `MIGRATION_2_3`, 7b's empty `MIGRATION_3_4`); the real ones from #38 and #47 stay. Tests: `HainMigrationTest` (v2 → v5; v3 file from `3.json` with facts, a topic and messages → v5: vectors, `replaces`, cascade, branch links), `BranchMigrationTest` (v2 → v5, branches). Schemas: `3.json` from #46; `4.json`/`5.json` of the merged state come from the CI artifact `room-schemas` (the `5.json` from #46 was built without `selected_at` and is replaced).
+
+## Documents database (Häppchen 9)
+
+Documents live in their **own** Room database `hain_docs.db` (`core-docs`, `DocsDatabase`, version 1), encrypted with SQLCipher and the same Keystore-wrapped key as `hain.db`. Reason: `hain.db` stays unchanged while other branches change its schema. Tables: `document` (id, name, kind pdf/text/image, mime, pages, chars, added_at, ocr_pages, missing_pages, thumbnail BLOB, status) and `doc_chunk` (id, document_id FK cascade, page, chunk_index, text, ocr, confidence). No FTS/vec tables yet (BM25 in memory over the attached documents). `exportSchema = false` for version 1; the first schema change must turn export on and add a migration test. The original file is never kept (a cache copy is deleted after reading). Message attachments: `message.attachments_json` = `[{id, name, kind, pages, tokens}]`.
+## Documents database (Häppchen 9)
+
+Documents live in their **own** Room database `hain_docs.db` (`core-docs`, `DocsDatabase`, version 1), encrypted with SQLCipher and the same Keystore-wrapped key as `hain.db`. Reason: `hain.db` stays unchanged while other branches change its schema. Tables: `document` (id, name, kind pdf/text/image, mime, pages, chars, added_at, ocr_pages, missing_pages, thumbnail BLOB, status) and `doc_chunk` (id, document_id FK cascade, page, chunk_index, text, ocr, confidence). No FTS/vec tables yet (BM25 in memory over the attached documents). `exportSchema = false` for version 1; the first schema change must turn export on and add a migration test. The original file is never kept (a cache copy is deleted after reading). Message attachments: `message.attachments_json` = `[{id, name, kind, pages, tokens}]`.
 
 ## Settings
 

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="memory_title">Memory</string>
+    <string name="memory_back">Back</string>
+    <string name="memory_intro">What Pim keeps about you. It all stays on this phone, and you can change or delete anything.</string>
+    <string name="memory_tab_facts">Memories</string>
+    <string name="memory_tab_suggestions">Suggestions</string>
+    <string name="memory_tab_you">About you</string>
+    <string name="memory_search">Search memories</string>
+    <string name="memory_empty_title">Nothing kept yet</string>
+    <string name="memory_empty_body">Just say: “Remember that I play the guitar.”</string>
+    <string name="memory_no_match">No memory fits your search.</string>
+    <string name="memory_suggestions_empty">No suggestions. What Pim finds in your chats and private things like health end up here first. Pim uses them only after your yes.</string>
+    <string name="memory_suggestions_hint">Pim found these in your chats or they are private. They are used only after your yes.</string>
+    <string name="memory_edit">Edit</string>
+    <string name="memory_save">Save</string>
+    <string name="memory_delete">Delete</string>
+    <string name="memory_accept">Keep</string>
+    <string name="memory_reject">Don\'t keep</string>
+    <string name="memory_deleted">Deleted</string>
+    <string name="memory_undo">Undo</string>
+    <string name="memory_you_label">About you</string>
+    <string name="memory_you_hint">Pim always knows this, e.g. your name, your age, what you like.</string>
+    <string name="memory_settings">Settings</string>
+    <string name="memory_switch">Use memory</string>
+    <string name="memory_switch_hint">Off: Pim keeps nothing new and uses nothing that is saved.</string>
+    <string name="memory_export">Export</string>
+    <string name="memory_import">Import</string>
+    <string name="memory_backup_hint">A JSON file you keep yourself. Nothing is uploaded.</string>
+    <string name="memory_delete_all">Delete everything</string>
+    <string name="memory_delete_all_confirm">Really delete all memories?</string>
+    <string name="memory_cancel">Cancel</string>
+    <string name="memory_exported">Memories saved to the file.</string>
+    <string name="memory_import_failed">That is not a Hain memory file.</string>
+    <plurals name="memory_imported">
+        <item quantity="one">%d memory added.</item>
+        <item quantity="other">%d memories added.</item>
+    </plurals>
+    <string name="memory_cat_preference">Likes</string>
+    <string name="memory_cat_person">People</string>
+    <string name="memory_cat_place">Places</string>
+    <string name="memory_cat_work">School &amp; work</string>
+    <string name="memory_cat_health">Health</string>
+    <string name="memory_cat_other">Other</string>
+    <string name="memory_tab_topics">Topics</string>
+    <string name="memory_replaces">Replaces: %1$s</string>
+    <string name="memory_topics_empty_title">No topics yet</string>
+    <string name="memory_topics_empty_body">Once Pim keeps something about you, it shows up here, sorted by topic.</string>
+    <string name="memory_topics_hint">Add a short note to a topic. Pim reads it when a question fits.</string>
+    <string name="memory_topic_note_edit">Write a note on %1$s</string>
+    <string name="memory_topic_more">and %1$d more</string>
+    <string name="memory_topic_note">Your note</string>
+    <string name="memory_topic_note_hint">For example: I am in 10th grade, maths is hard for me.</string>
+    <string name="memory_smart_title">Search by meaning</string>
+    <string name="memory_smart_body">With a small extra pack, Pim also finds memories when you use other words. Everything stays on your phone.</string>
+    <string name="memory_smart_on">On. Pim finds memories by meaning, not only by the same words.</string>
+    <string name="memory_smart_get">Download (%1$d MB)</string>
+    <string name="memory_smart_failed">The download did not work. Try again?</string>
+    <string name="memory_smart_wait">One moment…</string>
+    <string name="memory_smart_loading">Loading… %1$d %%</string>
+    <string name="memory_chip_saved">Saved ✓</string>
+    <string name="memory_chip_forgotten">Forgotten ✓</string>
+    <string name="memory_chip_undone">Undone</string>
+    <string name="memory_chip_open">open</string>
+    <string name="memory_chip_closed">closed</string>
+    <string name="memory_chip_used_title">Pim used this for the answer:</string>
+    <string name="memory_chip_used_hint">You can change or delete it in Settings → Memory.</string>
+    <plurals name="memory_topic_count">
+        <item quantity="one">%d memory</item>
+        <item quantity="other">%d memories</item>
+    </plurals>
+    <plurals name="memory_chip_used">
+        <item quantity="one">%d memory used</item>
+        <item quantity="other">%d memories used</item>
+    </plurals>
+</resources>

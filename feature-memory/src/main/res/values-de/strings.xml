@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="memory_title">Gedächtnis</string>
+    <string name="memory_back">Zurück</string>
+    <string name="memory_intro">Was Pim sich über dich merkt. Alles bleibt auf diesem Handy, und du kannst alles ändern oder löschen.</string>
+    <string name="memory_tab_facts">Erinnerungen</string>
+    <string name="memory_tab_suggestions">Vorschläge</string>
+    <string name="memory_tab_you">Über dich</string>
+    <string name="memory_search">Erinnerungen durchsuchen</string>
+    <string name="memory_empty_title">Noch nichts gemerkt</string>
+    <string name="memory_empty_body">Sag einfach: „Merk dir, dass ich Gitarre spiele.“</string>
+    <string name="memory_no_match">Keine Erinnerung passt zu deiner Suche.</string>
+    <string name="memory_suggestions_empty">Keine Vorschläge. Was Pim in deinen Chats findet und private Dinge wie Gesundheit landen erst hier. Pim nutzt sie erst nach deinem Ja.</string>
+    <string name="memory_suggestions_hint">Das hat Pim in deinen Chats gefunden, oder es ist privat. Es wird erst nach deinem Ja genutzt.</string>
+    <string name="memory_edit">Bearbeiten</string>
+    <string name="memory_save">Speichern</string>
+    <string name="memory_delete">Löschen</string>
+    <string name="memory_accept">Behalten</string>
+    <string name="memory_reject">Nicht behalten</string>
+    <string name="memory_deleted">Gelöscht</string>
+    <string name="memory_undo">Rückgängig</string>
+    <string name="memory_you_label">Über dich</string>
+    <string name="memory_you_hint">Das weiß Pim immer, z. B. dein Name, dein Alter, was du magst.</string>
+    <string name="memory_settings">Einstellungen</string>
+    <string name="memory_switch">Gedächtnis nutzen</string>
+    <string name="memory_switch_hint">Aus: Pim merkt sich nichts Neues und nutzt nichts Gespeichertes.</string>
+    <string name="memory_export">Exportieren</string>
+    <string name="memory_import">Importieren</string>
+    <string name="memory_backup_hint">Eine JSON-Datei, die du selbst aufbewahrst. Nichts wird hochgeladen.</string>
+    <string name="memory_delete_all">Alles löschen</string>
+    <string name="memory_delete_all_confirm">Wirklich alle Erinnerungen löschen?</string>
+    <string name="memory_cancel">Abbrechen</string>
+    <string name="memory_exported">Erinnerungen in der Datei gespeichert.</string>
+    <string name="memory_import_failed">Das ist keine Gedächtnis-Datei von Hain.</string>
+    <plurals name="memory_imported">
+        <item quantity="one">%d Erinnerung hinzugefügt.</item>
+        <item quantity="other">%d Erinnerungen hinzugefügt.</item>
+    </plurals>
+    <string name="memory_cat_preference">Vorlieben</string>
+    <string name="memory_cat_person">Menschen</string>
+    <string name="memory_cat_place">Orte</string>
+    <string name="memory_cat_work">Schule &amp; Arbeit</string>
+    <string name="memory_cat_health">Gesundheit</string>
+    <string name="memory_cat_other">Sonstiges</string>
+    <string name="memory_tab_topics">Themen</string>
+    <string name="memory_replaces">Ersetzt: %1$s</string>
+    <string name="memory_topics_empty_title">Noch keine Themen</string>
+    <string name="memory_topics_empty_body">Sobald Pim sich etwas über dich merkt, steht es hier nach Themen sortiert.</string>
+    <string name="memory_topics_hint">Schreib eine kurze Notiz zu einem Thema. Pim liest sie, wenn eine Frage dazu passt.</string>
+    <string name="memory_topic_note_edit">Notiz zu %1$s schreiben</string>
+    <string name="memory_topic_more">und %1$d weitere</string>
+    <string name="memory_topic_note">Deine Notiz</string>
+    <string name="memory_topic_note_hint">Zum Beispiel: Ich bin in der 10. Klasse, Mathe fällt mir schwer.</string>
+    <string name="memory_smart_title">Suche nach Bedeutung</string>
+    <string name="memory_smart_body">Mit einem kleinen Zusatzpaket findet Pim Erinnerungen auch, wenn du andere Worte benutzt. Alles bleibt auf dem Handy.</string>
+    <string name="memory_smart_on">An. Pim findet Erinnerungen nach Bedeutung, nicht nur bei gleichen Wörtern.</string>
+    <string name="memory_smart_get">Laden (%1$d MB)</string>
+    <string name="memory_smart_failed">Der Download hat nicht geklappt. Nochmal?</string>
+    <string name="memory_smart_wait">Einen Moment…</string>
+    <string name="memory_smart_loading">Lädt… %1$d %%</string>
+    <string name="memory_chip_saved">Gemerkt ✓</string>
+    <string name="memory_chip_forgotten">Vergessen ✓</string>
+    <string name="memory_chip_undone">Rückgängig gemacht</string>
+    <string name="memory_chip_open">geöffnet</string>
+    <string name="memory_chip_closed">geschlossen</string>
+    <string name="memory_chip_used_title">Das hat Pim für die Antwort genutzt:</string>
+    <string name="memory_chip_used_hint">Ändern oder löschen kannst du das unter Einstellungen → Gedächtnis.</string>
+    <plurals name="memory_topic_count">
+        <item quantity="one">%d Erinnerung</item>
+        <item quantity="other">%d Erinnerungen</item>
+    </plurals>
+    <plurals name="memory_chip_used">
+        <item quantity="one">%d Erinnerung genutzt</item>
+        <item quantity="other">%d Erinnerungen genutzt</item>
+    </plurals>
+</resources>

@@ -3,6 +3,7 @@ package app.hain.di
 import android.content.Context
 import android.util.Log
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import app.hain.common.api.BrainChoiceStore
 import app.hain.common.api.HainSettings
 import app.hain.common.api.SettingsRepository
 import app.hain.common.api.net.NetworkGate
@@ -13,7 +14,14 @@ import app.hain.data.RoomNetworkLogStore
 import app.hain.feature.chat.internal.ChatStore
 import app.hain.feature.chat.internal.RoomChatPersistence
 import app.hain.llm.api.LlmEngine
+import app.hain.llm.api.TextEmbedder
+import app.hain.llm.internal.LlamaEmbedder
 import app.hain.llm.internal.LlamaEngine
+import app.hain.memory.api.HainMemory
+import app.hain.memory.api.MemoryStore
+import app.hain.memory.api.MemoryTurn
+import app.hain.memory.api.PackEmbedder
+import app.hain.models.api.ModelInfo
 import app.hain.models.api.ModelRepository
 import app.hain.models.internal.DefaultModelRepository
 import app.hain.tools.internal.net.HttpNetworkGate
@@ -35,6 +43,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
+@Suppress("TooManyFunctions") // one provider per app-wide object (Hilt), grows with the merged Häppchen
 object AppModule {
     @Provides
     @Singleton
@@ -57,6 +66,19 @@ object AppModule {
             PreferenceDataStoreFactory.create(
                 scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
                 produceFile = { File(context.filesDir, "datastore/settings.preferences_pb") },
+            ),
+        )
+
+    /** T-055: the brain picked in the top bar, in its own small DataStore file. */
+    @Provides
+    @Singleton
+    fun brainChoiceStore(
+        @ApplicationContext context: Context,
+    ): BrainChoiceStore =
+        BrainChoiceStore(
+            PreferenceDataStoreFactory.create(
+                scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+                produceFile = { File(context.filesDir, "datastore/brain.preferences_pb") },
             ),
         )
 
@@ -117,6 +139,42 @@ object AppModule {
         val persistence =
             database.db?.let { RoomChatPersistence(it) }
         return ChatStore(persistence = persistence, scope = scope)
+    }
+
+    /** T-110: the small embedding model next to the brain (own thread, own context, loaded on demand). */
+    @Provides
+    @Singleton
+    fun textEmbedder(
+        @ApplicationContext context: Context,
+    ): TextEmbedder = LlamaEmbedder(context)
+
+    /**
+     * The memory (T-112): facts in the encrypted database, only on this phone; in memory if it cannot
+     * open. With the pack "Suche nach Bedeutung" (T-110) installed, recall is by meaning too.
+     */
+    @Provides
+    @Singleton
+    fun memoryStore(
+        @ApplicationContext context: Context,
+        database: DatabaseHolder,
+        embedder: TextEmbedder,
+        models: ModelRepository,
+    ): MemoryStore {
+        val pack = models.catalog.firstOrNull { it.kind == ModelInfo.KIND_EMBED }
+        val packEmbedder =
+            pack?.let { info ->
+                PackEmbedder(embedder, info.id) { models.mainFile(info).takeIf { models.isInstalled(info) } }
+            }
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        return HainMemory.store(context, database.db?.memory(), scope, packEmbedder)
+    }
+
+    /** T-112/7b: the memory's part of each turn, one for the app (the chips read its [MemoryTurn.uses]). */
+    @Provides
+    @Singleton
+    fun memoryTurn(memory: MemoryStore): MemoryTurn {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        return MemoryTurn(memory, scope)
     }
 }
 

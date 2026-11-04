@@ -231,6 +231,7 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 ## Day 2d-3 (03.11.)
 - T-100: settings are now a hub of icon tiles (Look, Answers, About you, Knowledge packs, Privacy, About Hain) with sub pages; new DataStore key `reduce_motion` feeds `LocalReduceMotion` (OR system animation scale). EN+DE strings.
 - Not done (stays in 2d-3 / later): glossy 3D Pim, new onboarding pictures, R8 + baseline profile (needs device test of 2d-2 first).
+
 ## 2026-11-03 · fix "Antwortsprache Deutsch zuverlässig" (T-080) · review · harness: Hark · branch `hark/fix-language`
 
 | task | status | check result | files outside list (reason) | open issues |
@@ -286,6 +287,7 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 
 - Screenshot tests live in `*/src/test/kotlin/**/screens/` and only run with `-Phain.screens` (Robolectric native graphics need x86): `.github/workflows/screens.yml` uploads them as artifact `screens`.
 - Next: 3b, 4b (ConfirmCard on `glassTile`), 5.
+
 ## 2026-11-03 · Werkzeuge II Rest (4b) · review · harness: Hark · branch `hark/day-4b`
 
 | task | status | check result | files outside list (reason) | open issues |
@@ -331,6 +333,7 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 | task | status | check result | files outside list (reason) | open issues |
 |---|---|---|---|---|
 | T-060 | review | `NetworkLogStoreTest` (store, load, prune, clear); DB version 2 + migration 1→2 | `AppModule` (shared `DatabaseHolder`) | brain download via gate, per-purpose switches, WeatherCard/WikiCard still open → 3b-2 |
+
 ## 2026-11-04 · T-196 (trademark policy, support coming soon) · review · harness: Hark · model: Hark · branch `hark/trademarks`
 - What: new `TRADEMARKS.md`, German in plain language first, then English: code GPL-3.0-or-later and free for everyone; name "Hain", Pim (look, animations, voice) and app icon/logo are project marks; forks need another name, their own mascot and icon and must not look official; allowed without asking: unchanged official builds, mentions ("based on Hain"), reports/tutorials, distro/F-Droid packaging without code changes beyond the build; contact via GitHub issues; not legal advice, registration may be planned; no location details. README: "Name & Pim / Trademarks" and "Support / Unterstützen" (coming soon: star, issue, tell others) after the licence section; rest of README untouched.
 - Files: TRADEMARKS.md, README.md, docs/workflow/{TASKS,STATUS,HANDOFF_LOG}.md.
@@ -420,6 +423,21 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Nicht gemacht: Favicons (T-064c, Bilder müssten durchs Gate), ConfirmCard nach core-cards (T-068e, reiner Umbau ohne Nutzen für 0.2), Host-Test mit echtem LFM3 für `days`/Wetter ohne Ort (kein Host-Lauf in diesem Durchgang).
 - Nächstes: Oskar testet auf dem Handy: „Weck mich werktags um 6:30“, Schalter „Handy-Aktionen bestätigen“ aus, „Wie wird das Wetter?“ mit Standort, Websuche „Erst fragen“.
 
+## 2026-11-04 · T-111, T-112, T-113, T-115 (0.1.7 – Gedächtnis) · review · harness: Hark · model: Hark · branch `hark/day-7` (Draft-PR #38)
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-111 | review | `MemoryDaoTest` (Einfügen, Suche FTS, Bearbeiten/Löschen hält den Index aktuell, Themen), `HainMigrationTest` (v2-Datei aus `2.json` → v3) | – | `schemas/…/3.json` entsteht beim ersten Gradle-Build und sollte nachgetragen werden; `memory_fact_vec` erst mit T-110 |
+| T-112 | review | `ExplicitMemoryTest` (DE/EN merken, „vergiss nicht“, vergessen, 9 Nicht-Befehle, Kürzen), `MemoryStoreTest` (Duplikate, Vorschläge, Bearbeiten/Löschen/Rückgängig, Vergessen, Aus, Export/Import), `RememberToolTest` | `core-tools/.../HainTools.kt` (`extra`-Werkzeuge), `feature-chat/.../ToolTimeline.kt` + Strings („Gemerkt“), `app/.../AppModule.kt`, `MainActivity.kt` | „Gemerkt ✓ Rückgängig“-Chip unter der Antwort fehlt (Chat-UI), dafür Werkzeugzeile + Pims Bestätigung |
+| T-113 | review | `RankingTest` (Wortstämme, Stoppwörter, passende Erinnerung gewinnt, Vorschläge nie, alte Treffer zählen, Budget, Hybrid-Formel), `MemoryTurnTest` | – | ohne Embedder nur Stichwörter („Abendessen“ findet „Pilze“ nicht) |
+| T-115 | review | `MemoryListTest` (Tabs, Suche, Datum DE/EN); Screenshots `memory_light/dark`, `memory_suggestions_light`, `memory_empty_light` (screens.yml) | `feature-settings` (Kachel „Gedächtnis“ im Hub, `onOpenMemory`), `.github/workflows/screens.yml` (+ `:feature-memory`) | Themen-Tab fehlt (keine Themen ohne T-114) |
+
+- Wie es zusammenhängt: `MemoryTurn.hint()` hängt sich an den bestehenden Zug-Hinweis (`turnHint` in `MainActivity`): ein „merk dir …“ am Anfang der neuesten Nachricht wird sofort gespeichert (bei „Nochmal“ nicht doppelt) und Pim bekommt „Du hast dir gerade gemerkt: …“; sonst die passenden Erinnerungen + eine Zeile zum `remember`-Werkzeug. Der gecachte System-Prompt bleibt gleich. „Über dich“ ist weiter die Einstellung `about_me` (keine eigene Tabelle `memory_profile`). An/aus in SharedPreferences `hain_memory`.
+- DB-Version: 3. Andere offene Branches (3b-2/4b-2, 5, 6) können ebenfalls Version 3 nehmen → wer später gemergt wird, nimmt die nächste freie Nummer.
+- Gradle nicht lokal (Vorgabe): reine Logik (core-memory, 28 Tests) lokal mit kotlinc 2.1 + JUnit grün, ktlint 1.5.0 + detekt 1.23.8 CLI grün, `check_strings.py` grün; Rest über CI, APK, Screens.
+- Version: `hain.versionName=0.1.7`.
+- Nächstes: Oskar testet „Merk dir, dass ich keine Pilze mag“ → neuer Chat „Rezept mit Pilzen?“ → „Vergiss, dass ich keine Pilze mag“; dann T-110/T-114.
+
 ## 2026-11-04 · T-071 bis T-074 (0.1.5 – Nachrichten) · review · harness: Hark · model: Hark · branch `hark/day-5` (Draft-PR #39)
 
 | task | status | check result | files outside list (reason) | open issues |
@@ -433,3 +451,119 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Zwischenstand-Commit T-073 baut erst zusammen mit T-074 (ViewModel kennt `SummarizeArticle`).
 - `hain.versionName` = 0.1.5 (gradle.properties). README (Funktionstabelle, deutscher Absatz) und Website (EN + /de: Nachrichten = „Schon da“) aktualisiert, `NEWS.md` §7 beschreibt die Abweichungen.
 - Nächstes: Oskar testet die APK: Seitenleiste → Nachrichten, Modus wechseln, eigenen Feed hinzufügen, „Zusammenfassen“ (mit Gehirn), im Chat „Was gibt es Neues zum Streik?“.
+
+## 2026-11-04 · T-130, T-131 (0.1.6 – Antwort-Karten) · review · harness: Hark · model: Hark · branch `hark/day-6`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-130 | review | `CardParserTest` (19), `AnswerPartsTest` (10), `CardStateTest` (3) lokal mit kotlinc 2.1 + JUnit grün | `AnswerParts.kt`, `CardText.kt`, `CardState.kt`, `ModelCard.kt` (gleiches Paket) | – |
+| T-131 | review | `CardGrammarTest`, `CardActionsTest` (feature-chat), `python3 tools/check_gbnf.py` ok (17 Regeln, 5 gute / 7 schlechte Beispiele); Screenshots `cards_light/dark`, `cards_list_light` (screens.yml) | `ChatScreen.kt` (AnswerBody statt AssistantBlock, CardHandler), `CardHandler.kt`, `ChatStore.kt` (`cardState`), `RoomChatPersistence.kt` (`cards_json`, Spalte gab es schon → keine Migration), `ChatViewModel.kt` (`updateCards`, `ask`), `Messages.kt` (`AnswerActionRow` herausgezogen), `prompts/system_full.*` + Assets, `tools/check_gbnf.py`, README, Website, `HAPTICS.md`, `CARDS.md`, `gradle.properties` | GBNF zur Laufzeit nicht aktiv (JNI: eine Grammatik pro Generierung, kein Umschalten mitten in der Antwort); Chart/Image nicht gerendert; kein C++-Compiler in der Sandbox → `llama-gbnf-validator` ersetzt durch eigenes Python-Prüfskript |
+
+- Ablauf im Chat: `AnswerBody` zerlegt die Antwort mit `AnswerParts.split(text, streaming)`; ohne Karte bleibt es der bisherige `AssistantBlock` (kein Unterschied für normale Antworten). Eine offene Karte wächst beim Streamen mit, Knöpfe sind bis zum Ende gesperrt. Kaputte Karte → bleibt als Codeblock stehen.
+- Haken: `CardState` (`{"checked":{"karte.block.punkt":true}}`, nur geänderte Punkte) über `ChatViewModel.updateCards` → `cards_json`. Knopf `ask:"…"` → `ChatViewModel.ask` (setzt Eingabe + sendet; nicht während Pim antwortet). Kopieren/Teilen der ganzen Antwort = Klartext mit Haken (`UiMessage.plainAnswer`).
+- Prompt: neuer Abschnitt „# Karten“/„# Cards“ mit einem Beispiel (≈100 Token mehr im gecachten System-Prompt). Mit echtem LFM3 auf dem Host nicht geprüft (kein C++-Build in dieser Sandbox) → Oskar bitte mit „Schreib mir eine Einkaufsliste für Pfannkuchen“ und „Lernplan Mathe bis Freitag“ testen.
+- Version `hain.versionName=0.1.6`. Gradle lokal nicht gestartet: ktlint 1.5.0 + detekt 1.23.8 CLI lokal grün, Rest über CI (CI, APK, Screens).
+- Parallel laufen `hark/day-3b2-4b2`, `hark/day-5`, `hark/day-7`: Konflikte in README/STATUS/HANDOFF_LOG/Website/gradle.properties beim Mergen → beide Blöcke behalten, Version = höchste.
+
+## 2026-11-04 · Werkzeuge 4d – alle Tools + Prompts · review · harness: Hark · branch `hark/day-4d`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-180 | review | TOOLS.md §0 table (9 tools, params, typical errors) | – | – |
+| T-181 | review | `tools/eval/tool_eval.jsonl` (52 questions), `tool_eval.py` host harness, `results/baseline.json` | – | eval uses mock tool results (no network); LFM3 on the host, not the phone |
+| T-182 | review | `ToolSpecsTest`, `CompactTest`, `ClockAnswerTest`, `CalculatorTest.spokenSumsAreAnsweredAtOnce` | `HainTools` (clock answer), `PhoneTools` (`say`), all tool classes (schema from `tools.json`) | `wikipedia.lang` and `set_timer.seconds` no longer shown to the brain (still accepted) |
+| T-183 | review | `ToolCallFixerTest`, `RepairingToolCallParserTest`, `ToolRouterTest` (retry, fix), `RobustCallsTest`, `StreamSplitterTest` (repair) | `StreamSplitter` (repairing parser by default) | – |
+| T-184 | review | `PromptTemplatesTest` (sections, budget, every tool named, no quoted replies), `FollowUpTest` | `SystemPromptSource` (templates from assets), `ChatEngine` (follow-up/link hint, clock answer, dedupe) | example dialogs measured worse → left out (TOOLS.md §8) |
+| T-185 | review | before/after table in TOOLS.md §8 and the PR: right tool 88.5 → 96.2 %, args 94.3 → 97.5 %, hallucinations 6 → 1 | README, website (tool text), STATUS, TASKS | host timing not comparable (host was busy) |
+| T-186 | review | unit tests above | – | – |
+
+- Next: device test of tools (Oskar), 3b (weather card), 5 (news).
+
+## 2026-11-04 · T-055 (Gehirn-Auswahl in der Kopfzeile) · review · harness: Hark · model: Hark · branch `hark/picker-perf`
+- Neu: `BrainChoice` (core-models, reine Regeln: aktives Gehirn = gewähltes wenn installiert → Standard → erstes installiertes; Empfehlung = größtes Gehirn mit DeviceCheck GOOD, sonst kleinstes TIGHT, freier Platz zählt dafür nicht; Menüzeilen installiert zuerst), `BrainChoiceStore` (core-common, eigene DataStore-Datei `datastore/brain.preferences_pb`, Schlüssel `brain_id`, damit `SettingsRepository`/`HainSettings` unberührt bleiben), `ModelPicker.kt` (feature-chat, `HainPopupMenu` = Milchglas, unter dem Titel), `BrainPicking` (app, Glue), `ChatViewModel.switchBrain()` (stoppt laufende Antwort, lädt `modelPath()` neu, wärmt vor).
+- `TopBar` (core-ui) hat optional `onTitleClick`/`titleClickLabel`/`titleAccessory` (Titel wird ≥48 dp-Knopf mit kleinem Chevron); ohne die Parameter unverändert.
+- Fortschritt: dünne grüne Linie unter der Kopfzeile, solange ein Gehirn mit bekanntem Fortschritt lädt (auch beim ersten Laden), Untertitel zeigt weiter „Gehirn wacht auf … x %“.
+- Eigenes Modell aus dem Entwicklermodus hat weiter Vorrang; das Menü sagt das dann in einer Zeile.
+- „Schon installiert?“ für Chat/Onboarding = irgendein Gehirn aus dem Katalog (vorher nur das Standard-Gehirn).
+- Tests: `BrainChoiceTest` (12), `BrainChoiceStoreTest` (2), `ModelPickerTest` (Robolectric, Fake-Katalog, 5), `ChatViewModelTest` (+3), Screenshots `chat_brain_picker_light/dark` (screens.yml).
+- Dateien außerhalb der Liste: `Scaffolding.kt` (TopBar), `ChatScreen.kt` (Einhängepunkt + Ladelinie), `MainActivity.kt`, `AppModule.kt`, `FakeLlm.kt`, Strings EN/DE.
+
+## 2026-11-04 · T-190 Rest (R8 + Baseline-Profil + Release-Smoke-Test) · review · harness: Hark · model: Hark · branch `hark/picker-perf`
+- Release: `isMinifyEnabled = true`, `isShrinkResources = true`, `app/proguard-rules.pro` (JNI `NativeLlm` + Callbacks `onToken`/`onProgress`, SQLCipher `net.zetetic.database.**`, Room `*_Impl`/Entities/DAOs, kotlinx.serialization, WorkManager-Worker). Release bleibt unsigniert; nur mit `-Phain.signReleaseWithDebugKey=true` (CI-Test, eigenes Handy) mit dem öffentlichen Debug-Schlüssel signiert.
+- Baseline-Profil von Hand: `app/src/main/baselineProfiles/baseline-prof.txt` (Start + Chat-Scroll + Markdown + Milchglas), `androidx.profileinstaller` 1.4.1 (Apache-2.0, LICENSES.md). Kein generiertes Profil (Macrobenchmark braucht API 33+/Root, arm64-APK läuft im x86-Emulator nur übersetzt) → SPEED.md §5.
+- CI: neuer Job `release-smoke` in `screens.yml` + `tools/ci/release_smoke.sh`: Release-APK bauen, Inhalt prüfen (`baseline.prof`, `libhain_llm.so`), Android-11-x86_64-Emulator (ARM-Übersetzung), installieren, Start + Prozess lebt + Crash-Log leer, installiertes ART-Profil zählen, Kaltstart (Median von 7) Nightly-Debug vs. Release, jeweils wie installiert und nach `compile -m speed-profile`. Bericht in der Job-Zusammenfassung + Artifact `release-smoke` (APK, mapping.txt, Logs).
+- Debug `app.hain.debug` unverändert (kein R8); die Nightly-Debug-APK von main wird im Smoke-Test mit installiert und gestartet.
+- CI-Ergebnis (`release-smoke`, 2 Läufe): Release-APK startet und läuft weiter ✅, Nightly-Debug `app.hain.debug` ✅; installiertes Profil ~29.000 Methoden, ~4.200 davon Hain-Code (über `mapping.txt` zurückgerechnet). Kaltstart Median: wie installiert 911→900 ms bzw. 1227→1180 ms, nach `compile -m speed-profile` 978→932 ms bzw. 1145→1065 ms – kleiner Gewinn im Rauschen des CI-Emulators; Messung am echten Handy offen (SPEED.md §5).
+- Version: Vorgabe 0.1.3.3 liegt unter main (0.1.4, PR #40) → `hain.versionName` bleibt 0.1.4, Integration setzt die nächste Nummer.
+- Screenshots `chat_brain_picker_light/dark` nach `docs/design/screens/`.
+
+## 2026-11-04 · T-056 + T-054 (0.1.8 – Privat & Export) · review · harness: Hark · model: Hark · branch `hark/day-8a`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-056 | review | `PrivateChatTest` (keine DB-Aufrufe, nicht in Suche/Seitenleiste, Löschen beim Verlassen/Umschalten/anderen Chat öffnen, Werkzeug-Schleife wie gewohnt), `AppLockGateTest` (sofort/1/5 min, Uhr rückwärts, System-Prompt sperrt nicht erneut, Dateiauswahl/Teilen sperrt nicht außer > 5 min), `SettingsRepositoryTest` (Sperr-Einstellungen bleiben beim Zurücksetzen) | `MainActivity` (jetzt `FragmentActivity`, Sperre/FLAG_SECURE/ZIP), `HainSettings`/`SettingsRepository`, `SettingsActions/Extras/Pages`, `core-ui` (`ic_eye_off`, `LocalExternalLaunch`), `libs.versions.toml`, `app/build.gradle.kts` | Gedächtnis (Häppchen 7) muss `Chat.isPrivate` / `ChatStore.isPrivate()` beachten; ohne Bildschirmsperre am Handy öffnet sich Hain (sonst Aussperren) |
+| T-054 | review | `ChatMarkdownTest` (Format, Weglassen von Denken/Fehlern, sichere Links/Dateinamen, ZIP ohne private/leere Chats, eindeutige Namen), `MarkdownBlocksTest`, `PdfLayoutTest` (Umbruch, Seitenaufteilung, nichts außerhalb des Satzspiegels, Rolle nie allein unten, Code über Seitengrenze mit Hintergrund) | `ChatScreen` (Teilen-Knopf + Privat-Knopf), `ChatListDrawer`/`DrawerActions` (⋯ → Exportieren), `feature-chat/AndroidManifest.xml` (FileProvider) | JSON-Export laut Sprint-Liste durch PDF ersetzt; PDF-Inline-Fett/Kursiv wird als normaler Text gesetzt |
+
+- Privater Chat: `Chat.isPrivate`, `ChatStore.createPrivate/discardPrivate/isPrivate`; alle Schreibwege prüfen `writeFor(chatId)`. Kein Auto-Titel. „Verlassen“ = neuer Chat, anderer Chat, „Beenden“, Augen-Knopf, App geschlossen (ViewModel weg).
+- App-Sperre: Logik rein in `core-common/api/lock/AppLockGate.kt` (JVM-Tests), Android-Teil `app/lock/AppLock.kt` (BiometricPrompt im onCreate, `BIOMETRIC_WEAK or DEVICE_CREDENTIAL`, weil STRONG+Credential auf Android 10 nicht erlaubt ist), Uhr = `SystemClock.elapsedRealtime()`. Schalter, Verzögerung und Screenshot-Sperre werden zusätzlich in `hain_start` gespiegelt, damit ein Kaltstart sofort gesperrt ist und FLAG_SECURE vor dem ersten Bild gilt. Einschalten fragt einmal nach Fingerabdruck/PIN.
+- Export: Markdown-Format und PDF-Satz in reinen Klassen (`ChatMarkdown`, `MarkdownBlocks`, `PdfLayout`), Zeichnen in `ChatPdf` (Hanken Grotesk/JetBrains Mono aus core-ui). Teilen schreibt nach `cache/exports` (ältere als 10 min werden gelöscht).
+- Gradle lokal nicht gestartet (Sprint-Regel): ktlint 1.5.0 + detekt 1.23.8 CLI + `check_strings.py` lokal grün, Rest über CI.
+- Version `hain.versionName=0.1.8`. README (Tabelle + „New in the latest test build“), Website (EN + /de) und SETTINGS/MEMORY/DATA/LICENSES aktualisiert.
+- Konflikte erwartet mit `hark/day-8b`: `ChatScreen.kt`, `website/src/content.ts` (Zeile „Export & share“ aufgeteilt), README, STATUS/HANDOFF_LOG/TASKS, `gradle.properties`, `libs.versions.toml`.
+
+## 2026-11-04 · T-057 (Rest), T-058, T-144 (0.1.8 – Häppchen 8b) · review · harness: Hark · model: Hark · branch `hark/day-8b`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-057 | review | `BranchesTest` (Pfad, Auswahl, Info, Schleifen, Store, Neustart), `ChatViewModelTest` (Bearbeiten/Nochmal behalten Versionen, Umschalten, Warteschlange: wartet → danach senden, ✕, Stopp, neuer Chat leert), `BranchMigrationTest` (v2-Datei → v4, Eltern nach id, zweimal laufen) | `core-data` (`MessageEntity.selected_at`, `HainDatabase` v4 + `BranchSql`), `ChatStore`, `RoomChatPersistence`, `Composer` (Senden während Antwort, Fokus) | Folgefragen-Vorschläge; `schemas/…/4.json` erzeugt erst der Gradle-Build (nicht eingecheckt) |
+| T-058 | review | `ViewportRules` rein; Screenshot `branches_queue` | `ChatScreen.kt` (MessageList nutzt ChatViewport), `feature-chat/build.gradle.kts` (haze für `hainGlass`) | Shared Element Composer→Blase nicht gemacht |
+| T-144 | review | `LaunchRequestTest` (Teilen-Text, Titel+Link, leer/falscher Typ, unsichtbare Zeichen, Kürzen, Widget/Kachel, neuester Chat fürs Widget) | `MainActivity` (singleTask, `addOnNewIntentListener`, Widget neu zeichnen), Manifest, `libs.versions.toml` (Glance 1.1.1), `LICENSES.md` | Bilder/PDF teilen (braucht Häppchen 9), Kachel → Sprachmodus (Häppchen 10); privater Chat/App-Sperre (8a): Widget soll private Chats nicht zeigen und bei App-Sperre keinen Titel |
+
+- Verzweigungen: jede Nachricht hat einen Eltern-Eintrag (`parent_id`, erste = 0), Geschwister = Versionen. Angezeigt wird ab der Wurzel jeweils das zuletzt gewählte Kind (`selected_at`, sonst das neueste). Alte Chats: Migration füllt `parent_id` mit der vorigen Nachricht (nach id), im Code fängt `Branches.normalize` dasselbe ab. `Chat.messages` bleibt der sichtbare Pfad (alle anderen Stellen unverändert), `Chat.hidden` hält die anderen Versionen.
+- Warteschlange: nur im Speicher; beim Chatwechsel/neuen Chat verworfen; nach einem Fehler kommen die Texte zurück ins Eingabefeld statt automatisch zu senden.
+- **Schema-Konflikt mit Häppchen 7 (#38):** #38 nimmt Version 3 (Gedächtnis). Dieser Branch nimmt 4 und hat einen leeren `MIGRATION_2_3`-Platzhalter mit demselben Namen. Beim Mergen: `MIGRATION_2_3` aus #38 behalten, `MIGRATION_3_4` von hier dazu; `addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)`. Wer eine 8b-Test-APK installiert hatte (DB v4 ohne Gedächtnis-Tabellen), muss nach dem Merge die App-Daten löschen.
+- Gradle lokal nicht gestartet (Sprint-Regel); ktlint 1.5.0 + detekt 1.23.8 CLI + `check_strings.py` lokal grün, Rest über CI.
+
+## 2026-11-04 · T-140 + T-141 (Häppchen 10 Sprache, 0.1.10) · review · harness: Hark · model: Hark · branch `hark/day-10`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-140 | review | `AudioMathTest`, `DictationControllerTest`, `MoonshineTokenizerTest`, `PackProgressTest`, `VoicePackCatalogTest`, `ChatVoiceUiTest` lokal (kotlinc 2.1 + JUnit) grün; Kotlin-Pipeline `MoonshineStt` auf der Host-JVM mit ORT 1.28.0 und den echten Packs: DE „Hallo, ich bin Pim. Ich wohne in deinem Handy …“ (= Python-Referenz), EN ebenso | `core-models` (Mehrdatei-Packs: `packDir`, Ketten-Download, `PackProgress`, `lang`), `catalog.json`, `core-ui/Composer.kt` (`trailing`-Slot), `ChatScreen.kt` (Hook: Panel, Mikro, LocalChatVoice), `MainActivity.kt` (`chatVoice`), `libs.versions.toml`, `gradle.properties` | Gerätetest (Mikro, Latenz auf dem Handy), Live-Teilergebnisse, Silero-VAD |
+| T-141 | review | `SpeechTextTest` (19 Fälle DE/EN), `ReadAloudControllerTest`, `LazySynthTest` | `ChatScreen.kt` (`ReadAloudAction` in der Antwortreihe) | Pocket TTS = T-143; Einstellung Pim/Neutral, Hüllkurve für Pims Sprech-Bewegung |
+
+- Entscheidungen: sherpa-onnx gibt es nicht auf Maven → Moonshine direkt mit ONNX Runtime (MIT). **ORT auf 1.28.0 gepinnt**: ab 1.29 enthält das Android-AAR Microsoft-1DS-Telemetrie (`TelemetryInitializer`, `mobile.events.data.microsoft.com`); zusätzlich entfernt das Manifest von core-voice den Provider. Häppchen 9 (OCR) muss dieselbe Version nehmen.
+- Modelle: `Masterx/moonshine-streaming-small-de-ONNX@5d6dadc…` und `Masterx/moonshine-streaming-small-ONNX@dafc41f…` (MIT, Export der offiziellen moonshine-ai-Gewichte mit dem offiziellen Rezept); SHA-256 aus den LFS-OIDs bzw. selbst berechnet und auf dem Host gegengeprüft. Offizielles EN-ONNX von moonshine-ai gibt es nur als `.ort` und fp32-Decoder (größer), offizielles DE nur als safetensors.
+- Pocket-TTS-Stand: öffentliche ONNX-Exporte nur Englisch mit fest eingebauter Stimme `alba` (soniqo, Exporter csukuangfj/pocket-tts-onnx-export); Arms DE-Paket braucht deren geschlossene Engine. Für „anna“ + Deutsch braucht es einen eigenen Export (T-143).
+- Gradle nicht lokal (Sprint-Regel) → CI. ktlint 1.5.0 + detekt 1.23.8 CLI auf allen geänderten Dateien grün, `check_strings.py` OK.
+
+## 2026-11-04 · T-110, T-114, T-116, T-117 (0.1.7.1 – Gedächtnis Teil 2) · review · harness: Hark · model: Hark · branch `hark/day-7b` (Draft-PR #46, Basis `hark/day-7`)
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-110 | review | `VectorsTest` (Kosinus, Kalibrierung, Bytes), `HybridRecallTest` (Gewichte der Spec, Bedeutung ohne gemeinsame Wörter, ohne Paket nur Stichwörter, Vektor neu nach Bearbeiten, nächster Fakt), `HainMigrationTest.version3MigratesToVersion5WithVectors`; nativer Teil nur in CI (apk.yml) gebaut, auf dem Host mit echtem Modell gemessen (1024 Werte, ~45 ms/Fakt, 2 Kerne) | `hain_llm.cpp` (Init mit Mutex, 3 JNI-Funktionen), `NativeLlm.kt`, `MemoryDao`, `HainDatabase` (v5) | RAM neben dem Gehirn auf dem Handy nicht gemessen; kein instrumentierter Test |
+| T-114 | review | `FactExtractorTest` (nur Vorschläge, Duplikate, update → Vorschlag mit `replaces` + Annehmen setzt `superseded_by`, Kosinus-Schwellen mit Embedder, Gedächtnis aus/Gehirn scheitert, strenges JSON, Wortähnlichkeit, ≤ 12 Nachrichten), `ExtractionAssetsTest` (Prompts = Assets, Akku-Regel), `MemoryTurnTest` | `LlmEngine`/`LlamaEngine` (`SamplingParams.grammar`), `RememberTool` (`onSaved`) | Läuft auf dem Gehirn des Chats (Cache danach neu); Worker ohne Gerätetest |
+| T-116 | review | `MemoryListTest` (Themen, „Ersetzt“, Chips, Kachel-Zustand), `AnswerFooterTest`; Screenshots `memory_topics_light`, `memory_suggestions_replaces_dark`, `memory_smart_search_dark`, `memory_answer_chips_light` | `feature-chat` (`ChatExtras.answerFooter`, ChatScreen: Slot unter der Antwort), `feature-settings` (Beschreibung kind `embed`) | Chips nur im Speicher (nach Neustart weg) |
+| T-117 | review | `CatalogParserTest.bundledCatalogHasTheEmbedderPack`, `ChatEngineTest.memoryLineFollowsTheLanguageHintOffTheMainThread`, `ChatViewModelTest.aFinishedAnswerTellsTheMemoryButAStoppedOneDoesNot` | `HainApp` (Hilt-Felder), `AppModule`, `MainActivity` | – |
+
+- Ablauf: der vorige Lauf hatte den Code geschrieben, aber nichts committet (Sicherung `/workspace/work/hain-7b-wip/tree`); dieser Lauf hat ihn übernommen, lint-sauber gemacht, als T-110/T-114 committet und UI + Verdrahtung ergänzt.
+- DB: Version 5. Version 4 gehört Häppchen 8b; hier ist `MIGRATION_3_4` ein leerer Platzhalter mit gleichem Namen (beim Mergen von 8b dessen Migration behalten, Platzhalter löschen). `schemas/…/5.json` aus dem CI-Artifact `room-schemas` eingecheckt.
+- Abweichung von MEMORY.md §2.3: die Extraktion legt **alles** als Vorschlag ab (nicht nur Heikles) – Oskar entscheidet, ob Unheikles direkt aktiv werden soll. sqlite-vec nicht genutzt (Kosinus in Kotlin).
+- Konflikt erwartet mit `hark/rest-tools-cards` (ändert ebenfalls `hain_llm.cpp`/`hain_session.h` und `LlmEngine` für Grammatik während der Antwort): dort nicht eingegriffen.
+- Gradle nicht lokal (Vorgabe): ktlint 1.5.0 + detekt 1.23.8 CLI + `check_strings.py` lokal grün; Rest über CI, APK, Screens.
+- Nächstes: Oskar lädt unter Einstellungen → Gedächtnis „Suche nach Bedeutung“, merkt sich „Ich mag keine Pilze“ und fragt „Was soll ich heute kochen?“ (Chip „1 Erinnerung genutzt“); nach einem Chat über Familie 2 min warten → Vorschläge.
+
+## 2026-11-04 · T-120 bis T-123 (0.1.9 – Dokumente) · review · harness: Hark · model: Hark · branch `hark/day-9` (Draft-PR #49)
+
+Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen wurden Modelle/Wörterbuch/Referenzskripte aus `ocr9/` und die teilweise geretteten Dateien (PDF, Text, Chunker, Fixer, Wörterbuch, Test-PDF). OCR-Pipeline, Datenbank, Werkzeug, UI und alle Tests neu geschrieben.
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-120 | review | `PdfTextExtractorTest` (Robolectric, Fixture `rechnung.pdf`: 3 Seiten, Seite 2 = Scan), `TextFilesTest` | `gradle/libs.versions.toml` (pdfbox-android), `core-docs/consumer-rules.pro` | Seitenbild nur auf dem Gerät (PdfRenderer) |
+| T-121 | review | `CtcDecoderTest`, `RecDictionaryTest` (echte `inference.yml`, 836 Zeichen), `DbPostProcessTest`, `ReadingOrderTest` (Zeilen, Absätze, 2 Spalten, Titel), `OcrImageTest`, `OcrPackTest` (Gate, SHA, Pack entfernen); JVM-Host-Lauf mit ORT 1.28.0: Rechnung + Zwei-Spalten-Seite 100 % | `core-docs/src/main/AndroidManifest.xml` (Telemetrie-Provider entfernt), `libs.versions.toml` (onnxruntime 1.28.0) | instrumentierter Test „≥ 95 % Zeichen“ auf dem Gerät steht aus (`check: device`) |
+| T-122 | review | `GermanOcrFixerTest` (alle Spec-Beispiele auf dem echten Wörterbuch) | `docs/specs/LICENSES.md`, `assets/dict/README.txt` | – |
+| T-123 | review | `ChunkerTest`, `DocPromptTest`, `DocAttachmentTest`, `SearchDocumentToolTest`, `DocsDatabaseTest` (Robolectric + bundled SQLite), `DocumentToolsTest` (core-tools), `DocMessagesTest`, `ChatViewModelDocsTest` | `core-tools` (`ToolContext.documents`, `ToolRouter.schemas(documents)`, `HainTools.router(extra)`, `Relevance` public), `feature-chat` (`UiMessage.attachments`, `ChatViewModel.attach/detach/documentPrompt`, `ChatEngine.respond(documents)`, `RoomChatPersistence` attachments_json, `ChatScreen` Büroklammer/Leiste/Meine Dateien, neue `ChatDocs.kt`, `DocsUi.kt`, `DocMessages.kt`, `strings_docs.xml` EN+DE, `ic_paperclip`), `MainActivity` | eigene DB `hain_docs.db` statt Tabellen in `hain.db` (Schema-Konflikte mit 7/Gedächtnis vermeiden); keine FTS/vec-Tabellen (BM25 im Speicher); Dokumente stehen an der Nachricht, die sie angehängt hat – fällt diese aus den letzten 24 Nachrichten, fehlt das Dokument im Prompt |
+
+- Gradle lokal nicht gestartet: ktlint 1.5.0 + detekt 1.23.8 CLI grün; reine Kotlin-Tests (OCR, Fixer, Chunker, Prompt, JSON, Text) zusätzlich lokal mit kotlinc 2.1.20 + JUnit 4 gelaufen (48 grün); Rest über CI/APK.
+- Strings in eigener Datei `feature-chat/src/main/res/values{,-de}/strings_docs.xml` (gleiche Schlüssel; weniger Merge-Konflikte). `tools/check_strings.py` prüft nur `strings.xml` → Parität von Hand geprüft.
+- `hain.versionName=0.1.9`. README (Tabelle, „Neu“, Wissenspakete, Deutsch), Website EN + /de (Dokumente = „Schon da“), DOCS_OCR, DATA, LICENSES, STATUS, TASKS aktualisiert.
+- Nächstes: Oskar testet die APK: Büroklammer → PDF mit Text („Wie viel muss ich zahlen?“), dann ein Foto einer Seite (→ „Texterkennung laden?“ → Laden), „Meine Dateien“ → Datei löschen, Pack entfernen.

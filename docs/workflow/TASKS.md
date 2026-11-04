@@ -40,13 +40,13 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-050 | ChatEngine turn loop | feature | M | E | T-032,T-042,T-044,T-045,T-020 | review (no tools yet) |
 | T-051 | ChatViewModel + UI state | feature | S | E | T-050 | review |
 | T-052 | Chat screen | ui | M | E | T-051,T-011,T-012,T-013 | review |
-| T-057 | Branches, message queue, stopped/error states | feature | M | E | T-051 | review (subset 2d-2: stop at once, edit own message, ask again on any answer; redesign 03.11.: Gemini-style actions — tap own message → edit/copy, answer row copy/share/thumbs/again; branches/queue/follow-up suggestions open) |
-| T-058 | ChatViewport + scroll-to-bottom pill | ui | S | E | T-052 | todo |
+| T-057 | Branches, message queue, stopped/error states | feature | M | E | T-051 | review (subset 2d-2: stop at once, edit own message, ask again on any answer; redesign 03.11.: Gemini-style actions; 8b 04.11.: versions via parent_id/selected_at + "‹ 2/3 ›", waiting messages while Pim answers, DB v4; follow-up suggestions open) |
+| T-058 | ChatViewport + scroll-to-bottom pill | ui | S | E | T-052 | review (8b: follow only at the bottom, frosted pill with "Neue Antwort", animateItem; shared element composer→bubble not done) |
 | T-059 | ToolTimeline + SourceChips | ui | S | E | T-052,T-062 | review |
 | T-053 | Drawer: chat list, search, rename, delete, pin | ui | M | E | T-052,T-015 | review (redesign 03.11.: glass context menu with scale+fade, marked row, spring drawer + list motion) |
-| T-054 | Export & share chat | feature | S | E | T-053 | todo |
-| T-055 | Model picker in top bar | ui | S | E | T-052,T-081 | partly (language step + localeConfig done; picker open) |
-| T-056 | Private chat + app lock | feature | S | E | T-053 | todo |
+| T-054 | Export & share chat | feature | S | E | T-053 | review (04.11., 0.1.8: Markdown + own PDF, SAF/share sheet, all chats as ZIP) |
+| T-055 | Model picker in top bar | ui | S | E | T-052,T-081 | review (2f-2, `hark/picker-perf`: brain picker in the top bar; language step + localeConfig done in 2f) |
+| T-056 | Private chat + app lock | feature | S | E | T-053 | review (04.11., 0.1.8: private chat in memory only, BiometricPrompt + PIN, delay, FLAG_SECURE) |
 | T-080 | Fill model catalogue with real URLs + sha256 | plan | S | F | - | review (brain now QAD-Q4_0, day 2) |
 | T-081 | Catalog + DeviceCheck | feature | S | F | T-002 | review (DeviceCheck pure rules + Packs screen) |
 | T-082 | PackDownloader (WorkManager) | feature | M | F | T-081 | review |
@@ -80,29 +80,38 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-064b | Weather without a place = last known location (setting `weather_location`, asks first) | feature | S | A | T-064 | review (04.11., 0.1.4) |
 | T-064c | Favicons at the source chips (needs image fetch through the NetworkGate) | ui | S | A | T-059,T-060 | todo |
 | T-068e | ConfirmCard into core-cards (needs a chat-free card state) | refactor | S | A | T-068 | todo |
+| T-180 | Tool inventory (name, description, parameters, typical errors) in TOOLS.md §0 | docs | S | C | T-062 | review (4d) |
+| T-181 | Tool eval: 52 questions DE/EN + host harness (`tools/eval`), baseline before 4d | test | M | C | T-062 | review (4d) |
+| T-182 | Tool definitions for the small brain (`tools.json`: one sentence when/when not, flat params, enums; compact results, errors with a hint) | feature | M | C | T-181 | review (4d) |
+| T-183 | Robust tool calls (repair broken calls, name/parameter aliases, dates relative to now, missing values → ask, duplicates once, retry) | feature | M | C | T-182 | review (4d) |
+| T-184 | Tool prompts DE/EN in `assets/prompts/tools.<lang>.txt`, turn hint, follow-up + link hint, token budget | feature | S | C | T-182 | review (4d) |
+| T-185 | Tool eval after 4d: before/after table in TOOLS.md §8 | test | S | C | T-184 | review (4d) |
+| T-186 | Unit tests: repair parser, fixer/aliases, specs, prompt templates, follow-ups, engine dedupe | test | S | C | T-183 | review (4d) |
 | T-070 | Feed parser RSS2/Atom/RDF | feature | S | B | T-002 | review |
 | T-071 | Standard feed list + repository | feature | S | B | T-070,T-060 | review |
 | T-072 | news tool + NewsCard | feature | S | B | T-071,T-062 | review |
 | T-073 | News screen (3-mode switch, own feeds) | ui | M | B | T-072 | review |
 | T-074 | Article summary on demand | feature | S | B | T-073,T-067 | review |
-| T-110 | Embedder (LFM2.5-Embedding via llama.cpp) | native | S | C | T-030 | todo |
-| T-111 | Memory tables + DAO | feature | S | C | T-020 | todo |
-| T-112 | Explicit remember/forget + remember tool | feature | S | C | T-111,T-062 | todo |
-| T-113 | Retrieval & ranking | feature | S | C | T-111 | todo |
-| T-114 | Background extraction worker | feature | M | C | T-112,T-113,T-110 | todo |
-| T-115 | Memory screen | ui | M | C | T-113 | todo |
-| T-120 | PDF text layer + page render | feature | S | D | T-002 | todo |
-| T-121 | PP-OCRv5 Latin via ONNX Runtime | native | M | D | T-120 | todo |
-| T-122 | GermanOcrFixer | feature | S | D | T-002 | todo |
-| T-123 | Chunking + doc search tool + attach in chat | feature | M | D | T-121,T-122,T-062 | todo |
-| T-130 | Card parser | feature | S | E | T-002 | todo |
-| T-131 | Card renderer + GBNF | ui | M | E | T-130,T-014 | todo |
-| T-140 | STT Moonshine + mic button | feature | M | F | T-082 | todo |
-| T-141 | TTS Piper + read aloud | feature | M | F | T-082 | todo |
-| T-143 | Pocket TTS on Android (ONNX, all language packs) | native | M | F | T-082 | todo |
+| T-110 | Embedder (LFM2.5-Embedding via llama.cpp) | native | S | C | T-030 | review (04.11., 7b, draft PR #46) |
+| T-111 | Memory tables + DAO | feature | S | C | T-020 | review (04.11., draft PR #38) |
+| T-112 | Explicit remember/forget + remember tool | feature | S | C | T-111,T-062 | review (04.11., draft PR #38) |
+| T-113 | Retrieval & ranking | feature | S | C | T-111 | review (04.11., draft PR #38) |
+| T-114 | Background extraction worker | feature | M | C | T-112,T-113,T-110 | review (04.11., 7b, draft PR #46) |
+| T-115 | Memory screen | ui | M | C | T-113 | review (04.11., draft PR #38) |
+| T-116 | Memory chips under answers, topics tab, "Suche nach Bedeutung" tile | ui | S | C | T-115,T-110 | review (04.11., 7b, draft PR #46) |
+| T-117 | Wire memory part 2 (embed pack, extraction, chips) into the app | feature | S | C | T-110,T-114,T-116 | review (04.11., 7b, draft PR #46) |
+| T-120 | PDF text layer + page render | feature | S | D | T-002 | review (Hark, PR #49) |
+| T-121 | PP-OCRv5 Latin via ONNX Runtime | native | M | D | T-120 | review (Hark, PR #49) |
+| T-122 | GermanOcrFixer | feature | S | D | T-002 | review (Hark, PR #49) |
+| T-123 | Chunking + doc search tool + attach in chat | feature | M | D | T-121,T-122,T-062 | review (Hark, PR #49) |
+| T-130 | Card parser | feature | S | E | T-002 | done |
+| T-131 | Card renderer + GBNF | ui | M | E | T-130,T-014 | done |
+| T-140 | STT Moonshine + mic button | feature | M | F | T-082 | review (Hark, hark/day-10) |
+| T-141 | TTS (system voice, Pim pitch) + read aloud | feature | M | F | T-082 | review (Hark, hark/day-10) |
+| T-145 | Pocket TTS on Android (ONNX, all language packs) | native | M | F | T-082 | todo |
 | T-142 | Voice mode screen | ui | M | F | T-140,T-141,T-016 | todo |
 | T-143 | Default assistant + screen context | feature | M | F | T-052 | todo |
-| T-144 | Widget + quick settings tile + share target | feature | S | F | T-052 | todo |
+| T-144 | Widget + quick settings tile + share target | feature | S | F | T-052 | review (8b: share text/links → new chat, Glance widget "Frag Pim", tile "Neuer Chat"; images/PDF share + tile→voice open) |
 | T-100 | Settings DataStore + screens | feature | M | B | T-015 | review (level 1 as icon tiles + sub pages, reduce-motion switch) |
 | T-101 | View/edit system prompt, custom instructions | ui | S | B | T-100,T-045 | review (custom instructions only) |
 | T-160 | Image edit kit | feature | M | D | T-082 | todo |
@@ -118,7 +127,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-097 | Pim normal size + 5 s easter egg (grows to ≤ 5×, trembling, rising haptics, burst) | ui | S | B | T-091,T-096 | review |
 | T-098 | Own 2048 mini game behind Pim (swipe, merge pop, best score, undo, won/lost) | ui | M | B | T-097 | review |
 | T-099 | Subtle haptics everywhere (menus, delete confirm, pull) + HAPTICS.md checklist | ui | S | B | T-096 | review |
-| T-190 | Accessibility & performance pass | fix | M | H | T-052,T-100 | doing (2d-2: non-debuggable CI APK, draw-only animations, throttled streaming; R8 + own baseline profile open) |
+| T-190 | Accessibility & performance pass | fix | M | H | T-052,T-100 | review (2d-2: non-debuggable CI APK, draw-only animations, throttled streaming; 2f-2 `hark/picker-perf`: R8 + shrinkResources for release, hand-written baseline profile + ProfileInstaller, CI release smoke test with start time) |
 | T-195 | Trademark check name 'Hain' | plan | XS | H | - | todo |
 | T-196 | Trademark policy TRADEMARKS.md (DE+EN) + README sections "Name & Pim" and "Support (coming soon)" | docs | XS | H | - | review (04.11., draft PR) |
 | T-106 | Website: hero screenshots fixed (second phone frame without empty area, both frames sized to their image) | fix | XS | B | T-089 | review (04.11., draft PR) |
@@ -576,34 +585,36 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 
 - type: `feature` · size: `S` · lane: `E` · depends: T-053
 - read: DATA.md
-- files: feature-chat/.../export/ChatExporter.kt + test
+- files: feature-chat/.../export/ (ChatMarkdown, ChatZip, MarkdownBlocks, PdfLayout, ChatPdf, ChatExport, ExportMenu) + tests
 - do:
-  1. Markdown and JSON export via SAF; share sheet with plain text.
+  1. One chat as Markdown and as PDF (own, android.graphics.pdf.PdfDocument: title, date, roles, paragraphs, lists, code, page break, footer, Lichtung green); save via SAF or share sheet (FileProvider `${applicationId}.exports`). Single answer share stays in the answer row (T-057).
+  2. All chats as Markdown ZIP (Settings → Privacy). Private chats never exported. (04.11.: JSON export dropped in favour of PDF, per Oskar's sprint list.)
 - accept:
-  - exporter unit tests
-- check: `./gradlew :feature-chat:testDebugUnitTest --tests "*ChatExporter*"`
+  - exporter unit tests (Markdown, ZIP, Markdown → PDF blocks, PDF page breaks)
+- check: `./gradlew :feature-chat:testDebugUnitTest --tests "*export*"`
 
 ### T-055 · Model picker in top bar
 
 - type: `ui` · size: `S` · lane: `E` · depends: T-052,T-081
 - read: MODELS.md
-- files: feature-chat/.../ui/ModelPicker.kt
+- files: feature-chat/.../api/ModelPicker.kt, core-models/.../api/BrainChoice.kt, core-common/.../api/BrainChoiceStore.kt, app/.../BrainPicking.kt
 - do:
   1. Lists installed brains; switch = unload/load with progress toast.
+  2. (2f-2) Tap on "Hain · Auf diesem Handy" opens a compact frosted-glass menu: brains of the catalogue with a plain name (by size: Flinkes / Ausgewogenes / Schlaues Gehirn), model + size, "Empfohlen für dein Handy" (DeviceCheck: biggest brain that fits GOOD, else smallest TIGHT), check on the active one. A pick loads in the background (thin progress line under the top bar + subtitle %), a running answer stops first. Not installed / "Mehr Gehirne" → Wissenspakete. Choice in DataStore `datastore/brain.preferences_pb` (`brain_id`).
 - accept:
-  - UI test with fake catalog
-- check: `./gradlew :feature-chat:testDebugUnitTest`
+  - UI test with fake catalog (`ModelPickerTest`, Robolectric), `BrainChoiceTest`, `BrainChoiceStoreTest`, `ChatViewModelTest` (switch)
+- check: `./gradlew :feature-chat:testDebugUnitTest :core-models:testDebugUnitTest :core-common:testDebugUnitTest`
 
 ### T-056 · Private chat + app lock
 
 - type: `feature` · size: `S` · lane: `E` · depends: T-053
 - read: DATA.md; SETTINGS.md
-- files: feature-chat/..., app/.../lock/AppLock.kt
+- files: feature-chat/... (ChatStore, ChatViewModel, api/PrivateChat.kt), core-common/api/lock/AppLockGate.kt, app/.../lock/AppLock.kt + LockScreen.kt
 - do:
-  1. Private chat flag (no memory, not listed after close if setting).
-  2. BiometricPrompt app lock on resume.
+  1. Private chat: only in memory, never in DB/search/memory, clearly marked, deleted on leave; tools work.
+  2. BiometricPrompt app lock (BIOMETRIC_WEAK | DEVICE_CREDENTIAL) after background with delay now/1 min/5 min; FLAG_SECURE switch.
 - accept:
-  - manual + VM test
+  - `PrivateChatTest` (no DB writes, not searchable, deleted on leave), `AppLockGateTest` (timing logic), manual check on the phone
 - check: `./gradlew assembleDebug`
 
 ## M5 · Models & onboarding
@@ -900,6 +911,30 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
   - UI test
 - check: `./gradlew :feature-memory:testDebugUnitTest`
 
+### T-116 · Memory chips under answers, topics tab, "Suche nach Bedeutung" tile
+
+- type: `ui` · size: `S` · lane: `C` · depends: T-115,T-110
+- read: MEMORY.md §2.1, §3.5, §5
+- files: feature-memory/.../AnswerChips.kt, MemoryTopicsTab.kt, MemoryPage.kt, MemoryScreen.kt; feature-chat/.../ChatExtras.kt (`answerFooter`), ChatScreen.kt; feature-settings/.../PacksScreen.kt; strings DE/EN
+- do:
+  1. Chips "Gemerkt ✓ · Rückgängig", "Vergessen ✓ · Rückgängig", "N Erinnerungen genutzt" (tap shows which) under finished answers, 48 dp targets, TalkBack labels.
+  2. Tab "Themen" (facts by kind + own note), "Ersetzt: …" under suggestions, hint tile "Suche nach Bedeutung" with download/progress; packs screen describes kind `embed`.
+- accept:
+  - `MemoryListTest` (topics, replaced, chips, tile state), `AnswerFooterTest`; screenshots via screens.yml
+- check: `./gradlew :feature-memory:testDebugUnitTest :feature-chat:testDebugUnitTest`
+
+### T-117 · Wire memory part 2 (embed pack, extraction, chips) into the app
+
+- type: `feature` · size: `S` · lane: `C` · depends: T-110,T-114,T-116
+- read: MEMORY.md §7
+- files: core-models/.../catalog.json, Models.kt; app/.../AppModule.kt, HainApp.kt, MainActivity.kt; feature-chat/.../ChatEngine.kt (`memoryHint`), ChatViewModel.kt (`onAnswered`)
+- do:
+  1. Catalogue entry kind `embed` (min_ram_gb 3, verified sha256/size), `TextEmbedder` + `MemoryTurn` singletons, `PackEmbedder` on the store.
+  2. `ChatEngine.memoryHint` (suspend, Dispatchers.Default), `MemoryExtraction.current` in `HainApp`, `schedule(chatId)` after each finished answer, `yieldToChat` when the user writes.
+- accept:
+  - `CatalogParserTest`, `ChatEngineTest.memoryLineFollowsTheLanguageHintOffTheMainThread`, `ChatViewModelTest.aFinishedAnswerTellsTheMemory…`
+- check: `./gradlew assembleDebug testDebugUnitTest`
+
 ## M9 · Documents & OCR
 
 ### T-120 · PDF text layer + page render
@@ -980,19 +1015,34 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - accept:
   - device test
 - check: `device`
+- done (Häppchen 10, 04.11.): instead of sherpa-onnx (no Maven AAR) Moonshine Streaming Small runs directly on ONNX
+  Runtime 1.28.0 (`MoonshineStt`: frontend → encoder → adapter → cross K/V → decoder with self K/V, greedy;
+  `MoonshineTokenizer` decodes ▁ + byte fallback). Packs `moonshine-small-de` / `-en` in catalog.json (7 files each,
+  pinned commit + SHA-256, own folder, chain download in `DefaultModelRepository`, HEAD preflight through the
+  NetworkGate). `DictationController` (mic → level → resample 16 kHz → silence trim → text, max 60 s, engine kept
+  90 s). Mic in the composer (tap/tap, hold/let go, slide off = cancel, TalkBack click), recording bar (✕, level
+  bars, clock, Fertig), RECORD_AUDIO asked on first tap after a card. Whole utterance after stop instead of live
+  partials; Silero VAD not used (energy trim). Host check: Kotlin pipeline on JVM ORT = reference text DE+EN.
+  Device test open.
 
 ### T-141 · TTS Piper + read aloud
 
 - type: `feature` · size: `M` · lane: `F` · depends: T-082
 - read: VOICE.md
 - files: core-voice/.../tts/*.kt
+- done (Häppchen 10, 04.11.): `SpeechText` (Markdown → sentences, unit-tested), `ReadAloudController` (2 sentences
+  ahead, stop, one answer at a time) behind `SpeechSynth`; engine = Android system TTS (`SystemSpeech`, pitch 1.1225 +
+  rate 1.15, started lazily), "Vorlesen" in the answer row. Pocket TTS (Pim's own voice) is T-145 (was T-143, renumbered in the integration PR: the ID was taken twice): public ONNX
+  exports are English-only with voice `alba` baked in (soniqo/Pocket-TTS-100M-ONNX-INT8, exporter
+  csukuangfj/pocket-tts-onnx-export) or need Arm's closed engine (Arm/pocket-tts-de-mix-precision); anna + DE needs an
+  own export. Open from the card: Pim/Neutral setting, amplitude envelope, DeviceCheck RTF fallback, language packs.
 - do:
   1. Text prep (unit-tested), sentence pipelining, speed. Pim voice per VOICE.md: Pocket TTS voice anna +2 st, speed 1.15 in every language, English pack always installed, setup language picker downloads the chosen pack, system TTS fallback by DeviceCheck RTF, pitch via AudioTrack PlaybackParams, setting Pim/Neutral, amplitude envelope flow for Pim speaking motion; compare with assets/voice/samples.
 - accept:
   - text prep tests + device
 - check: `./gradlew :core-voice:testDebugUnitTest`
 
-### T-143 · Pocket TTS on Android (ONNX, all language packs)
+### T-145 · Pocket TTS on Android (ONNX, all language packs)
 
 - type: `native` · size: `M` · lane: `F` · depends: T-082
 - read: VOICE.md (Pim voice)
@@ -1122,6 +1172,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - files: various (list in handoff)
 - do:
   1. TalkBack labels, font scale 200 %, contrast, baseline profile, startup < 1 s without model.
+  2. (2f-2) Release build with R8 (`isMinifyEnabled` + `isShrinkResources`, keep rules for JNI/llama, Room, SQLCipher, kotlinx.serialization, WorkManager in `app/proguard-rules.pro`), baseline profile `app/src/main/baselineProfiles/baseline-prof.txt` + `androidx.profileinstaller`; CI job `release-smoke` (screens.yml, `tools/ci/release_smoke.sh`) installs the release APK on an emulator, checks it starts, checks the installed profile and measures cold start before/after. See SPEED.md §5.
 - accept:
   - checklist in STATUS.md
 - check: `manual`

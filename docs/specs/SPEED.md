@@ -46,3 +46,42 @@ the answer (`SystemPromptSource.turnHint`). The system prompt and the tools stay
 
 `adb logcat -s HainLlm` now shows `first token after … ms` for every generation, next to
 `brain loaded in … ms, context 8192` and the prompt/reuse line of the native side.
+
+## 5. App start and scrolling: R8 + baseline profile (T-190, 04.11.2026)
+
+- **Release build = R8.** `app/build.gradle.kts` release: `isMinifyEnabled = true`, `isShrinkResources = true`,
+  `proguard-android-optimize.txt` + `app/proguard-rules.pro`. Keep rules only for what is reached by name:
+  JNI (`NativeLlm` natives, `TokenCallback.onToken` / `LoadProgress.onProgress` called with `GetMethodID`),
+  SQLCipher (`net.zetetic.database.**`), Room `*_Impl`, kotlinx.serialization serializers, WorkManager
+  workers (class name is stored, must survive updates). Everything else comes from the libraries' consumer rules.
+- **Baseline profile, written by hand:** `app/src/main/baselineProfiles/baseline-prof.txt` (start: app, DI,
+  settings, theme, onboarding/chat; chat scroll: message list, components, Markdown renderer; frosted glass).
+  AGP merges it with the libraries' profiles into `assets/dexopt/baseline.prof`. **ProfileInstaller**
+  (`androidx.profileinstaller`, Apache-2.0) compiles it on phones without Play – GitHub and F-Droid APKs
+  otherwise run interpreted/JIT until the phone's idle dexopt.
+- **Not (yet) a generated profile:** a Macrobenchmark `:baselineprofile` module (androidx.baselineprofile
+  plugin) needs an API 33+ device or a rooted emulator to record, and our arm64-only APK runs on the CI's
+  x86_64 emulator only through ARM translation. The hand-written rules cover the same paths; a recorded
+  profile can replace them later without app changes.
+- **Debug builds unchanged:** `app.hain.debug` (CI `-Phain.fastDebug=true`, not debuggable) keeps no R8, so
+  its build stays fast; it gets the ProfileInstaller too.
+- **Check in CI:** job `release-smoke` in `.github/workflows/screens.yml` builds the release APK (signed with
+  the public debug key, `-Phain.signReleaseWithDebugKey=true`, only for the test), checks that
+  `baseline.prof` and `libhain_llm.so` are inside, installs it on an Android 11 x86_64 emulator, checks that it
+  starts and keeps running, reads the installed ART profile and measures cold start
+  (`am start -W`, median of 7) against the nightly debug APK of main – as installed and after
+  `cmd package compile -m speed-profile`. Script: `tools/ci/release_smoke.sh`, report in the job summary.
+
+**Measured (CI emulator, Android 11 x86_64, two runs on 04.11.2026, cold start without brain, median of 7):**
+
+| Build | Run 1 | Run 2 |
+|---|---|---|
+| before · nightly debug APK of main, as installed | 911 ms | 1227 ms |
+| after · release APK (R8 + profile), as installed | 900 ms | 1180 ms |
+| before · after `compile -m speed-profile` | 978 ms | 1145 ms |
+| after · after `compile -m speed-profile` | 932 ms | 1065 ms |
+
+The installed ART profile holds ~29,000 methods, ~4,200 of them Hain's own code (counted back through
+`mapping.txt`), so the hand-written rules work. The start-time gain on the shared CI emulator is small
+(about 1–7 %) and inside its noise; the real gain is expected on phones (interpreted → compiled code
+from the first start, smaller dex). A measurement on a real phone is still open.

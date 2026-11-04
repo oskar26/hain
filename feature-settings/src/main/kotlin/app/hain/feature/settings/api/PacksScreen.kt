@@ -105,11 +105,15 @@ private fun PackRow(
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(spacing.md)) {
-            Hain3DIcon(if (pack.isDefault) Hain3D.HEAD else Hain3D.PARCEL, size = 40.dp)
+            Hain3DIcon(packIcon(pack), size = 40.dp)
             Column(Modifier.weight(1f)) {
                 BasicText(pack.name, style = type.button.copy(color = colors.text))
                 BasicText(sizeText(pack.totalSize), style = type.label.copy(color = colors.textMuted))
             }
+        }
+        // 7b: what an extra pack is for, in plain words
+        if (pack.kind == ModelInfo.KIND_EMBED) {
+            BasicText(stringResource(R.string.packs_embed_desc), style = type.bodySmall.copy(color = colors.textMuted))
         }
         val fit = DeviceCheck.fit(pack, device)
         fitText(fit)?.let { BasicText(stringResource(it), style = type.label.copy(color = colors.danger)) }
@@ -137,6 +141,13 @@ private fun PackRow(
 }
 
 private const val PERCENT = 100
+
+private fun packIcon(pack: ModelInfo): Hain3D =
+    when {
+        pack.isDefault -> Hain3D.HEAD
+        pack.kind == ModelInfo.KIND_EMBED -> Hain3D.SPARKLES
+        else -> Hain3D.PARCEL
+    }
 
 private fun fitText(fit: Fit): Int? =
     when (fit) {

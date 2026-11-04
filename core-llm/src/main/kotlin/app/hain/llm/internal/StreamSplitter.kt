@@ -21,7 +21,7 @@ import app.hain.llm.api.UiDelta
  */
 class StreamSplitter(
     thinkingEnabled: Boolean,
-    private val parser: ToolCallParser = XmlToolCallParser(),
+    private val parser: ToolCallParser = RepairingToolCallParser(),
 ) {
     private enum class State { REASONING, TEXT, TOOL }
 

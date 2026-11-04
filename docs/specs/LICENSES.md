@@ -7,7 +7,7 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | llama.cpp / ggml | MIT | ok |
 | AndroidX DataStore (preferences) | Apache-2.0 | ok |
 | LFM3 models (1.7B, VL, Omni, Audio) | LFM Open License v1.0 (free < $10M revenue) | ok for non-commercial/small; show in About |
-| LFM2.5-Embedding-350M | LFM Open License | verify |
+| LFM2.5-Embedding-350M | LFM Open License v1.0 (`lfm1.0`, checked 04.11.2026 on the Hugging Face model card) | ok, same terms as the brain; optional pack |
 | sherpa-onnx | Apache-2.0 | ok |
 | Piper (engine, current) | GPL-3.0 | ok with GPL app |
 | espeak-ng | GPL-3.0 | ok |
@@ -21,13 +21,19 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | Parakeet TDT 0.6B v3 | CC-BY-4.0 | verify, attribution |
 | PP-OCRv5 / PaddleOCR | Apache-2.0 | ok |
 | PaddleOCR-VL-1.6 | Apache-2.0 | verify |
-| ONNX Runtime | MIT | ok |
+| ONNX Runtime (`onnxruntime-android` **1.28.0**, Häppchen 10 dictation + Häppchen 9 OCR, one library, one `.so`) | MIT | ok – pinned: from 1.29 the Android AAR adds Microsoft 1DS telemetry (`ai.onnxruntime.TelemetryInitializer`, `mobile.events.data.microsoft.com`); 1.28.0 has none, and core-voice's manifest removes the provider in case a newer version is pulled in. Every ORT user (also OCR, T-121) must stay on ≤ 1.28.0 |
+| Moonshine Streaming Small DE/EN (ONNX int8 exports `Masterx/moonshine-streaming-small(-de)-ONNX`, of `moonshine-ai/moonshine-streaming-small(-de)`) | MIT | ok – downloaded at runtime (catalog.json, pinned commit + SHA-256), not in the APK; third-party export of the official weights, checked on the host (same text as the reference pipeline) |
 | kotlinx.serialization (json, 1.8.1) | Apache-2.0 | ok (T-040, ToolSchema JSON) |
 | kxml2 2.3.0 (test only, XmlPullParser on the JVM) | BSD-style (MIT-like) | ok (T-070) |
 | androidx.work (work-runtime-ktx 2.12.0) | Apache-2.0 | ok (T-082, model downloads) |
+| androidx.profileinstaller (1.4.1) | Apache-2.0 | ok (T-190, installs the baseline profile on phones without Play) |
+| reactivecircus/android-emulator-runner (GitHub Action, CI only, not in the app) | Apache-2.0 | ok (T-190, release smoke test) |
 | LFM3-1.7B GGUF (downloaded at runtime, not bundled) | LFM Open License v1.0 | model weights, not linked code; licence shown in onboarding (T-083) |
-| pdfbox-android | Apache-2.0 | ok |
+| LFM2.5-Embedding-350M-Q4_0 GGUF (optional pack "Suche nach Bedeutung", downloaded at runtime, not bundled; T-110) | LFM Open License v1.0 (https://huggingface.co/LiquidAI/LFM2.5-Embedding-350M-GGUF/blob/main/LICENSE) | model weights, not linked code; catalogue entry carries `licence` + `licence_url` |
+| pdfbox-android (`com.tom-roush:pdfbox-android` 2.0.27.0, T-120) | Apache-2.0 | ok |
+| PP-OCRv5 mobile det + latin rec + PP-LCNet textline orientation, ONNX exports from huggingface.co/PaddlePaddle (downloaded at runtime, pinned commit + SHA-256) | Apache-2.0 | ok (T-121; shown in "Meine Dateien") |
 | MuPDF | AGPL | **do not use** |
+| German word list `core-docs/src/main/assets/dict/de_words.txt` (208,341 words, T-122): igerman98 (Björn Jacke, GPL-2.0/GPL-3.0) + FrequencyWords DE (Hermit Dave, CC-BY-SA-4.0) | GPL / CC-BY-SA-4.0 (one-way compatible with GPL-3.0) | ok; sources in `assets/dict/README.txt` |
 | Readability4K | Apache-2.0 | verify |
 | jsoup | MIT | ok |
 | OkHttp | Apache-2.0 | ok |
@@ -36,6 +42,7 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | Room, Compose, Hilt, WorkManager | Apache-2.0 | ok |
 | Room 2.7.2 (runtime, ktx, compiler via KSP) + androidx.sqlite 2.5.2 | Apache-2.0 | ok (T-020) |
 | net.zetetic:sqlcipher-android 4.10.0 | BSD-style (zetetic.net/sqlcipher/license) | ok (T-020, encrypted `hain.db`) |
+| androidx.biometric 1.1.0 (+ androidx.fragment-ktx 1.8.9; pulls androidx.appcompat 1.2.0 at runtime) | Apache-2.0 | ok (T-056, app lock with BiometricPrompt + device PIN; no Play Services) |
 | Robolectric 4.16 + androidx.test:core 1.7.0 (test only) | MIT / Apache-2.0 | ok (T-020 DAO tests) |
 | multiplatform-markdown-renderer | Apache-2.0 | ok |
 | Hanken Grotesk 3.014 (Light, Regular, Medium, SemiBold; app font since 03.11.2026, text in `docs/specs/licenses/HankenGrotesk-OFL.txt`), Atkinson Hyperlegible, JetBrains Mono | OFL-1.1 | ok |
@@ -60,6 +67,7 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | Roborazzi (screenshot testing) | Apache-2.0 | ok |
 | Roborazzi compose + junit-rule, Robolectric, compose ui-test-junit4/-manifest (test only, T-011 screenshots in feature modules) | Apache-2.0 / MIT | ok |
 | Lucide (icon SVG sources) | ISC | ok |
+| AndroidX Glance (glance-appwidget 1.1.1; home screen widget "Frag Pim", T-144; no glance-material3) | Apache-2.0 | ok |
 
 **Added in T-018 (2026-10-30).** All licences verified against the artifacts' POMs on Maven Central.
 Newest stable versions that still work with the pinned toolchain (AGP 9.0.1 / compileSdk 36 /

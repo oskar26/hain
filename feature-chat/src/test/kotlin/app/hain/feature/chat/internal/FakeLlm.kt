@@ -23,6 +23,7 @@ internal class FakeLlm(
     var lastParams: SamplingParams? = null
     var cancels = 0
     var loads = 0
+    val paths = mutableListOf<String>()
     override val state: StateFlow<EngineState> = MutableStateFlow(EngineState.Ready("x"))
     override val isAvailable = true
 
@@ -33,6 +34,7 @@ internal class FakeLlm(
         contextSize: Int,
     ): Boolean {
         loads++
+        paths += path
         return true
     }
 

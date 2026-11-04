@@ -10,6 +10,7 @@ import app.hain.tools.internal.search.ReadPageTool
 import app.hain.tools.internal.search.SearchTool
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -40,8 +41,19 @@ class ToolRouter(
     private val timeoutMs: Long = TIMEOUT_MS,
     private val pages: PageReader? = null,
     private val fallbacks: Map<String, Fallback> = emptyMap(),
+    private val fixer: ToolCallFixer = ToolCallFixer(),
+    private val retryDelayMs: Long = RETRY_DELAY_MS,
 ) {
     private val byName = tools.associateBy { it.schema.name }
+
+    /**
+     * [call] with the real tool and parameter names, enum values and dates relative to [ctx]
+     * (4d, T-183); its problem is set when a required value is missing.
+     */
+    fun fix(
+        call: ToolCall,
+        ctx: ToolContext,
+    ): ToolCallFixer.Fixed = fixer.fix(call, ctx.now)
 
     /**
      * Schemas for the prompt; online tools are left out while offline (shorter prompt, no dead ends),
@@ -50,9 +62,11 @@ class ToolRouter(
     fun schemas(
         offline: Boolean,
         webSearch: WebSearch = WebSearch.ON,
+        documents: Boolean = false,
     ): List<ToolSchema> =
         tools
             .filter { !offline || !it.online }
+            .filter { documents || it.schema.name !in DOCUMENT_TOOLS }
             .filter { webSearch != WebSearch.OFF || it.schema.name !in SEARCH_TOOLS }
             .map { it.schema }
 
@@ -65,6 +79,16 @@ class ToolRouter(
      */
     @Suppress("ReturnCount")
     suspend fun run(
+        call: ToolCall,
+        ctx: ToolContext,
+    ): ToolResult {
+        val fixed = fix(call, ctx)
+        fixed.problem?.let { return failure("missing_argument", it) }
+        return runFixed(fixed.call, ctx)
+    }
+
+    @Suppress("ReturnCount")
+    private suspend fun runFixed(
         call: ToolCall,
         ctx: ToolContext,
     ): ToolResult {
@@ -83,23 +107,28 @@ class ToolRouter(
         call: ToolCall,
         ctx: ToolContext,
     ): ToolResult {
-        val tool = byName[call.name] ?: return failure("unknown_tool", "There is no tool called ${call.name}.")
+        val tool =
+            byName[call.name]
+                ?: return failure(
+                    "unknown_tool",
+                    "There is no tool called ${call.name}. Use one of: ${byName.keys.joinToString()}.",
+                )
         if (tool.online && ctx.offline) return failure("offline", OFFLINE_HINT)
         searchSwitch(call.name, ctx)?.let { return it }
         return try {
-            withTimeout(timeoutMs) { tool.run(call.arguments, ctx) }
+            withTimeout(timeoutMs) { attempt(tool, call, ctx) }
         } catch (e: TimeoutCancellationException) {
-            failure("timeout", "The tool took too long.")
+            failure("timeout", "The service took too long. Say so and offer to try again.")
         } catch (e: CancellationException) {
             throw e
         } catch (e: OfflineException) {
             failure("offline", OFFLINE_HINT)
         } catch (e: IllegalArgumentException) {
-            failure("bad_arguments", e.message ?: "The arguments do not fit.")
+            failure("bad_arguments", (e.message ?: "The arguments do not fit.") + " Fix them, or ask the user.")
         } catch (e: IOException) {
-            failure("network", "The service could not be reached.")
+            failure("network", "The service could not be reached. Say so and offer to try again later.")
         } catch (e: Exception) {
-            failure("failed", "The tool did not work.")
+            failure("failed", "The tool did not work. Say so plainly.")
         }
     }
 
@@ -113,6 +142,25 @@ class ToolRouter(
             ctx.webSearch == WebSearch.OFF -> failure(SEARCH_OFF, SEARCH_OFF_HINT)
             ctx.webSearch == WebSearch.ASK && !ctx.searchApproved -> failure(ASK_FIRST, ASK_FIRST_HINT)
             else -> null
+        }
+
+    /**
+     * One run of [tool]; an online tool whose service could not be reached gets one more try after
+     * [retryDelayMs] (4d), still inside the same time limit.
+     */
+    private suspend fun attempt(
+        tool: Tool,
+        call: ToolCall,
+        ctx: ToolContext,
+    ): ToolResult =
+        try {
+            tool.run(call.arguments, ctx)
+        } catch (e: OfflineException) {
+            throw e
+        } catch (e: IOException) {
+            if (!tool.online) throw e
+            delay(retryDelayMs)
+            tool.run(call.arguments, ctx)
         }
 
     /**
@@ -160,6 +208,9 @@ class ToolRouter(
     companion object {
         const val TIMEOUT_MS = 12_000L
 
+        /** Wait before the one retry after a network error. */
+        const val RETRY_DELAY_MS = 400L
+
         /** All pages of one search together (they load in parallel). */
         const val READ_TIMEOUT_MS = 15_000L
 
@@ -169,6 +220,9 @@ class ToolRouter(
 
         /** Tools that search or read the open web; they follow the setting `web_search` (3b-2). */
         val SEARCH_TOOLS = setOf(SearchTool.NAME, ReadPageTool.NAME)
+
+        /** Häppchen 9: tools for attached documents; only in the prompt while a long one is attached. */
+        val DOCUMENT_TOOLS = setOf("search_document")
         const val SEARCH_OFF = "search_off"
         const val ASK_FIRST = "ask_first"
         private const val SEARCH_OFF_HINT =

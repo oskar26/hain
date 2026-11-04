@@ -1,8 +1,11 @@
 package app.hain.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -10,19 +13,29 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.hain.ui.HainIcons
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 
-/** Top bar (DESIGN_SYSTEM.md §5): left action, title in the middle, right action. */
+/**
+ * Top bar (DESIGN_SYSTEM.md §5): left action, title in the middle, right action. With [onTitleClick]
+ * the title block is a button (T-055 brain picker) with a small chevron next to the subtitle;
+ * [titleAccessory] sits in the same Box, e.g. the popup menu that opens below the title.
+ */
+@Suppress("LongParameterList") // all title options have defaults
 @Composable
 fun TopBar(
     title: String,
@@ -30,6 +43,9 @@ fun TopBar(
     subtitle: String? = null,
     leading: @Composable () -> Unit = {},
     trailing: @Composable () -> Unit = {},
+    onTitleClick: (() -> Unit)? = null,
+    titleClickLabel: String? = null,
+    titleAccessory: @Composable BoxScope.() -> Unit = {},
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
@@ -38,26 +54,56 @@ fun TopBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         leading()
-        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-            // T-085: long titles (a settings page at 200 % font) end in … instead of being cut
-            BasicText(
-                title,
-                style = type.button.copy(color = colors.text),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            if (subtitle != null) {
+        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+            val click =
+                if (onTitleClick != null) {
+                    Modifier
+                        .clip(TitleShape)
+                        .clickable(onClickLabel = titleClickLabel, role = Role.Button, onClick = onTitleClick)
+                        .heightIn(min = 48.dp)
+                        .padding(horizontal = 12.dp)
+                } else {
+                    Modifier
+                }
+            Column(click, horizontalAlignment = Alignment.CenterHorizontally) {
+                // T-085: long titles (a settings page at 200 % font) end in … instead of being cut
                 BasicText(
-                    subtitle,
-                    style = type.label.copy(color = colors.textMuted),
+                    title,
+                    style = type.button.copy(color = colors.text),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                if (subtitle != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        BasicText(
+                            subtitle,
+                            style = type.label.copy(color = colors.textMuted),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                        if (onTitleClick != null) {
+                            Image(
+                                HainIcons.chevronRight,
+                                contentDescription = null,
+                                colorFilter = ColorFilter.tint(colors.textMuted),
+                                modifier = Modifier.padding(start = 2.dp).size(12.dp).rotate(QUARTER_TURN),
+                            )
+                        }
+                    }
+                }
             }
+            titleAccessory()
         }
         trailing()
     }
 }
+
+private val TitleShape =
+    androidx.compose.foundation.shape
+        .RoundedCornerShape(12.dp)
+
+private const val QUARTER_TURN = 90f
 
 /** Empty state: content (usually Pim), a title and an optional line below. */
 @Composable

@@ -138,11 +138,11 @@ t("T-059","ToolTimeline + SourceChips","ui","S","E","T-052,T-062","UI_LIBRARIES.
 t("T-053","Drawer: chat list, search, rename, delete, pin","ui","M","E","T-052,T-015","DESIGN_SYSTEM.md §5",
   "feature-chat/.../ui/ChatListDrawer.kt, ChatListViewModel.kt",["Groups Today/Yesterday/7 days/Older; FTS search over messages.","Open animation: chat scales to 0.94 with continuous corners + dim + drawer parallax (UI_LIBRARIES.md §3)."],["UI test"],U("feature-chat"))
 t("T-054","Export & share chat","feature","S","E","T-053","DATA.md",
-  "feature-chat/.../export/ChatExporter.kt + test",["Markdown and JSON export via SAF; share sheet with plain text."],["exporter unit tests"],U("feature-chat","ChatExporter"))
+  "feature-chat/.../export/ (ChatMarkdown, ChatZip, MarkdownBlocks, PdfLayout, ChatPdf, ChatExport, ExportMenu) + tests",["One chat as Markdown and as own PDF (android.graphics.pdf); save via SAF or share sheet; single answer share stays in the answer row (T-057).","All chats as Markdown ZIP (Settings → Privacy); private chats never exported. JSON dropped for PDF (04.11.)."],["exporter unit tests (Markdown, ZIP, PDF blocks + page breaks)"],U("feature-chat","export"))
 t("T-055","Model picker in top bar","ui","S","E","T-052,T-081","MODELS.md",
   "feature-chat/.../ui/ModelPicker.kt",["Lists installed brains; switch = unload/load with progress toast."],["UI test with fake catalog"],U("feature-chat"))
 t("T-056","Private chat + app lock","feature","S","E","T-053","DATA.md; SETTINGS.md",
-  "feature-chat/..., app/.../lock/AppLock.kt",["Private chat flag (no memory, not listed after close if setting).","BiometricPrompt app lock on resume."],["manual + VM test"],G)
+  "feature-chat/... (ChatStore, ChatViewModel, api/PrivateChat.kt), core-common/api/lock/AppLockGate.kt, app/.../lock/{AppLock,LockScreen}.kt",["Private chat: only in memory, never in DB/search/memory, clearly marked, deleted on leave; tools work.","BiometricPrompt app lock (BIOMETRIC_WEAK | DEVICE_CREDENTIAL) after background with delay now/1 min/5 min; FLAG_SECURE switch."],["PrivateChatTest, AppLockGateTest, manual check on the phone"],G)
 
 ms("M5","Models & onboarding")
 t("T-080","Fill model catalogue with real URLs + sha256","plan","S","F","-","MODELS.md",
@@ -223,7 +223,7 @@ t("T-140","STT Moonshine + mic button","feature","M","F","T-082","VOICE.md",
   "core-voice/.../stt/*.kt, feature-chat composer mic",["sherpa-onnx streaming, VAD, permission sheet."],["device test"],"device")
 t("T-141","TTS Piper + read aloud","feature","M","F","T-082","VOICE.md",
   "core-voice/.../tts/*.kt",["Text prep (unit-tested), sentence pipelining, speed. Pim voice per VOICE.md: Pocket TTS voice anna +2 st, speed 1.15 in every language, English pack always installed, setup language picker downloads the chosen pack, system TTS fallback by DeviceCheck RTF, pitch via AudioTrack PlaybackParams, setting Pim/Neutral, amplitude envelope flow for Pim speaking motion; compare with assets/voice/samples."],["text prep tests + device"],U("core-voice"))
-t("T-143","Pocket TTS on Android (ONNX, all language packs)","native","M","F","T-082","VOICE.md (Pim voice)",
+t("T-145","Pocket TTS on Android (ONNX, all language packs)","native","M","F","T-082","VOICE.md (Pim voice)",
   "tools/voice/export_kerstin_onnx.py, docs/specs/VOICE.md",["Export Pocket TTS (en/de/fr/es/it/pt/nl, voice anna embedding) to ONNX fp16/int8 (reference: PocketTTS-Android-Engine), streaming inference in :core:voice, measure size + RTF on T-000 devices; URLs/SHA-256 only via T-080 on the T-000 devices, compare with assets/voice/samples; write URL+SHA-256 only after a human verifies (T-080)."],
   ["ONNX output audibly matches reference samples; RTF table in VOICE.md"],"device")
 t("T-142","Voice mode screen","ui","M","F","T-140,T-141,T-016","VOICE.md; DESIGN_SYSTEM.md",

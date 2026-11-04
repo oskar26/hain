@@ -4,10 +4,12 @@
 
 #include <atomic>
 #include <cstring>
+#include <mutex>
 #include <string>
 #include <vector>
 
 #include "ggml-backend.h"
+#include "hain_embed.h"
 #include "hain_session.h"
 #include "llama.h"
 
@@ -16,6 +18,7 @@ using hain::Session;
 namespace {
 
 std::atomic<bool> g_backendReady{false};
+std::mutex g_initLock;
 
 Session *session(jlong handle) { return reinterpret_cast<Session *>(handle); }
 
@@ -53,11 +56,14 @@ extern "C" {
 
 JNIEXPORT void JNICALL
 Java_app_hain_llm_internal_NativeLlm_nativeInit(JNIEnv *env, jobject, jstring nativeLibDir) {
-    if (g_backendReady.exchange(true)) return;
+    // brain and embedder (T-110) may both start first, on different threads: load the backends once
+    std::lock_guard<std::mutex> lock(g_initLock);
+    if (g_backendReady.load()) return;
     const char *dir = env->GetStringUTFChars(nativeLibDir, nullptr);
     ggml_backend_load_all_from_path(dir);
     env->ReleaseStringUTFChars(nativeLibDir, dir);
     llama_backend_init();
+    g_backendReady = true;
     HAIN_LOGI("backends loaded");
 }
 
@@ -238,6 +244,34 @@ Java_app_hain_llm_internal_NativeLlm_nativeApplyTemplate(JNIEnv *env, jobject, j
     }
     jbyteArray out = env->NewByteArray(len);
     env->SetByteArrayRegion(out, 0, len, reinterpret_cast<const jbyte *>(buf.data()));
+    return out;
+}
+
+// T-110: embedder (MEMORY.md §3). Its own small context next to the brain, loaded on demand.
+JNIEXPORT jlong JNICALL
+Java_app_hain_llm_internal_NativeLlm_nativeEmbedLoad(JNIEnv *env, jobject, jstring path, jint nCtx, jint nThreads) {
+    const double t0 = hain::nowMs();
+    const char *cpath = env->GetStringUTFChars(path, nullptr);
+    hain::EmbedSession *e = hain::embedLoad(cpath, nCtx, nThreads);
+    env->ReleaseStringUTFChars(path, cpath);
+    if (e != nullptr) HAIN_LOGI("embedder loaded in %.0f ms (dim %d)", hain::nowMs() - t0, e->nEmbd);
+    return reinterpret_cast<jlong>(e);
+}
+
+JNIEXPORT void JNICALL
+Java_app_hain_llm_internal_NativeLlm_nativeEmbedFree(JNIEnv *, jobject, jlong handle) {
+    hain::embedFree(reinterpret_cast<hain::EmbedSession *>(handle));
+}
+
+// The normalised vector of a UTF-8 text, or null when it failed.
+JNIEXPORT jfloatArray JNICALL
+Java_app_hain_llm_internal_NativeLlm_nativeEmbed(JNIEnv *env, jobject, jlong handle, jbyteArray textUtf8) {
+    auto *e = reinterpret_cast<hain::EmbedSession *>(handle);
+    if (e == nullptr) return nullptr;
+    std::vector<float> v = hain::embed(e, bytesOf(env, textUtf8));
+    if (v.empty()) return nullptr;
+    jfloatArray out = env->NewFloatArray((jsize) v.size());
+    env->SetFloatArrayRegion(out, 0, (jsize) v.size(), v.data());
     return out;
 }
 

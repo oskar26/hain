@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
@@ -18,6 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,7 +38,7 @@ import app.hain.ui.theme.isHainDark
  * picker) on the left and the round send button on the right, which turns into stop while an
  * answer streams. The buttons never scroll away, however long the text gets (T-085).
  */
-@Suppress("LongParameterList") // slot-light composable: every label/callback is a parameter
+@Suppress("LongParameterList", "LongMethod") // slot-light composable: every label/callback is a parameter
 @Composable
 fun Composer(
     text: String,
@@ -49,6 +52,13 @@ fun Composer(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     leading: @Composable RowScope.() -> Unit = {},
+    /** T-057: while generating, typed text can still be sent (it waits until the answer is done). */
+    canQueue: Boolean = false,
+    queueLabel: String = sendLabel,
+    /** T-144: lets the screen open the keyboard (widget "Frag Pim"). */
+    focusRequester: FocusRequester? = null,
+    // Häppchen 10: the mic sits right next to send
+    trailing: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
@@ -77,7 +87,11 @@ fun Composer(
                 cursorBrush = SolidColor(colors.accent),
                 minLines = 1,
                 maxLines = MAX_LINES,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 24.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 24.dp)
+                        .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier),
             )
         }
         Row(
@@ -86,15 +100,27 @@ fun Composer(
         ) {
             leading()
             Spacer(Modifier.weight(1f))
+            trailing()
             AnimatedContent(targetState = isGenerating, label = "send-stop") { generating ->
                 if (generating) {
-                    DomeIconButton(
-                        icon = HainIcons.stop,
-                        contentDescription = stopLabel,
-                        onClick = onStop,
-                        color = colors.text,
-                        tint = colors.bg,
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (canQueue && text.isNotBlank()) {
+                            DomeIconButton(
+                                icon = HainIcons.send,
+                                contentDescription = queueLabel,
+                                onClick = onSend,
+                                enabled = enabled,
+                            )
+                            Spacer(Modifier.width(spacing.xs))
+                        }
+                        DomeIconButton(
+                            icon = HainIcons.stop,
+                            contentDescription = stopLabel,
+                            onClick = onStop,
+                            color = colors.text,
+                            tint = colors.bg,
+                        )
+                    }
                 } else {
                     DomeIconButton(
                         icon = HainIcons.send,

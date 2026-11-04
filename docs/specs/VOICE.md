@@ -4,6 +4,16 @@ All via **sherpa-onnx** Android AAR (Apache-2.0). Models are packs (MODELS.md).
 
 ## STT (mic button)
 
+> **Built in Häppchen 10 (0.1.10, T-140):** Moonshine **Streaming Small** (MIT) as ONNX int8, run directly with
+> ONNX Runtime 1.28.0 (no sherpa-onnx AAR on Maven; ORT ≥ 1.29 ships telemetry, see LICENSES.md). Packs
+> `moonshine-small-de` (166 MB) / `moonshine-small-en` (209 MB): `frontend.onnx`, `encoder_int8.onnx`,
+> `adapter_int8.onnx`, `cross_kv_int8.onnx`, `decoder_kv_int8.onnx`, `tokenizer.json`, `streaming_config.json`
+> (exports `Masterx/moonshine-streaming-small(-de)-ONNX`, pinned commit). Pipeline: 16 kHz floats → frontend (5 zero
+> states) → encoder → adapter (`pos_offset` 0) → cross K/V → greedy decoder with self K/V cache from length 0, max
+> 6.5 tokens/s. The whole utterance runs after you stop (≈0.6 s for 6 s of speech on 2 desktop cores); live partials
+> and Silero VAD are not in v1 — leading/trailing silence is cut by energy (−42 dBFS, 30 ms windows, 250 ms margin).
+> Download: the normal pack downloader (resume, SHA-256) through the NetworkGate (MODEL_DOWNLOAD). Mic: AudioRecord VOICE_RECOGNITION at 16 kHz, else 48/44.1 kHz + resample. Max 60 s per dictation.
+
 - Default: **Moonshine Small Streaming** (MIT) — DE WER 7.5 %, EN 7.8 %. Streaming partial results into the composer.
 - Optional pack: Parakeet TDT 0.6B v3 (better, bigger; check licence CC-BY-4.0 → attribution in About).
 - VAD: Silero VAD (sherpa-onnx) — stop after 1.2 s silence (setting).
@@ -11,6 +21,11 @@ All via **sherpa-onnx** Android AAR (Apache-2.0). Models are packs (MODELS.md).
 - Permission `RECORD_AUDIO` asked on first mic tap with explanation sheet.
 
 ## TTS (read aloud)
+
+> **Built in Häppchen 10 (0.1.10, T-141):** read aloud under every answer through `SpeechSynth`; the engine today is
+> the Android system voice with Pim's pitch (×1.1225 = +2 st) and speed 1.15 (`SystemSpeech`). Text prep below is
+> implemented in `SpeechText` (tables are read row by row, formulas → "Formel übersprungen"). The language is the
+> language of the answer (offline guess), else the answer language. Pocket TTS = T-145 (see TASKS.md for its state).
 
 ### Pim voice — one voice for all languages (owner decision 2026-10-28)
 

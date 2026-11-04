@@ -154,6 +154,8 @@ internal fun SettingsPageContent(
                 settings.confirmActions,
                 actions.onConfirmActions,
             )
+            AppLockSection(settings, actions, extras.lockAvailable)
+            ExportAllSection(actions)
             NetworkLogSection(networkLog, settings.networkLogDetail, actions)
         }
         SettingsPage.ABOUT -> AboutPage(settings, actions, extras.appInfo, extras.updateStatus)

@@ -21,8 +21,21 @@ data class ModelInfo(
     val licence: String,
     val licenceUrl: String,
     val isDefault: Boolean,
+    /** Languages of the model (catalog `lang`); a dictation pack has exactly one (T-140). */
+    val lang: List<String> = emptyList(),
 ) {
     val totalSize: Long get() = files.sumOf { it.size }
+
+    /** Packs of several files (dictation: graphs + tokenizer) live in their own folder (T-140). */
+    val isMultiFile: Boolean get() = files.size > 1
+
+    companion object {
+        /** The default chat brain. */
+        const val KIND_BRAIN = "brain"
+
+        /** The pack "Suche nach Bedeutung" for the memory (T-110, MEMORY.md §3). */
+        const val KIND_EMBED = "embed"
+    }
 }
 
 /** Progress of one model download. */
@@ -59,6 +72,9 @@ interface ModelRepository {
     fun mainFile(model: ModelInfo): java.io.File
 
     fun isInstalled(model: ModelInfo): Boolean
+
+    /** Folder that holds the files of [model] (its own folder for a pack of several files, T-140). */
+    fun packDir(model: ModelInfo): java.io.File = mainFile(model).parentFile ?: mainFile(model)
 
     fun downloadState(model: ModelInfo): Flow<DownloadState>
 

@@ -40,6 +40,16 @@ jobs:
       - name: String parity check (DE/EN)
         run: python3 tools/check_strings.py
 
+      # Room writes core-data/schemas/<version>.json while compiling; kept so the file can be committed.
+      - name: Upload Room schemas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: room-schemas
+          path: core-data/schemas/
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Upload test and lint reports
         if: failure()
         uses: actions/upload-artifact@v4
