@@ -52,6 +52,11 @@ object HainIcons {
     val timer: Painter @Composable get() = painterResource(R.drawable.ic_timer)
     val calendar: Painter @Composable get() = painterResource(R.drawable.ic_calendar)
     val navigation: Painter @Composable get() = painterResource(R.drawable.ic_navigation)
+    val github: Painter @Composable get() = painterResource(R.drawable.ic_github)
+    val licence: Painter @Composable get() = painterResource(R.drawable.ic_scale)
+    val info: Painter @Composable get() = painterResource(R.drawable.ic_info)
+    val code: Painter @Composable get() = painterResource(R.drawable.ic_code)
+    val tag: Painter @Composable get() = painterResource(R.drawable.ic_tag)
 }
 
 @Preview(name = "Light — icon grid")

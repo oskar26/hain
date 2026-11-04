@@ -6,9 +6,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
+import app.hain.common.api.DevSettings
 import app.hain.common.api.HainSettings
+import app.hain.feature.settings.api.AppInfo
 import app.hain.feature.settings.api.SettingsActions
 import app.hain.feature.settings.api.SettingsBody
+import app.hain.feature.settings.api.SettingsExtras
 import app.hain.feature.settings.api.SettingsPage
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.theme.HainTheme
@@ -63,12 +66,16 @@ abstract class SettingsStyleShots(
     private val actions = SettingsActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {})
     private val settings = HainSettings()
 
-    private fun render(page: SettingsPage?) {
+    private fun render(
+        page: SettingsPage?,
+        values: HainSettings = settings,
+        extras: SettingsExtras = SettingsExtras(),
+    ) {
         compose.setContent {
             HainTheme(darkTheme = dark) {
                 CompositionLocalProvider(LocalReduceMotion provides true) {
                     Box(Modifier.fillMaxSize().background(LocalHainColors.current.bg)) {
-                        SettingsBody(settings, actions, startPage = page)
+                        SettingsBody(values, actions, startPage = page, extras = extras)
                     }
                 }
             }
@@ -81,6 +88,23 @@ abstract class SettingsStyleShots(
     fun hub() {
         render(null)
         captureScreenRoboImage("$OUT/styles/${name("settings")}$suffix.png")
+    }
+
+    /** T-214: "Über Hain" with Pim, links, version and the update check. */
+    @Test
+    fun aboutPage() {
+        render(
+            SettingsPage.ABOUT,
+            extras = SettingsExtras(AppInfo("0.1.3.1-debug", 412, "a1b2c3d4e5f6", "2026-11-04")),
+        )
+        captureScreenRoboImage("$OUT/styles/${name("settings_about")}$suffix.png")
+    }
+
+    /** T-211: developer settings (unlocked). */
+    @Test
+    fun developerPage() {
+        render(SettingsPage.DEVELOPER, settings.copy(dev = DevSettings(enabled = true, showStats = true)))
+        captureScreenRoboImage("$OUT/styles/${name("settings_dev")}$suffix.png")
     }
 
     @Test

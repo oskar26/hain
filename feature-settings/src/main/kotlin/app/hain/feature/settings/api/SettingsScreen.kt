@@ -58,11 +58,13 @@ fun SettingsScreen(
     actions: SettingsActions,
     modifier: Modifier = Modifier,
     networkLog: List<NetworkLogEntry> = emptyList(),
+    extras: SettingsExtras = SettingsExtras(),
 ) {
-    SettingsBody(settings, actions, modifier, networkLog, startPage = null)
+    SettingsBody(settings, actions, modifier, networkLog, startPage = null, extras = extras)
 }
 
 /** The settings screen itself; [startPage] opens a group right away (previews and screenshots). */
+@Suppress("LongParameterList") // optional extras with defaults
 @Composable
 internal fun SettingsBody(
     settings: HainSettings,
@@ -70,6 +72,7 @@ internal fun SettingsBody(
     modifier: Modifier = Modifier,
     networkLog: List<NetworkLogEntry> = emptyList(),
     startPage: SettingsPage? = null,
+    extras: SettingsExtras = SettingsExtras(),
 ) {
     var page by rememberSaveable { mutableStateOf(startPage) }
     BackHandler { if (page != null) page = null else actions.onBack() }
@@ -99,9 +102,10 @@ internal fun SettingsBody(
             verticalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.md),
         ) {
             if (current == null) {
-                Hub(actions) { page = it }
+                Hub(actions, devMode = settings.dev.enabled) { page = it }
             } else {
-                PageHeader(current)
+                // T-214: "Über Hain" has its own centred header with Pim
+                if (current != SettingsPage.ABOUT) PageHeader(current)
                 // the whole page sits on one glass tile lit from above in the group's colour (T-011)
                 Column(
                     Modifier
@@ -110,7 +114,7 @@ internal fun SettingsBody(
                         .padding(LocalHainSpacing.current.lg),
                     verticalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.md),
                 ) {
-                    SettingsPageContent(current, settings, actions, networkLog)
+                    SettingsPageContent(current, settings, actions, networkLog, extras)
                 }
             }
             Spacer(Modifier.height(LocalHainSpacing.current.xl))
@@ -121,6 +125,7 @@ internal fun SettingsBody(
 @Composable
 private fun Hub(
     actions: SettingsActions,
+    devMode: Boolean = false,
     open: (SettingsPage) -> Unit,
 ) {
     // T-089: Pim greets you at the top of the settings
@@ -151,6 +156,17 @@ private fun Hub(
     }
     Tile(Hain3D.TREE, GlowHue.TEAL, R.string.settings_group_about, R.string.settings_about_hint) {
         open(SettingsPage.ABOUT)
+    }
+    // T-211: only after "Version" was tapped 7× in "Über Hain"
+    if (devMode) {
+        Tile(
+            SettingsPage.DEVELOPER.icon,
+            SettingsPage.DEVELOPER.hue,
+            R.string.settings_group_dev,
+            R.string.settings_dev_hint,
+        ) {
+            open(SettingsPage.DEVELOPER)
+        }
     }
 }
 

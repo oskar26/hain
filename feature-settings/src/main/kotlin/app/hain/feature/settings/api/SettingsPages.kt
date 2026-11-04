@@ -32,6 +32,7 @@ internal fun SettingsPageContent(
     settings: HainSettings,
     actions: SettingsActions,
     networkLog: List<NetworkLogEntry> = emptyList(),
+    extras: SettingsExtras = SettingsExtras(),
 ) {
     when (page) {
         SettingsPage.LOOK -> {
@@ -132,7 +133,8 @@ internal fun SettingsPageContent(
             SearxSetting(settings.searxUrl, actions.onSearxUrl)
             NetworkLogSection(networkLog, settings.networkLogDetail, actions)
         }
-        SettingsPage.ABOUT -> Info(R.string.settings_about_text)
+        SettingsPage.ABOUT -> AboutPage(settings, actions, extras.appInfo, extras.updateStatus)
+        SettingsPage.DEVELOPER -> DeveloperPage(settings.dev, actions, extras.devModels)
     }
 }
 
@@ -161,7 +163,7 @@ private fun SearxSetting(
 }
 
 @Composable
-private fun Info(text: Int) {
+internal fun Info(text: Int) {
     BasicText(
         stringResource(text),
         style = LocalHainTypography.current.bodySmall.copy(color = LocalHainColors.current.text),
