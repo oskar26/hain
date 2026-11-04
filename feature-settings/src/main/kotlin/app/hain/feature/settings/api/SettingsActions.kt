@@ -31,6 +31,8 @@ class SettingsActions(
     val onConfirmActions: (Boolean) -> Unit = {},
     /** Web search on / ask first / off (3b-2). */
     val onWebSearch: (WebSearch) -> Unit = {},
+    /** Location for the weather on/off; on asks Android for the permission first (3b-2). */
+    val onWeatherLocation: (Boolean) -> Unit = {},
     val onHaptics: (HapticStrength) -> Unit = {},
     val onAppIcon: (AppIcon) -> Unit = {},
     /** Developer mode on/off and all its values at once (T-211). */

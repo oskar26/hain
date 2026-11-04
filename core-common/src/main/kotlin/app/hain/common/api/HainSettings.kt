@@ -88,6 +88,8 @@ data class HainSettings(
     val networkLogDetail: Boolean = false,
     /** Web search on, ask first, or off (SETTINGS.md `web_search`, 3b-2). Wikipedia and weather stay. */
     val webSearch: WebSearch = WebSearch.ON,
+    /** Weather without a place uses the phone's last known location (3b-2, `weather_location`); asks first. */
+    val weatherLocation: Boolean = false,
     /** Own SearXNG address, asked first by the web search (SETTINGS.md `searxng_url`); empty = none. */
     val searxUrl: String = "",
     /**

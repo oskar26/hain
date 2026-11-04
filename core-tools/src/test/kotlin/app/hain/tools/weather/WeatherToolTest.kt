@@ -3,6 +3,7 @@ package app.hain.tools.weather
 import app.hain.common.api.net.GateRequest
 import app.hain.common.api.net.GateResponse
 import app.hain.common.api.net.Purpose
+import app.hain.tools.api.GeoPoint
 import app.hain.tools.api.InfoCard
 import app.hain.tools.api.ToolContext
 import app.hain.tools.internal.net.HttpNetworkGate
@@ -86,5 +87,34 @@ class WeatherToolTest {
             val gate = HttpNetworkGate(transport = { GateResponse(200, "{}") })
             val r = WeatherTool(gate).run(mapOf("place" to "Xyz"), ToolContext("de", ZonedDateTime.now(), false))
             assertEquals("not_found", r.error)
+        }
+
+    @Test
+    fun noPlaceUsesTheAllowedLocation() =
+        runTest {
+            val seen = mutableListOf<GateRequest>()
+            val gate =
+                HttpNetworkGate(transport = { r ->
+                    seen += r
+                    GateResponse(200, forecast)
+                })
+            val here = GeoPoint(50.938361, 6.959974)
+            val ctx = ToolContext("de", ZonedDateTime.now(), false, here = here)
+            val result = WeatherTool(gate).run(emptyMap(), ctx)
+            assertEquals("Dein Standort", result.label)
+            // no geocoding, and the forecast only gets about 1 km
+            assertEquals(listOf(Purpose.WEATHER), seen.map { it.purpose })
+            assertTrue(seen.single().url.contains("latitude=50.94&longitude=6.96"))
+            val hier = WeatherTool(gate).run(mapOf("place" to "hier"), ctx)
+            assertEquals("Dein Standort", hier.label)
+        }
+
+    @Test
+    fun noPlaceWithoutLocationAsksForThePlace() =
+        runTest {
+            val gate = HttpNetworkGate(transport = { GateResponse(200, forecast) })
+            val r = WeatherTool(gate).run(emptyMap(), ToolContext("de", ZonedDateTime.now(), false))
+            assertEquals("no_place", r.error)
+            assertEquals(50.94, WeatherTool.rounded(50.938361), 1e-9)
         }
 }

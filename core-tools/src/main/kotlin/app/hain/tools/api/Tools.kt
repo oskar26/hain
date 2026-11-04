@@ -19,6 +19,8 @@ data class ToolContext(
     val webSearch: WebSearch = WebSearch.ON,
     /** With [WebSearch.ASK]: the user just said yes to Pim's question whether he may search. */
     val searchApproved: Boolean = false,
+    /** The phone's last known location, only when the user allowed it for the weather (3b-2). */
+    val here: GeoPoint? = null,
 ) {
     companion object {
         const val DEFAULT_PAGES = 3
@@ -26,6 +28,12 @@ data class ToolContext(
         const val MAX_HITS = 8
     }
 }
+
+/** A spot on earth (3b-2: the phone's last known location for the weather). */
+data class GeoPoint(
+    val lat: Double,
+    val lon: Double,
+)
 
 /** One search hit: a page the brain may want, with the search engine's short text about it. */
 data class ToolHit(
