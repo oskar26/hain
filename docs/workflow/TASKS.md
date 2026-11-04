@@ -92,6 +92,11 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-072 | news tool + NewsCard | feature | S | B | T-071,T-062 | review |
 | T-073 | News screen (3-mode switch, own feeds) | ui | M | B | T-072 | review |
 | T-074 | Article summary on demand | feature | S | B | T-073,T-067 | review |
+| T-075 | News list with pictures: 19 standard feeds loaded one by one, sources mixed, NewsImages (gate, disk cache), top story + cards, frosted bar, pull to refresh | ui | M | B | T-073 | review (04.11., 0.1.10.3, `hark/news-reader`) |
+| T-076 | Reading view in the app (Readability, own code) with text settings, article pictures/charts; tablet list-detail from 840 dp | ui | M | B | T-075 | review (04.11., 0.1.10.3) |
+| T-077 | "Paywall" mark only for articles found cut off (Paywall.kt, `markRead`), never bypassed | feature | S | B | T-076 | review (04.11., 0.1.10.3) |
+| T-078 | Ask Pim about the open article (context cut to the brain's budget), "Im Chat weiterführen"; replaces T-074 summary | feature | S | B | T-076 | review (04.11., 0.1.10.3) |
+| T-079 | "Dein Briefing heute" (stories picked on the phone, sentences by the brain), optional morning note (WorkManager, off by default) | feature | M | B | T-075 | review (04.11., 0.1.10.3) |
 | T-110 | Embedder (LFM2.5-Embedding via llama.cpp) | native | S | C | T-030 | review (04.11., 7b, draft PR #46) |
 | T-111 | Memory tables + DAO | feature | S | C | T-020 | review (04.11., draft PR #38) |
 | T-112 | Explicit remember/forget + remember tool | feature | S | C | T-111,T-062 | review (04.11., draft PR #38) |
@@ -843,6 +848,65 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
   1. Fetch → readability → LLM 5 bullets, not stored; paywall message.
 - accept:
   - VM test with fakes
+- check: `./gradlew :feature-news:testDebugUnitTest`
+
+> **Task-IDs News-Reader (04.11.):** T-230–T-237 belegt der parallele PR #52 (`hark/ui-polish`). Der News-Reader läuft deshalb unter den freien IDs T-075–T-079. Der schon gepushte Commit 6c07e89 trägt irrtümlich „T-230“ im Titel; inhaltlich ist er die Datenschicht von T-075/T-076/T-077 (Feeds, Readability, Paywall, Seitenbilder).
+
+### T-075 · News list with pictures
+
+- type: `ui` · size: `M` · lane: `B` · depends: T-073
+- read: NEWS.md §1, §2, §6, §8; DESIGN_LANGUAGE.md
+- files: core-tools/.../news/ (standard_feeds.json, NewsRepository, FeedParser, PageImage), feature-news/.../api/ (NewsImages, NewsCards, PullRefresh, NewsScreen, NewsViewModel, NewsPrefs, NewsSettingsPage)
+- do:
+  1. 19 standard feeds, each loaded on its own (15 s limit), sources take turns (`mixed()`), no dates in the future.
+  2. Pictures from the feed, the feed's HTML or the page's og:image; loaded through NetworkGate (purpose IMAGES), disk cache 48 MB, memory cache; setting "Bilder in der Liste".
+  3. Frosted top bar, mode chips in one line, top story, cards with picture right, pull to refresh, settings page.
+- accept:
+  - NewsRepositoryTest, FeedParserTest, NewsImagesTest, NewsViewModelTest; screenshots
+- check: `./gradlew :core-tools:testDebugUnitTest :feature-news:testDebugUnitTest`
+
+### T-076 · Reading view in the app
+
+- type: `ui` · size: `M` · lane: `B` · depends: T-075
+- read: NEWS.md §5, §8
+- files: core-tools/.../news/ (HtmlTree, Readability), feature-news/.../api/ (ArticleReader, ReaderScreen, NewsScreen)
+- do:
+  1. Page through the gate (purpose NEWS, only on tap) → readable blocks with pictures; reading view with text size, serif/sans, line spacing, colours; "Auf Website öffnen".
+  2. From 840 dp list left, article right.
+- accept:
+  - ReadabilityTest (fixtures), NewsViewModelTest (open/close); screenshots phone + tablet
+- check: `./gradlew :feature-news:testDebugUnitTest`
+
+### T-077 · Paywall mark only when true
+
+- type: `feature` · size: `S` · lane: `B` · depends: T-076
+- files: core-tools/.../news/Paywall.kt, NewsRepository.markRead
+- do:
+  1. No paywall flag per feed; after reading, an article found cut off (JSON-LD `isAccessibleForFree=false`, typical wall texts) gets the mark. Never bypass.
+- accept:
+  - PaywallTest, NewsViewModelTest (cut-off article gets the mark)
+- check: `./gradlew :core-tools:testDebugUnitTest :feature-news:testDebugUnitTest`
+
+### T-078 · Ask Pim about the article
+
+- type: `feature` · size: `S` · lane: `B` · depends: T-076
+- files: feature-news/.../api/ArticleAsk.kt, ReaderScreen.kt (Pim bubble + sheet), app/.../NewsBrain.kt
+- do:
+  1. Article text cut to the brain's context (`budgetChars`: context − 1,100 tokens, 3 chars per token, 1,500–24,000 chars) at a paragraph end; thinking off; answer only from the article.
+  2. Quick questions (Zusammenfassen, Einfach erklärt, Hintergrund), own question, "Im Chat weiterführen". Replaces the T-074 summary.
+- accept:
+  - ArticleAskTest, NewsViewModelTest
+- check: `./gradlew :feature-news:testDebugUnitTest`
+
+### T-079 · Daily briefing
+
+- type: `feature` · size: `M` · lane: `B` · depends: T-075
+- files: feature-news/.../api/Briefing.kt, BriefingDaily.kt, NewsCards.kt (BriefingCard), app/.../HainApp.kt, MainActivity.kt
+- do:
+  1. Stories of the last 24 h clustered by shared words, more sources = more important, max 2 per source, 5–7 points; one sentence each by the brain (only when it is already loaded on open, "Neu erzeugen" loads it), else the story's first sentence; kept once a day in `files/news/briefing.json`.
+  2. Optional morning note around 07:00 (WorkManager, network required, off by default, POST_NOTIFICATIONS asked when switched on); tap opens News.
+- accept:
+  - BriefingTest
 - check: `./gradlew :feature-news:testDebugUnitTest`
 
 ## M8 · Memory

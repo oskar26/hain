@@ -99,7 +99,7 @@ export const COPY: Record<Lang, Copy> = {
         { icon: 'package', title: 'Knowledge packs', text: 'See, download and remove packs, with hints on what fits your phone.', status: 'ready' },
         { icon: 'update', title: 'Update check (optional)', text: 'If you want, Hain asks GitHub once a day whether a newer version is out and shows a calm hint. Off until you say yes, nothing about you is sent, nothing installs by itself.', status: 'ready' },
         { icon: 'code', title: 'Developer mode', text: 'Hidden for tinkerers: tap the version 7 times. Try your own GGUF model from Hugging Face, tune sampling and thinking, see tokens per second.', status: 'ready' },
-        { icon: 'news', title: 'News', text: 'Headlines from a fixed mix of 14 sources in German and English, plus your own feeds if you like. Pim sums up an article in 5 points, on your phone.', status: 'ready' },
+        { icon: 'news', title: 'News', text: 'A calm news reader with pictures: 19 sources in German and English, plus your own feeds if you like. Read articles right in the app, get your daily briefing and ask Pim about an article, on your phone.', status: 'ready' },
         { icon: 'file', title: 'Documents', text: 'Attach a PDF, a photo of a page or a text file with the paper clip and ask about it. Pim answers with the page. Text recognition runs on your phone; only the text is kept, encrypted.', status: 'ready' },
         { icon: 'memory', title: 'Memory', text: '“Remember that I’m vegetarian.” Pim keeps it on your phone and uses it when it fits, finds it by meaning with a small extra pack, and suggests what it noticed in your chats. Under each answer you see which memories were used. See, change and delete everything in Settings → Memory.', status: 'ready' },
         { icon: 'private', title: 'Private chat & app lock', text: 'A private chat that is never saved or searched and is gone when you leave it. Lock Hain with your fingerprint or PIN, block screenshots.', status: 'ready' },
@@ -138,7 +138,7 @@ export const COPY: Record<Lang, Copy> = {
       title: 'Calm, clear, and a little green.',
       sub: 'Lots of white, fine lines, green only where it matters. In light and dark.',
       placeholder: 'Screenshot coming soon',
-      items: ['Welcome', 'Start page', 'Thinking level', 'Long answers', 'Your chats', 'Settings'],
+      items: ['Welcome', 'Start page', 'Thinking level', 'Long answers', 'Your chats', 'Settings', 'News', 'Reading view'],
     },
     privacy: {
       kicker: 'Privacy',
@@ -284,7 +284,7 @@ export const COPY: Record<Lang, Copy> = {
         { icon: 'package', title: 'Wissenspakete', text: 'Pakete ansehen, laden und entfernen, mit Hinweis, was zu deinem Handy passt.', status: 'ready' },
         { icon: 'update', title: 'Update-Prüfung (freiwillig)', text: 'Wenn du willst, fragt Hain einmal am Tag bei GitHub, ob es eine neue Version gibt, und zeigt einen ruhigen Hinweis. Aus, bis du Ja sagst. Über dich wird nichts gesendet, nichts installiert sich von selbst.', status: 'ready' },
         { icon: 'code', title: 'Entwicklermodus', text: 'Versteckt für Bastler: tippe 7× auf die Version. Probier eigene GGUF-Modelle von Hugging Face, stell Sampling und Denken ein, sieh Token pro Sekunde.', status: 'ready' },
-        { icon: 'news', title: 'Nachrichten', text: 'Schlagzeilen aus einem festen Mix von 14 Quellen auf Deutsch und Englisch, auf Wunsch mit deinen eigenen Feeds. Pim fasst einen Artikel in 5 Punkten zusammen, auf dem Handy.', status: 'ready' },
+        { icon: 'news', title: 'Nachrichten', text: 'Ein ruhiger Nachrichten-Reader mit Bildern: 19 Quellen auf Deutsch und Englisch, auf Wunsch mit deinen eigenen Feeds. Artikel direkt in der App lesen, dein tägliches Briefing und Fragen an Pim zum Artikel, alles auf dem Handy.', status: 'ready' },
         { icon: 'file', title: 'Dokumente', text: 'Häng mit der Büroklammer ein PDF, ein Foto einer Seite oder eine Textdatei an und frag dazu. Pim antwortet mit Seitenangabe. Die Texterkennung läuft auf dem Handy, gespeichert wird nur der Text, verschlüsselt.', status: 'ready' },
         { icon: 'memory', title: 'Gedächtnis', text: '„Merk dir, dass ich vegetarisch esse.“ Pim behält es auf deinem Handy und nutzt es, wenn es passt, findet es mit einem kleinen Zusatzpaket auch nach Bedeutung und schlägt vor, was ihm in deinen Chats aufgefallen ist. Unter jeder Antwort siehst du, welche Erinnerungen genutzt wurden. Alles sehen, ändern und löschen unter Einstellungen → Gedächtnis.', status: 'ready' },
         { icon: 'private', title: 'Privater Chat & App-Sperre', text: 'Ein privater Chat, der nie gespeichert oder durchsucht wird und beim Verlassen weg ist. Hain mit Fingerabdruck oder PIN sperren, Bildschirmfotos verhindern.', status: 'ready' },
@@ -323,7 +323,7 @@ export const COPY: Record<Lang, Copy> = {
       title: 'Ruhig, klar und ein bisschen grün.',
       sub: 'Viel Weiß, feine Linien, Grün nur da, wo es zählt. Hell und dunkel.',
       placeholder: 'Screenshot folgt',
-      items: ['Willkommen', 'Startseite', 'Denk-Stufe', 'Lange Antworten', 'Deine Chats', 'Einstellungen'],
+      items: ['Willkommen', 'Startseite', 'Denk-Stufe', 'Lange Antworten', 'Deine Chats', 'Einstellungen', 'Nachrichten', 'Leseansicht'],
     },
     privacy: {
       kicker: 'Datenschutz',
@@ -423,7 +423,7 @@ export const COPY: Record<Lang, Copy> = {
 // Screenshots in style A "Lichtung" (from docs/design/screens/style_a_*.png, converted to WebP).
 // Each has a light and a dark file in public/screenshots/: <id>-light.webp, <id>-dark.webp.
 // The page shows the one matching the visitor's colour scheme.
-export const SCREENSHOTS: string[] = ['onboarding', 'chat_empty', 'chat_composer_picker', 'chat_long_answer', 'drawer', 'settings']
+export const SCREENSHOTS: string[] = ['onboarding', 'chat_empty', 'chat_composer_picker', 'chat_long_answer', 'drawer', 'settings', 'news', 'news_reader']
 
 // Pixel size of each screenshot (light and dark are the same). They are cropped to where the app
 // content ends (T-105): no empty bottom strip, and the short settings page ends after its last row.
@@ -434,6 +434,9 @@ export const SHOT_SIZE: Record<string, [number, number]> = {
   chat_long_answer: [720, 1548],
   drawer: [720, 1548],
   settings: [720, 1008],
+  // News (T-075/T-076, 0.1.10.3): recorded at 392 × 850 dp, scaled to 720 wide
+  news: [720, 1561],
+  news_reader: [720, 1561],
 }
 
 // The English screenshots (`<id>-<mode>-en.webp`, T-107) were recorded later: the settings page

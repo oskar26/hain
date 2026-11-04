@@ -601,3 +601,18 @@ Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen 
 - Schon in #50 enthalten (f8835fe): Anhänge aus privaten Chats nur flüchtig (`EphemeralDocs`, negative IDs, nie in `hain_docs.db`), Artikel aus NewsCard/Nachrichten über `LocalExternalLaunch` (App-Sperre greift nicht).
 - Konflikte: ChatStore/RoomChatPersistence (Karten + Verzweigungen + Anhänge), ChatExtras (answerFooter + favicons), MainActivity (DocLibrary + Favicons), Strings (`chat_action_*` → `cards_action_*` in core-cards), README/Website/TASKS/STATUS.
 - `hain.versionName=0.1.10.1`.
+
+## 2026-11-04 · 0.1.10.3 – News-Reader · review · harness: Hark · model: Hark · branch `hark/news-reader`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-075 | review | `NewsRepositoryTest`, `FeedParserTest`, `NewsImagesTest` (5), `NewsViewModelTest` (7), `NewsScreenTest`; Screens `news_light/dark(_en)` | `core-tools/.../news/*` (Datenschicht, Commit 6c07e89 „T-230“), `MainActivity` (NewsImages, Prefs, Briefing-Store, Öffnen aus der Benachrichtigung) | Bilder-Tempo auf dem Handy messen |
+| T-076 | review | `ReadabilityTest` (Fixtures), `NewsViewModelTest` (öffnen/schließen); Screens `news_reader_*`, `news_tablet_*` | – | – |
+| T-077 | review | `PaywallTest`, `NewsViewModelTest` (gekürzter Artikel bekommt die Markierung) | – | – |
+| T-078 | review | `ArticleAskTest` (7, Kontextbudget), `NewsViewModelTest` (Frage + Übergabe an den Chat); Screen `news_ask_light` | `NewsBrain.kt` (nur-wenn-geladen-Variante), `SummarizeArticle` + Test entfernt | Antwortqualität mit echtem LFM3 |
+| T-079 | review | `BriefingTest` (9); Screen `news_briefing_light` | `HainApp` (BriefingDaily, NewsRepository als `dagger.Lazy`) | Benachrichtigung auf dem Gerät prüfen |
+
+- Task-IDs: T-230–T-237 sind im parallelen PR #52 (`hark/ui-polish`) vergeben → News-Reader unter den freien IDs T-075–T-079; der gepushte Commit 6c07e89 heißt noch „T-230“ (= Datenschicht von T-075–T-077), Kommentare im Code auf T-075/T-076 umbenannt.
+- Gradle lokal nicht gestartet (RAM, paralleler LLM-Test im Sandbox): ktlint 1.5.0, detekt 1.23.8 CLI, `tools/check_strings.py` lokal grün, Rest über CI.
+- Erwartete Konflikte mit #52: `MainActivity.kt` (News-Einhängepunkt), `feature-news/src/main/res/values(-de)/strings.xml`, README/STATUS/TASKS/HANDOFF_LOG, `gradle.properties`.
+- `hain.versionName=0.1.10.3`.
