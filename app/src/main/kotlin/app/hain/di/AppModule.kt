@@ -3,6 +3,7 @@ package app.hain.di
 import android.content.Context
 import android.util.Log
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import app.hain.common.api.BrainChoiceStore
 import app.hain.common.api.HainSettings
 import app.hain.common.api.SettingsRepository
 import app.hain.common.api.net.NetworkGate
@@ -53,6 +54,19 @@ object AppModule {
             PreferenceDataStoreFactory.create(
                 scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
                 produceFile = { File(context.filesDir, "datastore/settings.preferences_pb") },
+            ),
+        )
+
+    /** T-055: the brain picked in the top bar, in its own small DataStore file. */
+    @Provides
+    @Singleton
+    fun brainChoiceStore(
+        @ApplicationContext context: Context,
+    ): BrainChoiceStore =
+        BrainChoiceStore(
+            PreferenceDataStoreFactory.create(
+                scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+                produceFile = { File(context.filesDir, "datastore/brain.preferences_pb") },
             ),
         )
 

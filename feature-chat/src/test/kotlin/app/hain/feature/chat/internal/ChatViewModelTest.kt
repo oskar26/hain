@@ -66,6 +66,55 @@ class ChatViewModelTest {
     }
 
     @Test
+    fun switchingTheBrainLoadsTheNewPathAndWarmsUp() {
+        val llm = FakeLlm()
+        var path = "small.gguf"
+        val vm =
+            ChatViewModel(
+                llm = llm,
+                engine = ChatEngine(llm, { "S" }),
+                store = ChatStore(),
+                modelPath = { path },
+                brainInstalled = flowOf(true),
+                streamThrottleMs = 0,
+            )
+        watchers += CoroutineScope(Dispatchers.Main).launch { vm.state.collect { } }
+        assertEquals(listOf("small.gguf"), llm.paths)
+        path = "big.gguf"
+        vm.switchBrain()
+        assertEquals(listOf("small.gguf", "big.gguf"), llm.paths)
+        assertEquals(2, llm.prefills.size)
+    }
+
+    @Test
+    fun switchingStopsARunningAnswerFirst() {
+        val llm = FakeLlm(null)
+        val store = ChatStore()
+        val vm = viewModel(llm, store)
+        vm.say("Erzähl mir was")
+        assertTrue(vm.state.value.isGenerating)
+        val before = llm.loads
+        vm.switchBrain()
+        assertFalse(vm.state.value.isGenerating)
+        assertTrue(
+            store
+                .only()
+                .messages
+                .last()
+                .stopped,
+        )
+        assertEquals(before + 1, llm.loads)
+    }
+
+    @Test
+    fun switchingWithoutABrainOnThePhoneDoesNothing() {
+        val llm = FakeLlm()
+        val vm = viewModel(llm, brain = false)
+        vm.switchBrain()
+        assertEquals(0, llm.loads)
+    }
+
+    @Test
     fun stopSwitchesTheAnswerAtOnce() {
         val llm = FakeLlm(null)
         val store = ChatStore()

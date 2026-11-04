@@ -118,6 +118,23 @@ class ChatViewModel(
         }
     }
 
+    /**
+     * T-055: another brain was picked in the top bar. A running answer stops, then the new brain
+     * loads in the background ([modelPath] already points at it); the top bar shows the progress.
+     */
+    fun switchBrain() {
+        if (local.value.generating) stop()
+        if (!installed.value) return
+        viewModelScope.launch {
+            local.update { if (it.error == ChatError.MODEL_LOAD) it.copy(error = null) else it }
+            if (llm.load(modelPath(), contextSize())) {
+                engine.warmUp()
+            } else {
+                local.update { it.copy(error = ChatError.MODEL_LOAD) }
+            }
+        }
+    }
+
     /** Thumb per answer id; read by the action row under each answer. */
     val ratings: StateFlow<Map<Long, Rating>> = messageRatings.ratings
 

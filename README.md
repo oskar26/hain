@@ -79,6 +79,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🌱 First start | Playful welcome tour with Pim, brain download (LFM3-1.7B, 1.0 GB) with resume and checksum, celebration screen; the download can wait or run in the background | ✅ |
 | 🗂️ Saved chats | Stored encrypted on the phone; search, rename, pin, delete, grouped by day | ✅ |
 | ⚙️ Settings | Theme, app icon (3D or flat), easy-to-read font, answer mode (fast / auto / thorough), answer language, "about me" and answer style. Thinking level also right in the message box (brain button) | ✅ |
+| 🧠 Choose the brain | Tap "Hain · On this phone" at the top: a small frosted menu lists the brains on your phone with a plain name ("Quick brain"), model and size, marks the one recommended for your phone and loads your pick in the background with progress. Brains not on your phone lead to Knowledge packs | ✅ |
 | 📦 Knowledge packs | See, download and remove packs, with hints on what fits your phone | ✅ |
 | 🎨 Look | One calm design "Lichtung": lots of white, fine hairlines, Hain green only as an accent, radii 12–16 dp, quiet line icons; light font (Hanken Grotesk), dark mode; "Reduce motion" stops all movement | ✅ |
 | 🌱 Pim | Lives everywhere (start page, thinking, done, errors, empty search, pull gestures) and the leaf always stays on his head. Tap him for a different little reaction each time, drag him around on the start page and he springs back | ✅ |
@@ -90,7 +91,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🛠️ Developer mode | Hidden: tap the version in "About Hain" 7 times. Own GGUF model from Hugging Face (size, RAM hint, download with progress), sampling, context size, thinking, own system prompt, tokens per second under answers | ✅ |
 | ✏️ Chat extras | Automatic chat titles; tap your own message to edit or copy it. Chat list: small glass menu at each chat (pin, rename, delete), smooth drawer | ✅ |
 | 📤 Export | Export a chat as Markdown or PDF | 🗓️ |
-| 🧭 Settings, part 2 | Glass tiles with their own colour and 3D icon, sub pages, own "reduce motion" switch, glossy 3D Pim, new first start. Language step at first start is in. Still open: brain picker in the top bar | 🚧 |
+| 🧭 Settings, part 2 | Glass tiles with their own colour and 3D icon, sub pages, own "reduce motion" switch, glossy 3D Pim, new first start with a language step, brain picker in the top bar | ✅ |
 | 🔧 Tools | Calculator and units, weather (Open-Meteo), Wikipedia (German/English), web search without API key that reads several pages (or your own SearXNG), reading a link, alarm, timer, calendar entry and route with a confirm card – Pim shows each step and its sources under the answer. Still open: weather card, repeating alarms | 🚧 |
 | ⏰ Phone actions | Alarm, timer, calendar entry, navigation – prepared by Pim as a glass card, done only after your tap | ✅ |
 | 🛡️ Network log | Every tool request goes through one gate: orange "Online" dot while it runs, offline mode, log of the last 7 days in Settings → Privacy. The log now stays after a restart (7 days, encrypted). Still open: brain download through the gate | 🚧 |
@@ -108,6 +109,7 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Choose Pim's brain at the top.** Tap **"Hain · On this phone"** at the top of the chat. A small frosted-glass menu shows the brains on your phone with a plain name ("Quick brain", "Balanced brain", "Smart brain"), the model and its size, and marks the one **recommended for your phone**. Tap another one and it loads in the background – a thin green line under the top bar shows how far it is; a running answer stops first. Hain remembers your pick. Brains that are not on your phone yet, and "More brains", open **Knowledge packs**. (Today the catalogue has one brain; more follow.)
 - **Version 0.1.3.1.** Hain now shows its version in **Settings → About Hain** (with build number and commit). How the numbers work is in [docs/workflow/VERSIONING.md](docs/workflow/VERSIONING.md).
 - **Frosted glass menus.** The ⋯ menu, the long-press menu in the side panel and the thinking picker are now real frosted glass: the chat behind them shows through, softly blurred, with a thin light edge and a soft shadow. The rest of the screen only dims a little. On phones older than Android 12 the menus are a solid card.
 - **More Pim in the chat.** Pim is bigger while he thinks, sits small next to the newest answer, peeks in while he looks something up, is happy for a moment when the answer is done and gets a fright on an error. On the empty chat he is a bit bigger too. "Reduce motion" keeps him still.

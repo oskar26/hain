@@ -25,6 +25,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.hain.common.api.AnswerLanguage
 import app.hain.common.api.AppIcon
+import app.hain.common.api.BrainChoiceStore
 import app.hain.common.api.HainSettings
 import app.hain.common.api.SearxAddress
 import app.hain.common.api.SettingsRepository
@@ -53,7 +54,6 @@ import app.hain.feature.settings.api.UpdateStatus
 import app.hain.llm.api.DevTuning
 import app.hain.llm.api.LlmEngine
 import app.hain.models.api.DevModels
-import app.hain.models.api.DownloadState
 import app.hain.models.api.ModelRepository
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.ToolContext
@@ -84,6 +84,13 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var settingsRepository: SettingsRepository
 
     @Inject lateinit var networkGate: NetworkGate
+
+    @Inject lateinit var brainChoice: BrainChoiceStore
+
+    /** T-055: brain picker in the top bar (catalogue + DataStore choice). */
+    private val brainPicking by lazy {
+        BrainPicking(models, brainChoice, lifecycleScope, ::deviceRamGb, ::ownModelPath)
+    }
 
     private fun settingsActions(
         onBack: () -> Unit,
@@ -150,9 +157,8 @@ class MainActivity : ComponentActivity() {
     private fun chatViewModel(
         prompts: SystemPromptSource,
         settings: () -> HainSettings,
-    ): ChatViewModel {
-        val brain = models.defaultBrain
-        return ChatViewModel(
+    ): ChatViewModel =
+        ChatViewModel(
             llm = llm,
             engine =
                 ChatEngine(
@@ -174,13 +180,13 @@ class MainActivity : ComponentActivity() {
                     ownModel = { ownModelPath() != null },
                 ),
             store = chatStore,
-            modelPath = { ownModelPath() ?: models.mainFile(brain).absolutePath },
-            brainInstalled = models.downloadState(brain).map { it is DownloadState.Installed },
+            modelPath = brainPicking::path,
+            // T-055: any brain of the catalogue on the phone is enough to chat
+            brainInstalled = brainPicking.installedFlow(),
             networkActive = networkGate.active.map { it > 0 },
             messageRatings = PrefsRatings(getSharedPreferences(RATINGS_PREFS, MODE_PRIVATE)),
             contextSize = { DevTuning.contextSize(settings().dev) },
         )
-    }
 
     /** Language for Wikipedia and weather words: the answer language, or the phone's on "Automatisch". */
     private fun toolLanguage(settings: HainSettings): String =
@@ -213,7 +219,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val brain = models.defaultBrain
         val prompts = SystemPromptSource(applicationContext) { current }
         lifecycleScope.launch { settingsRepository.settings.collect { storedIcon = it.appIcon } }
         // T-212: once a day at start, only when switched on (off by default)
@@ -242,12 +247,14 @@ class MainActivity : ComponentActivity() {
                     LocalHapticLevel provides HapticLevel.entries[settings.haptics.ordinal],
                 ) {
                     HainMenuBackdrop {
-                        var installed by remember { mutableStateOf(models.isInstalled(brain)) }
+                        var installed by remember {
+                            mutableStateOf(brainPicking.anyInstalled())
+                        }
                         var skipped by remember { mutableStateOf(startPrefs.getBoolean(KEY_SKIPPED, false)) }
                         if (!installed && !skipped) {
                             OnboardingScreen(
                                 models = models,
-                                onDone = { installed = models.isInstalled(brain) },
+                                onDone = { installed = brainPicking.anyInstalled() },
                                 onLanguage = { tag -> pickLanguage(tag) },
                                 iconFlat = settings.appIcon == AppIcon.FLAT,
                                 onIconFlat = { flat ->
@@ -263,6 +270,10 @@ class MainActivity : ComponentActivity() {
                         } else {
                             val chatViewModel = viewModel { chatViewModel(prompts) { current } }
                             val chatState by chatViewModel.state.collectAsStateWithLifecycle()
+                            val brainPicker =
+                                remember(chatViewModel) {
+                                    brainPicking.state(chatViewModel::switchBrain) { showPacks = true }
+                                }
                             var updateHidden by rememberSaveable { mutableStateOf(false) }
                             val dev = settings.dev
                             ChatScreen(
@@ -274,12 +285,13 @@ class MainActivity : ComponentActivity() {
                                     lifecycleScope.launch { settingsRepository.setAnswerMode(mode) }
                                 },
                                 onOpenGame = { showGame = true },
+                                brainPicker = brainPicker,
                                 extras =
                                     ChatExtras(
                                         showStats = dev.enabled && dev.showStats,
                                         rawThinking = dev.enabled && dev.showRawThinking,
                                         debugInfo = { stats ->
-                                            val model = File(ownModelPath() ?: models.mainFile(brain).absolutePath).name
+                                            val model = File(brainPicking.path()).name
                                             DevTuning.debugLine(model, current.dev, stats)
                                         },
                                     ),

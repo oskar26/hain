@@ -45,7 +45,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-059 | ToolTimeline + SourceChips | ui | S | E | T-052,T-062 | review |
 | T-053 | Drawer: chat list, search, rename, delete, pin | ui | M | E | T-052,T-015 | review (redesign 03.11.: glass context menu with scale+fade, marked row, spring drawer + list motion) |
 | T-054 | Export & share chat | feature | S | E | T-053 | todo |
-| T-055 | Model picker in top bar | ui | S | E | T-052,T-081 | partly (language step + localeConfig done; picker open) |
+| T-055 | Model picker in top bar | ui | S | E | T-052,T-081 | review (2f-2, `hark/picker-perf`: brain picker in the top bar; language step + localeConfig done in 2f) |
 | T-056 | Private chat + app lock | feature | S | E | T-053 | todo |
 | T-080 | Fill model catalogue with real URLs + sha256 | plan | S | F | - | review (brain now QAD-Q4_0, day 2) |
 | T-081 | Catalog + DeviceCheck | feature | S | F | T-002 | review (DeviceCheck pure rules + Packs screen) |
@@ -577,12 +577,13 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 
 - type: `ui` · size: `S` · lane: `E` · depends: T-052,T-081
 - read: MODELS.md
-- files: feature-chat/.../ui/ModelPicker.kt
+- files: feature-chat/.../api/ModelPicker.kt, core-models/.../api/BrainChoice.kt, core-common/.../api/BrainChoiceStore.kt, app/.../BrainPicking.kt
 - do:
   1. Lists installed brains; switch = unload/load with progress toast.
+  2. (2f-2) Tap on "Hain · Auf diesem Handy" opens a compact frosted-glass menu: brains of the catalogue with a plain name (by size: Flinkes / Ausgewogenes / Schlaues Gehirn), model + size, "Empfohlen für dein Handy" (DeviceCheck: biggest brain that fits GOOD, else smallest TIGHT), check on the active one. A pick loads in the background (thin progress line under the top bar + subtitle %), a running answer stops first. Not installed / "Mehr Gehirne" → Wissenspakete. Choice in DataStore `datastore/brain.preferences_pb` (`brain_id`).
 - accept:
-  - UI test with fake catalog
-- check: `./gradlew :feature-chat:testDebugUnitTest`
+  - UI test with fake catalog (`ModelPickerTest`, Robolectric), `BrainChoiceTest`, `BrainChoiceStoreTest`, `ChatViewModelTest` (switch)
+- check: `./gradlew :feature-chat:testDebugUnitTest :core-models:testDebugUnitTest :core-common:testDebugUnitTest`
 
 ### T-056 · Private chat + app lock
 

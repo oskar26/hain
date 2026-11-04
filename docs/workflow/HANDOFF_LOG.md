@@ -400,3 +400,12 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 ## 2026-11-04 · T-216 (Zurück-Pfeil zeigt nach links) · review · harness: Hark · model: Hark · branch `hark/extras` (Draft-PR #36)
 - Fehler: Zurück-Knopf in den Einstellungs-Unterseiten war `HainIcons.chevronRight` (zeigte nach rechts). Neu `ic_chevron_left.xml` (Lucide, Strich 2.1 wie die anderen, `autoMirrored`) + `HainIcons.back`, in `SettingsScreen` verwendet. Ganze App durchsucht: sonst kein Zurück-Knopf mit chevronRight (`PacksScreen` nutzt ✕, `chevronRight` bleibt als Zeilen-Chevron und gedreht im „nach unten“-Knopf des Chats).
 - ktlint 1.5.0 + detekt 1.23.8 CLI lokal grün, Gradle nicht lokal → CI, APK, Screens.
+
+## 2026-11-04 · T-055 (Gehirn-Auswahl in der Kopfzeile) · review · harness: Hark · model: Hark · branch `hark/picker-perf`
+- Neu: `BrainChoice` (core-models, reine Regeln: aktives Gehirn = gewähltes wenn installiert → Standard → erstes installiertes; Empfehlung = größtes Gehirn mit DeviceCheck GOOD, sonst kleinstes TIGHT, freier Platz zählt dafür nicht; Menüzeilen installiert zuerst), `BrainChoiceStore` (core-common, eigene DataStore-Datei `datastore/brain.preferences_pb`, Schlüssel `brain_id`, damit `SettingsRepository`/`HainSettings` unberührt bleiben), `ModelPicker.kt` (feature-chat, `HainPopupMenu` = Milchglas, unter dem Titel), `BrainPicking` (app, Glue), `ChatViewModel.switchBrain()` (stoppt laufende Antwort, lädt `modelPath()` neu, wärmt vor).
+- `TopBar` (core-ui) hat optional `onTitleClick`/`titleClickLabel`/`titleAccessory` (Titel wird ≥48 dp-Knopf mit kleinem Chevron); ohne die Parameter unverändert.
+- Fortschritt: dünne grüne Linie unter der Kopfzeile, solange ein Gehirn mit bekanntem Fortschritt lädt (auch beim ersten Laden), Untertitel zeigt weiter „Gehirn wacht auf … x %“.
+- Eigenes Modell aus dem Entwicklermodus hat weiter Vorrang; das Menü sagt das dann in einer Zeile.
+- „Schon installiert?“ für Chat/Onboarding = irgendein Gehirn aus dem Katalog (vorher nur das Standard-Gehirn).
+- Tests: `BrainChoiceTest` (12), `BrainChoiceStoreTest` (2), `ModelPickerTest` (Robolectric, Fake-Katalog, 5), `ChatViewModelTest` (+3), Screenshots `chat_brain_picker_light/dark` (screens.yml).
+- Dateien außerhalb der Liste: `Scaffolding.kt` (TopBar), `ChatScreen.kt` (Einhängepunkt + Ladelinie), `MainActivity.kt`, `AppModule.kt`, `FakeLlm.kt`, Strings EN/DE.
