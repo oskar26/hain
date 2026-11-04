@@ -45,7 +45,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-059 | ToolTimeline + SourceChips | ui | S | E | T-052,T-062 | review |
 | T-053 | Drawer: chat list, search, rename, delete, pin | ui | M | E | T-052,T-015 | review (redesign 03.11.: glass context menu with scale+fade, marked row, spring drawer + list motion) |
 | T-054 | Export & share chat | feature | S | E | T-053 | todo |
-| T-055 | Model picker in top bar | ui | S | E | T-052,T-081 | partly (language step + localeConfig done; picker open) |
+| T-055 | Model picker in top bar | ui | S | E | T-052,T-081 | review (2f-2, `hark/picker-perf`: brain picker in the top bar; language step + localeConfig done in 2f) |
 | T-056 | Private chat + app lock | feature | S | E | T-053 | todo |
 | T-080 | Fill model catalogue with real URLs + sha256 | plan | S | F | - | review (brain now QAD-Q4_0, day 2) |
 | T-081 | Catalog + DeviceCheck | feature | S | F | T-002 | review (DeviceCheck pure rules + Packs screen) |
@@ -125,7 +125,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-097 | Pim normal size + 5 s easter egg (grows to ≤ 5×, trembling, rising haptics, burst) | ui | S | B | T-091,T-096 | review |
 | T-098 | Own 2048 mini game behind Pim (swipe, merge pop, best score, undo, won/lost) | ui | M | B | T-097 | review |
 | T-099 | Subtle haptics everywhere (menus, delete confirm, pull) + HAPTICS.md checklist | ui | S | B | T-096 | review |
-| T-190 | Accessibility & performance pass | fix | M | H | T-052,T-100 | doing (2d-2: non-debuggable CI APK, draw-only animations, throttled streaming; R8 + own baseline profile open) |
+| T-190 | Accessibility & performance pass | fix | M | H | T-052,T-100 | review (2d-2: non-debuggable CI APK, draw-only animations, throttled streaming; 2f-2 `hark/picker-perf`: R8 + shrinkResources for release, hand-written baseline profile + ProfileInstaller, CI release smoke test with start time) |
 | T-195 | Trademark check name 'Hain' | plan | XS | H | - | todo |
 | T-196 | Trademark policy TRADEMARKS.md (DE+EN) + README sections "Name & Pim" and "Support (coming soon)" | docs | XS | H | - | review (04.11., draft PR) |
 | T-106 | Website: hero screenshots fixed (second phone frame without empty area, both frames sized to their image) | fix | XS | B | T-089 | review (04.11., draft PR) |
@@ -594,12 +594,13 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 
 - type: `ui` · size: `S` · lane: `E` · depends: T-052,T-081
 - read: MODELS.md
-- files: feature-chat/.../ui/ModelPicker.kt
+- files: feature-chat/.../api/ModelPicker.kt, core-models/.../api/BrainChoice.kt, core-common/.../api/BrainChoiceStore.kt, app/.../BrainPicking.kt
 - do:
   1. Lists installed brains; switch = unload/load with progress toast.
+  2. (2f-2) Tap on "Hain · Auf diesem Handy" opens a compact frosted-glass menu: brains of the catalogue with a plain name (by size: Flinkes / Ausgewogenes / Schlaues Gehirn), model + size, "Empfohlen für dein Handy" (DeviceCheck: biggest brain that fits GOOD, else smallest TIGHT), check on the active one. A pick loads in the background (thin progress line under the top bar + subtitle %), a running answer stops first. Not installed / "Mehr Gehirne" → Wissenspakete. Choice in DataStore `datastore/brain.preferences_pb` (`brain_id`).
 - accept:
-  - UI test with fake catalog
-- check: `./gradlew :feature-chat:testDebugUnitTest`
+  - UI test with fake catalog (`ModelPickerTest`, Robolectric), `BrainChoiceTest`, `BrainChoiceStoreTest`, `ChatViewModelTest` (switch)
+- check: `./gradlew :feature-chat:testDebugUnitTest :core-models:testDebugUnitTest :core-common:testDebugUnitTest`
 
 ### T-056 · Private chat + app lock
 
@@ -1129,6 +1130,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - files: various (list in handoff)
 - do:
   1. TalkBack labels, font scale 200 %, contrast, baseline profile, startup < 1 s without model.
+  2. (2f-2) Release build with R8 (`isMinifyEnabled` + `isShrinkResources`, keep rules for JNI/llama, Room, SQLCipher, kotlinx.serialization, WorkManager in `app/proguard-rules.pro`), baseline profile `app/src/main/baselineProfiles/baseline-prof.txt` + `androidx.profileinstaller`; CI job `release-smoke` (screens.yml, `tools/ci/release_smoke.sh`) installs the release APK on an emulator, checks it starts, checks the installed profile and measures cold start before/after. See SPEED.md §5.
 - accept:
   - checklist in STATUS.md
 - check: `manual`

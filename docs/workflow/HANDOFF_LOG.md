@@ -231,6 +231,7 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 ## Day 2d-3 (03.11.)
 - T-100: settings are now a hub of icon tiles (Look, Answers, About you, Knowledge packs, Privacy, About Hain) with sub pages; new DataStore key `reduce_motion` feeds `LocalReduceMotion` (OR system animation scale). EN+DE strings.
 - Not done (stays in 2d-3 / later): glossy 3D Pim, new onboarding pictures, R8 + baseline profile (needs device test of 2d-2 first).
+
 ## 2026-11-03 · fix "Antwortsprache Deutsch zuverlässig" (T-080) · review · harness: Hark · branch `hark/fix-language`
 
 | task | status | check result | files outside list (reason) | open issues |
@@ -286,6 +287,7 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 
 - Screenshot tests live in `*/src/test/kotlin/**/screens/` and only run with `-Phain.screens` (Robolectric native graphics need x86): `.github/workflows/screens.yml` uploads them as artifact `screens`.
 - Next: 3b, 4b (ConfirmCard on `glassTile`), 5.
+
 ## 2026-11-03 · Werkzeuge II Rest (4b) · review · harness: Hark · branch `hark/day-4b`
 
 | task | status | check result | files outside list (reason) | open issues |
@@ -331,6 +333,7 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 | task | status | check result | files outside list (reason) | open issues |
 |---|---|---|---|---|
 | T-060 | review | `NetworkLogStoreTest` (store, load, prune, clear); DB version 2 + migration 1→2 | `AppModule` (shared `DatabaseHolder`) | brain download via gate, per-purpose switches, WeatherCard/WikiCard still open → 3b-2 |
+
 ## 2026-11-04 · T-196 (trademark policy, support coming soon) · review · harness: Hark · model: Hark · branch `hark/trademarks`
 - What: new `TRADEMARKS.md`, German in plain language first, then English: code GPL-3.0-or-later and free for everyone; name "Hain", Pim (look, animations, voice) and app icon/logo are project marks; forks need another name, their own mascot and icon and must not look official; allowed without asking: unchanged official builds, mentions ("based on Hain"), reports/tutorials, distro/F-Droid packaging without code changes beyond the build; contact via GitHub issues; not legal advice, registration may be planned; no location details. README: "Name & Pim / Trademarks" and "Support / Unterstützen" (coming soon: star, issue, tell others) after the licence section; rest of README untouched.
 - Files: TRADEMARKS.md, README.md, docs/workflow/{TASKS,STATUS,HANDOFF_LOG}.md.
@@ -476,3 +479,20 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 
 - Next: device test of tools (Oskar), 3b (weather card), 5 (news).
 
+## 2026-11-04 · T-055 (Gehirn-Auswahl in der Kopfzeile) · review · harness: Hark · model: Hark · branch `hark/picker-perf`
+- Neu: `BrainChoice` (core-models, reine Regeln: aktives Gehirn = gewähltes wenn installiert → Standard → erstes installiertes; Empfehlung = größtes Gehirn mit DeviceCheck GOOD, sonst kleinstes TIGHT, freier Platz zählt dafür nicht; Menüzeilen installiert zuerst), `BrainChoiceStore` (core-common, eigene DataStore-Datei `datastore/brain.preferences_pb`, Schlüssel `brain_id`, damit `SettingsRepository`/`HainSettings` unberührt bleiben), `ModelPicker.kt` (feature-chat, `HainPopupMenu` = Milchglas, unter dem Titel), `BrainPicking` (app, Glue), `ChatViewModel.switchBrain()` (stoppt laufende Antwort, lädt `modelPath()` neu, wärmt vor).
+- `TopBar` (core-ui) hat optional `onTitleClick`/`titleClickLabel`/`titleAccessory` (Titel wird ≥48 dp-Knopf mit kleinem Chevron); ohne die Parameter unverändert.
+- Fortschritt: dünne grüne Linie unter der Kopfzeile, solange ein Gehirn mit bekanntem Fortschritt lädt (auch beim ersten Laden), Untertitel zeigt weiter „Gehirn wacht auf … x %“.
+- Eigenes Modell aus dem Entwicklermodus hat weiter Vorrang; das Menü sagt das dann in einer Zeile.
+- „Schon installiert?“ für Chat/Onboarding = irgendein Gehirn aus dem Katalog (vorher nur das Standard-Gehirn).
+- Tests: `BrainChoiceTest` (12), `BrainChoiceStoreTest` (2), `ModelPickerTest` (Robolectric, Fake-Katalog, 5), `ChatViewModelTest` (+3), Screenshots `chat_brain_picker_light/dark` (screens.yml).
+- Dateien außerhalb der Liste: `Scaffolding.kt` (TopBar), `ChatScreen.kt` (Einhängepunkt + Ladelinie), `MainActivity.kt`, `AppModule.kt`, `FakeLlm.kt`, Strings EN/DE.
+
+## 2026-11-04 · T-190 Rest (R8 + Baseline-Profil + Release-Smoke-Test) · review · harness: Hark · model: Hark · branch `hark/picker-perf`
+- Release: `isMinifyEnabled = true`, `isShrinkResources = true`, `app/proguard-rules.pro` (JNI `NativeLlm` + Callbacks `onToken`/`onProgress`, SQLCipher `net.zetetic.database.**`, Room `*_Impl`/Entities/DAOs, kotlinx.serialization, WorkManager-Worker). Release bleibt unsigniert; nur mit `-Phain.signReleaseWithDebugKey=true` (CI-Test, eigenes Handy) mit dem öffentlichen Debug-Schlüssel signiert.
+- Baseline-Profil von Hand: `app/src/main/baselineProfiles/baseline-prof.txt` (Start + Chat-Scroll + Markdown + Milchglas), `androidx.profileinstaller` 1.4.1 (Apache-2.0, LICENSES.md). Kein generiertes Profil (Macrobenchmark braucht API 33+/Root, arm64-APK läuft im x86-Emulator nur übersetzt) → SPEED.md §5.
+- CI: neuer Job `release-smoke` in `screens.yml` + `tools/ci/release_smoke.sh`: Release-APK bauen, Inhalt prüfen (`baseline.prof`, `libhain_llm.so`), Android-11-x86_64-Emulator (ARM-Übersetzung), installieren, Start + Prozess lebt + Crash-Log leer, installiertes ART-Profil zählen, Kaltstart (Median von 7) Nightly-Debug vs. Release, jeweils wie installiert und nach `compile -m speed-profile`. Bericht in der Job-Zusammenfassung + Artifact `release-smoke` (APK, mapping.txt, Logs).
+- Debug `app.hain.debug` unverändert (kein R8); die Nightly-Debug-APK von main wird im Smoke-Test mit installiert und gestartet.
+- CI-Ergebnis (`release-smoke`, 2 Läufe): Release-APK startet und läuft weiter ✅, Nightly-Debug `app.hain.debug` ✅; installiertes Profil ~29.000 Methoden, ~4.200 davon Hain-Code (über `mapping.txt` zurückgerechnet). Kaltstart Median: wie installiert 911→900 ms bzw. 1227→1180 ms, nach `compile -m speed-profile` 978→932 ms bzw. 1145→1065 ms – kleiner Gewinn im Rauschen des CI-Emulators; Messung am echten Handy offen (SPEED.md §5).
+- Version: Vorgabe 0.1.3.3 liegt unter main (0.1.4, PR #40) → `hain.versionName` bleibt 0.1.4, Integration setzt die nächste Nummer.
+- Screenshots `chat_brain_picker_light/dark` nach `docs/design/screens/`.

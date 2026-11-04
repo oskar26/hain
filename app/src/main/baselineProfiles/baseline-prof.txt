@@ -1,0 +1,52 @@
+# Hain baseline profile (T-190), written by hand: start + chat scroll.
+#
+# Compose, Activity, Lifecycle, Coroutines etc. bring their own profiles; AGP merges them with this
+# file into assets/dexopt/baseline.prof of the release APK. ProfileInstaller compiles it on phones
+# without Play (GitHub / F-Droid APKs), so these paths run ahead-of-time compiled from the first
+# start instead of interpreted. Format: https://developer.android.com/topic/performance/baselineprofiles/manually-create-measure
+# H = hot, S = run at start, P = run after start; "L…;" = load the class at start.
+
+# --- Start: app, DI, settings, theme, first screen (onboarding or chat) ---
+HSPLapp/hain/MainActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLapp/hain/MainActivity;-><init>()V
+HSPLapp/hain/HainApp;->**(**)**
+HSPLapp/hain/MainActivity;->**(**)**
+HSPLapp/hain/MainActivity$**;->**(**)**
+HSPLapp/hain/BrainPicking;->**(**)**
+HSPLapp/hain/SystemPromptSource;->**(**)**
+HSPLapp/hain/di/**;->**(**)**
+HSPLapp/hain/Hilt_**;->**(**)**
+HSPLapp/hain/**_HiltComponents**;->**(**)**
+HSPLapp/hain/**_Factory;->**(**)**
+HSPLapp/hain/common/api/**;->**(**)**
+HSPLapp/hain/models/**;->**(**)**
+HSPLapp/hain/data/**;->**(**)**
+HSPLapp/hain/ui/theme/**;->**(**)**
+HSPLapp/hain/ui/motion/**;->**(**)**
+HSPLapp/hain/ui/effects/**;->**(**)**
+HSPLapp/hain/ui/pim/**;->**(**)**
+HSPLapp/hain/ui/HainIcons;->**(**)**
+HSPLapp/hain/feature/onboarding/**;->**(**)**
+Lapp/hain/HainApp;
+Lapp/hain/MainActivity;
+Lapp/hain/ui/theme/**;
+Lapp/hain/common/api/**;
+
+# --- Chat: top bar, start page, message list, composer, drawer, brain picker ---
+HSPLapp/hain/feature/chat/api/**;->**(**)**
+HSPLapp/hain/feature/chat/internal/**;->**(**)**
+HSPLapp/hain/ui/components/**;->**(**)**
+HSPLapp/hain/llm/api/**;->**(**)**
+HSPLapp/hain/llm/internal/**;->**(**)**
+Lapp/hain/feature/chat/api/**;
+Lapp/hain/ui/components/**;
+
+# --- Chat scroll: answers are Markdown (tables, code) ---
+HSPLcom/mikepenz/markdown/**;->**(**)**
+HSPLorg/intellij/markdown/**;->**(**)**
+HPLdev/snipme/highlights/**;->**(**)**
+
+# --- Frosted glass menus and buttons ---
+HSPLdev/chrisbanes/haze/**;->**(**)**
+HSPLcom/composables/core/**;->**(**)**
+HSPLcom/kyant/**;->**(**)**

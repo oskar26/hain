@@ -231,4 +231,14 @@
     <string name="chat_pim_looking">Pim is looking it up…</string>
     <string name="chat_dev_stats">%1$s tokens/s · first token after %2$s s</string>
     <string name="chat_dev_copy_debug">Copy debug info</string>
+    <string name="chat_brain_picker_open">choose brain</string>
+    <string name="chat_brain_picker_title">Pim’s brain</string>
+    <string name="chat_brain_size_small">Quick brain</string>
+    <string name="chat_brain_size_medium">Balanced brain</string>
+    <string name="chat_brain_size_large">Smart brain</string>
+    <string name="chat_brain_detail">%1$s · %2$s</string>
+    <string name="chat_brain_not_installed">Not on your phone yet · %1$s</string>
+    <string name="chat_brain_recommended">Recommended for your phone</string>
+    <string name="chat_brain_get_more">More brains in Knowledge packs</string>
+    <string name="chat_brain_own_active">Your own model from developer mode is in use right now.</string>
 </resources>

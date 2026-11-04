@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -76,6 +77,7 @@ import app.hain.ui.components.Composer
 import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.MessageAction
 import app.hain.ui.components.MessageActionKind
+import app.hain.ui.components.ProgressBar
 import app.hain.ui.components.PulsingDot
 import app.hain.ui.components.ReasoningBlock
 import app.hain.ui.components.TopBar
@@ -112,6 +114,7 @@ fun ChatScreen(
     extras: ChatExtras = ChatExtras(),
     banner: @Composable () -> Unit = {},
     onOpenNews: (() -> Unit)? = null,
+    brainPicker: BrainPickerState? = null,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var drawerOpen by rememberSaveable { mutableStateOf(false) }
@@ -145,9 +148,16 @@ fun ChatScreen(
                 .navigationBarsPadding()
                 .imePadding(),
         ) {
+            // T-055: tapping "Hain · Auf diesem Handy" opens the brain picker
+            var pickerOpen by rememberSaveable { mutableStateOf(false) }
             TopBar(
                 title = stringResource(R.string.chat_title),
                 subtitle = engineLine(state),
+                onTitleClick = brainPicker?.let { { pickerOpen = !pickerOpen } },
+                titleClickLabel = stringResource(R.string.chat_brain_picker_open),
+                titleAccessory = {
+                    if (brainPicker != null) ModelPicker(pickerOpen, { pickerOpen = false }, brainPicker)
+                },
                 leading = {
                     HainIconButton(HainIcons.menu, stringResource(R.string.chat_menu), { drawerOpen = true })
                 },
@@ -156,6 +166,7 @@ fun ChatScreen(
                     HainIconButton(HainIcons.plus, stringResource(R.string.chat_new), viewModel::newChat)
                 },
             )
+            BrainLoadBar(state)
             var bannerHidden by rememberSaveable { mutableStateOf(false) }
             if (!state.brainInstalled && !bannerHidden) {
                 BrainBanner(onGet = onGetBrain, onLater = { bannerHidden = true })
@@ -262,6 +273,22 @@ private fun OnlineDot() {
         BasicText(
             stringResource(R.string.chat_online),
             style = LocalHainTypography.current.label.copy(color = colors.online),
+        )
+    }
+}
+
+/** T-055: thin progress line under the top bar while a brain loads in the background. */
+@Composable
+private fun BrainLoadBar(state: ChatUiState) {
+    val loading = state.engine as? EngineState.Loading
+    AnimatedVisibility(
+        visible = loading != null && loading.progress in 0f..1f,
+        enter = fadeIn(hainTween(HainMotion.FAST_MS)),
+        exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+    ) {
+        ProgressBar(
+            fraction = loading?.progress ?: 1f,
+            modifier = Modifier.padding(horizontal = LocalHainSpacing.current.lg).height(2.dp),
         )
     }
 }
