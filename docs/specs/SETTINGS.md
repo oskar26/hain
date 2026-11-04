@@ -12,7 +12,7 @@ Level 1 = visible directly; level 2 = under "Erweitert / Advanced".
 | | show_pim | bool | true | 1 |
 | | pim_avatar_in_chat | bool | true | 2 |
 | | reduce_motion | bool | false | 2 |
-| | haptics | bool | true | 2 |
+| | haptics | off/subtle/normal/strong | subtle (T-096, docs/design/HAPTICS.md) | 2 |
 | | start_screen | chat/home | chat | 2 |
 | Model | brain_model_id | string | lfm3-1.7b-qad-q4_0 | 1 |
 | | answer_mode | fast/thorough/auto | auto | 1 |
@@ -31,7 +31,6 @@ Level 1 = visible directly; level 2 = under "Erweitert / Advanced".
 | Internet | offline_mode | bool | false | 1 |
 | | web_search | on/ask/off | on | 1 |
 | | searxng_url | url? | null | 2 |
-| | ui_style | enum(A, B) | A | 2 |
 | | ddg_enabled | bool | true (marked experimental) | 2 |
 | | search_region | de-de/us-en/auto | auto | 2 |
 | | read_full_pages | bool | true | 2 |

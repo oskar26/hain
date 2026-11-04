@@ -37,7 +37,7 @@ import app.hain.models.api.ModelRepository
 import app.hain.ui.components.HainButton
 import app.hain.ui.components.HainButtonStyle
 import app.hain.ui.components.ProgressBar
-import app.hain.ui.pim.JuicyPim
+import app.hain.ui.pim.LivePim
 import app.hain.ui.pim.PimState
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
@@ -102,7 +102,7 @@ fun OnboardingScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        JuicyPim(state = pimState(download), size = 140.dp)
+        LivePim(state = pimState(download), size = 112.dp)
         Spacer(Modifier.height(spacing.xl))
         BasicText(
             stringResource(R.string.onboarding_title),

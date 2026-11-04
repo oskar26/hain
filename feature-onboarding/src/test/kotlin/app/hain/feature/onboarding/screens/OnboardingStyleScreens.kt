@@ -10,7 +10,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import app.hain.feature.onboarding.api.SuccessScreen
 import app.hain.feature.onboarding.api.WelcomeTour
 import app.hain.ui.motion.LocalReduceMotion
-import app.hain.ui.theme.HainStyle
 import app.hain.ui.theme.HainTheme
 import app.hain.ui.theme.LocalHainColors
 import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
@@ -22,13 +21,12 @@ import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
-/** Welcome tour in the style proposals A and B (docs/design/STYLE_OPTIONS.md); CI workflow screens.yml only. */
+/** Welcome tour in the Lichtung style (docs/design/STYLE_OPTIONS.md), light and dark; CI workflow screens.yml only. */
 @OptIn(ExperimentalRoborazziApi::class)
 @RunWith(ParameterizedRobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [35], qualifiers = "de-w392dp-h850dp-xxhdpi")
 class OnboardingStyleScreens(
-    private val style: HainStyle,
     private val dark: Boolean,
 ) {
     @get:Rule
@@ -36,7 +34,7 @@ class OnboardingStyleScreens(
 
     private fun render(content: @Composable () -> Unit) {
         compose.setContent {
-            HainTheme(darkTheme = dark, style = style) {
+            HainTheme(darkTheme = dark) {
                 CompositionLocalProvider(LocalReduceMotion provides true) {
                     Box(Modifier.fillMaxSize().background(LocalHainColors.current.bg)) { content() }
                 }
@@ -44,7 +42,7 @@ class OnboardingStyleScreens(
         }
     }
 
-    private fun name(screen: String) = "${style.name.lowercase()}_${screen}_${if (dark) "dark" else "light"}"
+    private fun name(screen: String) = "lichtung_${screen}_${if (dark) "dark" else "light"}"
 
     @Test
     fun welcome() {
@@ -60,11 +58,8 @@ class OnboardingStyleScreens(
 
     companion object {
         @JvmStatic
-        @ParameterizedRobolectricTestRunner.Parameters(name = "{0}-dark={1}")
-        fun params(): List<Array<Any>> {
-            val modes = listOf(false, true)
-            return HainStyle.entries.flatMap { s -> modes.map { d -> arrayOf<Any>(s, d) } }
-        }
+        @ParameterizedRobolectricTestRunner.Parameters(name = "dark={0}")
+        fun params(): List<Array<Any>> = listOf(false, true).map { arrayOf<Any>(it) }
     }
 }
 

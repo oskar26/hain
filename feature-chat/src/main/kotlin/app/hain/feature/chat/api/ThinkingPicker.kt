@@ -47,6 +47,7 @@ import app.hain.ui.components.HainPopover
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainTween
+import app.hain.ui.motion.rememberHainHaptics
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
@@ -88,6 +89,7 @@ fun ThinkingPicker(
     val description = stringResource(R.string.chat_mode_button, name)
     val active = level != ThinkingLevel.AUTO
     val reduce = LocalReduceMotion.current
+    val haptics = rememberHainHaptics()
     Box(modifier) {
         Row(
             Modifier
@@ -97,8 +99,10 @@ fun ThinkingPicker(
                 .semantics(mergeDescendants = true) {
                     role = Role.Button
                     contentDescription = description
-                }.clickable { open = !open }
-                .padding(horizontal = spacing.sm + 2.dp),
+                }.clickable {
+                    haptics.tick()
+                    open = !open
+                }.padding(horizontal = spacing.sm + 2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Image(
@@ -124,6 +128,7 @@ fun ThinkingPicker(
         HainPopover(expanded = open, onDismiss = { open = false }) {
             ThinkingLevel.entries.forEach { option ->
                 LevelRow(option, selected = option == level) {
+                    haptics.select()
                     onMode(option.mode)
                     open = false
                 }

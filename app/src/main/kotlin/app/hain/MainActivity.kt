@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
@@ -26,9 +27,9 @@ import app.hain.common.api.HainSettings
 import app.hain.common.api.SearxAddress
 import app.hain.common.api.SettingsRepository
 import app.hain.common.api.ThemeChoice
-import app.hain.common.api.UiStyle
 import app.hain.common.api.net.NetworkGate
 import app.hain.feature.chat.api.ChatScreen
+import app.hain.feature.chat.game.Game2048Screen
 import app.hain.feature.chat.internal.ChatEngine
 import app.hain.feature.chat.internal.ChatStore
 import app.hain.feature.chat.internal.ChatViewModel
@@ -43,9 +44,10 @@ import app.hain.models.api.ModelRepository
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.ToolContext
 import app.hain.ui.motion.HainMotion
+import app.hain.ui.motion.HapticLevel
+import app.hain.ui.motion.LocalHapticLevel
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainTween
-import app.hain.ui.theme.HainStyle
 import app.hain.ui.theme.HainTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.map
@@ -90,7 +92,7 @@ class MainActivity : ComponentActivity() {
             onNetworkLogDetail = { write { repo.setNetworkLogDetail(it) } },
             onClearNetworkLog = networkGate::clearLog,
             onSearxUrl = { write { repo.setSearxUrl(it) } },
-            onUiStyle = { write { repo.setUiStyle(it) } },
+            onHaptics = { write { repo.setHaptics(it) } },
         )
     }
 
@@ -165,6 +167,7 @@ class MainActivity : ComponentActivity() {
             current = settings
             var showSettings by rememberSaveable { mutableStateOf(false) }
             var showPacks by rememberSaveable { mutableStateOf(false) }
+            var showGame by rememberSaveable { mutableStateOf(false) }
             HainTheme(
                 darkTheme =
                     when (settings.theme) {
@@ -173,9 +176,11 @@ class MainActivity : ComponentActivity() {
                         ThemeChoice.DARK -> true
                     },
                 highLegibility = settings.readableFont,
-                style = if (settings.uiStyle == UiStyle.B) HainStyle.B else HainStyle.A,
             ) {
-                CompositionLocalProvider(LocalReduceMotion provides (settings.reduceMotion || systemReducesMotion())) {
+                CompositionLocalProvider(
+                    LocalReduceMotion provides (settings.reduceMotion || systemReducesMotion()),
+                    LocalHapticLevel provides HapticLevel.entries[settings.haptics.ordinal],
+                ) {
                     var installed by remember { mutableStateOf(models.isInstalled(brain)) }
                     var skipped by remember { mutableStateOf(startPrefs.getBoolean(KEY_SKIPPED, false)) }
                     if (!installed && !skipped) {
@@ -196,7 +201,24 @@ class MainActivity : ComponentActivity() {
                             onGetBrain = { showPacks = true },
                             answerMode = settings.answerMode,
                             onAnswerMode = { mode -> lifecycleScope.launch { settingsRepository.setAnswerMode(mode) } },
+                            onOpenGame = { showGame = true },
                         )
+                        // T-098: the 2048 easter egg opens right after Pim's burst
+                        AnimatedVisibility(
+                            visible = showGame,
+                            enter =
+                                fadeIn(hainTween(HainMotion.PAGE_MS)) +
+                                    scaleIn(hainTween(HainMotion.PAGE_MS), GAME_FROM),
+                            exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+                        ) {
+                            Game2048Screen(
+                                best = settings.game2048Best,
+                                onScore = { score ->
+                                    lifecycleScope.launch { settingsRepository.recordGame2048(score) }
+                                },
+                                onClose = { showGame = false },
+                            )
+                        }
                         AnimatedVisibility(
                             visible = showSettings,
                             enter =
@@ -236,6 +258,7 @@ class MainActivity : ComponentActivity() {
 }
 
 private const val SLIDE_DIV = 6
+private const val GAME_FROM = 0.9f
 private const val BYTES_PER_GB = 1_000_000_000.0
 private const val START_PREFS = "hain_start"
 private const val KEY_SKIPPED = "onboarding_skipped"

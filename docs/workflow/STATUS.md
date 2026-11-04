@@ -100,3 +100,4 @@ _Agents add ideas here instead of doing them._
 | 2026-10-30 | review T-001…T-004 + T-004 | review passed; T-004 done: Hilt 2.60.1 via KSP, HainApp, MainActivity, daemon pinned to JDK 21 (detekt) | ZCode (GLM-5.3) |
 | 2026-10-30 | T-004 follow-up | KNOWN_ISSUES.md created (KI-01..KI-03); on-device check deferred by human (KI-02); Pixel_7 AVD repaired | ZCode (GLM-5.3) |
 | 2026-11-01 | batch T-005, T-006, T-010, T-018, T-019, T-016, T-017 | all 7 tasks review/done: strings+checker, CI, tokens+fonts, UI libs+wrappers, motion system, Pim v2, Lucide icons | ZCode (GLM-5.3) |
+| 2026-11-04 | T-087, T-088, T-089, T-091, T-096, T-097, T-098, T-099 | Lichtung only style, speed, living Pim, start page, premium haptics; Pim normal size, 5 s easter egg → own 2048 game, subtle haptics everywhere (review, branch hark/polish) | Hark |

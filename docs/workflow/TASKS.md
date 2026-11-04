@@ -95,6 +95,14 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-150 | Multimodal: Omni/VL image input via mtmd | native | M | C | T-030 | todo |
 | T-163 | Pim animated (Compose: blink, breathe, squash, eye tracking) | ui | M | B | T-061,T-019 | review (no eye tracking) |
 | T-170 | Image generation pack (SD1.5+DMD2, MNN) | native | M | D | T-160 | todo |
+| T-087 | Lichtung as the only style (remove Morgennebel, style switch, 3D icons) | ui | S | B | T-086 | review |
+| T-088p | Speed: time out of the system prompt, TTFT log (`HainLlm`) – polish branch (ID also used for the app icon) | perf | S | B | T-045 | review |
+| T-089p | Pim alive everywhere, leaf anchored to the head, frame tests – polish branch (ID also used for the website) | ui | M | B | T-163 | review |
+| T-091 | Start page: big draggable Pim, 60+ rotating suggestions per language | ui | S | B | T-089p | review |
+| T-096 | Premium haptics `HainHaptics` (primitives only, levels Off/Subtle/Normal/Strong) | ui | S | B | T-100 | review |
+| T-097 | Pim normal size + 5 s easter egg (grows to ≤ 5×, trembling, rising haptics, burst) | ui | S | B | T-091,T-096 | review |
+| T-098 | Own 2048 mini game behind Pim (swipe, merge pop, best score, undo, won/lost) | ui | M | B | T-097 | review |
+| T-099 | Subtle haptics everywhere (menus, delete confirm, pull) + HAPTICS.md checklist | ui | S | B | T-096 | review |
 | T-190 | Accessibility & performance pass | fix | M | H | T-052,T-100 | doing (2d-2: non-debuggable CI APK, draw-only animations, throttled streaming; R8 + own baseline profile open) |
 | T-195 | Trademark check name 'Hain' | plan | XS | H | - | todo |
 | T-199 | Beta release (GitHub + F-Droid metadata) | scaffold | S | H | T-190 | todo |

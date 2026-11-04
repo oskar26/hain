@@ -3,8 +3,8 @@ package app.hain.common.api
 /** Colour scheme choice (SETTINGS.md `theme`). */
 enum class ThemeChoice { SYSTEM, LIGHT, DARK }
 
-/** Style proposal under test (docs/design/STYLE_OPTIONS.md): A "Lichtung" or B "Morgennebel". */
-enum class UiStyle { A, B }
+/** Strength of the haptics (SETTINGS.md `haptics`, T-096): off, subtle (default), normal, strong. */
+enum class HapticStrength { OFF, SUBTLE, NORMAL, STRONG }
 
 /** Language Hain answers in (SETTINGS.md `answer_language`). */
 enum class AnswerLanguage { AUTO, DE, EN }
@@ -27,8 +27,10 @@ data class HainSettings(
     val networkLogDetail: Boolean = false,
     /** Own SearXNG address, asked first by the web search (SETTINGS.md `searxng_url`); empty = none. */
     val searxUrl: String = "",
-    /** Style proposal under test, Settings → Look → "Style (test)" (SETTINGS.md `ui_style`). */
-    val uiStyle: UiStyle = UiStyle.A,
+    /** Haptics, Settings → Look → "Vibration" (SETTINGS.md `haptics`). */
+    val haptics: HapticStrength = HapticStrength.SUBTLE,
+    /** Best score of the hidden 2048 game (T-092). */
+    val game2048Best: Int = 0,
 ) {
     /** Text for the "user instructions" slot of the system prompt; empty if nothing is set. */
     fun customInstructions(deviceLanguage: String = "English"): String =

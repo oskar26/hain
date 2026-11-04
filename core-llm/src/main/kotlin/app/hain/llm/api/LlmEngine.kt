@@ -67,6 +67,16 @@ sealed interface EngineState {
     ) : EngineState
 }
 
+/**
+ * Context window the brain is loaded with (T-088). 8192, not the 2048 of the 01.11. benchmark, on
+ * purpose: chats are not shortened yet and a "Gründlich" answer with pages and thinking needs up to
+ * ~3000 tokens, so 2048 would end long chats with "context full". Host measurement 03.11.
+ * (LFM3-1.7B-QAD-Q4_0, same 978-token prompt): time to the first token and t/s were equal for
+ * 2048 / 4096 / 8192 within noise (14.5 / 14.6 / 14.2 s cold on 2 host cores, 0.83 / 0.87 / 0.88 s
+ * warm); only memory grows (peak 2245 / 2294 / 2390 MB). The slowness came from re-reading the prompt.
+ */
+const val CONTEXT_SIZE = 8192
+
 /** Runs the local brain (T-032). One model loaded at a time; one generation at a time. */
 interface LlmEngine {
     val state: StateFlow<EngineState>
@@ -76,7 +86,7 @@ interface LlmEngine {
 
     suspend fun load(
         path: String,
-        contextSize: Int = 8192,
+        contextSize: Int = CONTEXT_SIZE,
     ): Boolean
 
     /**

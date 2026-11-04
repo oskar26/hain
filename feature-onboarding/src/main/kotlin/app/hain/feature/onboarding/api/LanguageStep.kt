@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import app.hain.feature.onboarding.R
 import app.hain.ui.components.HainButton
 import app.hain.ui.components.HainButtonStyle
-import app.hain.ui.pim.JuicyPim
+import app.hain.ui.pim.LivePim
 import app.hain.ui.pim.PimState
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
@@ -49,7 +49,7 @@ fun LanguageStep(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        JuicyPim(state = PimState.HAPPY, size = 120.dp)
+        LivePim(state = PimState.HAPPY, size = 88.dp)
         Spacer(Modifier.height(spacing.xl))
         BasicText(
             stringResource(R.string.language_title),

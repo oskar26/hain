@@ -13,9 +13,9 @@ import androidx.compose.ui.res.stringResource
 import app.hain.common.api.AnswerLanguage
 import app.hain.common.api.AnswerMode
 import app.hain.common.api.HainSettings
+import app.hain.common.api.HapticStrength
 import app.hain.common.api.SearxAddress
 import app.hain.common.api.ThemeChoice
-import app.hain.common.api.UiStyle
 import app.hain.common.api.net.NetworkLogEntry
 import app.hain.feature.settings.R
 import app.hain.ui.theme.LocalHainColors
@@ -44,14 +44,17 @@ internal fun SettingsPageContent(
                 actions.onTheme,
             )
             Choice(
-                R.string.settings_ui_style,
-                settings.uiStyle,
+                R.string.settings_haptics,
+                settings.haptics,
                 listOf(
-                    UiStyle.A to R.string.settings_ui_style_a,
-                    UiStyle.B to R.string.settings_ui_style_b,
+                    HapticStrength.OFF to R.string.settings_haptics_off,
+                    HapticStrength.SUBTLE to R.string.settings_haptics_subtle,
+                    HapticStrength.NORMAL to R.string.settings_haptics_normal,
+                    HapticStrength.STRONG to R.string.settings_haptics_strong,
                 ),
-                actions.onUiStyle,
+                actions.onHaptics,
             )
+            Info(R.string.settings_haptics_hint)
             Toggle(
                 R.string.settings_readable,
                 R.string.settings_readable_hint,

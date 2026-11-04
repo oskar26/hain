@@ -52,6 +52,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -71,8 +72,10 @@ import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainSpring
 import app.hain.ui.motion.hainTween
 import app.hain.ui.motion.motionSpec
-import app.hain.ui.pim.Pim
+import app.hain.ui.motion.rememberHainHaptics
+import app.hain.ui.pim.LivePim
 import app.hain.ui.pim.PimState
+import app.hain.ui.pim.PullPim
 import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.HainRadius
@@ -129,7 +132,7 @@ internal fun ChatListDrawer(
                 Modifier.padding(horizontal = spacing.xs, vertical = spacing.sm),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Pim(PimState.HAPPY, 48.dp)
+                LivePim(PimState.HAPPY, 32.dp)
                 Spacer(Modifier.width(spacing.sm))
                 BasicText(
                     stringResource(R.string.chat_title),
@@ -192,9 +195,39 @@ private fun DrawerList(
             } else {
                 stringResource(R.string.chat_history_empty)
             }
-        BasicText(empty, style = type.bodySmall.copy(color = colors.textMuted), modifier = Modifier.padding(spacing.md))
+        // T-089: Pim looks around when the search finds nothing (and waits when there are no chats yet)
+        Column(
+            Modifier.fillMaxWidth().padding(spacing.md),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(spacing.sm),
+        ) {
+            LivePim(if (hasChats) PimState.LISTENING else PimState.IDLE, EMPTY_PIM.dp)
+            BasicText(
+                empty,
+                style = type.bodySmall.copy(color = colors.textMuted, textAlign = TextAlign.Center),
+            )
+        }
     }
-    LazyColumn(modifier) {
+    // T-089: pull the list down and Pim peeks in
+    PullPim(modifier) {
+        DrawerGroups(groups, currentChatId, expandedId, { expandedId = it }, actions, itemMotion)
+    }
+}
+
+@Suppress("LongParameterList")
+@Composable
+private fun DrawerGroups(
+    groups: List<Pair<ChatGroup, List<Chat>>>,
+    currentChatId: Long?,
+    expandedId: Long?,
+    onExpand: (Long?) -> Unit,
+    actions: DrawerActions,
+    itemMotion: Modifier.(LazyItemScope) -> Modifier,
+) {
+    val type = LocalHainTypography.current
+    val colors = LocalHainColors.current
+    val spacing = LocalHainSpacing.current
+    LazyColumn(Modifier.fillMaxSize()) {
         groups.forEach { (group, chats) ->
             item(key = "header-${group.name}") {
                 BasicText(
@@ -214,7 +247,7 @@ private fun DrawerList(
                     chat = chat,
                     selected = chat.id == currentChatId,
                     expanded = chat.id == expandedId,
-                    onToggle = { expandedId = if (expandedId == chat.id) null else chat.id },
+                    onToggle = { onExpand(if (expandedId == chat.id) null else chat.id) },
                     actions = actions,
                     modifier = Modifier.itemMotion(this),
                 )
@@ -420,6 +453,7 @@ private fun ConfirmDelete(
 ) {
     val spacing = LocalHainSpacing.current
     val type = LocalHainTypography.current
+    val haptics = rememberHainHaptics()
     Column(Modifier.widthIn(max = CONFIRM_WIDTH.dp).padding(spacing.md)) {
         BasicText(
             stringResource(R.string.chat_delete_confirm),
@@ -433,7 +467,14 @@ private fun ConfirmDelete(
             horizontalArrangement = Arrangement.spacedBy(spacing.sm),
             verticalArrangement = Arrangement.spacedBy(spacing.sm),
         ) {
-            HainButton(stringResource(R.string.chat_delete_yes), onDelete, style = HainButtonStyle.SECONDARY)
+            HainButton(
+                stringResource(R.string.chat_delete_yes),
+                {
+                    haptics.confirm()
+                    onDelete()
+                },
+                style = HainButtonStyle.SECONDARY,
+            )
             HainButton(stringResource(R.string.chat_cancel), onCancel, style = HainButtonStyle.GHOST)
         }
     }
@@ -452,3 +493,4 @@ private const val ICON_SIZE = 20
 private const val MENU_OFFSET = 44
 private const val MENU_SHADOW_ROOM = 12
 private const val CONFIRM_WIDTH = 240
+private const val EMPTY_PIM = 64

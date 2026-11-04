@@ -28,9 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -38,13 +36,11 @@ import androidx.compose.ui.unit.sp
 import app.hain.feature.onboarding.R
 import app.hain.ui.components.HainButton
 import app.hain.ui.components.HainButtonStyle
-import app.hain.ui.pim.JuicyPim
+import app.hain.ui.pim.LivePim
 import app.hain.ui.pim.PimState
 import app.hain.ui.theme.GlowHue
-import app.hain.ui.theme.HainStyle
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
-import app.hain.ui.theme.LocalHainStyle
 import app.hain.ui.theme.LocalHainTypography
 import app.hain.ui.theme.calmTile
 import kotlinx.coroutines.launch
@@ -64,20 +60,9 @@ private val PAGES =
         TourPage(R.string.tour_4_title, R.string.tour_4_body, Hero.SEED, GlowHue.SUN),
     )
 
-/**
- * The welcome background per style (docs/design/STYLE_OPTIONS.md): Stil A plain page colour, Stil B
- * a soft mint morning mist that fades into the page from the top (Copilot welcome reference).
- * Chat stays plain.
- */
+/** The welcome background: the plain page colour (Lichtung). Chat stays plain too. */
 @Composable
-internal fun tourBackground(): Brush {
-    val colors = LocalHainColors.current
-    if (LocalHainStyle.current == HainStyle.A) return SolidColor(colors.bg)
-    return Brush.verticalGradient(
-        0f to lerp(colors.bg, MINT_WASH, WASH_TOP),
-        WASH_END to colors.bg,
-    )
-}
+internal fun tourBackground(): Brush = SolidColor(LocalHainColors.current.bg)
 
 /**
  * Welcome tour before the download (2e, T-011): the first page is a cloud of shiny bubbles with a
@@ -122,7 +107,7 @@ fun WelcomeTour(
                             .calmTile(CircleShape, shadow = KNOB_ELEVATION),
                         contentAlignment = Alignment.Center,
                     ) {
-                        JuicyPim(PimState.HAPPY, KNOB * PIM_SHARE)
+                        LivePim(PimState.HAPPY, KNOB * PIM_SHARE * TIGHT)
                     }
                 } else {
                     GlassBubble(HERO_BUBBLE, page.glow) { HeroObject(page.hero, HERO_SIZE) }
@@ -188,6 +173,6 @@ private const val PIM_SHARE = 0.72f
 private val TITLE_SIZE = 32.sp
 private val DOT = 8.dp
 private val DOT_ACTIVE = 22.dp
-private val MINT_WASH = Color(color = 0xFF7FD6A4)
-private const val WASH_TOP = 0.22f
-private const val WASH_END = 0.6f
+
+/** Pim now fills his canvas (T-089), so the same knob needs a smaller one. */
+private const val TIGHT = 0.75f

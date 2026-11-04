@@ -309,3 +309,19 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Files: feature-onboarding/.../LanguageStep.kt, OnboardingScreen.kt (onLanguage), MainActivity.kt (pickLanguage), AndroidManifest.xml, strings EN+DE, README.md.
 - Not done: brain picker in the top bar (rest of T-055) → 2f-2.
 - Next: Oskar checks first start with a fresh install.
+
+## 2026-11-04 · Lichtung + Pim + 2048 + Haptik (Feinschliff) · review · harness: Hark · branch `hark/polish`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-087 | review | compiles in CI | Morgennebel, style switch, 3D icons, jelly Pim removed | – |
+| T-088 | review | TTFT logged as `HainLlm` | `SystemPromptSource` (time moved into the hint) | host before/after numbers still to add |
+| T-096 | review | `HapticsTest` | `HainSettings` (`haptics`), `SettingsPages` | – |
+| T-089 | review | Pim frame tests (leaf root ≤ 1 dp from the head) | `PimMoves`, `PimGeometry`, `LivePim`, `PullPim` | – |
+| T-091 | review | `SuggestionsTest` | `StartPage` | – |
+| T-097 | review | `PimEggTest` (≥ 5 s threshold, ≤ 5× scale, monotonic, trembling builds), `HapticsTest` (charge denser + firmer) | `HeroPim`, `PimEgg`, `Haptics` | sizes: start 88/72/56 dp, thinking 28 dp, drawer 32 dp |
+| T-098 | review | `Game2048Test` (slide, merge once, R/U/D, no-op move, spawn, game over, win, ids) | `MainActivity` (overlay, best score via `recordGame2048`) | no saved game across app restarts (only best score) |
+| T-099 | review | compiles; HAPTICS.md checklist | `PopupMenu`, `PullPim`, `ChatListDrawer` | – |
+
+- Oskar's correction 03.11. 23:26: Pim only a little bigger; the easter egg only after 5 s holding without a break, grows slowly to 5×, then bursts into the 2048 game; subtle haptics everywhere.
+- Still open from the polish list: compact ⋯ menu, About page with website/GitHub, screenshot fixes (composer lines, back arrow, segments), usability pass, new screenshots → next run.

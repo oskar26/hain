@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +39,7 @@ import androidx.compose.ui.window.PopupProperties
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainTween
+import app.hain.ui.motion.rememberHainHaptics
 import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
@@ -64,6 +66,9 @@ fun HainPopupMenu(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val reduce = LocalReduceMotion.current
+    val haptics = rememberHainHaptics()
+    // one soft tick when a ⋯ / long-press menu opens, nothing when it closes
+    LaunchedEffect(expanded) { if (expanded) haptics.menu() }
     val shown = remember { MutableTransitionState(false) }
     shown.targetState = expanded
     // stays in the window until the fade-out has finished

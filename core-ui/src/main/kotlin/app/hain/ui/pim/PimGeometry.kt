@@ -1,14 +1,18 @@
 package app.hain.ui.pim
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.withTransform
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * Single source of truth: `assets/mascot/v2/motion/pim_motion.json` → `geometry`
@@ -34,6 +38,13 @@ object PimGeometry {
     const val EYE_W = 7f
     const val EYE_H = 14f
     const val STROKE_W = 2.5f
+
+    /** Where the mouth sits (T-089), between and below the eyes. */
+    val MOUTH = Offset(x = 60f, y = 85f)
+
+    /** The part of the viewBox Pim fills (T-089): 108 units around him, so a 30 dp Pim looks 30 dp. */
+    val FRAME_TOP_LEFT = Offset(x = 6f, y = 3f)
+    const val FRAME_SIZE = 108f
 
     /** Default fx anchor: top-right of the head. fxX/fxY are offsets from here. */
     val FX_ANCHOR = Offset(x = 96f, y = 12f)
@@ -119,7 +130,18 @@ data class PimPose(
     val fxA: Float = 1f,
     val fxX: Float = 0f,
     val fxY: Float = 0f,
+    /** Mouth (T-089): none by default, Pim's calm face. */
+    val mouth: PimMouth = PimMouth.NONE,
+    /** 0–1, how far an OPEN or YAWN mouth is open. */
+    val mouthOpen: Float = 1f,
+    /** 0–1, soft pink cheeks. */
+    val blush: Float = 0f,
+    /** 0–1, the right eye closes from 0.5 on. */
+    val wink: Float = 0f,
 )
+
+/** Pim's mouth (T-089). */
+enum class PimMouth { NONE, SMILE, OPEN, YAWN, WOBBLY }
 
 /** One absolute M/C/L/Z command (M/C/Z from pim_motion.json, L for fx glyphs). */
 internal sealed interface PathCommand {
@@ -215,78 +237,189 @@ internal fun pathOf(commands: List<PathCommand>): Path {
 
 internal fun svgPathToPathPublic(d: String): Path = pathOf(parsePathCommands(d))
 
-/** Draws one Pim frame in viewBox units; the canvas fit happens in [Pim]. */
+/** Parsed once: Pim draws every frame, the paths never change. */
+private val BODY by lazy { svgPathToPathPublic(PimGeometry.BODY_PATH) }
+private val STEM by lazy { svgPathToPathPublic(PimGeometry.STEM_PATH) }
+private val LEAF by lazy { svgPathToPathPublic(PimGeometry.LEAF_PATH) }
+private val VEIN by lazy { svgPathToPathPublic(PimGeometry.LEAF_VEIN_PATH) }
+
+/**
+ * Draws one Pim frame in viewBox units; the canvas fit happens in [PimCanvas]. The parts form one
+ * rig (T-089, [PimRig]): stem and leaf are children of the head, so whatever the body does
+ * (hop, squash, tilt), the leaf moves with it and never comes off.
+ */
 fun DrawScope.drawPim(
     pose: PimPose,
     colors: PimColors,
     showVein: Boolean,
-    gloss: Boolean = false,
 ) {
     translate(-PimGeometry.VIEW_BOX_X, -PimGeometry.VIEW_BOX_Y) {
-        // body group: squash + tilt around the bottom centre, then position offset
-        withTransform({
-            translate(pose.x, pose.y)
-            rotate(pose.tilt, PimGeometry.BODY_BOTTOM_CENTRE)
-            scale(pose.sx, pose.sy, PimGeometry.BODY_BOTTOM_CENTRE)
-        }) {
-            drawBodyAndEyes(pose, colors, gloss)
+        withTransform({ transform(PimRig.body(pose).toMatrix()) }) { drawBodyAndFace(pose, colors) }
+        // the stem grows out of the head (it starts inside the body, at the head anchor)
+        withTransform({ transform(PimRig.stem(pose).toMatrix()) }) {
+            drawPath(STEM, colors.leaf, style = Stroke(width = PimGeometry.STROKE_W, cap = StrokeCap.Round))
         }
-        // stem + leaf group: bend around the stem base, leaf around its own tip
-        withTransform({
-            translate(pose.x, pose.y)
-            rotate(pose.bend, PimGeometry.STEM_BASE)
-        }) {
-            drawStemAndLeaf(pose, colors, showVein)
+        withTransform({ transform(PimRig.leaf(pose).toMatrix()) }) {
+            drawPath(LEAF, colors.leaf)
+            if (showVein) {
+                val vein = Stroke(width = VEIN_W, cap = StrokeCap.Round)
+                drawPath(VEIN, colors.eye.copy(alpha = VEIN_ALPHA), style = vein)
+            }
         }
         drawFx(pose, colors)
     }
 }
 
-private fun DrawScope.drawBodyAndEyes(
+private fun DrawScope.drawBodyAndFace(
     pose: PimPose,
     colors: PimColors,
-    gloss: Boolean,
 ) {
-    val body = svgPathToPathPublic(PimGeometry.BODY_PATH)
-    val left = PimGeometry.EYE_L + Offset(pose.eyeDX, pose.eyeDY)
-    val right = PimGeometry.EYE_R + Offset(pose.eyeDX, pose.eyeDY)
-    if (gloss) {
-        // T-011: glossy jelly body with white oval eyes and their soft shadow (reference 7)
-        drawGlossyBody(body)
-        val shadow = colors.copy(eye = GLOSSY_EYE_SHADOW)
-        val white = colors.copy(eye = GLOSSY_EYE)
-        drawEye(left + GLOSSY_EYE_OFFSET, pose, shadow, pose.eyeLS * GLOSSY_EYE_SCALE)
-        drawEye(right + GLOSSY_EYE_OFFSET, pose, shadow, pose.eyeRS * GLOSSY_EYE_SCALE)
-        drawEye(left, pose, white, pose.eyeLS * GLOSSY_EYE_SCALE)
-        drawEye(right, pose, white, pose.eyeRS * GLOSSY_EYE_SCALE)
-        return
+    drawPath(BODY, colors.body)
+    if (pose.blush > 0f) {
+        val blush = BLUSH.copy(alpha = BLUSH.alpha * pose.blush.coerceIn(0f, 1f))
+        listOf(BLUSH_L, BLUSH_R).forEach { c ->
+            drawOval(blush, c - Offset(BLUSH_W / 2, BLUSH_H / 2), Size(BLUSH_W, BLUSH_H))
+        }
     }
-    drawPath(body, colors.body)
-    drawEye(left, pose, colors, pose.eyeLS)
-    drawEye(right, pose, colors, pose.eyeRS)
+    val look = Offset(pose.eyeDX, pose.eyeDY)
+    drawEye(PimGeometry.EYE_L + look, pose, colors, pose.eyeLS)
+    // a wink closes only the right eye
+    val right = if (pose.wink >= WINK_CLOSED) pose.copy(eyes = PimEyes.CLOSED) else pose
+    drawEye(PimGeometry.EYE_R + look, right, colors, pose.eyeRS)
+    drawMouth(pose, colors)
 }
 
-private fun DrawScope.drawStemAndLeaf(
+private fun DrawScope.drawMouth(
     pose: PimPose,
     colors: PimColors,
-    showVein: Boolean,
 ) {
-    drawPath(
-        svgPathToPathPublic(PimGeometry.STEM_PATH),
-        colors.leaf,
-        style = Stroke(width = PimGeometry.STROKE_W, cap = StrokeCap.Round),
-    )
-    withTransform({
-        rotate(pose.leaf, PimGeometry.LEAF_TIP)
-        scale(pose.leafScale, pose.leafScale, PimGeometry.LEAF_TIP)
-    }) {
-        drawPath(svgPathToPathPublic(PimGeometry.LEAF_PATH), colors.leaf)
-        if (showVein) {
-            drawPath(
-                svgPathToPathPublic(PimGeometry.LEAF_VEIN_PATH),
-                colors.eye.copy(alpha = 0.35f),
-                style = Stroke(width = 1.5f, cap = StrokeCap.Round),
-            )
+    val c = PimGeometry.MOUTH + Offset(pose.eyeDX * MOUTH_FOLLOW, pose.eyeDY * MOUTH_FOLLOW)
+    val open = pose.mouthOpen.coerceIn(0f, 1f)
+    when (pose.mouth) {
+        PimMouth.NONE -> Unit
+        PimMouth.SMILE -> {
+            val p =
+                Path().apply {
+                    moveTo(c.x - SMILE_HALF_W, c.y - 1f)
+                    cubicTo(c.x - 2f, c.y + SMILE_DEPTH, c.x + 2f, c.y + SMILE_DEPTH, c.x + SMILE_HALF_W, c.y - 1f)
+                }
+            drawPath(p, colors.eye, style = Stroke(width = PimGeometry.STROKE_W, cap = StrokeCap.Round))
+        }
+        PimMouth.OPEN, PimMouth.YAWN -> {
+            val big = pose.mouth == PimMouth.YAWN
+            val w = if (big) YAWN_W else O_W * (O_MIN + (1f - O_MIN) * open)
+            val h = (if (big) YAWN_H else O_H) * (O_MIN + (1f - O_MIN) * open)
+            drawOval(colors.eye, c - Offset(w / 2, h / 2), Size(w, h))
+        }
+        PimMouth.WOBBLY -> {
+            val p =
+                Path().apply {
+                    moveTo(c.x - SMILE_HALF_W, c.y)
+                    cubicTo(c.x - 2f, c.y - 2f, c.x - 1f, c.y + 2f, c.x + 1f, c.y)
+                    cubicTo(c.x + 2f, c.y - 2f, c.x + WOBBLE_END, c.y + 1f, c.x + SMILE_HALF_W, c.y)
+                }
+            drawPath(p, colors.eye, style = Stroke(width = PimGeometry.STROKE_W * 0.8f, cap = StrokeCap.Round))
         }
     }
 }
+
+/**
+ * Pim's rig as plain 2D transforms (T-089), pure so it is unit-tested frame by frame:
+ * - body: move by (x, y), tilt and squash (sx, sy) around the bottom centre;
+ * - stem: the body's matrix, then its own bend around [PimGeometry.STEM_BASE], the head anchor;
+ * - leaf: the stem's matrix, then its own sway and scale around [PimGeometry.LEAF_TIP].
+ * Because each part starts from its parent's matrix, the leaf follows every squash and hop.
+ */
+object PimRig {
+    fun body(p: PimPose): Affine =
+        Affine
+            .translate(p.x, p.y)
+            .then(Affine.rotate(p.tilt, PimGeometry.BODY_BOTTOM_CENTRE))
+            .then(Affine.scale(p.sx, p.sy, PimGeometry.BODY_BOTTOM_CENTRE))
+
+    fun stem(p: PimPose): Affine = body(p).then(Affine.rotate(p.bend, PimGeometry.STEM_BASE))
+
+    fun leaf(p: PimPose): Affine =
+        stem(p)
+            .then(Affine.rotate(p.leaf, PimGeometry.LEAF_TIP))
+            .then(Affine.scale(p.leafScale, p.leafScale, PimGeometry.LEAF_TIP))
+}
+
+/** A 2D affine transform: x' = a·x + c·y + e, y' = b·x + d·y + f. */
+data class Affine(
+    val a: Float = 1f,
+    val b: Float = 0f,
+    val c: Float = 0f,
+    val d: Float = 1f,
+    val e: Float = 0f,
+    val f: Float = 0f,
+) {
+    /** This transform after [inner]: points go through [inner] first. */
+    fun then(inner: Affine): Affine =
+        Affine(
+            a = a * inner.a + c * inner.b,
+            b = b * inner.a + d * inner.b,
+            c = a * inner.c + c * inner.d,
+            d = b * inner.c + d * inner.d,
+            e = a * inner.e + c * inner.f + e,
+            f = b * inner.e + d * inner.f + f,
+        )
+
+    fun map(p: Offset): Offset = Offset(a * p.x + c * p.y + e, b * p.x + d * p.y + f)
+
+    fun toMatrix(): Matrix =
+        Matrix().apply {
+            values[Matrix.ScaleX] = a
+            values[Matrix.SkewY] = b
+            values[Matrix.SkewX] = c
+            values[Matrix.ScaleY] = d
+            values[Matrix.TranslateX] = e
+            values[Matrix.TranslateY] = f
+        }
+
+    companion object {
+        fun translate(
+            x: Float,
+            y: Float,
+        ) = Affine(e = x, f = y)
+
+        fun rotate(
+            degrees: Float,
+            pivot: Offset,
+        ): Affine {
+            val r = degrees * PI.toFloat() / HALF_TURN
+            val cos = cos(r)
+            val sin = sin(r)
+            return translate(pivot.x, pivot.y)
+                .then(Affine(a = cos, b = sin, c = -sin, d = cos))
+                .then(translate(-pivot.x, -pivot.y))
+        }
+
+        fun scale(
+            sx: Float,
+            sy: Float,
+            pivot: Offset,
+        ): Affine = translate(pivot.x, pivot.y).then(Affine(a = sx, d = sy)).then(translate(-pivot.x, -pivot.y))
+
+        private const val HALF_TURN = 180f
+    }
+}
+
+private const val VEIN_ALPHA = 0.35f
+private const val VEIN_W = 1.5f
+private val BLUSH = Color(color = 0x73F2A0A0)
+private val BLUSH_L = Offset(x = 40f, y = 80f)
+private val BLUSH_R = Offset(x = 80f, y = 80f)
+private const val BLUSH_W = 9f
+private const val BLUSH_H = 5f
+private const val WINK_CLOSED = 0.5f
+private const val MOUTH_FOLLOW = 0.6f
+private const val SMILE_HALF_W = 4.5f
+private const val SMILE_DEPTH = 3.5f
+private const val O_W = 5f
+private const val O_H = 6f
+private const val O_MIN = 0.4f
+private const val YAWN_W = 8f
+private const val YAWN_H = 11f
+
+private const val WOBBLE_END = 3f

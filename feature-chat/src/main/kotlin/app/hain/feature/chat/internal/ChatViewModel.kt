@@ -373,7 +373,7 @@ class ChatViewModel(
 
     private companion object {
         const val STOP_TIMEOUT = 5_000L
-        const val STREAM_THROTTLE_MS = 48L
+        const val STREAM_THROTTLE_MS = 50L
         const val MAX_TITLE_ANSWERS = 3
         const val SEARCH_DEBOUNCE = 150L
         const val MS_PER_S = 1000L

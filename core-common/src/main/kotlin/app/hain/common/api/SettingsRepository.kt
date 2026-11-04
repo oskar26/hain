@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -26,7 +27,8 @@ class SettingsRepository(
                 offlineMode = p[OFFLINE_MODE] ?: false,
                 networkLogDetail = p[NETWORK_LOG_DETAIL] ?: false,
                 searxUrl = p[SEARXNG_URL].orEmpty(),
-                uiStyle = p[UI_STYLE].toEnum(UiStyle.A),
+                haptics = p[HAPTICS].toEnum(HapticStrength.SUBTLE),
+                game2048Best = p[GAME_2048_BEST] ?: 0,
             )
         }
 
@@ -50,10 +52,20 @@ class SettingsRepository(
 
     suspend fun setSearxUrl(value: String) = store.edit { it[SEARXNG_URL] = value.trim() }
 
-    suspend fun setUiStyle(value: UiStyle) = store.edit { it[UI_STYLE] = value.name }
+    suspend fun setHaptics(value: HapticStrength) = store.edit { it[HAPTICS] = value.name }
 
-    /** Back to the defaults. */
-    suspend fun reset() = store.edit { it.clear() }
+    /** Keeps the higher of the stored and the new 2048 score. */
+    suspend fun recordGame2048(score: Int) {
+        store.edit { if (score > (it[GAME_2048_BEST] ?: 0)) it[GAME_2048_BEST] = score }
+    }
+
+    /** Back to the defaults; the 2048 best score stays. */
+    suspend fun reset() =
+        store.edit {
+            val best = it[GAME_2048_BEST]
+            it.clear()
+            if (best != null) it[GAME_2048_BEST] = best
+        }
 
     private companion object {
         val THEME = stringPreferencesKey("theme")
@@ -66,7 +78,8 @@ class SettingsRepository(
         val OFFLINE_MODE = booleanPreferencesKey("offline_mode")
         val NETWORK_LOG_DETAIL = booleanPreferencesKey("network_log_detail")
         val SEARXNG_URL = stringPreferencesKey("searxng_url")
-        val UI_STYLE = stringPreferencesKey("ui_style")
+        val HAPTICS = stringPreferencesKey("haptics")
+        val GAME_2048_BEST = intPreferencesKey("game_2048_best")
     }
 }
 
