@@ -70,7 +70,6 @@ import app.hain.feature.chat.internal.ChatError
 import app.hain.feature.chat.internal.ChatUiState
 import app.hain.feature.chat.internal.ChatViewModel
 import app.hain.feature.chat.internal.Rating
-import app.hain.feature.chat.internal.StepState
 import app.hain.feature.chat.internal.UiMessage
 import app.hain.llm.api.EngineState
 import app.hain.llm.api.GenerationStats
@@ -83,7 +82,6 @@ import app.hain.ui.components.MessageAction
 import app.hain.ui.components.MessageActionKind
 import app.hain.ui.components.ProgressBar
 import app.hain.ui.components.PulsingDot
-import app.hain.ui.components.ReasoningBlock
 import app.hain.ui.components.TopBar
 import app.hain.ui.components.UserBubble
 import app.hain.ui.effects.hainGlassSource
@@ -590,29 +588,13 @@ private fun Answer(
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     Column(modifier.fillMaxWidth()) {
-        val waiting = message.text.isEmpty() && message.reasoning == null && message.steps.isEmpty()
         // true once this answer was seen while it was still being written (4b-2)
         var fresh by remember(message.id) { mutableStateOf(message.streaming) }
         LaunchedEffect(message.id, message.streaming) { if (message.streaming) fresh = true }
-        // T-213: a small Pim next to the newest answer; he peeks in while tools run, cheers when done
-        if (latest && !(message.streaming && waiting)) AnswerPim(message, cheer)
-        ToolTimeline(message.steps, research = message.research.takeIf { message.streaming })
-        val reasoning = message.reasoning
-        if (reasoning != null) {
-            val title =
-                message.thinkingSeconds?.let { stringResource(R.string.chat_thought_for, it) }
-                    ?: stringResource(R.string.chat_thinking)
-            // T-211: developer mode can open the raw thinking right away
-            ReasoningBlock(title = title, reasoning = reasoning, initiallyExpanded = extras.rawThinking)
-        }
-        if (message.streaming && waiting) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // T-089/T-213: a real Pim, 40 dp, the leaf wiggling while he thinks
-                LivePim(PimState.THINKING, THINKING_PIM.dp, tappable = false)
-                Spacer(Modifier.width(12.dp))
-                BasicText(stringResource(R.string.chat_thinking), style = type.bodySmall.copy(color = colors.textMuted))
-            }
-        } else {
+        // T-231: one element for every phase (waits, thinks, looks things up, writes): Pim + words,
+        // the thinking opens inside it, the tool steps hang below it
+        PimStatus(message, latest = latest, cheer = cheer, initiallyExpanded = extras.rawThinking)
+        if (!message.streaming || message.text.isNotEmpty()) {
             // T-131: answer text with its cards
             AnswerBody(
                 message,
@@ -650,60 +632,6 @@ private fun Answer(
         }
     }
 }
-
-/**
- * T-213: Pim, 24 dp, at the newest answer. While tools run he peeks in from the side (searching);
- * when the answer is done he is happy for a moment ([cheer]); on a failed answer he gets a fright.
- * With "reduce motion" he simply sits there in his mood.
- */
-@Composable
-private fun AnswerPim(
-    message: UiMessage,
-    cheer: Boolean,
-) {
-    val colors = LocalHainColors.current
-    val type = LocalHainTypography.current
-    val reduce = LocalReduceMotion.current
-    val tooling = message.streaming && message.text.isEmpty() && message.steps.any { it.state == StepState.RUNNING }
-    val mood = answerPimMood(message, cheer, tooling)
-    val peek by animateFloatAsState(
-        if (tooling && !reduce) 1f else 0f,
-        hainTween(HainMotion.PAGE_MS, reduce),
-        label = "pim-peek",
-    )
-    Row(
-        Modifier.padding(bottom = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        LivePim(
-            mood,
-            AVATAR_PIM.dp,
-            Modifier.graphicsLayer {
-                // a calm peek: leans in from the left and tilts a little
-                translationX = if (tooling && !reduce) -PEEK_SHIFT * size.width * (1f - peek) else 0f
-                rotationZ = PEEK_TILT * peek
-            },
-            tappable = false,
-        )
-        if (tooling) {
-            Spacer(Modifier.width(8.dp))
-            BasicText(stringResource(R.string.chat_pim_looking), style = type.label.copy(color = colors.textMuted))
-        }
-    }
-}
-
-/** Pim's mood at the newest answer (T-213): fright on failure, joy when done, thinking while busy. */
-internal fun answerPimMood(
-    message: UiMessage,
-    cheer: Boolean,
-    tooling: Boolean,
-): PimState =
-    when {
-        message.failed -> PimState.ERROR
-        cheer -> PimState.HAPPY
-        tooling || message.streaming -> PimState.THINKING
-        else -> PimState.IDLE
-    }
 
 /**
  * T-211: "21.4 Token/s · erstes Token nach 0.8 s" and a button that copies the debug line. T-230: one
@@ -904,10 +832,6 @@ private const val COPIED_MS = 1500L
 private const val SLIDE_DIV = 14
 private const val CHEER_MS = 2_200L
 private const val ERROR_PIM = 32
-private const val THINKING_PIM = 40
-private const val AVATAR_PIM = 24
-private const val PEEK_SHIFT = 0.6f
-private const val PEEK_TILT = -8f
 private const val MS_PER_S = 1000f
 private const val STATS_SP = 12
 private const val STATS_ICON = 15

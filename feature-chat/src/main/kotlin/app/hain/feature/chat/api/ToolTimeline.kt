@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -30,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -56,15 +56,14 @@ import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
-import app.hain.ui.theme.glassTile
 import kotlinx.coroutines.delay
 import java.util.Locale
 
 /**
- * What Pim did for an answer (T-059), since T-011 as one glass tool card that glows in the colour of
- * the first tool: a row per tool call with its small 3D icon — pulsing while it runs, a ✓ that pops
- * in when done, ✕ when it failed — and an orange dot when it went online. Long rows wrap onto a
- * second line instead of running off the card (T-085).
+ * What Pim did for an answer (T-059). Since T-231 no card any more: the steps hang quietly below
+ * Pim's status line ([PimStatus]), indented to its text, one row per tool call with its line icon —
+ * pulsing while it runs, a ✓ that pops in when done, ✕ when it failed — and an orange dot when it
+ * went online. Long rows wrap onto a second line instead of running off (T-085).
  */
 @Composable
 internal fun ToolTimeline(
@@ -76,11 +75,9 @@ internal fun ToolTimeline(
     val spacing = LocalHainSpacing.current
     Column(
         modifier
-            .padding(bottom = spacing.md)
             .fillMaxWidth()
-            .glassTile(toolHue(steps.first().name), elevation = 6.dp, lightAt = Offset(x = 0.08f, y = 0.5f))
-            .padding(horizontal = spacing.md, vertical = spacing.sm),
-        verticalArrangement = Arrangement.spacedBy(spacing.xs),
+            .padding(start = INDENT.dp, bottom = spacing.xs),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         steps.forEach { ToolRow(it) }
         if (research != null) ResearchTime(research)
@@ -236,14 +233,17 @@ private fun ToolRow(step: ToolStep) {
         seen = step.state
     }
     Row(
-        Modifier.fillMaxWidth().semantics(mergeDescendants = true) { contentDescription = text },
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = ROW_MIN.dp)
+            .semantics(mergeDescendants = true) { contentDescription = text },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Hain3DIcon(toolIcon(step.name), size = 28.dp)
+        Hain3DIcon(toolIcon(step.name), size = ROW_ICON.dp)
         Spacer(Modifier.width(spacing.sm))
         BasicText(
             text,
-            style = LocalHainTypography.current.bodySmall.copy(color = colors.text),
+            style = LocalHainTypography.current.bodySmall.copy(color = colors.textMuted),
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
@@ -306,6 +306,8 @@ internal fun SourceChips(
 }
 
 private const val POP_START = 0.4f
+private const val ROW_MIN = 32
+private const val ROW_ICON = 18
 private const val TICK_MS = 1_000L
 private const val MS_PER_S = 1_000L
 private const val S_PER_MIN = 60

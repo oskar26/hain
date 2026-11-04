@@ -116,6 +116,31 @@ class ChatScreens {
         shot("drawer_dark")
     }
 
+    // ---- T-231: one status element for every phase ----
+
+    @Test
+    fun statusLookingUpLight() {
+        compose.setContent { Frame(dark = false) { ChatFrame(statusState(writing = false)) } }
+        shot("chat_status_tools_light")
+    }
+
+    @Test
+    fun statusWritingDark() {
+        compose.setContent { Frame(dark = true) { ChatFrame(statusState(writing = true)) } }
+        shot("chat_status_writing_dark")
+    }
+
+    @Test
+    fun statusWaitingLight() {
+        val state =
+            ChatUiState(
+                messages = listOf(UiMessage(1, true, "Was ist ein Hain?"), UiMessage(2, false, "", streaming = true)),
+                isGenerating = true,
+            )
+        compose.setContent { Frame(dark = false) { ChatFrame(state) } }
+        shot("chat_status_waiting_light")
+    }
+
     // ---- T-085: long texts ----
 
     @Test
@@ -205,6 +230,7 @@ internal fun ChatFrame(
     val glass = rememberHainGlassState()
     ChatChrome(
         glass = glass,
+        thinking = state.isGenerating,
         top = {
             ChatTopGlass(glass) {
                 TopBar(
@@ -272,6 +298,33 @@ internal fun Drawer(
         actions = DrawerActions({}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}),
     )
 }
+
+/** T-231: Pim thinks, one tool is done, one still runs; [writing] = the answer text has started. */
+internal fun statusState(writing: Boolean): ChatUiState =
+    ChatUiState(
+        messages =
+            listOf(
+                UiMessage(1, true, "Was gibt es Neues zum Deutschlandticket?"),
+                UiMessage(
+                    2,
+                    false,
+                    if (writing) "Das **Deutschlandticket** kostet seit Januar" else "",
+                    reasoning = "Die Frage ist aktuell, also suche ich im Web und lese zwei Seiten.",
+                    streaming = true,
+                    steps =
+                        listOf(
+                            ToolStep("web_search", "Deutschlandticket Preis 2026", StepState.DONE, online = true),
+                            ToolStep(
+                                "read_pages",
+                                "2",
+                                if (writing) StepState.DONE else StepState.RUNNING,
+                                online = true,
+                            ),
+                        ),
+                ),
+            ),
+        isGenerating = true,
+    )
 
 internal fun answerState(texts: ShotTexts = ShotTexts.DE): ChatUiState =
     ChatUiState(

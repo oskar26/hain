@@ -203,6 +203,10 @@
     <string name="game_lost_title">Keine Züge mehr</string>
     <string name="game_lost_body">Pim glaubt an dich. Noch eine Runde?</string>
     <string name="game_try">Nochmal</string>
+    <string name="chat_status_waiting">Pim liest deine Nachricht…</string>
+    <string name="chat_status_writing">Pim schreibt…</string>
+    <string name="chat_status_thought">Nachgedacht</string>
+    <string name="chat_status_open_thinking">Gedanken zeigen oder verbergen</string>
     <string name="chat_pim_looking">Pim schaut nach…</string>
     <string name="chat_dev_stats">%1$s Token/s · erstes Token nach %2$s s</string>
     <string name="chat_dev_copy_debug">Debug-Infos kopieren</string>
