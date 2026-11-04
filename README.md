@@ -96,7 +96,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🛡️ Network log | Every tool request goes through one gate: orange "Online" dot while it runs, offline mode, log of the last 7 days in Settings → Privacy. The log now stays after a restart (7 days, encrypted). Still open: brain download through the gate | 🚧 |
 | 📰 News | Standard mix (incl. junge Welt), standard + own feeds, or only own feeds | 🗓️ |
 | 🃏 Answer cards | Lists, tables, checklists, weather and source cards instead of plain text | 🗓️ |
-| 🧠 Memory | "Remember that …", a memory page you can edit, forget anything | 🗓️ |
+| 🧠 Memory | "Remember that …" / "Merk dir, dass …" and "Forget that …", Pim can also keep something itself (`remember` tool); fitting memories go into the answer. Settings → Memory: search, edit, delete, undo, suggestions for private things, on/off, export/import as a file, delete all. Everything stays encrypted on the phone. Still open: finding by meaning (embedder), automatic memories from chats, topics | 🚧 |
 | 🔒 Private chats | Chats that are never saved, app lock with fingerprint | 🗓️ |
 | 📄 Documents | Ask your PDFs and photos of text (PP-OCRv5), answers with sources | 🗓️ |
 | 🎙️ Voice | Dictation (Moonshine), read aloud, Pim's own voice | 🗓️ |
@@ -108,6 +108,7 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Version 0.1.7: Pim remembers.** Say **"Merk dir, dass ich keine Pilze mag"** or **"Remember that I play the guitar"** and Pim keeps it – right away, without thinking long, and says so in the answer. Later, when it fits ("Hast du ein Rezept für heute Abend mit Pilzen?"), Pim uses it. **"Vergiss, dass ich keine Pilze mag"** deletes it again. Pim can also save something on its own when you ask in other words (a small "Gemerkt" line shows above the answer). Private things like health are never used before your yes: they wait under **Suggestions**. Everything you can see and change in **Settings → Memory**: search, edit (pencil), delete (with "Undo"), switch the memory off, save all memories as a JSON file and load them again, or delete everything. Nothing leaves the phone; the memories are in the same encrypted database as your chats. For now Pim finds memories by their words ("Pilz" finds "Pilze"); finding them by meaning comes later.
 - **Version 0.1.3.1.** Hain now shows its version in **Settings → About Hain** (with build number and commit). How the numbers work is in [docs/workflow/VERSIONING.md](docs/workflow/VERSIONING.md).
 - **Frosted glass menus.** The ⋯ menu, the long-press menu in the side panel and the thinking picker are now real frosted glass: the chat behind them shows through, softly blurred, with a thin light edge and a soft shadow. The rest of the screen only dims a little. On phones older than Android 12 the menus are a solid card.
 - **More Pim in the chat.** Pim is bigger while he thinks, sits small next to the newest answer, peeks in while he looks something up, is happy for a moment when the answer is done and gets a fright on an error. On the empty chat he is a bit bigger too. "Reduce motion" keeps him still.

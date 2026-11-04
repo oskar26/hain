@@ -76,11 +76,11 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-073 | News screen (3-mode switch, own feeds) | ui | M | B | T-072 | todo |
 | T-074 | Article summary on demand | feature | S | B | T-073,T-067 | todo |
 | T-110 | Embedder (LFM2.5-Embedding via llama.cpp) | native | S | C | T-030 | todo |
-| T-111 | Memory tables + DAO | feature | S | C | T-020 | todo |
-| T-112 | Explicit remember/forget + remember tool | feature | S | C | T-111,T-062 | todo |
-| T-113 | Retrieval & ranking | feature | S | C | T-111 | todo |
+| T-111 | Memory tables + DAO | feature | S | C | T-020 | review (04.11., draft PR #38) |
+| T-112 | Explicit remember/forget + remember tool | feature | S | C | T-111,T-062 | review (04.11., draft PR #38) |
+| T-113 | Retrieval & ranking | feature | S | C | T-111 | review (04.11., draft PR #38) |
 | T-114 | Background extraction worker | feature | M | C | T-112,T-113,T-110 | todo |
-| T-115 | Memory screen | ui | M | C | T-113 | todo |
+| T-115 | Memory screen | ui | M | C | T-113 | review (04.11., draft PR #38) |
 | T-120 | PDF text layer + page render | feature | S | D | T-002 | todo |
 | T-121 | PP-OCRv5 Latin via ONNX Runtime | native | M | D | T-120 | todo |
 | T-122 | GermanOcrFixer | feature | S | D | T-002 | todo |
