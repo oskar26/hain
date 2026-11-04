@@ -71,6 +71,7 @@ import app.hain.feature.memory.api.SmartSearch
 import app.hain.feature.news.api.NewsScreen
 import app.hain.feature.onboarding.api.OnboardingScreen
 import app.hain.feature.settings.api.AppInfo
+import app.hain.feature.settings.api.ExtraPack
 import app.hain.feature.settings.api.PacksScreen
 import app.hain.feature.settings.api.SettingsActions
 import app.hain.feature.settings.api.SettingsExtras
@@ -157,6 +158,7 @@ class MainActivity : FragmentActivity() {
         onBack: () -> Unit,
         onOpenPacks: () -> Unit,
         onOpenMemory: () -> Unit = {},
+        onOpenNews: (() -> Unit)? = null,
     ): SettingsActions {
         val repo = settingsRepository
 
@@ -195,6 +197,7 @@ class MainActivity : FragmentActivity() {
             onUpdateChannel = { write { repo.setUpdateChannel(it) } },
             onCheckUpdate = { checkForUpdate() },
             onOpenMemory = onOpenMemory,
+            onOpenNews = onOpenNews,
             onAppLock = { on ->
                 if (on) {
                     // T-056: the lock only turns on after the phone confirmed it is you
@@ -301,6 +304,18 @@ class MainActivity : FragmentActivity() {
 
     /** Häppchen 9: attaching files in the chat (paper clip, progress, "Texterkennung laden?"). */
     private val chatDocs by lazy { ChatDocs(docLibrary, lifecycleScope) }
+
+    /** T-234: the text recognition pack in Settings → Modelle & Pakete → Multimedia. */
+    private val ocrPack by lazy {
+        ExtraPack(
+            ExtraPack.Kind.OCR,
+            docLibrary.pack.totalBytes,
+            installed = chatDocs.ocrInstalled,
+            progress = chatDocs.state.map { it.download },
+            onGet = chatDocs::loadPack,
+            onRemove = chatDocs::removePack,
+        )
+    }
 
     /**
      * T-074: the brain file for news summaries, `null` while no brain is on the phone; the brain
@@ -633,6 +648,11 @@ class MainActivity : FragmentActivity() {
                                         onBack = { showSettings = false },
                                         onOpenPacks = { showPacks = true },
                                         onOpenMemory = { showMemory = true },
+                                        // T-234: "Nachrichten" leads to the news page and its settings
+                                        onOpenNews = {
+                                            showSettings = false
+                                            showNews = true
+                                        },
                                     ),
                                     networkLog = log,
                                     extras =
@@ -670,7 +690,7 @@ class MainActivity : FragmentActivity() {
                                         slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
                                 exit = fadeOut(hainTween(HainMotion.FAST_MS)),
                             ) {
-                                PacksScreen(models, deviceRamGb(), { showPacks = false })
+                                PacksScreen(models, deviceRamGb(), { showPacks = false }, extras = listOf(ocrPack))
                             }
                         }
                     }

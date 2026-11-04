@@ -224,7 +224,7 @@
     <string name="chat_brain_detail">%1$s · %2$s</string>
     <string name="chat_brain_not_installed">Not on your phone yet · %1$s</string>
     <string name="chat_brain_recommended">Recommended for your phone</string>
-    <string name="chat_brain_get_more">More brains in Knowledge packs</string>
+    <string name="chat_brain_get_more">More brains in Models &amp; packs</string>
     <string name="chat_brain_own_active">Your own model from developer mode is in use right now.</string>
     <!-- T-056 private chat, T-054 export -->
     <string name="chat_private_title">Private chat</string>
