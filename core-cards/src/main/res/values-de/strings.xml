@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- T-072 NewsCard -->
+    <string name="cards_news_title">Schlagzeilen</string>
+    <string name="cards_news_paywall">Paywall</string>
+    <string name="cards_news_more">+%1$d weitere</string>
+    <string name="cards_news_open">Artikel öffnen</string>
+</resources>

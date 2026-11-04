@@ -57,6 +57,7 @@ import app.hain.models.api.DownloadState
 import app.hain.models.api.ModelRepository
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.ToolContext
+import app.hain.tools.internal.news.NewsRepository
 import app.hain.ui.effects.HainMenuBackdrop
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.HapticLevel
@@ -84,6 +85,8 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var settingsRepository: SettingsRepository
 
     @Inject lateinit var networkGate: NetworkGate
+
+    @Inject lateinit var newsRepository: NewsRepository
 
     private fun settingsActions(
         onBack: () -> Unit,
@@ -160,7 +163,7 @@ class MainActivity : ComponentActivity() {
                     prompts::current,
                     answerMode = { LlmAnswerMode.fromKey(settings().answerMode.name.lowercase()) },
                     turnHint = prompts::turnHint,
-                    tools = HainTools.router(networkGate),
+                    tools = HainTools.router(networkGate, newsRepository),
                     toolContext = {
                         val cfg = settings()
                         ToolContext(

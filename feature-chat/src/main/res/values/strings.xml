@@ -55,6 +55,7 @@
     <string name="chat_tool_calculate">Calculator</string>
     <string name="chat_tool_weather">Weather</string>
     <string name="chat_tool_wikipedia">Wikipedia</string>
+    <string name="chat_tool_news">News</string>
     <string name="chat_tool_search">Search</string>
     <string name="chat_tool_read_page">Page</string>
     <string name="chat_tool_pages">Pages</string>
@@ -68,6 +69,7 @@
     </plurals>
     <string name="chat_tool_wiki_to_web">Wikipedia had nothing → searching the web</string>
     <string name="chat_tool_web_to_wiki">nothing on the web → Wikipedia</string>
+    <string name="chat_tool_news_to_web">The news feeds had nothing → searching the web</string>
     <string name="chat_tool_limit">enough searching</string>
     <string name="chat_tool_time_up">time’s up</string>
     <string name="chat_tool_stopped">stopped</string>

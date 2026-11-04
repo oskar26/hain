@@ -36,6 +36,18 @@ data class ToolSource(
 )
 
 /**
+ * One headline for the NewsCard under an answer (T-072). [publishedAt] is epoch millis, `null` when
+ * the feed gave no date; [paywall] marks sources that are often not free to read.
+ */
+data class NewsHeadline(
+    val source: String,
+    val title: String,
+    val url: String?,
+    val publishedAt: Long?,
+    val paywall: Boolean = false,
+)
+
+/**
  * Result of one tool call (TOOLS.md §7).
  *
  * @property forModel compact JSON the brain reads in `<tool_response>`.
@@ -46,6 +58,7 @@ data class ToolSource(
  * @property via the tool that really answered when the one called had nothing (4c fallback):
  *   `web_search` after an empty Wikipedia, `wikipedia` after an empty web search; `null` = no fallback.
  * @property hits the search hits behind [readUrls], one per site (web search only).
+ * @property news headlines for the NewsCard (T-072, `news` tool only).
  */
 data class ToolResult(
     val forModel: String,
@@ -56,6 +69,7 @@ data class ToolResult(
     val action: PhoneAction? = null,
     val via: String? = null,
     val hits: List<ToolHit> = emptyList(),
+    val news: List<NewsHeadline> = emptyList(),
 )
 
 /** One tool the brain may call. [online] tools go through the NetworkGate. */
