@@ -19,15 +19,25 @@ data class GateRequest(
     val userStarted: Boolean = false,
 )
 
-/** Answer of a request: HTTP status and the body as text. */
+/**
+ * Answer of a request: HTTP status and the body as text. [headers] has lower-case names (T-071:
+ * `etag` and `last-modified` for conditional feed requests); empty when the transport keeps none.
+ */
 data class GateResponse(
     val code: Int,
     val body: String,
+    val headers: Map<String, String> = emptyMap(),
 ) {
     val ok: Boolean get() = code in OK_RANGE
 
+    /** `304 Not Modified`: the cached copy is still current (conditional GET). */
+    val notModified: Boolean get() = code == NOT_MODIFIED
+
+    fun header(name: String): String? = headers[name.lowercase()]
+
     private companion object {
         val OK_RANGE = 200..299
+        const val NOT_MODIFIED = 304
     }
 }
 

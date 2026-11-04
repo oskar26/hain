@@ -42,7 +42,13 @@ internal enum class LogFilter(
     ALL(R.string.settings_log_all, null),
     WEATHER(R.string.settings_log_weather, setOf(Purpose.WEATHER, Purpose.GEO)),
     WIKI(R.string.settings_log_wiki, setOf(Purpose.WIKI)),
-    OTHER(R.string.settings_log_other, Purpose.entries.toSet() - setOf(Purpose.WEATHER, Purpose.GEO, Purpose.WIKI)),
+
+    // T-071: news feeds and the articles Pim summarises have their own line
+    NEWS(R.string.settings_log_news, setOf(Purpose.NEWS)),
+    OTHER(
+        R.string.settings_log_other,
+        Purpose.entries.toSet() - setOf(Purpose.WEATHER, Purpose.GEO, Purpose.WIKI, Purpose.NEWS),
+    ),
     ;
 
     fun matches(entry: NetworkLogEntry) = purposes == null || entry.purpose in purposes
@@ -118,6 +124,7 @@ private fun purposeLabel(purpose: Purpose): Int =
         Purpose.WEATHER -> R.string.settings_log_weather
         Purpose.GEO -> R.string.settings_log_place
         Purpose.WIKI -> R.string.settings_log_wiki
+        Purpose.NEWS -> R.string.settings_log_news
         Purpose.MODEL_DOWNLOAD -> R.string.settings_log_download
         Purpose.UPDATE -> R.string.settings_log_update
         else -> R.string.settings_log_other

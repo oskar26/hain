@@ -43,6 +43,7 @@ import app.hain.feature.chat.internal.ChatEngine
 import app.hain.feature.chat.internal.ChatStore
 import app.hain.feature.chat.internal.ChatViewModel
 import app.hain.feature.chat.internal.PrefsRatings
+import app.hain.feature.news.api.NewsScreen
 import app.hain.feature.onboarding.api.OnboardingScreen
 import app.hain.feature.settings.api.AppInfo
 import app.hain.feature.settings.api.PacksScreen
@@ -59,6 +60,7 @@ import app.hain.models.api.DownloadState
 import app.hain.models.api.ModelRepository
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.ToolContext
+import app.hain.tools.internal.news.NewsRepository
 import app.hain.ui.effects.HainMenuBackdrop
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.HapticLevel
@@ -86,6 +88,8 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var settingsRepository: SettingsRepository
 
     @Inject lateinit var networkGate: NetworkGate
+
+    @Inject lateinit var newsRepository: NewsRepository
 
     private fun settingsActions(
         onBack: () -> Unit,
@@ -161,6 +165,12 @@ class MainActivity : ComponentActivity() {
     /** T-211: the own GGUF of developer mode when it is in use and on the phone, else `null`. */
     private fun ownModelPath(): String? = DevTuning.ownModel(current.dev) { File(it).isFile }
 
+    /** T-074: the brain file for news summaries, `null` while no brain is on the phone. */
+    private val brainPath: () -> String? = {
+        val brain = models.defaultBrain
+        ownModelPath() ?: models.mainFile(brain).absolutePath.takeIf { models.isInstalled(brain) }
+    }
+
     /** T-211: own models from Hugging Face for developer mode. */
     private val devModels by lazy { DevModels(models, networkGate, deviceRamGb()) }
 
@@ -177,7 +187,7 @@ class MainActivity : ComponentActivity() {
                     prompts::current,
                     answerMode = { LlmAnswerMode.fromKey(settings().answerMode.name.lowercase()) },
                     turnHint = prompts::turnHint,
-                    tools = HainTools.router(networkGate),
+                    tools = HainTools.router(networkGate, newsRepository),
                     toolContext = {
                         val cfg = settings()
                         ToolContext(
@@ -247,6 +257,7 @@ class MainActivity : ComponentActivity() {
             var showSettings by rememberSaveable { mutableStateOf(false) }
             var showPacks by rememberSaveable { mutableStateOf(false) }
             var showGame by rememberSaveable { mutableStateOf(false) }
+            var showNews by rememberSaveable { mutableStateOf(false) }
             HainTheme(
                 darkTheme =
                     when (settings.theme) {
@@ -293,6 +304,7 @@ class MainActivity : ComponentActivity() {
                                     lifecycleScope.launch { settingsRepository.setAnswerMode(mode) }
                                 },
                                 onOpenGame = { showGame = true },
+                                onOpenNews = { showNews = true },
                                 extras =
                                     ChatExtras(
                                         showStats = dev.enabled && dev.showStats,
@@ -343,6 +355,25 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onClose = { showGame = false },
                                 )
+                            }
+                            // T-073: news, from the drawer
+                            AnimatedVisibility(
+                                visible = showNews,
+                                enter =
+                                    fadeIn(hainTween(HainMotion.PAGE_MS)) +
+                                        slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
+                                exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+                            ) {
+                                val newsViewModel =
+                                    viewModel {
+                                        newsScreenModel(
+                                            NewsParts(newsRepository, networkGate, llm),
+                                            modelPath = brainPath,
+                                            contextSize = { DevTuning.contextSize(current.dev) },
+                                            lang = { toolLanguage(current) },
+                                        )
+                                    }
+                                NewsScreen(newsViewModel, { showNews = false })
                             }
                             AnimatedVisibility(
                                 visible = showSettings,

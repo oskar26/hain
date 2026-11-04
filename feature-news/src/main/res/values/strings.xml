@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- T-073 / T-074 news screen -->
+    <string name="news_title">News</string>
+    <string name="news_back">Back</string>
+    <string name="news_refresh">Refresh</string>
+    <string name="news_mode_standard">Standard</string>
+    <string name="news_mode_plus_own">Standard + my feeds</string>
+    <string name="news_mode_own">My feeds only</string>
+    <string name="news_today">Today</string>
+    <string name="news_yesterday">Yesterday</string>
+    <string name="news_older">Older</string>
+    <string name="news_own_feeds">My feeds</string>
+    <string name="news_own_feeds_count">My feeds · %1$d</string>
+    <string name="news_empty_own">Add a feed</string>
+    <string name="news_empty_own_hint">Under “My feeds” you can add any RSS or Atom address.</string>
+    <string name="news_empty">No news yet</string>
+    <string name="news_empty_hint">Tap refresh to load the headlines.</string>
+    <string name="news_offline">Offline: these are the headlines saved on your phone.</string>
+    <string name="news_loading">Loading headlines…</string>
+    <string name="news_mix_hint">A fixed mix of public, mainstream and left media in German and English.</string>
+    <string name="news_summarize">Summarise</string>
+    <string name="news_summarizing">Pim is summarising…</string>
+    <string name="news_summary_hide">Hide</string>
+    <string name="news_not_readable">Article not freely readable</string>
+    <string name="news_open_link">Open in browser</string>
+    <string name="news_summary_offline">You’re offline. Summarising needs the internet.</string>
+    <string name="news_summary_no_brain">Download the brain first, then Pim can summarise.</string>
+    <string name="news_summary_failed">That didn’t work. Try again later.</string>
+    <string name="news_share">Share link</string>
+    <string name="news_feed_add_hint">Feed address (https://…)</string>
+    <string name="news_feed_add">Add</string>
+    <string name="news_feed_adding">Checking…</string>
+    <string name="news_feed_rename">Rename</string>
+    <string name="news_feed_delete">Delete</string>
+    <string name="news_feed_save">Save</string>
+    <string name="news_feed_broken">not working right now</string>
+    <string name="news_feed_error_not_a_feed">There is no RSS or Atom feed at this address.</string>
+    <string name="news_feed_error_duplicate">This feed is already there.</string>
+    <string name="news_feed_error_full">You can have up to 50 own feeds.</string>
+    <string name="news_feed_error_offline">You’re offline.</string>
+    <string name="news_feed_error_failed">Couldn’t reach the address.</string>
+    <string name="news_feeds_hint">Your feeds join the news when “Standard + my feeds” or “My feeds only” is picked.</string>
+    <string name="news_feeds_empty">No feeds of your own yet.</string>
+</resources>

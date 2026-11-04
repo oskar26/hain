@@ -1,6 +1,7 @@
 package app.hain.feature.chat.internal
 
 import app.hain.tools.api.InfoCard
+import app.hain.tools.api.NewsHeadline
 import app.hain.tools.api.PhoneAction
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -9,6 +10,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 
@@ -22,8 +24,9 @@ internal object ToolStepsJson {
         sources: List<SourceRef>,
         actions: List<ActionCard> = emptyList(),
         cards: List<InfoCard> = emptyList(),
+        news: List<NewsHeadline> = emptyList(),
     ): String? {
-        if (listOf(steps, sources, actions, cards).all { it.isEmpty() }) return null
+        if (listOf(steps, sources, actions, cards, news).all { it.isEmpty() }) return null
         return buildJsonObject {
             putJsonArray("steps") {
                 steps.forEach { s ->
@@ -68,7 +71,33 @@ internal object ToolStepsJson {
                     }
                 }
             }
+            if (news.isNotEmpty()) putJsonArray("news") { news.forEach { add(newsJson(it)) } }
         }.toString()
+    }
+
+    private fun newsJson(h: NewsHeadline): JsonObject =
+        buildJsonObject {
+            put("source", h.source)
+            put("title", h.title)
+            h.url?.let { put("url", it) }
+            h.publishedAt?.let { put("at", it) }
+            if (h.paywall) put("paywall", true)
+        }
+
+    /** The headlines of a NewsCard in [json] (T-072). */
+    fun decodeNews(json: String?): List<NewsHeadline> {
+        val root =
+            json
+                ?.takeIf { it.isNotBlank() }
+                ?.let { runCatching { Json.parseToJsonElement(it).jsonObject }.getOrNull() }
+                ?: return emptyList()
+        return (root["news"] as? JsonArray).orEmpty().mapNotNull { el ->
+            val o = el as? JsonObject ?: return@mapNotNull null
+            val title = o.text("title") ?: return@mapNotNull null
+            val at = (o["at"] as? JsonPrimitive)?.longOrNull
+            val paywall = (o["paywall"] as? JsonPrimitive)?.booleanOrNull == true
+            NewsHeadline(o.text("source").orEmpty(), title, o.text("url"), at, paywall)
+        }
     }
 
     /** The phone-action cards in [json] (T-068); unknown ones are skipped. */

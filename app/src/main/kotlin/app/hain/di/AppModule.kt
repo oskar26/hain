@@ -17,6 +17,9 @@ import app.hain.llm.internal.LlamaEngine
 import app.hain.models.api.ModelRepository
 import app.hain.models.internal.DefaultModelRepository
 import app.hain.tools.internal.net.HttpNetworkGate
+import app.hain.tools.internal.news.FileNewsStore
+import app.hain.tools.internal.news.NewsJson
+import app.hain.tools.internal.news.NewsRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -76,6 +79,24 @@ object AppModule {
         ).also { NetworkGates.current = it } // 3b-2: the brain download worker logs through it too
     }
 
+    /**
+     * News (T-071): the fixed standard mix from the assets plus own feeds, kept in one JSON file in
+     * the app's private files. Feeds go through the NetworkGate (purpose NEWS).
+     */
+    @Provides
+    @Singleton
+    fun newsRepository(
+        @ApplicationContext context: Context,
+        gate: NetworkGate,
+    ): NewsRepository {
+        val standard =
+            runCatching {
+                context.assets.open(STANDARD_FEEDS).use { NewsJson.standardFeeds(it.reader().readText()) }
+            }.onFailure { Log.e("Hain", "Standard news feeds unreadable", it) }
+                .getOrDefault(emptyList())
+        return NewsRepository(gate, FileNewsStore(File(context.filesDir, "news/news.json")), standard)
+    }
+
     /** The one encrypted database, opened once; null when it cannot open (chats then stay in memory). */
     @Provides
     @Singleton
@@ -98,6 +119,8 @@ object AppModule {
         return ChatStore(persistence = persistence, scope = scope)
     }
 }
+
+private const val STANDARD_FEEDS = "news/standard_feeds.json"
 
 /** Wraps the database so Hilt can hand out a missing one. */
 class DatabaseHolder(

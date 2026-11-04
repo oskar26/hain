@@ -21,6 +21,7 @@ import app.hain.llm.internal.StreamSplitter
 import app.hain.llm.internal.ThinkingPolicy
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.InfoCard
+import app.hain.tools.api.NewsHeadline
 import app.hain.tools.api.ResearchBudget
 import app.hain.tools.api.ResearchNotes
 import app.hain.tools.api.ToolContext
@@ -72,6 +73,8 @@ sealed interface TurnUpdate {
         val sources: List<SourceRef> = emptyList(),
         val trace: List<ToolTrace> = emptyList(),
         val actions: List<ActionCard> = emptyList(),
+        /** Headlines of the `news` tool for the NewsCard (T-072). */
+        val news: List<NewsHeadline> = emptyList(),
         /** Speed of the last generation (developer mode, T-211). */
         val stats: GenerationStats? = null,
         /** Weather and Wikipedia cards for under the answer (3b-2). */
@@ -218,7 +221,8 @@ class ChatEngine(
                                 turn.sources.toList(),
                                 turn.trace.toList(),
                                 turn.actions.toList(),
-                                result.stats,
+                                news = turn.news.toList(),
+                                stats = result.stats,
                                 cards = turn.cards.toList(),
                             ),
                         )
@@ -252,6 +256,7 @@ class ChatEngine(
         val sources = mutableListOf<SourceRef>()
         val trace = mutableListOf<ToolTrace>()
         val actions = mutableListOf<ActionCard>()
+        val news = mutableListOf<NewsHeadline>()
         val cards = mutableListOf<InfoCard>()
         val notes = ResearchNotes()
         val readUrls = mutableSetOf<String>()
@@ -370,6 +375,8 @@ class ChatEngine(
                 )
             // a phone action is only prepared here; the card under the answer asks before anything happens
             result.action?.let { turn.actions += ActionCard(it) }
+            // T-072: headlines for the NewsCard, each article once
+            result.news.forEach { h -> if (turn.news.none { it.title == h.title && it.url == h.url }) turn.news += h }
             // 3b-2: weather and Wikipedia as a card under the answer, one per place or article
             result.card?.let { card -> if (turn.cards.none { it == card }) turn.cards += card }
         }

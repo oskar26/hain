@@ -11,4 +11,6 @@ internal class DrawerActions(
     val onPin: (Long, Boolean) -> Unit,
     val onSearch: (String) -> Unit,
     val onSettings: () -> Unit,
+    /** T-073: opens the news screen; `null` = no news row. */
+    val onNews: (() -> Unit)? = null,
 )

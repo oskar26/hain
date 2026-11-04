@@ -5,4 +5,9 @@
     <string name="cards_weather_wind">Wind %1$d km/h</string>
     <string name="cards_weather_rain">Rain %1$d %%</string>
     <string name="cards_wiki_open">Read on Wikipedia</string>
+    <!-- T-072 NewsCard -->
+    <string name="cards_news_title">Headlines</string>
+    <string name="cards_news_paywall">Paywall</string>
+    <string name="cards_news_more">+%1$d more</string>
+    <string name="cards_news_open">Open article</string>
 </resources>

@@ -132,7 +132,8 @@ class SystemPromptSource(
         // "looked it up" answers: every new question calls the tool again (Oskar's test of #19).
         const val TOOLS_DE =
             "Werkzeuge: calculate für genaues Rechnen und Einheiten, weather für Wetter, " +
-                "wikipedia für Fakten über Personen, Orte und Dinge, web_search für Aktuelles und Details " +
+                "wikipedia für Fakten über Personen, Orte und Dinge, news für aktuelle Schlagzeilen, " +
+                "web_search für Aktuelles und Details " +
                 "(Hain liest dann die besten Seiten), read_page für einen Link. " +
                 "Für jede neue Frage, die Fakten, Wetter oder Aktuelles braucht, rufe das Werkzeug neu auf, " +
                 "auch wenn du es vorher schon benutzt hast. " +
@@ -144,7 +145,8 @@ class SystemPromptSource(
                 PHONE_DE
         const val TOOLS_EN =
             "Tools: calculate for exact maths and units, weather for forecasts, " +
-                "wikipedia for facts about people, places and things, web_search for current news and details " +
+                "wikipedia for facts about people, places and things, news for today's headlines, " +
+                "web_search for current events and details " +
                 "(Hain then reads the best pages), read_page for a link. " +
                 "For every new question that needs facts, weather or current events, call the tool again, " +
                 "even if you used it before. " +

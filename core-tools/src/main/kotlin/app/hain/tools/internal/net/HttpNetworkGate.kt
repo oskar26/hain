@@ -152,7 +152,13 @@ class UrlConnectionTransport : Transport {
             val code = connection.responseCode
             val stream = if (code >= ERROR_CODES) connection.errorStream else connection.inputStream
             val bytes = stream?.use { readCapped(it) } ?: ByteArray(0)
-            return GateResponse(code, String(bytes, Charsets.UTF_8))
+            // T-071: lower-case header names, so feeds can send If-None-Match / If-Modified-Since next time
+            val headers =
+                connection.headerFields
+                    .filterKeys { it != null }
+                    .mapNotNull { (k, v) -> v.firstOrNull()?.let { k.lowercase() to it } }
+                    .toMap()
+            return GateResponse(code, String(bytes, Charsets.UTF_8), headers)
         } finally {
             connection.disconnect()
         }
