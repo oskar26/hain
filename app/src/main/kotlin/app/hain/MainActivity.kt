@@ -1,6 +1,9 @@
 package app.hain
 
+import android.app.LocaleManager
+import android.os.Build
 import android.os.Bundle
+import android.os.LocaleList
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -140,6 +143,16 @@ class MainActivity : ComponentActivity() {
         return Math.round(info.totalMem / BYTES_PER_GB).toInt()
     }
 
+    /** 2f: onboarding language step sets the app language (Android 13+) and the answer language. */
+    private fun pickLanguage(tag: String) {
+        lifecycleScope.launch {
+            settingsRepository.setAnswerLanguage(if (tag == "de") AnswerLanguage.DE else AnswerLanguage.EN)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                getSystemService(LocaleManager::class.java)?.applicationLocales = LocaleList.forLanguageTags(tag)
+            }
+        }
+    }
+
     @Suppress("LongMethod") // compose root: theme, onboarding, chat, settings overlays
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -169,6 +182,7 @@ class MainActivity : ComponentActivity() {
                         OnboardingScreen(
                             models = models,
                             onDone = { installed = models.isInstalled(brain) },
+                            onLanguage = { tag -> pickLanguage(tag) },
                             onSkip = {
                                 startPrefs.edit().putBoolean(KEY_SKIPPED, true).apply()
                                 skipped = true

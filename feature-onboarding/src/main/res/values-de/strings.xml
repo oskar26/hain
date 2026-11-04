@@ -30,4 +30,6 @@
     <string name="tour_go">Los geht\'s</string>
     <string name="onboarding_skip">Später – erst mal umschauen</string>
     <string name="onboarding_background">Im Hintergrund weiterladen</string>
+    <string name="language_title">Wähle deine Sprache</string>
+    <string name="language_body">Du kannst sie später in den Einstellungen ändern.</string>
 </resources>

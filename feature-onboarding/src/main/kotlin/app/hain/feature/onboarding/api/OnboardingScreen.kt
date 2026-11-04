@@ -48,12 +48,14 @@ import app.hain.ui.theme.LocalHainTypography
  * [onSkip] (2d-2): the download can wait (or keeps running in the background); the chat then
  * shows a friendly reminder.
  */
+@Suppress("LongMethod", "ReturnCount") // step switch: language, tour, success, download
 @Composable
 fun OnboardingScreen(
     models: ModelRepository,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
     onSkip: () -> Unit = onDone,
+    onLanguage: (String) -> Unit = {},
 ) {
     val model = remember { models.defaultBrain }
     val download by remember(model) { models.downloadState(model) }.collectAsState(DownloadState.Idle)
@@ -72,7 +74,15 @@ fun OnboardingScreen(
         }
     }
 
+    var languageDone by rememberSaveable { mutableStateOf(false) }
     var tourDone by rememberSaveable { mutableStateOf(false) }
+    if (!languageDone && download == DownloadState.Idle) {
+        LanguageStep(onPick = { tag ->
+            onLanguage(tag)
+            languageDone = true
+        }, modifier = modifier)
+        return
+    }
     if (!tourDone && download == DownloadState.Idle) {
         WelcomeTour(onFinish = { tourDone = true }, modifier = modifier)
         return

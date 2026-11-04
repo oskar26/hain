@@ -303,3 +303,9 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Checks: icon checked at 48/72/96 px, masked round and squircle, safe zone; `npm ci && npm run build` green; Chromium screenshots desktop/mobile, light/dark. Gradle not run locally (parallel run) → CI + APK workflow.
 - Notes/risks: T-089 is a new ID (T-087 may be used by the parallel polish run). Regenerate icons: `pip install resvg-py pillow && python3 assets/icon/src/make_icon.py`.
 - Next: Oskar checks the icon on the phone (themed icon on Android 13+).
+
+## 2026-11-04 · T-055a (language step at first start, localeConfig) · review · harness: Hark · model: Hark
+- What: first onboarding screen "Wähle deine Sprache / Choose your language" (Deutsch / English). One tap sets the answer language and, on Android 13+, the app language via LocaleManager. Manifest now declares `android:localeConfig` (res/xml/locales_config.xml existed already) so the system language picker lists Hain with DE + EN.
+- Files: feature-onboarding/.../LanguageStep.kt, OnboardingScreen.kt (onLanguage), MainActivity.kt (pickLanguage), AndroidManifest.xml, strings EN+DE, README.md.
+- Not done: brain picker in the top bar (rest of T-055) → 2f-2.
+- Next: Oskar checks first start with a fresh install.
