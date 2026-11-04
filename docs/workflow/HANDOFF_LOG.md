@@ -419,6 +419,7 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - README (Funktionstabelle Werkzeuge ✅ + „Neu“), Website EN + /de (Wikipedia & Wetter, Handy-Aktionen, Netzwerk-Log), `TOOLS.md`, `SETTINGS.md` nachgezogen.
 - Nicht gemacht: Favicons (T-064c, Bilder müssten durchs Gate), ConfirmCard nach core-cards (T-068e, reiner Umbau ohne Nutzen für 0.2), Host-Test mit echtem LFM3 für `days`/Wetter ohne Ort (kein Host-Lauf in diesem Durchgang).
 - Nächstes: Oskar testet auf dem Handy: „Weck mich werktags um 6:30“, Schalter „Handy-Aktionen bestätigen“ aus, „Wie wird das Wetter?“ mit Standort, Websuche „Erst fragen“.
+
 ## 2026-11-04 · T-111, T-112, T-113, T-115 (0.1.7 – Gedächtnis) · review · harness: Hark · model: Hark · branch `hark/day-7` (Draft-PR #38)
 
 | task | status | check result | files outside list (reason) | open issues |
@@ -447,3 +448,16 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Zwischenstand-Commit T-073 baut erst zusammen mit T-074 (ViewModel kennt `SummarizeArticle`).
 - `hain.versionName` = 0.1.5 (gradle.properties). README (Funktionstabelle, deutscher Absatz) und Website (EN + /de: Nachrichten = „Schon da“) aktualisiert, `NEWS.md` §7 beschreibt die Abweichungen.
 - Nächstes: Oskar testet die APK: Seitenleiste → Nachrichten, Modus wechseln, eigenen Feed hinzufügen, „Zusammenfassen“ (mit Gehirn), im Chat „Was gibt es Neues zum Streik?“.
+
+## 2026-11-04 · T-130, T-131 (0.1.6 – Antwort-Karten) · review · harness: Hark · model: Hark · branch `hark/day-6`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-130 | review | `CardParserTest` (19), `AnswerPartsTest` (10), `CardStateTest` (3) lokal mit kotlinc 2.1 + JUnit grün | `AnswerParts.kt`, `CardText.kt`, `CardState.kt`, `ModelCard.kt` (gleiches Paket) | – |
+| T-131 | review | `CardGrammarTest`, `CardActionsTest` (feature-chat), `python3 tools/check_gbnf.py` ok (17 Regeln, 5 gute / 7 schlechte Beispiele); Screenshots `cards_light/dark`, `cards_list_light` (screens.yml) | `ChatScreen.kt` (AnswerBody statt AssistantBlock, CardHandler), `CardHandler.kt`, `ChatStore.kt` (`cardState`), `RoomChatPersistence.kt` (`cards_json`, Spalte gab es schon → keine Migration), `ChatViewModel.kt` (`updateCards`, `ask`), `Messages.kt` (`AnswerActionRow` herausgezogen), `prompts/system_full.*` + Assets, `tools/check_gbnf.py`, README, Website, `HAPTICS.md`, `CARDS.md`, `gradle.properties` | GBNF zur Laufzeit nicht aktiv (JNI: eine Grammatik pro Generierung, kein Umschalten mitten in der Antwort); Chart/Image nicht gerendert; kein C++-Compiler in der Sandbox → `llama-gbnf-validator` ersetzt durch eigenes Python-Prüfskript |
+
+- Ablauf im Chat: `AnswerBody` zerlegt die Antwort mit `AnswerParts.split(text, streaming)`; ohne Karte bleibt es der bisherige `AssistantBlock` (kein Unterschied für normale Antworten). Eine offene Karte wächst beim Streamen mit, Knöpfe sind bis zum Ende gesperrt. Kaputte Karte → bleibt als Codeblock stehen.
+- Haken: `CardState` (`{"checked":{"karte.block.punkt":true}}`, nur geänderte Punkte) über `ChatViewModel.updateCards` → `cards_json`. Knopf `ask:"…"` → `ChatViewModel.ask` (setzt Eingabe + sendet; nicht während Pim antwortet). Kopieren/Teilen der ganzen Antwort = Klartext mit Haken (`UiMessage.plainAnswer`).
+- Prompt: neuer Abschnitt „# Karten“/„# Cards“ mit einem Beispiel (≈100 Token mehr im gecachten System-Prompt). Mit echtem LFM3 auf dem Host nicht geprüft (kein C++-Build in dieser Sandbox) → Oskar bitte mit „Schreib mir eine Einkaufsliste für Pfannkuchen“ und „Lernplan Mathe bis Freitag“ testen.
+- Version `hain.versionName=0.1.6`. Gradle lokal nicht gestartet: ktlint 1.5.0 + detekt 1.23.8 CLI lokal grün, Rest über CI (CI, APK, Screens).
+- Parallel laufen `hark/day-3b2-4b2`, `hark/day-5`, `hark/day-7`: Konflikte in README/STATUS/HANDOFF_LOG/Website/gradle.properties beim Mergen → beide Blöcke behalten, Version = höchste.

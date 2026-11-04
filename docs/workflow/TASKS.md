@@ -95,8 +95,8 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-121 | PP-OCRv5 Latin via ONNX Runtime | native | M | D | T-120 | todo |
 | T-122 | GermanOcrFixer | feature | S | D | T-002 | todo |
 | T-123 | Chunking + doc search tool + attach in chat | feature | M | D | T-121,T-122,T-062 | todo |
-| T-130 | Card parser | feature | S | E | T-002 | todo |
-| T-131 | Card renderer + GBNF | ui | M | E | T-130,T-014 | todo |
+| T-130 | Card parser | feature | S | E | T-002 | done |
+| T-131 | Card renderer + GBNF | ui | M | E | T-130,T-014 | done |
 | T-140 | STT Moonshine + mic button | feature | M | F | T-082 | todo |
 | T-141 | TTS Piper + read aloud | feature | M | F | T-082 | todo |
 | T-143 | Pocket TTS on Android (ONNX, all language packs) | native | M | F | T-082 | todo |

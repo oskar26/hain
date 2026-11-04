@@ -10,4 +10,11 @@
     <string name="cards_news_paywall">Paywall</string>
     <string name="cards_news_more">+%1$d more</string>
     <string name="cards_news_open">Open article</string>
+    <!-- T-131 answer cards (CARDS.md §4) -->
+    <string name="card_copied">Copied</string>
+    <string name="card_share_title">Share card</string>
+    <string name="card_progress">%1$d percent</string>
+    <string name="card_item_done">done</string>
+    <string name="card_item_open">open</string>
+    <string name="card_writing">Pim is still writing…</string>
 </resources>

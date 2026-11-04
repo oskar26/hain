@@ -54,6 +54,7 @@ Premium … smart eingesetzt … verschiedene Stufen."*
 | Primary / secondary buttons, tool confirm card | Tick | `HainButton` |
 | 2048: tiles merge / won / no moves | Merge (firmer for bigger tiles) / Done / Error | `Game2048Screen` |
 | First start finished | Toggle | `SuccessScreen` |
+| Tick an item on an answer card (T-131) / card button | Toggle / Tick | `CardRenderer` (core-cards) |
 
 ## Levels
 

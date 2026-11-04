@@ -38,6 +38,8 @@ data class UiMessage(
     val stats: GenerationStats? = null,
     /** Weather and Wikipedia cards under the answer (3b-2). */
     val cards: List<InfoCard> = emptyList(),
+    /** Checklist ticks the user set on this answer's cards (T-131, `cards_json`, see CardState). */
+    val cardState: String? = null,
 )
 
 data class Chat(

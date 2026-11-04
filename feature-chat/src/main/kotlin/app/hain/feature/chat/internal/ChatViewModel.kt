@@ -146,6 +146,25 @@ class ChatViewModel(
         store.upsertMessage(chatId, message.copy(actions = actions))
     }
 
+    /** T-131: saves the checklist ticks of answer [messageId] (`cards_json`, null = as the brain wrote). */
+    fun updateCards(
+        messageId: Long,
+        cardsJson: String?,
+    ) {
+        val chatId = local.value.currentChatId ?: return
+        val message = store.chat(chatId)?.messages?.firstOrNull { it.id == messageId && !it.isUser && !it.streaming }
+        if (message != null && message.cardState != cardsJson) {
+            store.upsertMessage(chatId, message.copy(cardState = cardsJson))
+        }
+    }
+
+    /** T-131: a card button `ask:"…"` sends its text as the next message (not while Pim answers). */
+    fun ask(text: String) {
+        if (text.isBlank() || local.value.generating) return
+        onInputChange(text)
+        send()
+    }
+
     fun onInputChange(text: String) = local.update { it.copy(input = text, error = null) }
 
     fun newChat() {
