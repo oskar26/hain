@@ -4,6 +4,7 @@
 
 ## Now
 
+- **Trademarks + support (04.11., `hark/trademarks`):** T-196 `TRADEMARKS.md` (DE+EN, "open code, protected brand": name Hain, Pim and icon are project marks, forks rename and replace them) + README sections "Name & Pim / Trademarks" and "Support / Unterstützen" (coming soon, no sponsor button yet). Actual DPMA/TMview check stays T-195 (human).
 - **Day 2f (04.11., `hark/day-2f`):** T-055a: first onboarding screen asks Deutsch / English (sets answer language + app language on Android 13+), manifest `localeConfig` so the system language picker lists Hain. Brain picker in the top bar → 2f-2.
 - **App icon + website (03.11. night, `hark/lichtung-web`):** T-088 launcher icon = glossy glass Pim on a green squircle (own SVG, `assets/icon/src/make_icon.py`), adaptive + round + themed (monochrome vector) in `app/src/main/res`, debug build with a small “dev” pill in `app/src/debug/res`; `docs/design/ICON.md`. T-089 website in style A “Lichtung” (white, hairlines, Hanken Grotesk, Lucide line icons, light/dark, style A screenshots as WebP, feature list with “Available now / Coming soon” badges, new icon as favicon/OG/apple-touch, no location mentions).
 - **Phase:** M1–M3 core + M4 MVP on main (PR #1, #2 merged 2026-11-01). **Day 1 of the v0.2 plan in review** on `hark/day-1`: chats are saved in an encrypted Room DB (T-020) and the drawer has search, rename, pin, delete and day sections (T-053).
@@ -101,3 +102,4 @@ _Agents add ideas here instead of doing them._
 | 2026-10-30 | T-004 follow-up | KNOWN_ISSUES.md created (KI-01..KI-03); on-device check deferred by human (KI-02); Pixel_7 AVD repaired | ZCode (GLM-5.3) |
 | 2026-11-01 | batch T-005, T-006, T-010, T-018, T-019, T-016, T-017 | all 7 tasks review/done: strings+checker, CI, tokens+fonts, UI libs+wrappers, motion system, Pim v2, Lucide icons | ZCode (GLM-5.3) |
 | 2026-11-04 | T-087, T-088, T-089, T-091, T-096, T-097, T-098, T-099 | Lichtung only style, speed, living Pim, start page, premium haptics; Pim normal size, 5 s easter egg → own 2048 game, subtle haptics everywhere (review, branch hark/polish) | Hark |
+| 2026-11-04 | T-196 | TRADEMARKS.md (DE+EN) + README "Name & Pim" and "Support (coming soon)" (review, branch hark/trademarks) | Hark |
