@@ -135,7 +135,8 @@ class SystemPromptSource(
                 "Für jede neue Frage, die Fakten, Wetter oder Aktuelles braucht, rufe das Werkzeug neu auf, " +
                 "auch wenn du es vorher schon benutzt hast. " +
                 "Sag nie, dass du nachgeschaut hast, wenn du in dieser Antwort kein Werkzeug benutzt hast. " +
-                "Antworte danach aus dem Ergebnis und nenne die Quellen als [1], [2]. " +
+                "Hast du ein Werkzeug benutzt, antworte aus dem Ergebnis und nenne die Quellen als [1], [2]. " +
+                "Ohne Werkzeug: keine [1], keine Quellenliste, kein Wort über Werkzeuge. " +
                 "Stütze Fakten wenn möglich auf 2 Quellen; widersprechen sie sich, sag das. " +
                 "Klappt ein Werkzeug nicht, sag das ehrlich. " +
                 PHONE_DE
@@ -146,15 +147,19 @@ class SystemPromptSource(
                 "For every new question that needs facts, weather or current events, call the tool again, " +
                 "even if you used it before. " +
                 "Never say you looked something up if you used no tool in this answer. " +
-                "Then answer from the result and cite the sources as [1], [2]. " +
+                "If you used a tool, answer from the result and cite the sources as [1], [2]. " +
+                "Without a tool: no [1], no source list, no talk about tools. " +
                 "Back facts with 2 sources when you can; if they contradict each other, say so. " +
                 "If a tool fails, say so plainly. " +
                 PHONE_EN
 
+        // T-220: Oskar's phone wrote "[1]" and "kein Werkzeug nötig" into an answer without a tool
         const val TOOL_NUDGE_DE =
-            "Für Fakten über Personen, Orte, Dinge, Wetter oder Aktuelles rufe zuerst ein Werkzeug auf."
+            "Für Fakten über Personen, Orte, Dinge, Wetter oder Aktuelles rufe zuerst ein Werkzeug auf. " +
+                "Ohne Werkzeug-Ergebnis: keine [1], kein Wort über Werkzeuge."
         const val TOOL_NUDGE_EN =
-            "For facts about people, places, things, weather or current events, call a tool first."
+            "For facts about people, places, things, weather or current events, call a tool first. " +
+                "Without a tool result: no [1], no talk about tools."
         const val TOOLS_OFFLINE_DE =
             "Der Offline-Modus ist an: nur calculate und die Handy-Aktionen gehen. " + PHONE_DE +
                 " Für Wetter, Wikipedia oder die Suche sag, dass der Nutzer den Offline-Modus " +

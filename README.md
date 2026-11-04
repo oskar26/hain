@@ -104,6 +104,7 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Fixed: no made-up sources.** When Pim answered from memory, the small brain sometimes still wrote “[1]” and a fake source line (“Wikipedia article … if available”), talked about not needing a tool or started with “**Fakt:**”. Now “[1]” only appears when Pim really used a tool and there is a source chip for it; everything else is cleaned out of the answer, also while it streams. Code blocks and links stay untouched.
 - **New app icon “Pim im Wald”, and you choose the look.** Pim, as a glossy, see-through mint glass figure, stands in front of a soft forest of round trees with mist and a light sky. There is also a **flat** version in plain colours. Pick it at first start (right after the language) or any time in **Settings → Look → App icon** (3D is the default). The new icon shows up once you leave Hain; your home screen may need a few seconds. Themed icons (Android 13+) show Pim's outline, and the test build has a small “dev” tag.
 - **Softer menus.** When a ⋯ menu or a popup opens, the screen behind it gets a calm blur (a light dimming on phones older than Android 12). A long press on a chat in the side panel now opens its menu too. "Reduce motion" keeps the blur but drops the fade.
 - **New website look.** The website (https://oskar26.github.io/hain/) now looks like the app's calm style “Lichtung”, in light and dark, with real screenshots and a clear mark on every feature: green “Available now” or grey “Coming soon”.

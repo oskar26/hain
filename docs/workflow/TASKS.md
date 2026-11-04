@@ -113,6 +113,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-196 | Trademark policy TRADEMARKS.md (DE+EN) + README sections "Name & Pim" and "Support (coming soon)" | docs | XS | H | - | review (04.11., draft PR) |
 | T-106 | Website: hero screenshots fixed (second phone frame without empty area, both frames sized to their image) | fix | XS | B | T-089 | review (04.11., draft PR) |
 | T-107 | Website: English app screenshots on the EN page (EN variants of the Roborazzi style tests) | docs | S | B | T-106 | review (04.11., draft PR #35) |
+| T-220 | Keine erfundenen Quellen ohne Werkzeug (Prompt-Regel + `CitationCleaner`) | fix | S | B | T-062 | review (04.11., draft PR) |
 | T-199 | Beta release (GitHub + F-Droid metadata) | scaffold | S | H | T-190 | todo |
 
 ## M0 · Device check & setup (human)
@@ -1142,3 +1143,16 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
   - release APK builds
 - check: `./gradlew assembleRelease`
 
+### T-220 · Keine erfundenen Quellen ohne Werkzeug
+
+- type: `fix` · size: `S` · lane: `B` · depends: T-062
+- read: TOOLS.md §3b, LLM.md §9
+- files: prompts/system_*.txt (+ Kopie in core-llm/src/main/assets/prompts), app/.../SystemPromptSource.kt, feature-chat/.../internal/{CitationCleaner,ChatEngine}.kt, Tests
+- warum: Auf Oskars Handy (LFM3-1.7B) schrieb Pim ohne jedes Werkzeug „… 200+ Jahre alt werden [1].“ plus eine Zeile „[1] Wikipedia-Artikel … (falls verfügbar) – hier kein aktuelles Werkzeug nötig …“ und begann mit „**Fakt:**“.
+- do:
+  1. Prompt (DE+EN, kurz wegen 2048 Kontext): Quellen [n] nur, wenn in dieser Antwort ein Werkzeug benutzt wurde; sonst keine [n], keine Quellenliste, kein Wort über Werkzeuge, keine Etiketten wie „Fakt:“. In `system_full`, `system_short`, `TOOLS_*` und im Hinweis vor der Antwort (`TOOL_NUDGE_*`).
+  2. `CitationCleaner` (deterministisch, auch wenn das Modell den Prompt ignoriert), angewendet im `ChatEngine` auf den Live-Text und die fertige Antwort: ohne Quellen fallen Marker (`[1]`, `[2, 3]`, `[1-3]`, `【1】`), Quellenzeilen (`[1] …`) und -blöcke (`Quellen:`/`Sources:` + Liste) und Sätze „kein Werkzeug nötig für diese Frage“ weg; mit Quellen bleiben nur Marker mit vorhandener Nummer. „Fakt:“/„Fact:“ am Zeilenanfang fällt immer weg. Codeblöcke, Inline-Code und Markdown-Links bleiben unberührt.
+- accept:
+  - Oskars Beispiel wird zu reinem Text ohne [1], Quellenzeile, Werkzeug-Satz und „Fakt:“
+  - Antworten mit Quellen behalten gültige Marker; Code bleibt gleich
+- check: `./gradlew :feature-chat:testDebugUnitTest :core-llm:testDebugUnitTest ktlintCheck detekt` (CI)
