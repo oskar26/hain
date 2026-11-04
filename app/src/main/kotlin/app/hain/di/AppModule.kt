@@ -43,6 +43,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
+@Suppress("TooManyFunctions") // one provider per app-wide object (Hilt), grows with the merged Häppchen
 object AppModule {
     @Provides
     @Singleton
