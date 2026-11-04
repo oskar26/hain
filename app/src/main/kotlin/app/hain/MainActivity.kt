@@ -95,6 +95,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
@@ -372,11 +373,12 @@ class MainActivity : FragmentActivity() {
             setIntent(next)
             LaunchIntents.of(next)?.let { launchRequest = it }
         }
-        // T-144: the home screen widget shows the newest chat; redraw it when that changes
+        // T-144: the home screen widget shows the newest chat; redraw it when that changes (also when
+        // the app lock is switched, T-056: then the widget hides the title)
         lifecycleScope.launch {
-            chatStore.chats
-                .map { WidgetData.latest(it) }
-                .distinctUntilChanged()
+            combine(chatStore.chats, settingsRepository.settings.map { it.appLock }) { chats, locked ->
+                WidgetData.latest(chats, appLock = locked)
+            }.distinctUntilChanged()
                 .drop(1)
                 .collect { HainWidget.refresh(applicationContext) }
         }

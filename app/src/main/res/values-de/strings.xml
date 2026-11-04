@@ -33,5 +33,6 @@
     <string name="widget_ask">Frag Pim …</string>
     <string name="widget_new_chat">Neuer Chat</string>
     <string name="widget_last_chat">Letzter Chat: %1$s</string>
+    <string name="widget_last_chat_locked">Letzter Chat</string>
     <string name="tile_new_chat">Neuer Chat</string>
 </resources>

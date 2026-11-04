@@ -36,6 +36,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import app.hain.R
+import app.hain.common.api.SettingsRepository
 import app.hain.feature.chat.internal.Chat
 import app.hain.feature.chat.internal.ChatStore
 import dagger.hilt.EntryPoint
@@ -45,26 +46,37 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 
-/** What the widget shows of your chats: the newest one (T-144). */
+/**
+ * What the widget shows of your chats: the newest one (T-144). [title] is `null` while the app lock
+ * is on (T-056): the home screen then only says "Letzter Chat", never what it was about.
+ */
 data class WidgetChat(
     val id: Long,
-    val title: String,
+    val title: String?,
 )
 
 /** Pure picking for the widget, tested on the JVM. */
 object WidgetData {
-    /** The newest chat with messages, or `null`. */
-    fun latest(chats: List<Chat>): WidgetChat? =
+    /**
+     * The newest chat with messages, or `null`. Private chats (T-056) are never shown; with the app
+     * lock on ([appLock]) the chat keeps its place but loses its title.
+     */
+    fun latest(
+        chats: List<Chat>,
+        appLock: Boolean = false,
+    ): WidgetChat? =
         chats
-            .filter { it.messages.isNotEmpty() }
+            .filter { it.messages.isNotEmpty() && !it.isPrivate }
             .maxByOrNull { it.updatedAt }
-            ?.let { WidgetChat(it.id, it.title) }
+            ?.let { WidgetChat(it.id, if (appLock) null else it.title) }
 }
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 interface WidgetEntryPoint {
     fun chatStore(): ChatStore
+
+    fun settingsRepository(): SettingsRepository
 }
 
 /**
@@ -84,11 +96,23 @@ class HainWidget : GlanceAppWidget() {
 
     private suspend fun lastChat(context: Context): WidgetChat? {
         val app = context.applicationContext
-        val store =
-            runCatching { EntryPointAccessors.fromApplication(app, WidgetEntryPoint::class.java).chatStore() }
+        val entry =
+            runCatching { EntryPointAccessors.fromApplication(app, WidgetEntryPoint::class.java) }
                 .getOrNull() ?: return null
+        val store = entry.chatStore()
         withTimeoutOrNull(LOAD_TIMEOUT_MS) { store.loaded.first { it } }
-        return WidgetData.latest(store.chats.value)
+        // T-056: settings not readable in time → treat the lock as on (no title on the home screen)
+        val locked =
+            withTimeoutOrNull(LOAD_TIMEOUT_MS) {
+                runCatching {
+                    entry
+                        .settingsRepository()
+                        .settings
+                        .first()
+                        .appLock
+                }.getOrNull()
+            } ?: true
+        return WidgetData.latest(store.chats.value, appLock = locked)
     }
 
     companion object {
@@ -193,7 +217,14 @@ private fun LastChatRow(
     context: Context,
     last: WidgetChat,
 ) {
-    val label = context.getString(R.string.widget_last_chat, last.title)
+    val title = last.title
+    val label =
+        if (title == null) {
+            context.getString(R.string.widget_last_chat_locked)
+        } else {
+            context.getString(R.string.widget_last_chat, title)
+        }
+    val shown = title ?: context.getString(R.string.widget_last_chat_locked)
     Row(
         GlanceModifier
             .fillMaxWidth()
@@ -212,7 +243,7 @@ private fun LastChatRow(
         )
         Spacer(GlanceModifier.width(8.dp))
         Text(
-            last.title,
+            shown,
             style = TextStyle(color = WidgetColors.text, fontSize = 14.sp, fontWeight = FontWeight.Medium),
             maxLines = 1,
         )

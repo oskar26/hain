@@ -33,5 +33,6 @@
     <string name="widget_ask">Ask Pim…</string>
     <string name="widget_new_chat">New chat</string>
     <string name="widget_last_chat">Last chat: %1$s</string>
+    <string name="widget_last_chat_locked">Last chat</string>
     <string name="tile_new_chat">New chat</string>
 </resources>

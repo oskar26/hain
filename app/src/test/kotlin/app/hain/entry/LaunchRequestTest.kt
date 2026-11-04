@@ -75,4 +75,19 @@ class LaunchRequestTest {
         assertEquals(WidgetChat(3, "Neu"), WidgetData.latest(chats))
         assertNull(WidgetData.latest(emptyList()))
     }
+
+    @Test
+    fun widgetSkipsPrivateChatsAndHidesTheTitleWhileLocked() {
+        val msg = listOf(UiMessage(1, true, "hi"))
+        val chats =
+            listOf(
+                Chat(1, "Normal", msg, updatedAt = 10),
+                Chat(2, "Geheim", msg, updatedAt = 30, isPrivate = true),
+            )
+        // T-056: a private chat never shows up on the home screen, even when it is the newest
+        assertEquals(WidgetChat(1, "Normal"), WidgetData.latest(chats))
+        // app lock on: the last chat stays reachable, but without its title
+        assertEquals(WidgetChat(1, null), WidgetData.latest(chats, appLock = true))
+        assertNull(WidgetData.latest(listOf(chats[1])))
+    }
 }
