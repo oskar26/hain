@@ -57,6 +57,8 @@
     <string name="settings_web_search_off">Aus</string>
     <string name="settings_weather_location">Standort fürs Wetter</string>
     <string name="settings_weather_location_hint">„Wie wird das Wetter?“ ohne Ort nimmt den letzten ungefähren Standort deines Handys. Geht nur an Open-Meteo, auf etwa 1 km genau.</string>
+    <string name="settings_source_icons">Quellen-Bilder</string>
+    <string name="settings_source_icons_hint">Kleine Website-Symbole neben den Quellen. Jedes wird einmal direkt von der Website geladen und dann auf deinem Handy gespeichert. Aus: nur der erste Buchstabe.</string>
     <string name="settings_confirm_actions">Handy-Aktionen bestätigen</string>
     <string name="settings_confirm_actions_hint">Wecker, Timer, Termine und Routen warten auf deinen Tipp. Aus: Sie starten nach 3 Sekunden, mit „Rückgängig“.</string>
     <string name="settings_searx">Eigene Suche (SearXNG)</string>
@@ -88,6 +90,7 @@
     <string name="settings_app_icon_hint">Das neue Symbol erscheint, sobald du Hain verlässt. Der Startbildschirm braucht oft ein paar Sekunden.</string>
     <string name="settings_hub_hello">Hier stellst du Hain so ein, wie du es magst.</string>
     <string name="settings_log_update">Update-Prüfung</string>
+    <string name="settings_log_images">Quellen-Bilder</string>
     <string name="about_name">Hain</string>
     <string name="about_website">Website</string>
     <string name="about_github">Code auf GitHub</string>

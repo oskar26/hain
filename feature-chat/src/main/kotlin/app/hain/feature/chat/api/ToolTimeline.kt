@@ -44,6 +44,7 @@ import app.hain.feature.chat.internal.ResearchClock
 import app.hain.feature.chat.internal.SourceRef
 import app.hain.feature.chat.internal.StepState
 import app.hain.feature.chat.internal.ToolStep
+import app.hain.tools.api.Favicons
 import app.hain.tools.api.PhoneAction
 import app.hain.ui.components.Hain3D
 import app.hain.ui.components.Hain3DIcon
@@ -263,6 +264,7 @@ private fun ToolRow(step: ToolStep) {
 internal fun SourceChips(
     sources: List<SourceRef>,
     modifier: Modifier = Modifier,
+    favicons: Favicons? = null,
 ) {
     if (sources.isEmpty()) return
     val context = LocalContext.current
@@ -282,6 +284,8 @@ internal fun SourceChips(
             sources.forEachIndexed { index, source ->
                 HainChip(
                     text = "[${index + 1}] ${source.title}",
+                    // T-064c: the site's icon (or its first letter)
+                    leading = { SourceIcon(source.url, favicons) },
                     onClick = {
                         runCatching {
                             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(source.url)))

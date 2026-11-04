@@ -57,6 +57,7 @@ import app.hain.llm.api.LlmEngine
 import app.hain.models.api.DevModels
 import app.hain.models.api.DownloadState
 import app.hain.models.api.ModelRepository
+import app.hain.tools.api.Favicons
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.ToolContext
 import app.hain.ui.effects.HainMenuBackdrop
@@ -113,6 +114,7 @@ class MainActivity : ComponentActivity() {
             onSearxUrl = { write { repo.setSearxUrl(it) } },
             onConfirmActions = { write { repo.setConfirmActions(it) } },
             onWebSearch = { write { repo.setWebSearch(it) } },
+            onSourceIcons = { write { repo.setSourceIcons(it) } },
             onWeatherLocation = { on ->
                 if (on && !WeatherLocation.allowed(this)) {
                     locationPermission.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -160,6 +162,9 @@ class MainActivity : ComponentActivity() {
 
     /** T-211: the own GGUF of developer mode when it is in use and on the phone, else `null`. */
     private fun ownModelPath(): String? = DevTuning.ownModel(current.dev) { File(it).isFile }
+
+    /** T-064c: site icons for the source chips, through the gate, kept in the app's cache folder. */
+    private val favicons by lazy { Favicons(networkGate, File(cacheDir, "favicons")) }
 
     /** T-211: own models from Hugging Face for developer mode. */
     private val devModels by lazy { DevModels(models, networkGate, deviceRamGb()) }
@@ -298,6 +303,7 @@ class MainActivity : ComponentActivity() {
                                         showStats = dev.enabled && dev.showStats,
                                         rawThinking = dev.enabled && dev.showRawThinking,
                                         confirmActions = settings.confirmActions,
+                                        favicons = if (settings.sourceIcons) favicons else null,
                                         debugInfo = { stats ->
                                             val model = File(ownModelPath() ?: models.mainFile(brain).absolutePath).name
                                             DevTuning.debugLine(model, current.dev, stats)

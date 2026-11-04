@@ -500,7 +500,7 @@ private fun Answer(
                 }
                 // 3b-2: what the weather or Wikipedia tool found, as a card
                 message.cards.take(MAX_INFO_CARDS).forEach { InfoCardView(it) }
-                SourceChips(message.sources)
+                SourceChips(message.sources, favicons = extras.favicons)
             }
             if (message.stopped) {
                 BasicText(stringResource(R.string.chat_stopped), style = type.label.copy(color = colors.textMuted))

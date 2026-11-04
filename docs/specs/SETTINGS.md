@@ -32,6 +32,7 @@ Level 1 = visible directly; level 2 = under "Erweitert / Advanced".
 | Internet | offline_mode | bool | false | 1 |
 | | web_search | on/ask/off (built 0.1.4: Settings → Privacy) | on | 1 |
 | | weather_location | bool (0.1.4: last known rough location for weather without a place; asks for the permission) | false | 1 |
+| | source_icons | bool (0.1.6.1, „Quellen-Bilder“: site icons at the source chips, through the gate as `IMAGES`; off = first letter only) | true | 1 |
 | | searxng_url | url? | null | 2 |
 | | ddg_enabled | bool | true (marked experimental) | 2 |
 | | search_region | de-de/us-en/auto | auto | 2 |

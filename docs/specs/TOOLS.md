@@ -7,7 +7,7 @@ Research: `docs/concept/research/keyless_search.md`.
 ```kotlin
 data class GateRequest(val url: String, val purpose: Purpose, val method: String = "GET",
                        val headers: Map<String,String> = emptyMap(), val body: ByteArray? = null)
-enum class Purpose { SEARCH, NEWS, WEATHER, WIKI, GEO, PAGE_READ, MODEL_DOWNLOAD, OTHER }
+enum class Purpose { SEARCH, NEWS, WEATHER, WIKI, GEO, PAGE_READ, MODEL_DOWNLOAD, UPDATE, IMAGES, OTHER }
 ```
 - If setting `offline_mode` = true → throw `OfflineException` (tools turn it into a friendly result) — except `MODEL_DOWNLOAD` started by the user.
 - Per-purpose switches (settings): search on/off/ask, news on/off …
@@ -15,7 +15,7 @@ enum class Purpose { SEARCH, NEWS, WEATHER, WIKI, GEO, PAGE_READ, MODEL_DOWNLOAD
 - Single `OkHttpClient`: timeouts 10 s, `User-Agent: Hain/<ver>` for APIs (Wikipedia, Nominatim, news require it), browser UA only for DuckDuckGo html.
 - Cache: OkHttp disk cache 20 MB.
 
-**Stand Werkzeuge I (03.11.2026):** `NetworkGate` (API in `core-common/.../api/net`) is implemented as `HttpNetworkGate` in `core-tools` on plain `HttpURLConnection` (no new library; OkHttp + disk cache come with 3b if needed). Only https. The log is kept **in memory** (7 days / 500 entries, lost on app restart); the Room table `network_log` and routing the model download through the gate are part of 3b. Per-purpose switches: only the global `offline_mode` for now. **0.1.4:** `web_search` on / ask / off (web_search + read_page; "ask" = the tool answers `ask_first`, Pim asks, and only the user's yes in the next message lets it run – `SearchConsent`); the brain download goes through `NetworkGate.stream` (logged as MODEL_DOWNLOAD, orange dot). `weather` without `place` uses the last known location when `weather_location` is on (rounded to 2 decimals, no geocoding call). Weather and Wikipedia results also come back as `ToolResult.card` (`InfoCard`) → WeatherCard / WikiCard in `core-cards`.
+**Stand Werkzeuge I (03.11.2026):** `NetworkGate` (API in `core-common/.../api/net`) is implemented as `HttpNetworkGate` in `core-tools` on plain `HttpURLConnection` (no new library; OkHttp + disk cache come with 3b if needed). Only https. The log is kept **in memory** (7 days / 500 entries, lost on app restart); the Room table `network_log` and routing the model download through the gate are part of 3b. Per-purpose switches: only the global `offline_mode` for now. **0.1.4:** `web_search` on / ask / off (web_search + read_page; "ask" = the tool answers `ask_first`, Pim asks, and only the user's yes in the next message lets it run – `SearchConsent`); the brain download goes through `NetworkGate.stream` (logged as MODEL_DOWNLOAD, orange dot). `weather` without `place` uses the last known location when `weather_location` is on (rounded to 2 decimals, no geocoding call). Weather and Wikipedia results also come back as `ToolResult.card` (`InfoCard`) → WeatherCard / WikiCard in `core-cards`. **0.1.6.1 (T-064c):** source chips show the site's icon: `Favicons` (`core-tools/api`) asks the site itself (`https://<host>/favicon.ico`, then `/apple-touch-icon.png`; never a third-party icon service) through `NetworkGate.stream` with purpose `IMAGES` ("Quellen-Bilder" in the log; offline mode blocks it), max 64 KB, only PNG/ICO/GIF/JPEG/WebP bytes; disk cache in `cacheDir/favicons` (found: 30 days, none: 1 day), placeholder = first letter of the site name. Setting `source_icons` (on) switches it off.
 
 ## 2. Tool list (v1) — schemas exactly as sent to the model
 

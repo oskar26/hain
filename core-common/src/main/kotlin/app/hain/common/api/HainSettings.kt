@@ -90,6 +90,8 @@ data class HainSettings(
     val webSearch: WebSearch = WebSearch.ON,
     /** Weather without a place uses the phone's last known location (3b-2, `weather_location`); asks first. */
     val weatherLocation: Boolean = false,
+    /** Small site icons at the source chips, loaded through the gate (T-064c, `source_icons`); off = letters. */
+    val sourceIcons: Boolean = true,
     /** Own SearXNG address, asked first by the web search (SETTINGS.md `searxng_url`); empty = none. */
     val searxUrl: String = "",
     /**
