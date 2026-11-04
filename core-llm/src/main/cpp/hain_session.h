@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "llama.h"
+#include "hain_card_grammar.h"
 
 #ifdef __ANDROID__
 #include <android/log.h>
@@ -253,10 +254,11 @@ inline llama_sampler *makeSampler(const llama_vocab *vocab, const float *p, int 
     return chain;
 }
 
-// Sink for generated text: return false to stop.
+// Sink for generated text: return false to stop. [grammar] constrains the whole answer (unused by the app);
+// [cardGrammar] only the inside of each ```card block (T-133, hain_card_grammar.h), `nullptr` = off.
 template <typename Emit>
 int generate(Session *s, const std::string &prompt, const std::vector<int> &cutBytes, const float *params, int nParams,
-             const char *grammar, Emit emit) {
+             const char *grammar, const char *cardGrammar, Emit emit) {
     const int maxTokens = nParams > 6 ? (int) params[6] : 1024;
     auto tokens = tokenize(s->vocab, prompt, false);
     const auto nCtx = (size_t) llama_n_ctx(s->ctx);
@@ -286,12 +288,43 @@ int generate(Session *s, const std::string &prompt, const std::vector<int> &cutB
         pending.erase(0, n);
         return keepGoing;
     };
+    // T-133: card grammar, switched on after "```card\n" and off after the closing "```"
+    llama_sampler *card = nullptr;
+    bool cardOn = false;
+    bool cardBroken = cardGrammar == nullptr || cardGrammar[0] == '\0';
+    int cards = 0;
+    CardFence fence;
+    std::vector<llama_token_data> cur;
     for (int i = 0; i < maxTokens; ++i) {
         if (s->cancel) { reason = STOP_CANCELLED; break; }
         if (s->cached.size() + 1 >= nCtx) { reason = STOP_CONTEXT_FULL; break; }
-        llama_token tok = llama_sampler_sample(smpl, s->ctx, -1);
+        llama_token tok = LLAMA_TOKEN_NULL;
+        if (cardOn) {
+            tok = sampleCard(s->ctx, s->vocab, smpl, card, cur);
+            if (tok == LLAMA_TOKEN_NULL) {
+                cardOn = false;  // nothing fits the grammar: the parser reads this card leniently
+                HAIN_LOGI("card grammar: no token fits, off for this card");
+            }
+        }
+        if (tok == LLAMA_TOKEN_NULL) tok = llama_sampler_sample(smpl, s->ctx, -1);
         if (llama_vocab_is_eog(s->vocab, tok)) { reason = STOP_EOS; break; }
-        pending += piece(s->vocab, tok);
+        const std::string text = piece(s->vocab, tok);
+        pending += text;
+        if (!cardBroken) {
+            const auto event = fence.feed(text, cardOn);
+            if (event == CardFence::Event::OPEN) {
+                if (card == nullptr) {
+                    card = llama_sampler_init_grammar(s->vocab, cardGrammar, "root");
+                } else {
+                    llama_sampler_reset(card);
+                }
+                cardBroken = card == nullptr;
+                cardOn = card != nullptr;
+                if (cardOn) ++cards;
+            } else if (event == CardFence::Event::CLOSE) {
+                cardOn = false;
+            }
+        }
         s->stats.genTokens++;
         if (!flush(false)) { reason = STOP_CANCELLED; break; }
         std::vector<llama_token> one{tok};
@@ -302,10 +335,11 @@ int generate(Session *s, const std::string &prompt, const std::vector<int> &cutB
     if (reason != STOP_ERROR && reason != STOP_CANCELLED) flush(true);
     s->stats.genMs = nowMs() - t1;
     llama_sampler_free(smpl);
+    if (card != nullptr) llama_sampler_free(card);
     const auto &st = s->stats;
-    HAIN_LOGI("prompt %d tok (reused %d) in %.0f ms; %d tok in %.0f ms (%.1f t/s); checkpoints %zu",
+    HAIN_LOGI("prompt %d tok (reused %d) in %.0f ms; %d tok in %.0f ms (%.1f t/s); checkpoints %zu; cards %d",
               st.promptTokens, st.reusedTokens, st.prefillMs, st.genTokens, st.genMs,
-              st.genMs > 0 ? st.genTokens * 1000.0 / st.genMs : 0.0, s->checkpoints.size());
+              st.genMs > 0 ? st.genTokens * 1000.0 / st.genMs : 0.0, s->checkpoints.size(), cards);
     return reason;
 }
 
