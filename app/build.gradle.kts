@@ -14,7 +14,13 @@ android {
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = (providers.gradleProperty("hain.versionCode").orNull ?: "1").toInt()
-        versionName = "0.1.0"
+        // T-215: one place for the version name (gradle.properties, docs/workflow/VERSIONING.md)
+        versionName = providers.gradleProperty("hain.versionName").orNull ?: "0.1.3.1"
+        // commit and build date for "Über Hain"; CI passes them (-Phain.commit, -Phain.buildDate)
+        val commit = providers.gradleProperty("hain.commit").orNull ?: "local"
+        val buildDate = providers.gradleProperty("hain.buildDate").orNull ?: ""
+        buildConfigField("String", "GIT_SHA", "\"$commit\"")
+        buildConfigField("String", "BUILD_DATE", "\"$buildDate\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             abiFilters += listOf("arm64-v8a")
@@ -55,6 +61,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
