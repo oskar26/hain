@@ -1,3 +1,5 @@
+@file:Suppress("MatchingDeclarationName") // the backdrop state and its composables live together
+
 package app.hain.ui.effects
 
 import android.os.Build
