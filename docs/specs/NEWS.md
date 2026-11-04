@@ -60,3 +60,13 @@ Button "Zusammenfassen / Summarize" on a news item → fetch page via NetworkGat
 ## 6. Screen
 
 `:feature-news` — list grouped by "Heute / Gestern / Älter", pull to refresh, top bar with mode switch (3 segment control). Tap → in-app Custom Tab (no tracking params added). Long-press → share link.
+
+## 7. As built (0.1.5, T-071–T-074)
+
+- Code: `core-tools/.../internal/news/` (`NewsRepository`, `NewsStore`, `NewsTool`, `FeedParser`), `core-cards/.../NewsCard.kt`, `feature-news/.../api/` (`NewsScreen`, `NewsViewModel`, `OwnFeedsPage`, `SummarizeArticle`), `app/.../NewsBrain.kt`.
+- Storage: one JSON file `files/news/news.json` (mode, own feeds, ETag/Last-Modified + failure count per feed, items of the last 7 days, at most 150 per feed) instead of a Room table; no schema migration.
+- `news` tool query matching: keyword score over title (×3) and teaser instead of FTS5; no hit → `not_found` → router falls back to `web_search`.
+- Refresh: fixed 30 min, only when the news screen opens (or the refresh button) or the `news` tool runs; no WorkManager job and no `news_refresh_minutes` / `news_languages` settings yet (both languages always).
+- Network log: feeds and summarised articles use `Purpose.NEWS` and have their own filter "Nachrichten / News".
+- Screen: refresh button instead of pull-to-refresh, no thumbnails (no image loader in the project), links open in the browser (no Custom Tabs dependency).
+- Summary: page text cut to 9,000 characters (~2,500 tokens), brain call without thinking, max 400 tokens, 5 bullets; answers 4xx, short pages and subscription walls ("Jetzt abonnieren", "Subscribe to continue" …) → "Artikel nicht frei lesbar".
