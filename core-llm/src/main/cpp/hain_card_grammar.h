@@ -25,6 +25,7 @@ public:
     // CLOSE (only while [grammarOn]): the token just closed the card with "```".
     Event feed(const std::string &piece, bool grammarOn) {
         Event event = Event::NONE;
+        bool closed = false;  // a "```" line ended in this token ("```\n")
         for (size_t i = 0; i < piece.size(); ++i) {
             const char c = piece[i];
             if (c != '\n') {
@@ -41,9 +42,10 @@ public:
                 }
             } else if (done == "```") {
                 inBlock_ = false;
+                closed = true;
             }
         }
-        if (grammarOn && event == Event::NONE && trimmed(line_) == "```") event = Event::CLOSE;
+        if (grammarOn && event == Event::NONE && (closed || trimmed(line_) == "```")) event = Event::CLOSE;
         return event;
     }
 
@@ -61,6 +63,14 @@ private:
     std::string line_;
     bool inBlock_ = false;
 };
+
+// card.gbnf ends with the closing "```". The brain likes to write "```\n" as one token; without it the grammar
+// forced a lone "```" and LFM3 went on with a stray <tool_call> (host test 04.11.). So the root used here also
+// takes one newline after the fence.
+inline std::string cardGrammarWithNewline(const char *gbnf) {
+    return std::string(gbnf) + "\nhain-card-root ::= root \"\\n\"?\n";
+}
+constexpr const char *CARD_ROOT = "hain-card-root";
 
 // Samples one token with [chain], and with [grammar] when it is on (like llama.cpp's common sampler: try the
 // chain first, check the token against the grammar, only on a miss filter the whole vocabulary). Returns

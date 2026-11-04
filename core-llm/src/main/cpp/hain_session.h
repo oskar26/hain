@@ -314,7 +314,7 @@ int generate(Session *s, const std::string &prompt, const std::vector<int> &cutB
             const auto event = fence.feed(text, cardOn);
             if (event == CardFence::Event::OPEN) {
                 if (card == nullptr) {
-                    card = llama_sampler_init_grammar(s->vocab, cardGrammar, "root");
+                    card = llama_sampler_init_grammar(s->vocab, cardGrammarWithNewline(cardGrammar).c_str(), CARD_ROOT);
                 } else {
                     llama_sampler_reset(card);
                 }
