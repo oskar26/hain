@@ -37,10 +37,10 @@ data class UiMessage(
     val research: ResearchClock? = null,
     /** Speed of this answer for developer mode (T-211; not stored). */
     val stats: GenerationStats? = null,
-    /** Weather and Wikipedia cards under the answer (3b-2). */
-    val cards: List<InfoCard> = emptyList(),
     /** Checklist ticks the user set on this answer's cards (T-131, `cards_json`, see CardState). */
     val cardState: String? = null,
+    /** Weather and Wikipedia cards under the answer (3b-2). */
+    val cards: List<InfoCard> = emptyList(),
     /** The message this one answers or follows (T-057 branches); [Branches.ROOT] for the first. */
     val parentId: Long? = null,
     /** When this version was picked among its siblings (T-057); the newest pick is shown. */

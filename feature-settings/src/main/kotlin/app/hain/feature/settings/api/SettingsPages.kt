@@ -143,6 +143,12 @@ internal fun SettingsPageContent(
             )
             SearxSetting(settings.searxUrl, actions.onSearxUrl)
             Toggle(
+                R.string.settings_source_icons,
+                R.string.settings_source_icons_hint,
+                settings.sourceIcons,
+                actions.onSourceIcons,
+            )
+            Toggle(
                 R.string.settings_weather_location,
                 R.string.settings_weather_location_hint,
                 settings.weatherLocation,

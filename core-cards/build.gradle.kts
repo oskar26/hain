@@ -31,6 +31,8 @@ dependencies {
     implementation(composeBom)
 
     implementation(project(":core-ui"))
+    // T-068e: ConfirmCard shows a PhoneAction (alarm, timer, calendar event, route)
+    implementation(project(":core-tools"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.foundation)

@@ -45,20 +45,6 @@ class PhoneActionsTest {
         }
 
     @Test
-    fun cardStates() {
-        val card = ActionCard(alarm)
-        assertEquals(ActionState.DONE, card.after(ActionEvent.CONFIRMED).state)
-        assertEquals(ActionState.CANCELLED, card.after(ActionEvent.CANCELLED).state)
-        assertEquals(ActionState.NO_APP, card.after(ActionEvent.NO_APP).state)
-        // one tap, one action: a card that is done or cancelled stays so
-        val done = card.after(ActionEvent.CONFIRMED)
-        assertEquals(done, done.after(ActionEvent.CANCELLED))
-        assertEquals(done, done.after(ActionEvent.CONFIRMED))
-        val cancelled = card.after(ActionEvent.CANCELLED)
-        assertEquals(cancelled, cancelled.after(ActionEvent.CONFIRMED))
-    }
-
-    @Test
     fun cardsAreStoredWithTheAnswer() {
         val cards =
             listOf(

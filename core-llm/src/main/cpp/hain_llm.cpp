@@ -172,7 +172,7 @@ Java_app_hain_llm_internal_NativeLlm_nativePrefill(JNIEnv *env, jobject, jlong h
 JNIEXPORT jint JNICALL
 Java_app_hain_llm_internal_NativeLlm_nativeGenerate(JNIEnv *env, jobject, jlong handle, jbyteArray promptUtf8,
                                                     jintArray cutBytes, jfloatArray params, jstring grammar,
-                                                    jobject cb) {
+                                                    jstring cardGrammar, jobject cb) {
     Session *s = session(handle);
     if (s == nullptr) return hain::STOP_ERROR;
 
@@ -185,6 +185,13 @@ Java_app_hain_llm_internal_NativeLlm_nativeGenerate(JNIEnv *env, jobject, jlong 
         cgrammar = g;
         env->ReleaseStringUTFChars(grammar, g);
     }
+    // T-133: grammar only inside ```card blocks
+    std::string ccard;
+    if (cardGrammar != nullptr) {
+        const char *g = env->GetStringUTFChars(cardGrammar, nullptr);
+        ccard = g;
+        env->ReleaseStringUTFChars(cardGrammar, g);
+    }
     jmethodID onToken = env->GetMethodID(env->GetObjectClass(cb), "onToken", "([B)Z");
     auto emit = [&](const char *data, size_t n) -> bool {
         jbyteArray bytes = env->NewByteArray((jsize) n);
@@ -194,7 +201,7 @@ Java_app_hain_llm_internal_NativeLlm_nativeGenerate(JNIEnv *env, jobject, jlong 
         return keepGoing == JNI_TRUE && !env->ExceptionCheck();
     };
     return hain::generate(s, bytesOf(env, promptUtf8), intsOf(env, cutBytes), p.data(), (int) nParams,
-                          cgrammar.empty() ? nullptr : cgrammar.c_str(), emit);
+                          cgrammar.empty() ? nullptr : cgrammar.c_str(), ccard.empty() ? nullptr : ccard.c_str(), emit);
 }
 
 // T-211: chat template stored in the GGUF (tokenizer.chat_template) as UTF-8 bytes, or null.

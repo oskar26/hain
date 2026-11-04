@@ -2,6 +2,7 @@ package app.hain.feature.chat.api
 
 import androidx.compose.runtime.Composable
 import app.hain.llm.api.GenerationStats
+import app.hain.tools.api.Favicons
 
 /**
  * Developer extras for the chat (T-211): speed under each answer, thinking opened right away, and
@@ -19,4 +20,6 @@ data class ChatExtras(
      * "3 Erinnerungen genutzt"). Gets the chat's user messages up to that answer.
      */
     val answerFooter: (@Composable (userMessages: List<String>) -> Unit)? = null,
+    /** T-064c: site icons at the source chips; `null` = setting "Quellen-Bilder" off, only letters. */
+    val favicons: Favicons? = null,
 )

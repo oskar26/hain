@@ -22,9 +22,24 @@ object CardText {
                     block.rows.forEach { out += it.joinToString(" | ") }
                 }
                 is CardBlock.Progress -> out += listOfNotNull(block.label, "${block.value} %").joinToString(": ")
+                is CardBlock.Chart -> {
+                    block.title?.let { out += it }
+                    val unit = block.unit?.let { " $it" }.orEmpty()
+                    block.points.forEach { out += "- ${it.label}: ${number(it.value)}$unit" }
+                }
                 is CardBlock.Button -> Unit
             }
         }
         return out.joinToString("\n")
     }
+
+    /** "7.5", "12" — locale-free, so a copied card reads the same everywhere. */
+    private fun number(value: Double): String =
+        if (value == Math.rint(value) && kotlin.math.abs(value) < WHOLE_LIMIT) {
+            value.toLong().toString()
+        } else {
+            "%.2f".format(java.util.Locale.ROOT, value).trimEnd('0').trimEnd('.')
+        }
+
+    private const val WHOLE_LIMIT = 1e15
 }

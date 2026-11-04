@@ -34,12 +34,31 @@ sealed interface CardBlock {
         val label: String?,
     ) : CardBlock
 
+    /**
+     * `Chart type=bar|line title="…" unit="…"` + `- label: number` lines (0.1.6.1): a small bar or line
+     * chart. At least one point; a line chart with a single point is shown as a bar.
+     */
+    data class Chart(
+        val type: ChartType,
+        val points: List<ChartPoint>,
+        val title: String? = null,
+        val unit: String? = null,
+    ) : CardBlock
+
     /** `Button label="…" action=copy|share|ask:"…"`. Nothing happens before the user taps. */
     data class Button(
         val label: String,
         val action: CardAction,
     ) : CardBlock
 }
+
+enum class ChartType { BAR, LINE }
+
+/** One value of a [CardBlock.Chart]: "Mo: 7.5". */
+data class ChartPoint(
+    val label: String,
+    val value: Double,
+)
 
 data class CheckItem(
     val text: String,

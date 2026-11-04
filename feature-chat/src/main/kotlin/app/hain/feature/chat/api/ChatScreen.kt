@@ -620,7 +620,7 @@ private fun Answer(
                 message.cards.take(MAX_INFO_CARDS).forEach { InfoCardView(it) }
                 // T-072: headlines of the news tool
                 if (message.news.isNotEmpty()) AnswerNews(message.news)
-                SourceChips(message.sources)
+                SourceChips(message.sources, favicons = extras.favicons)
                 extras.answerFooter?.let { footer -> footer(remember(message.id) { userMessages() }) }
             }
             if (message.stopped) {

@@ -60,6 +60,18 @@ class SettingsRepositoryTest {
         }
 
     @Test
+    fun sourceIconsAreOnByDefault() {
+        runTest(UnconfinedTestDispatcher()) {
+            val r = repo()
+            assertEquals(true, r.settings.first().sourceIcons)
+            r.setSourceIcons(false)
+            assertEquals(false, r.settings.first().sourceIcons)
+            r.reset()
+            assertEquals(true, r.settings.first().sourceIcons)
+        }
+    }
+
+    @Test
     fun appIconDefaultsTo3dAndIsKeptOnReset() =
         runTest(UnconfinedTestDispatcher()) {
             val r = repo()

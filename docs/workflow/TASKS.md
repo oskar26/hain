@@ -78,8 +78,8 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-060b | Setting `web_search` on / ask first / off (`SearchConsent`) | feature | S | A | T-060,T-066 | review (04.11., 0.1.4) |
 | T-064a | WeatherCard + WikiCard in core-cards under the answer (incl. T-065a) | ui | S | A | T-064,T-065 | review (04.11., 0.1.4) |
 | T-064b | Weather without a place = last known location (setting `weather_location`, asks first) | feature | S | A | T-064 | review (04.11., 0.1.4) |
-| T-064c | Favicons at the source chips (needs image fetch through the NetworkGate) | ui | S | A | T-059,T-060 | todo |
-| T-068e | ConfirmCard into core-cards (needs a chat-free card state) | refactor | S | A | T-068 | todo |
+| T-064c | Favicons at the source chips (needs image fetch through the NetworkGate) | ui | S | A | T-059,T-060 | review (04.11., 0.1.10.1) |
+| T-068e | ConfirmCard into core-cards (needs a chat-free card state) | refactor | S | A | T-068 | review (04.11., 0.1.10.1) |
 | T-180 | Tool inventory (name, description, parameters, typical errors) in TOOLS.md §0 | docs | S | C | T-062 | review (4d) |
 | T-181 | Tool eval: 52 questions DE/EN + host harness (`tools/eval`), baseline before 4d | test | M | C | T-062 | review (4d) |
 | T-182 | Tool definitions for the small brain (`tools.json`: one sentence when/when not, flat params, enums; compact results, errors with a hint) | feature | M | C | T-181 | review (4d) |
@@ -106,6 +106,8 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-123 | Chunking + doc search tool + attach in chat | feature | M | D | T-121,T-122,T-062 | review (Hark, PR #49) |
 | T-130 | Card parser | feature | S | E | T-002 | done |
 | T-131 | Card renderer + GBNF | ui | M | E | T-130,T-014 | done |
+| T-132 | Card charts: bar + line (own Compose canvas, TalkBack sentence) in parser, renderer, card.gbnf, CARDS.md | ui | S | E | T-131 | review (04.11., 0.1.10.1) |
+| T-133 | Card grammar during the answer: card.gbnf only inside a ```card block (on after the fence line, off after the closing ```), lenient parser as fallback | native | S | E | T-131,T-030 | review (04.11., 0.1.10.1) |
 | T-140 | STT Moonshine + mic button | feature | M | F | T-082 | review (Hark, hark/day-10) |
 | T-141 | TTS (system voice, Pim pitch) + read aloud | feature | M | F | T-082 | review (Hark, hark/day-10) |
 | T-145 | Pocket TTS on Android (ONNX, all language packs) | native | M | F | T-082 | todo |
