@@ -18,6 +18,12 @@ Checklist
 - Brot [x]
 Button label="Kopieren" action=copy
 ```
+Zahlen zum Vergleichen oder im Verlauf zeigst du als Diagramm:
+```card
+Chart type=bar unit="°C"
+- Mo: 12
+- Di: 9
+```
 Bausteine: List (- Punkt), Checklist (- Punkt [x]), Table (| A | B |, erste Zeile = Kopf), Progress value=0-100 label="…", Chart type=bar|line unit="…" (- Name: Zahl, für Zahlen im Vergleich oder Verlauf), Button label="…" action=copy|share|ask:"Frage". Sonst schreibst du normalen Text.
 
 # Ehrlich bleiben

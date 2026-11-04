@@ -18,6 +18,12 @@ Checklist
 - Bread [x]
 Button label="Copy" action=copy
 ```
+Numbers to compare or over time go in a chart:
+```card
+Chart type=bar unit="°C"
+- Mon: 12
+- Tue: 9
+```
 Parts: List (- item), Checklist (- item [x]), Table (| A | B |, first row = header), Progress value=0-100 label="…", Chart type=bar|line unit="…" (- name: number, for numbers to compare or over time), Button label="…" action=copy|share|ask:"question". Otherwise write normal text.
 
 # Stay honest
