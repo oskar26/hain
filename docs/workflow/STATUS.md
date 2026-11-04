@@ -4,6 +4,7 @@
 
 ## Now
 
+- **Website fix (04.11., `hark/web-fix`):** T-106 the second phone in the hero showed a big empty white area under its screenshot (flex item stretched to the height of the first phone). Frames now take the height of their image; checked at 1366×1024, 1024×768, 390×844, 1440 in light/dark, EN + /de. T-107 (English app screenshots for the EN page) still open.
 - **Trademarks + support (04.11., `hark/trademarks`):** T-196 `TRADEMARKS.md` (DE+EN, "open code, protected brand": name Hain, Pim and icon are project marks, forks rename and replace them) + README sections "Name & Pim / Trademarks" and "Support / Unterstützen" (coming soon, no sponsor button yet). Actual DPMA/TMview check stays T-195 (human).
 
 - **App-Icon „Pim im Wald“ + Menü-Blur + Website (04.11., `hark/icon-bubble`, PR #31):** T-102: neues Icon-Motiv „Pim im Wald“ (Pim als glänzende Glasfigur vor einem weichen Wald aus runden Bäumen), in 3D und flach; ersetzt „Pim als Sprechblase“. T-103: Icon wählbar im Onboarding (nach der Sprache) und unter Einstellungen → Aussehen → App-Symbol, umgesetzt mit zwei `activity-alias` (`.Launcher3D`, `.LauncherFlat`), DataStore `app_icon`; das Icon wechselt erst, wenn man die App verlässt. T-104: dezenter Blur hinter Popup-Menüs und Popovern (Haze, unter Android 12 nur Abdunkeln), Langdruck auf einen Chat in der Seitenleiste öffnet das Menü. T-105: Website mit neuem Icon, weicherem Header, Footer (Marke, „Unterstützen – kommt bald“), Screenshots ohne weißen Rest, /de-Übersetzungen, Alt-Texte. Offen: englische Seite zeigt deutsche App-Screenshots.
