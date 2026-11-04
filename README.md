@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/mascot/v2/preview/hop.gif" alt="Pim, the Hain mascot, hopping" width="140">
+<img src="assets/icon/hain-icon-rounded-1024.png" alt="Hain app icon: Pim, a glossy mint drop with a leaf" width="128">
 
 # Hain
 
@@ -15,7 +15,7 @@ No account. No cloud. Free and open source. In English and German.
 
 **[Download](https://github.com/oskar26/hain/releases/tag/nightly)** · [Install](#install-in-3-steps) · [Features](#features) · [How it works](#how-it-works) · [Privacy](#privacy) · [FAQ](#faq) · [Contributing](#contributing) · [Deutsch](#auf-deutsch)
 
-Website: https://oskar26.github.io/hain/ *(coming soon)*
+Website: https://oskar26.github.io/hain/
 
 </div>
 
@@ -58,10 +58,10 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 
 <table>
   <tr>
-    <td align="center"><img src="docs/design/screens/3d_onboarding_light.png" alt="Welcome tour with glossy bubbles and Pim" width="190"><br><sub>Welcome tour</sub></td>
-    <td align="center"><img src="docs/design/screens/3d_chat_empty_light.png" alt="Empty chat with glass suggestion tiles" width="190"><br><sub>Chat</sub></td>
-    <td align="center"><img src="docs/design/screens/3d_chat_thinking_picker_light.png" alt="Thinking level picker behind the brain button" width="190"><br><sub>Thinking level</sub></td>
-    <td align="center"><img src="docs/design/screens/3d_settings_light.png" alt="Settings as glass tiles with 3D icons" width="190"><br><sub>Settings &amp; packs</sub></td>
+    <td align="center"><img src="docs/design/screens/style_a_onboarding_light.png" alt="Welcome screen in the calm Lichtung style" width="190"><br><sub>Welcome tour</sub></td>
+    <td align="center"><img src="docs/design/screens/style_a_chat_empty_light.png" alt="Empty chat with three suggestions" width="190"><br><sub>Chat</sub></td>
+    <td align="center"><img src="docs/design/screens/style_a_chat_composer_picker_light.png" alt="Thinking level picker in the message box" width="190"><br><sub>Thinking level</sub></td>
+    <td align="center"><img src="docs/design/screens/style_a_settings_light.png" alt="Settings with calm line icons" width="190"><br><sub>Settings &amp; packs</sub></td>
   </tr>
 </table>
 
@@ -101,6 +101,8 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **A real app icon.** Hain now has its own launcher icon: Pim as a glossy mint drop with a leaf on a soft green tile, like a modern macOS app. It works as a round or rounded icon, follows your wallpaper colours with themed icons (Android 13+), and the test build shows a small “dev” tag so you can tell it apart.
+- **New website look.** The website (https://oskar26.github.io/hain/) now looks like the app's calm style “Lichtung”, in light and dark, with real screenshots and a clear mark on every feature: green “Available now” or grey “Coming soon”.
 - **The 3D redesign.** Hain now looks like the pictures it was meant to look like: settings groups, tool cards, suggestions, knowledge packs and the side panel are **glass tiles that glow from inside** in their own soft colour, with small **glossy 3D icons** (weather, book, leaf, shield …). Pim is a **glossy 3D jelly** with white oval eyes. The empty chat greets you big and light ("Guten Abend, was kann ich für dich tun?") above three suggestion tiles, the message box is a big white card with a soft green glow and a round domed send button. The welcome tour starts with a cloud of shiny bubbles and a round Pim button. Buttons press in a little when you tap them. Dark mode glows too; "Reduce motion" stops all movement but keeps the depth. The chat text itself stays calm.
 - **Thinking level in the message box.** Tap the **brain** in the message box and pick **Auto** (Pim decides), **Schnell** (answers right away) or **Gründlich** (thinks longer, for hard questions). The bar above the box is gone; next to the brain you see the level when it is not Auto. Same setting as Settings → Answers.
 - **Long texts fixed.** Very long own messages fold after 14 lines ("Mehr anzeigen"), the chat no longer pulls you down while you scroll up to read a long answer (a small button brings you back), tables and code scroll sideways, long chat titles, tool lines and menu entries end neatly instead of being cut off, the message box grows to 6 lines and then scrolls with the buttons staying put; checked with 200 % font, a small 360 dp screen and landscape.

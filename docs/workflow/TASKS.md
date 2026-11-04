@@ -53,8 +53,10 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-083 | Onboarding (welcome, language, download brain) | ui | M | F | T-082,T-016 | review (tour + success + skip download; language → 2f) |
 | T-084 | Packs screen in settings | ui | S | F | T-082 | review (packs screen 2c; ID also used 03.11. for the thinking picker in the composer, see HANDOFF_LOG) |
 | T-085 | UI fixes for long texts (bubble fold, follow-scroll, ellipsis, composer 6 lines, 200 % font, 360 dp, landscape) | ui | S | E | T-052 | review (03.11., screenshots via screens.yml) |
+| T-088 | App icon: glossy glass Pim (squircle, adaptive + themed + debug "dev") | ui | S | B | T-061 | review (03.11., own SVG → assets/icon/src/make_icon.py, in app/src/{main,debug}/res) |
+| T-089 | Website in style A "Lichtung" + feature status badges + new icon | docs | S | B | T-088 | review (03.11.) |
 | T-060 | NetworkGate + network log | feature | S | A | T-020 | review |
-| T-061 | Pim launcher icon + VectorDrawable export | ui | S | B | T-016 | todo |
+| T-061 | Pim launcher icon + VectorDrawable export | ui | S | B | T-016 | done via T-088 (03.11.) |
 | T-062 | ToolRouter + schemas | feature | S | A | T-040,T-060 | review |
 | T-063 | Calculator + units | feature | S | A | T-062 | review |
 | T-064 | Weather tool + WeatherCard | feature | M | A | T-062,T-014 | review |

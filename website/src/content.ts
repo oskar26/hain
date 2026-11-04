@@ -14,7 +14,7 @@ export const LINKS = {
   roadmap: 'https://github.com/oskar26/hain/blob/main/docs/workflow/ROADMAP.md',
 }
 
-export type Status = 'ready' | 'progress' | 'next' | 'later'
+export type Status = 'ready' | 'soon'
 
 type Copy = {
   meta: { switchTo: string; switchLabel: string }
@@ -23,7 +23,7 @@ type Copy = {
   marquee: string[]
   why: { kicker: string; title: string; sub: string; items: { title: string; text: string }[] }
   status: Record<Status, string>
-  features: { kicker: string; title: string; sub: string; items: { title: string; text: string; status: Status }[]; chatDemo: { you: string; pim: string } }
+  features: { kicker: string; title: string; sub: string; readyTitle: string; soonTitle: string; items: { icon: string; title: string; text: string; status: Status }[] }
   how: {
     kicker: string; title: string; sub: string
     steps: { title: string; text: string }[]
@@ -44,7 +44,7 @@ type Copy = {
   faq: { kicker: string; title: string; items: { q: string; a: string }[] }
   join: { kicker: string; title: string; sub: string; items: { title: string; text: string; cta: string; href: string }[] }
   ai: { title: string; text: string }
-  footer: { tagline: string; source: string; license: string; imprint: string; imprintNote: string; made: string; noCookies: string }
+  footer: { tagline: string; source: string; license: string; imprint: string; imprintNote: string; noCookies: string }
 }
 
 export const COPY: Record<Lang, Copy> = {
@@ -60,7 +60,7 @@ export const COPY: Record<Lang, Copy> = {
       note: 'Free · Open source · Android 10 or newer',
       pimAlt: 'Pim, the little green mascot of Hain',
     },
-    marquee: ['No account', 'No cloud', 'No ads', 'No tracking', 'No Google services', 'Works offline', 'Open source', 'Free', 'German & English', 'Made in Cologne'],
+    marquee: ['No account', 'No cloud', 'No ads', 'No tracking', 'No Google services', 'Works offline', 'Open source', 'Free', 'German & English'],
     why: {
       kicker: 'Why Hain',
       title: 'A helpful AI that stays with you.',
@@ -72,21 +72,35 @@ export const COPY: Record<Lang, Copy> = {
         { title: 'Green', text: 'No data centre has to run for your questions. Hain uses the phone you already own.' },
       ],
     },
-    status: { ready: 'Works today', progress: 'In progress', next: 'Coming in 0.2.0', later: 'Later' },
+    status: { ready: 'Available now', soon: 'Coming soon' },
     features: {
       kicker: 'Features',
       title: 'Everything you need. Nothing you don’t.',
-      sub: 'Hain is still growing. Here is what works today and what is coming next.',
-      chatDemo: { you: 'What can I cook with leeks and potatoes?', pim: 'How about a creamy leek and potato soup? You need…' },
+      sub: 'Hain is still growing. Green means it is in the test version today, grey means it is coming soon.',
+      readyTitle: 'Available now',
+      soonTitle: 'Coming soon',
       items: [
-        { title: 'Chat on your phone', text: 'Ask anything and watch the answer appear. Stop, copy or share answers. The AI runs right on your phone.', status: 'ready' },
-        { title: 'Your chats, locked away', text: 'Chats are saved encrypted on your phone. You can search, rename and delete them.', status: 'progress' },
-        { title: 'Handy tools', text: 'Calculator, weather, Wikipedia, web search and timer. Hain shows you where each request goes.', status: 'next' },
-        { title: 'News', text: 'Headlines from a fixed mix of sources, or from your own feeds.', status: 'next' },
-        { title: 'Memory', text: '“Remember that I’m vegetarian.” You can see, change and delete everything Hain remembers.', status: 'next' },
-        { title: 'Private chat & app lock', text: 'A chat that is not saved at all, and a fingerprint lock for the app.', status: 'next' },
-        { title: 'Made for you', text: 'Light or dark, an easy-to-read font, answer language, knowledge packs.', status: 'progress' },
-        { title: 'Pim’s forest', text: 'Later: ask your documents and photos, talk with your voice, and add mini-apps that grow as trees in Pim’s forest.', status: 'later' },
+        { icon: 'chat', title: 'Chat on your phone', text: 'Answers appear as they are written. Stop at once, copy, share, thumbs up or down, ask again. The AI runs on your phone, even in flight mode.', status: 'ready' },
+        { icon: 'lock', title: 'Encrypted chats', text: 'Chats are stored encrypted, only on your phone. Search, rename, pin, delete, with automatic titles.', status: 'ready' },
+        { icon: 'brain', title: 'Thinking level', text: 'Auto, Fast or Thorough, right in the message box. Fast answers at once, Thorough thinks longer for hard questions.', status: 'ready' },
+        { icon: 'search', title: 'Web search without a key', text: 'Pim searches the web without an account or API key, reads the best pages at once and shows its sources. Or use your own SearXNG.', status: 'ready' },
+        { icon: 'book', title: 'Wikipedia & weather', text: 'Wikipedia summaries in German and English and the weather from Open-Meteo, with the sources under the answer.', status: 'ready' },
+        { icon: 'calc', title: 'Exact maths', text: 'A real calculator and unit converter instead of guessing: “15% of 80”, “5 km in miles”.', status: 'ready' },
+        { icon: 'link', title: 'Read a page', text: 'Send Pim a link and it reads the page and sums it up for you.', status: 'ready' },
+        { icon: 'alarm', title: 'Phone actions with your OK', text: 'Alarm, timer, calendar entry, directions. Pim prepares them, nothing happens until you tap.', status: 'ready' },
+        { icon: 'shield', title: 'Network log & offline mode', text: 'Every request goes through one gate and is listed. One switch turns all of it off.', status: 'ready' },
+        { icon: 'sliders', title: 'Settings your way', text: 'Light or dark, an easy-to-read font, answer style, a few words about you, reduce motion.', status: 'ready' },
+        { icon: 'languages', title: 'Speaks your language', text: 'Pim answers in the language you write in, or always in German or English.', status: 'ready' },
+        { icon: 'package', title: 'Knowledge packs', text: 'See, download and remove packs, with hints on what fits your phone.', status: 'ready' },
+        { icon: 'news', title: 'News', text: 'Headlines from a fixed mix of sources, or from your own feeds.', status: 'soon' },
+        { icon: 'memory', title: 'Memory', text: '“Remember that I’m vegetarian.” See, change and delete everything Hain remembers.', status: 'soon' },
+        { icon: 'private', title: 'Private chat & app lock', text: 'A chat that is never saved, and a fingerprint lock for the app.', status: 'soon' },
+        { icon: 'cards', title: 'Answer cards', text: 'Lists, tables, checklists and weather cards instead of plain text.', status: 'soon' },
+        { icon: 'file', title: 'Documents', text: 'Ask your PDFs and photos of text, with sources.', status: 'soon' },
+        { icon: 'mic', title: 'Voice', text: 'Dictate your message and let Pim read answers aloud.', status: 'soon' },
+        { icon: 'share', title: 'Export & share', text: 'Save a chat as Markdown or PDF, share text into Hain, a widget and a quick tile.', status: 'soon' },
+        { icon: 'image', title: 'Images', text: 'Erase objects, remove backgrounds, sharpen photos, all on your phone.', status: 'soon' },
+        { icon: 'trees', title: 'Pim’s forest', text: 'Mini-apps without keys, like local transport, that grow as trees in Pim’s forest.', status: 'soon' },
       ],
     },
     how: {
@@ -113,9 +127,9 @@ export const COPY: Record<Lang, Copy> = {
     shots: {
       kicker: 'A look inside',
       title: 'Calm, clear, and a little green.',
-      sub: 'Hain looks like the chat apps you know, with Pim showing you around.',
+      sub: 'Lots of white, fine lines, green only where it matters. In light and dark.',
       placeholder: 'Screenshot coming soon',
-      items: ['Welcome tour with Pim', 'Chat', 'Settings', 'Knowledge packs'],
+      items: ['Welcome', 'Start page', 'Thinking level', 'Long answers', 'Your chats', 'Settings'],
     },
     privacy: {
       kicker: 'Privacy',
@@ -132,7 +146,7 @@ export const COPY: Record<Lang, Copy> = {
       logTitle: 'Where requests go',
       logExample: 'Example',
       log: [
-        { what: 'Weather in Cologne', where: 'open-meteo.com' },
+        { what: 'Weather tomorrow', where: 'open-meteo.com' },
         { what: 'Wikipedia: Rhine', where: 'wikipedia.org' },
         { what: 'Brain download', where: 'huggingface.co' },
       ],
@@ -202,7 +216,6 @@ export const COPY: Record<Lang, Copy> = {
       license: 'Licence: GPL-3.0',
       imprint: 'Imprint',
       imprintNote: 'Imprint coming soon',
-      made: 'Made in Cologne',
       noCookies: 'This website uses no cookies and no tracking.',
     },
   },
@@ -219,7 +232,7 @@ export const COPY: Record<Lang, Copy> = {
       note: 'Kostenlos · Open Source · ab Android 10',
       pimAlt: 'Pim, das kleine grüne Maskottchen von Hain',
     },
-    marquee: ['Kein Konto', 'Keine Cloud', 'Keine Werbung', 'Kein Tracking', 'Keine Google-Dienste', 'Läuft offline', 'Open Source', 'Kostenlos', 'Deutsch & Englisch', 'Gemacht in Köln'],
+    marquee: ['Kein Konto', 'Keine Cloud', 'Keine Werbung', 'Kein Tracking', 'Keine Google-Dienste', 'Läuft offline', 'Open Source', 'Kostenlos', 'Deutsch & Englisch'],
     why: {
       kicker: 'Warum Hain',
       title: 'Eine hilfreiche KI, die bei dir bleibt.',
@@ -231,21 +244,35 @@ export const COPY: Record<Lang, Copy> = {
         { title: 'Grün', text: 'Für deine Fragen muss kein Rechenzentrum laufen. Hain nutzt das Handy, das du schon hast.' },
       ],
     },
-    status: { ready: 'Geht schon', progress: 'In Arbeit', next: 'Kommt mit 0.2.0', later: 'Später' },
+    status: { ready: 'Schon da', soon: 'Kommt bald' },
     features: {
       kicker: 'Funktionen',
       title: 'Alles, was du brauchst. Nichts, was nervt.',
-      sub: 'Hain wächst noch. Hier siehst du, was schon geht und was als Nächstes kommt.',
-      chatDemo: { you: 'Was kann ich mit Lauch und Kartoffeln kochen?', pim: 'Wie wär’s mit einer cremigen Kartoffel-Lauch-Suppe? Du brauchst…' },
+      sub: 'Hain wächst noch. Grün heißt: steckt heute schon in der Testversion. Grau heißt: kommt bald.',
+      readyTitle: 'Schon da',
+      soonTitle: 'Kommt bald',
       items: [
-        { title: 'Chatten auf dem Handy', text: 'Frag, was du willst, und sieh zu, wie die Antwort entsteht. Antworten stoppen, kopieren oder teilen. Die KI läuft direkt auf deinem Handy.', status: 'ready' },
-        { title: 'Deine Chats, sicher verwahrt', text: 'Chats werden verschlüsselt auf deinem Handy gespeichert. Du kannst sie durchsuchen, umbenennen und löschen.', status: 'progress' },
-        { title: 'Praktische Werkzeuge', text: 'Rechner, Wetter, Wikipedia, Websuche und Timer. Hain zeigt dir, wohin jede Anfrage geht.', status: 'next' },
-        { title: 'Nachrichten', text: 'Schlagzeilen aus einem festen Mix von Quellen oder aus deinen eigenen Feeds.', status: 'next' },
-        { title: 'Gedächtnis', text: '„Merk dir, dass ich vegetarisch esse.“ Du kannst alles sehen, ändern und löschen, was Hain sich merkt.', status: 'next' },
-        { title: 'Privater Chat & App-Sperre', text: 'Ein Chat, der gar nicht gespeichert wird, und eine Sperre mit Fingerabdruck.', status: 'next' },
-        { title: 'So, wie du es magst', text: 'Hell oder dunkel, gut lesbare Schrift, Antwortsprache, Wissenspakete.', status: 'progress' },
-        { title: 'Pims Wald', text: 'Später: deine Dokumente und Fotos fragen, mit der Stimme sprechen und Mini-Apps, die als Bäume in Pims Wald wachsen.', status: 'later' },
+        { icon: 'chat', title: 'Chatten auf dem Handy', text: 'Die Antwort entsteht live. Sofort stoppen, kopieren, teilen, Daumen hoch oder runter, nochmal fragen. Die KI läuft auf deinem Handy, sogar im Flugmodus.', status: 'ready' },
+        { icon: 'lock', title: 'Verschlüsselte Chats', text: 'Chats liegen verschlüsselt nur auf deinem Handy. Suchen, umbenennen, anheften, löschen, mit automatischem Titel.', status: 'ready' },
+        { icon: 'brain', title: 'Denk-Stufe', text: 'Auto, Schnell oder Gründlich, direkt im Eingabefeld. Schnell antwortet sofort, Gründlich denkt bei schweren Fragen länger nach.', status: 'ready' },
+        { icon: 'search', title: 'Websuche ohne Schlüssel', text: 'Pim sucht im Netz ohne Konto und ohne API-Key, liest die besten Seiten gleichzeitig und zeigt die Quellen. Oder deine eigene SearXNG.', status: 'ready' },
+        { icon: 'book', title: 'Wikipedia & Wetter', text: 'Wikipedia auf Deutsch und Englisch und das Wetter von Open-Meteo, mit Quellen unter der Antwort.', status: 'ready' },
+        { icon: 'calc', title: 'Genau rechnen', text: 'Ein echter Rechner und Einheiten-Umrechner statt Raten: „15 % von 80“, „5 km in Meilen“.', status: 'ready' },
+        { icon: 'link', title: 'Seiten lesen', text: 'Schick Pim einen Link: Pim liest die Seite und fasst sie zusammen.', status: 'ready' },
+        { icon: 'alarm', title: 'Handy-Aktionen mit Bestätigung', text: 'Wecker, Timer, Kalendereintrag, Route. Pim bereitet alles vor, passieren tut erst etwas nach deinem Tipp.', status: 'ready' },
+        { icon: 'shield', title: 'Netzwerk-Log & Offline-Modus', text: 'Jede Anfrage geht durch ein Tor und wird aufgelistet. Ein Schalter macht alles aus.', status: 'ready' },
+        { icon: 'sliders', title: 'Einstellungen nach deinem Geschmack', text: 'Hell oder dunkel, gut lesbare Schrift, Antwortstil, ein paar Worte über dich, weniger Bewegung.', status: 'ready' },
+        { icon: 'languages', title: 'Spricht deine Sprache', text: 'Pim antwortet in der Sprache, in der du schreibst, oder immer auf Deutsch oder Englisch.', status: 'ready' },
+        { icon: 'package', title: 'Wissenspakete', text: 'Pakete ansehen, laden und entfernen, mit Hinweis, was zu deinem Handy passt.', status: 'ready' },
+        { icon: 'news', title: 'Nachrichten', text: 'Schlagzeilen aus einem festen Mix von Quellen oder aus deinen eigenen Feeds.', status: 'soon' },
+        { icon: 'memory', title: 'Gedächtnis', text: '„Merk dir, dass ich vegetarisch esse.“ Alles, was Hain sich merkt, kannst du sehen, ändern und löschen.', status: 'soon' },
+        { icon: 'private', title: 'Privater Chat & App-Sperre', text: 'Ein Chat, der nie gespeichert wird, und eine Sperre mit Fingerabdruck.', status: 'soon' },
+        { icon: 'cards', title: 'Antwort-Karten', text: 'Listen, Tabellen, Checklisten und Wetterkarten statt reinem Text.', status: 'soon' },
+        { icon: 'file', title: 'Dokumente', text: 'Frag deine PDFs und Fotos von Texten, mit Quellen.', status: 'soon' },
+        { icon: 'mic', title: 'Sprache', text: 'Nachricht diktieren und Antworten vorlesen lassen.', status: 'soon' },
+        { icon: 'share', title: 'Exportieren & teilen', text: 'Chat als Markdown oder PDF sichern, Text an Hain teilen, Widget und Schnellkachel.', status: 'soon' },
+        { icon: 'image', title: 'Bilder', text: 'Objekte entfernen, Hintergrund weg, Fotos schärfen, alles auf dem Handy.', status: 'soon' },
+        { icon: 'trees', title: 'Pims Wald', text: 'Mini-Apps ohne Schlüssel, etwa Bus und Bahn, die als Bäume in Pims Wald wachsen.', status: 'soon' },
       ],
     },
     how: {
@@ -272,9 +299,9 @@ export const COPY: Record<Lang, Copy> = {
     shots: {
       kicker: 'Ein Blick hinein',
       title: 'Ruhig, klar und ein bisschen grün.',
-      sub: 'Hain sieht aus wie die Chat-Apps, die du kennst, und Pim zeigt dir alles.',
+      sub: 'Viel Weiß, feine Linien, Grün nur da, wo es zählt. Hell und dunkel.',
       placeholder: 'Screenshot folgt',
-      items: ['Willkommenstour mit Pim', 'Chat', 'Einstellungen', 'Wissenspakete'],
+      items: ['Willkommen', 'Startseite', 'Denk-Stufe', 'Lange Antworten', 'Deine Chats', 'Einstellungen'],
     },
     privacy: {
       kicker: 'Datenschutz',
@@ -291,7 +318,7 @@ export const COPY: Record<Lang, Copy> = {
       logTitle: 'Wohin Anfragen gehen',
       logExample: 'Beispiel',
       log: [
-        { what: 'Wetter in Köln', where: 'open-meteo.com' },
+        { what: 'Wetter morgen', where: 'open-meteo.com' },
         { what: 'Wikipedia: Rhein', where: 'wikipedia.org' },
         { what: 'Gehirn laden', where: 'huggingface.co' },
       ],
@@ -361,19 +388,12 @@ export const COPY: Record<Lang, Copy> = {
       license: 'Lizenz: GPL-3.0',
       imprint: 'Impressum',
       imprintNote: 'Impressum folgt',
-      made: 'Gemacht in Köln',
       noCookies: 'Diese Website nutzt keine Cookies und kein Tracking.',
     },
   },
 }
 
-// Screenshot slots. To replace a placeholder, put the image in
-// website/public/screenshots/ (portrait, about 1080×2340, WebP or PNG)
-// and set `file` to its name, e.g. file: '01-welcome.webp'.
-// `de` is an optional German version of the same screen.
-export const SCREENSHOTS: { id: string; file?: string; de?: string }[] = [
-  { id: '01-welcome', file: '01-welcome.webp' },
-  { id: '02-chat', file: '02-chat.webp' },
-  { id: '03-settings', file: '03-settings.webp' },
-  { id: '04-packs' },
-]
+// Screenshots in style A "Lichtung" (from docs/design/screens/style_a_*.png, converted to WebP).
+// Each has a light and a dark file in public/screenshots/: <id>-light.webp, <id>-dark.webp.
+// The page shows the one matching the visitor's colour scheme.
+export const SCREENSHOTS: string[] = ['onboarding', 'chat_empty', 'chat_composer_picker', 'chat_long_answer', 'drawer', 'settings']
