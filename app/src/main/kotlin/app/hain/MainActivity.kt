@@ -36,6 +36,7 @@ import app.hain.common.api.update.UpdateResult
 import app.hain.common.api.update.UpdateRules
 import app.hain.feature.chat.api.ChatExtras
 import app.hain.feature.chat.api.ChatScreen
+import app.hain.feature.chat.api.ChatVoice
 import app.hain.feature.chat.game.Game2048Screen
 import app.hain.feature.chat.internal.ChatEngine
 import app.hain.feature.chat.internal.ChatStore
@@ -146,6 +147,11 @@ class MainActivity : ComponentActivity() {
 
     /** T-211: own models from Hugging Face for developer mode. */
     private val devModels by lazy { DevModels(models, networkGate, deviceRamGb()) }
+
+    /** Häppchen 10: dictation (Moonshine pack) and read aloud for the chat, in the answer language. */
+    private val chatVoice by lazy {
+        ChatVoice.create(applicationContext, models, networkGate) { toolLanguage(current) }
+    }
 
     private fun chatViewModel(
         prompts: SystemPromptSource,
@@ -274,6 +280,7 @@ class MainActivity : ComponentActivity() {
                                     lifecycleScope.launch { settingsRepository.setAnswerMode(mode) }
                                 },
                                 onOpenGame = { showGame = true },
+                                voice = chatVoice,
                                 extras =
                                     ChatExtras(
                                         showStats = dev.enabled && dev.showStats,

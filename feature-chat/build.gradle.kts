@@ -45,6 +45,8 @@ dependencies {
     implementation(project(":core-memory"))
     implementation(project(":core-cards"))
     implementation(project(":core-models"))
+    // Häppchen 10: dictation (Moonshine) and read aloud
+    implementation(project(":core-voice"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

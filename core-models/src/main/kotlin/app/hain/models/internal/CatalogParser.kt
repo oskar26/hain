@@ -40,6 +40,7 @@ object CatalogParser {
             licence = string("licence"),
             licenceUrl = string("licence_url"),
             isDefault = get("default")?.jsonPrimitive?.boolean ?: false,
+            lang = get("lang")?.jsonArray?.map { it.jsonPrimitive.content }.orEmpty(),
         )
     }
 

@@ -400,3 +400,15 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 ## 2026-11-04 · T-216 (Zurück-Pfeil zeigt nach links) · review · harness: Hark · model: Hark · branch `hark/extras` (Draft-PR #36)
 - Fehler: Zurück-Knopf in den Einstellungs-Unterseiten war `HainIcons.chevronRight` (zeigte nach rechts). Neu `ic_chevron_left.xml` (Lucide, Strich 2.1 wie die anderen, `autoMirrored`) + `HainIcons.back`, in `SettingsScreen` verwendet. Ganze App durchsucht: sonst kein Zurück-Knopf mit chevronRight (`PacksScreen` nutzt ✕, `chevronRight` bleibt als Zeilen-Chevron und gedreht im „nach unten“-Knopf des Chats).
 - ktlint 1.5.0 + detekt 1.23.8 CLI lokal grün, Gradle nicht lokal → CI, APK, Screens.
+
+## 2026-11-04 · T-140 + T-141 (Häppchen 10 Sprache, 0.1.10) · review · harness: Hark · model: Hark · branch `hark/day-10`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-140 | review | `AudioMathTest`, `DictationControllerTest`, `MoonshineTokenizerTest`, `PackProgressTest`, `VoicePackCatalogTest`, `ChatVoiceUiTest` lokal (kotlinc 2.1 + JUnit) grün; Kotlin-Pipeline `MoonshineStt` auf der Host-JVM mit ORT 1.28.0 und den echten Packs: DE „Hallo, ich bin Pim. Ich wohne in deinem Handy …“ (= Python-Referenz), EN ebenso | `core-models` (Mehrdatei-Packs: `packDir`, Ketten-Download, `PackProgress`, `lang`), `catalog.json`, `core-ui/Composer.kt` (`trailing`-Slot), `ChatScreen.kt` (Hook: Panel, Mikro, LocalChatVoice), `MainActivity.kt` (`chatVoice`), `libs.versions.toml`, `gradle.properties` | Gerätetest (Mikro, Latenz auf dem Handy), Live-Teilergebnisse, Silero-VAD |
+| T-141 | review | `SpeechTextTest` (19 Fälle DE/EN), `ReadAloudControllerTest`, `LazySynthTest` | `ChatScreen.kt` (`ReadAloudAction` in der Antwortreihe) | Pocket TTS = T-143; Einstellung Pim/Neutral, Hüllkurve für Pims Sprech-Bewegung |
+
+- Entscheidungen: sherpa-onnx gibt es nicht auf Maven → Moonshine direkt mit ONNX Runtime (MIT). **ORT auf 1.28.0 gepinnt**: ab 1.29 enthält das Android-AAR Microsoft-1DS-Telemetrie (`TelemetryInitializer`, `mobile.events.data.microsoft.com`); zusätzlich entfernt das Manifest von core-voice den Provider. Häppchen 9 (OCR) muss dieselbe Version nehmen.
+- Modelle: `Masterx/moonshine-streaming-small-de-ONNX@5d6dadc…` und `Masterx/moonshine-streaming-small-ONNX@dafc41f…` (MIT, Export der offiziellen moonshine-ai-Gewichte mit dem offiziellen Rezept); SHA-256 aus den LFS-OIDs bzw. selbst berechnet und auf dem Host gegengeprüft. Offizielles EN-ONNX von moonshine-ai gibt es nur als `.ort` und fp32-Decoder (größer), offizielles DE nur als safetensors.
+- Pocket-TTS-Stand: öffentliche ONNX-Exporte nur Englisch mit fest eingebauter Stimme `alba` (soniqo, Exporter csukuangfj/pocket-tts-onnx-export); Arms DE-Paket braucht deren geschlossene Engine. Für „anna“ + Deutsch braucht es einen eigenen Export (T-143).
+- Gradle nicht lokal (Sprint-Regel) → CI. ktlint 1.5.0 + detekt 1.23.8 CLI auf allen geänderten Dateien grün, `check_strings.py` OK.

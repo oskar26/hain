@@ -99,7 +99,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🧠 Memory | "Remember that …", a memory page you can edit, forget anything | 🗓️ |
 | 🔒 Private chats | Chats that are never saved, app lock with fingerprint | 🗓️ |
 | 📄 Documents | Ask your PDFs and photos of text (PP-OCRv5), answers with sources | 🗓️ |
-| 🎙️ Voice | Dictation (Moonshine), read aloud, Pim's own voice | 🗓️ |
+| 🎙️ Voice | Dictation with the mic in the message box (Moonshine Small, German + English, on your phone, speech pack loads on first use), read aloud under every answer (phone voice in Pim's pitch). Still open: Pim's own voice (Pocket TTS), voice mode | 🚧 |
 | 📲 On the phone | Share menu target, widget, quick tile, default assistant | 🗓️ |
 | 🌳 Mini-apps | Many key-free integrations (e.g. KVB / Transitous), shown as trees in Pim's forest | 🗓️ later |
 | 🖼️ Images | Erase objects, remove background, upscale; optional image generation pack | 🗓️ later |
@@ -108,6 +108,8 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Version 0.1.10: Pim listens and talks.** Tap the **mic** next to send and speak – tap again (or tap **Fertig**) when you are done; or **hold** the mic while you speak and let go. Slide off the button or tap ✕ to throw it away. Green bars show that Pim hears you, then “Pim schreibt mit…”, and the text lands in the message box, where you can still change it before sending. It works in German and English (the language of your answers) and **completely on your phone**: the first time, Pim asks for the mic (only then) and loads a speech pack once (German 166 MB, English 209 MB, also in Settings → Knowledge packs). The recording is never stored and never leaves the phone.
+- **Read aloud.** Under every answer there is now a speaker: Pim reads the answer sentence by sentence, without the Markdown signs (code blocks are skipped, links are read as their domain). Tap again to stop. For now this is your phone's own voice, a bit higher and faster like Pim; Pim's own voice comes later.
 - **Version 0.1.3.1.** Hain now shows its version in **Settings → About Hain** (with build number and commit). How the numbers work is in [docs/workflow/VERSIONING.md](docs/workflow/VERSIONING.md).
 - **Frosted glass menus.** The ⋯ menu, the long-press menu in the side panel and the thinking picker are now real frosted glass: the chat behind them shows through, softly blurred, with a thin light edge and a soft shadow. The rest of the screen only dims a little. On phones older than Android 12 the menus are a solid card.
 - **More Pim in the chat.** Pim is bigger while he thinks, sits small next to the newest answer, peeks in while he looks something up, is happy for a moment when the answer is done and gets a fright on an error. On the empty chat he is a bit bigger too. "Reduce motion" keeps him still.
@@ -190,7 +192,7 @@ Hain speaks of "knowledge packs" instead of "models". Only the brain is needed; 
 | Brain (base) | LFM3-1.7B QAD Q4_0 | 1.0 GB | chat, tools, memory |
 | Remember & files | LFM2.5-Embedding-350M | ~0.2 GB | search in memory, chats, files |
 | Reading text | PaddleOCR PP-OCRv5 mobile (Latin) | 12 MB | PDFs and photos, without Google |
-| Dictation | Moonshine Small | ~0.12–0.25 GB | microphone, DE + EN |
+| Dictation | Moonshine Streaming Small (ONNX int8) | 166 MB (DE) / 209 MB (EN) | microphone, DE + EN, loads on first use |
 | See + talk (optional) | LFM3-Omni-2B | 1.65 GB | photos, voice mode |
 | Image generation (optional) | SD 1.5 + DMD2 | 1.1 GB | only phones with 8 GB RAM+ |
 
@@ -311,7 +313,7 @@ Architecture: [docs/specs/ARCHITECTURE.md](docs/specs/ARCHITECTURE.md) · Design
 
 ## Auf Deutsch
 
-Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Gerät läuft: chatten, rechnen, Wetter und Wikipedia nachschauen, im Web suchen, Wecker, Timer, Termine und Routen vorbereiten (du bestätigst jedes Mal mit einem Tipp), und bald auch Fotos und PDFs verstehen, sprechen und sich Dinge merken. Keine Cloud, kein Konto, keine API-Schlüssel. Ins Internet geht Hain nur, wenn du etwas brauchst, und zeigt dir genau, wohin die Anfrage geht. Das ganze Konzept steht in [docs/concept/KONZEPT.md](docs/concept/KONZEPT.md).
+Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Gerät läuft: chatten, rechnen, Wetter und Wikipedia nachschauen, im Web suchen, Wecker, Timer, Termine und Routen vorbereiten (du bestätigst jedes Mal mit einem Tipp), Nachrichten diktieren (Mikro neben Senden, Deutsch und Englisch, alles auf dem Handy) und Antworten vorlesen, und bald auch Fotos und PDFs verstehen und sich Dinge merken. Keine Cloud, kein Konto, keine API-Schlüssel. Ins Internet geht Hain nur, wenn du etwas brauchst, und zeigt dir genau, wohin die Anfrage geht. Das ganze Konzept steht in [docs/concept/KONZEPT.md](docs/concept/KONZEPT.md).
 
 **Installieren:** Auf dem Handy die [Nightly-Seite](https://github.com/oskar26/hain/releases/tag/nightly) öffnen, `hain-debug.apk` laden, beim Öffnen „Unbekannte Apps installieren“ für den Browser erlauben, installieren. Beim ersten Start lädt Pim das Gehirn (ca. 1 GB, am besten im WLAN) – das kannst du auch überspringen und später im Chat nachholen. Updates einfach drüber installieren, Chats und Gehirn bleiben erhalten.
 

@@ -33,6 +33,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -107,8 +108,11 @@ fun ChatScreen(
     onOpenGame: () -> Unit = {},
     extras: ChatExtras = ChatExtras(),
     banner: @Composable () -> Unit = {},
+    voice: ChatVoice? = null,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    // Häppchen 10: dictation in the message box, read aloud under the answers (null = no voice)
+    val voiceUi = voice?.let { rememberVoiceUi(it) }
     var drawerOpen by rememberSaveable { mutableStateOf(false) }
     val colors = LocalHainColors.current
     val haptics = rememberHainHaptics()
@@ -170,20 +174,23 @@ fun ChatScreen(
                         Greeting(onSuggestion = { viewModel.onInputChange(it) }, onEgg = onOpenGame)
                     } else {
                         val ratings by viewModel.ratings.collectAsStateWithLifecycle()
-                        MessageList(
-                            state,
-                            ratings = ratings,
-                            onRetry = { viewModel.regenerate(it) },
-                            onEdit = viewModel::startEdit,
-                            onRate = viewModel::rate,
-                            onAction = viewModel::resolveAction,
-                            extras = extras,
-                        )
+                        CompositionLocalProvider(LocalChatVoice provides voice) {
+                            MessageList(
+                                state,
+                                ratings = ratings,
+                                onRetry = { viewModel.regenerate(it) },
+                                onEdit = viewModel::startEdit,
+                                onRate = viewModel::rate,
+                                onAction = viewModel::resolveAction,
+                                extras = extras,
+                            )
+                        }
                     }
                 }
             }
             ErrorLine(state, onGetBrain)
             if (state.editingId != null) EditBar(onCancel = viewModel::cancelEdit)
+            voiceUi?.let { VoicePanel(it, state.input, viewModel::onInputChange) }
             Composer(
                 text = state.input,
                 onTextChange = viewModel::onInputChange,
@@ -200,6 +207,7 @@ fun ChatScreen(
                 modifier = Modifier.padding(LocalHainSpacing.current.md),
                 // T-084: the thinking level lives inside the message box (brain + popover)
                 leading = { ThinkingPicker(answerMode, onAnswerMode) },
+                trailing = { voiceUi?.let { MicButton(it, enabled = !state.isGenerating) } },
             )
         }
         ChatListDrawer(
@@ -580,8 +588,8 @@ private fun AnswerStats(
 }
 
 /**
- * The quiet row under a finished answer (T-057): copy, share, thumbs, ask again — evenly spaced,
- * grey. "Read aloud" joins here once Hain can speak (Häppchen 10).
+ * The quiet row under a finished answer (T-057): copy, share, read aloud (Häppchen 10, when the app
+ * gave the chat a voice), thumbs, ask again — evenly spaced, grey.
  */
 @Composable
 private fun AnswerActions(

@@ -49,6 +49,8 @@ fun Composer(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     leading: @Composable RowScope.() -> Unit = {},
+    // Häppchen 10: the mic sits right next to send
+    trailing: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
@@ -86,6 +88,7 @@ fun Composer(
         ) {
             leading()
             Spacer(Modifier.weight(1f))
+            trailing()
             AnimatedContent(targetState = isGenerating, label = "send-stop") { generating ->
                 if (generating) {
                     DomeIconButton(

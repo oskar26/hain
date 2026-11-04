@@ -21,7 +21,8 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | Parakeet TDT 0.6B v3 | CC-BY-4.0 | verify, attribution |
 | PP-OCRv5 / PaddleOCR | Apache-2.0 | ok |
 | PaddleOCR-VL-1.6 | Apache-2.0 | verify |
-| ONNX Runtime | MIT | ok |
+| ONNX Runtime (`onnxruntime-android` **1.28.0**, Häppchen 10) | MIT | ok – pinned: from 1.29 the Android AAR adds Microsoft 1DS telemetry (`ai.onnxruntime.TelemetryInitializer`, `mobile.events.data.microsoft.com`); 1.28.0 has none, and core-voice's manifest removes the provider in case a newer version is pulled in. Every ORT user (also OCR, T-121) must stay on ≤ 1.28.0 |
+| Moonshine Streaming Small DE/EN (ONNX int8 exports `Masterx/moonshine-streaming-small(-de)-ONNX`, of `moonshine-ai/moonshine-streaming-small(-de)`) | MIT | ok – downloaded at runtime (catalog.json, pinned commit + SHA-256), not in the APK; third-party export of the official weights, checked on the host (same text as the reference pipeline) |
 | kotlinx.serialization (json, 1.8.1) | Apache-2.0 | ok (T-040, ToolSchema JSON) |
 | kxml2 2.3.0 (test only, XmlPullParser on the JVM) | BSD-style (MIT-like) | ok (T-070) |
 | androidx.work (work-runtime-ktx 2.12.0) | Apache-2.0 | ok (T-082, model downloads) |

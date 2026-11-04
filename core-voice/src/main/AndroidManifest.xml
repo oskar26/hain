@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- T-140: dictation. Asked only when you tap the mic for the first time (after a short
+         explanation); the audio stays on the phone and is dropped once the text is there. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- T-141: read aloud with the phone's own voice (Android 11+ needs to see the TTS service) -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
+
+    <application>
+        <!-- No telemetry (AGENTS.md): should a newer ONNX Runtime bring its telemetry starter back
+             (1.29+ does), it never runs. libs.versions.toml pins 1.28.0, which has none. -->
+        <provider
+            android:name="ai.onnxruntime.TelemetryInitializer"
+            android:authorities="${applicationId}.onnxruntime_telemetry_initializer"
+            tools:node="remove" />
+    </application>
+</manifest>

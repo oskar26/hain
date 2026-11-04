@@ -5,7 +5,16 @@
       "id": "lfm3-1.7b-qad-q4_0",
       "name": "LFM3 1.7B",
       "kind": "brain",
-      "lang": ["de", "en", "fr", "es", "it", "pt", "nl", "pl"],
+      "lang": [
+        "de",
+        "en",
+        "fr",
+        "es",
+        "it",
+        "pt",
+        "nl",
+        "pl"
+      ],
       "files": [
         {
           "url": "https://huggingface.co/LiquidAI/LFM3-1.7B-GGUF/resolve/main/LFM3-1.7B-QAD-Q4_0.gguf",
@@ -17,6 +26,104 @@
       "licence": "LFM Open License v1.0",
       "licence_url": "https://huggingface.co/LiquidAI/LFM3-1.7B-GGUF/blob/main/LICENSE",
       "default": true
+    },
+    {
+      "id": "moonshine-small-de",
+      "name": "Moonshine Small (Deutsch)",
+      "kind": "stt",
+      "lang": [
+        "de"
+      ],
+      "files": [
+        {
+          "url": "https://huggingface.co/Masterx/moonshine-streaming-small-de-ONNX/resolve/5d6dadcd2d3b9a53fcde00a8793950d2b222cac3/frontend.onnx",
+          "sha256": "24bc8abea5a3ead9c9015fbbd23f4f75141636420b3bef1a73f713334449ce87",
+          "size": 30966660
+        },
+        {
+          "url": "https://huggingface.co/Masterx/moonshine-streaming-small-de-ONNX/resolve/5d6dadcd2d3b9a53fcde00a8793950d2b222cac3/encoder_int8.onnx",
+          "sha256": "b248453ec40b7ce0e7daaa4951e7f49d88f5b728c94d60c1fe6c6ba79a15edc6",
+          "size": 44581925
+        },
+        {
+          "url": "https://huggingface.co/Masterx/moonshine-streaming-small-de-ONNX/resolve/5d6dadcd2d3b9a53fcde00a8793950d2b222cac3/adapter_int8.onnx",
+          "sha256": "5eb364c1bdf7c15986060ed430d0e7a34dcf6be98ff5879276984f7effaea437",
+          "size": 10485642
+        },
+        {
+          "url": "https://huggingface.co/Masterx/moonshine-streaming-small-de-ONNX/resolve/5d6dadcd2d3b9a53fcde00a8793950d2b222cac3/cross_kv_int8.onnx",
+          "sha256": "39c78b9ec152cb287b0b3ebe49ca76fdc529ff0a8df97b25b7ba311f0e098996",
+          "size": 5352766
+        },
+        {
+          "url": "https://huggingface.co/Masterx/moonshine-streaming-small-de-ONNX/resolve/5d6dadcd2d3b9a53fcde00a8793950d2b222cac3/decoder_kv_int8.onnx",
+          "sha256": "2dfc3edb698f8ceeaba3442231e6bc99fcaa239d1337835d85db08a486ca9935",
+          "size": 73614909
+        },
+        {
+          "url": "https://huggingface.co/Masterx/moonshine-streaming-small-de-ONNX/resolve/5d6dadcd2d3b9a53fcde00a8793950d2b222cac3/tokenizer.json",
+          "sha256": "983ec5f1b76300b74be6a764edc034a16e2912c38a8a8c0e4d51af355b6b755d",
+          "size": 588216
+        },
+        {
+          "url": "https://huggingface.co/Masterx/moonshine-streaming-small-de-ONNX/resolve/5d6dadcd2d3b9a53fcde00a8793950d2b222cac3/streaming_config.json",
+          "sha256": "98ba8ada00cdb554076e9ba13fd02fd72bd69e83ae98e1ded6654e076143a782",
+          "size": 985
+        }
+      ],
+      "min_ram_gb": 3,
+      "licence": "MIT",
+      "licence_url": "https://huggingface.co/moonshine-ai/moonshine-streaming-small-de",
+      "default": false
+    },
+    {
+      "id": "moonshine-small-en",
+      "name": "Moonshine Small (English)",
+      "kind": "stt",
+      "lang": [
+        "en"
+      ],
+      "files": [
+        {
+          "url": "https://huggingface.co/Masterx/moonshine-streaming-small-ONNX/resolve/dafc41f7b33daa11c0b19866e90eb493e98650c1/frontend.onnx",
+          "sha256": "51647f2bc7c2898238f6c9ac1f024b6e5d872d0e869a7945501612de7caec05a",
+          "size": 30966660
+        },
+        {
+          "url": "https://huggingface.co/Masterx/moonshine-streaming-small-ONNX/resolve/dafc41f7b33daa11c0b19866e90eb493e98650c1/encoder_int8.onnx",
+          "sha256": "6e6d4fb82b0a451dcf8eab34c7d5f5380ac74f8eabacce00c99585f3dc6a750b",
+          "size": 44581925
+        },
+        {
+          "url": "https://huggingface.co/Masterx/moonshine-streaming-small-ONNX/resolve/dafc41f7b33daa11c0b19866e90eb493e98650c1/adapter_int8.onnx",
+          "sha256": "c9e4a19fa3691ad4b186914c4c6dd6262421ad0d828b76559ddf021abed3c601",
+          "size": 10485642
+        },
+        {
+          "url": "https://huggingface.co/Masterx/moonshine-streaming-small-ONNX/resolve/dafc41f7b33daa11c0b19866e90eb493e98650c1/cross_kv_int8.onnx",
+          "sha256": "fefeaf66e51c9d4873e8783498dd2da653ccafad1861f85818f57b2f7ae07c0b",
+          "size": 5352766
+        },
+        {
+          "url": "https://huggingface.co/Masterx/moonshine-streaming-small-ONNX/resolve/dafc41f7b33daa11c0b19866e90eb493e98650c1/decoder_kv_int8.onnx",
+          "sha256": "69aea70bf98141df19c0aa6e1c767dfd4af98a061ee8e8617d6e11c51b59a3e5",
+          "size": 115557953
+        },
+        {
+          "url": "https://huggingface.co/Masterx/moonshine-streaming-small-ONNX/resolve/dafc41f7b33daa11c0b19866e90eb493e98650c1/tokenizer.json",
+          "sha256": "28bbc54a47dfa33673affa26010f23ac452685b18c76e81451d9b3ea25a54d54",
+          "size": 1676069
+        },
+        {
+          "url": "https://huggingface.co/Masterx/moonshine-streaming-small-ONNX/resolve/dafc41f7b33daa11c0b19866e90eb493e98650c1/streaming_config.json",
+          "sha256": "fda84379b298d41b62c8fccf191714541f6a8cb2baec5b96d62319d59c1beee6",
+          "size": 985
+        }
+      ],
+      "min_ram_gb": 3,
+      "licence": "MIT",
+      "licence_url": "https://huggingface.co/moonshine-ai/moonshine-streaming-small",
+      "default": false
     }
   ]
 }
