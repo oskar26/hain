@@ -71,3 +71,17 @@ the answer (`SystemPromptSource.turnHint`). The system prompt and the tools stay
   starts and keeps running, reads the installed ART profile and measures cold start
   (`am start -W`, median of 7) against the nightly debug APK of main – as installed and after
   `cmd package compile -m speed-profile`. Script: `tools/ci/release_smoke.sh`, report in the job summary.
+
+**Measured (CI emulator, Android 11 x86_64, two runs on 04.11.2026, cold start without brain, median of 7):**
+
+| Build | Run 1 | Run 2 |
+|---|---|---|
+| before · nightly debug APK of main, as installed | 911 ms | 1227 ms |
+| after · release APK (R8 + profile), as installed | 900 ms | 1180 ms |
+| before · after `compile -m speed-profile` | 978 ms | 1145 ms |
+| after · after `compile -m speed-profile` | 932 ms | 1065 ms |
+
+The installed ART profile holds ~29,000 methods, ~4,200 of them Hain's own code (counted back through
+`mapping.txt`), so the hand-written rules work. The start-time gain on the shared CI emulator is small
+(about 1–7 %) and inside its noise; the real gain is expected on phones (interpreted → compiled code
+from the first start, smaller dex). A measurement on a real phone is still open.
