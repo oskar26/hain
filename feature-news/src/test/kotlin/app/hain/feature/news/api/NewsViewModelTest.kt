@@ -125,7 +125,7 @@ class NewsViewModelTest {
         runTest {
             val free =
                 "<html><head><title>Haushalt beschlossen</title></head><body><article>" +
-                    "<p>Ein langer Satz über den Haushalt des Bundes, mit vielen Details und Zahlen.</p>".repeat(8) +
+                    (1..8).joinToString("") { "<p>Satz $it über den Haushalt des Bundes, mit Zahlen.</p>" } +
                     "</article></body></html>"
             val vm = viewModel(FakeGate { GateResponse(200, free) })
             vm.start()
@@ -184,7 +184,8 @@ class NewsViewModelTest {
     @Test fun pimAnswersAboutTheOpenArticleAndHandsItToTheChat() =
         runTest {
             val page =
-                "<html><body><article>" + "<p>Der Bundestag hat den Haushalt beschlossen, knapp.</p>".repeat(10) +
+                "<html><body><article>" +
+                    (1..10).joinToString("") { "<p>Der Bundestag hat den Haushalt beschlossen, Teil $it.</p>" } +
                     "</article></body></html>"
             val answer = CompletableDeferred<String>()
             var context = ""
