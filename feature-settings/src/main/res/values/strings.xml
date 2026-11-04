@@ -186,4 +186,5 @@
     </plurals>
     <string name="settings_memory">Memory</string>
     <string name="settings_memory_hint">What Pim keeps about you.</string>
+    <string name="packs_embed_desc">Search by meaning: Pim finds your memories even when you use other words. Small, works offline, and everything stays on your phone.</string>
 </resources>

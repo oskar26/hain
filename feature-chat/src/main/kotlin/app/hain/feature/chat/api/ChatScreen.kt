@@ -341,6 +341,8 @@ internal fun MessageList(
                         cheer = cheerId == message.id,
                         latest = message.id == last?.id,
                         extras = extras,
+                        // 7b: the user messages up to this answer, for the memory chips
+                        userMessages = { userMessagesBefore(state.messages, message.id) },
                         rating = ratings[message.id],
                         canRetry = !state.isGenerating,
                         onRetry = { onRetry(message.id) },
@@ -360,6 +362,12 @@ internal fun MessageList(
         )
     }
 }
+
+/** 7b: the user messages of the chat up to the answer [answerId]. */
+internal fun userMessagesBefore(
+    messages: List<UiMessage>,
+    answerId: Long,
+): List<String> = messages.takeWhile { it.id != answerId }.filter { it.isUser }.map { it.text }
 
 /** Small round glass button that brings you back to the newest message (T-085). */
 @Composable
@@ -450,6 +458,7 @@ private fun Answer(
     cheer: Boolean = false,
     latest: Boolean = false,
     extras: ChatExtras = ChatExtras(),
+    userMessages: () -> List<String> = { emptyList() },
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
@@ -496,6 +505,7 @@ private fun Answer(
                 // 3b-2: what the weather or Wikipedia tool found, as a card
                 message.cards.take(MAX_INFO_CARDS).forEach { InfoCardView(it) }
                 SourceChips(message.sources)
+                extras.answerFooter?.let { footer -> footer(remember(message.id) { userMessages() }) }
             }
             if (message.stopped) {
                 BasicText(stringResource(R.string.chat_stopped), style = type.label.copy(color = colors.textMuted))

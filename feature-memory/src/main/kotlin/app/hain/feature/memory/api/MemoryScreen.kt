@@ -26,9 +26,10 @@ import java.io.IOException
 /**
  * Settings → Gedächtnis (T-115, MEMORY.md §5): see, edit and delete what Pim keeps, accept or drop
  * suggestions, "Über dich", memory on/off, export/import as a JSON file the user picks (Android's
- * file picker, nothing goes online) and delete everything.
+ * file picker, nothing goes online) and delete everything. 7b: "Themen" with the user's notes,
+ * "Ersetzt: …" under suggestions from the chats and the pack "Suche nach Bedeutung" ([smartSearch]).
  */
-@Suppress("LongMethod") // the page's state, its file pickers and its actions in one place
+@Suppress("LongMethod", "LongParameterList") // the page's state, its file pickers and its actions in one place
 @Composable
 fun MemoryScreen(
     store: MemoryStore,
@@ -36,8 +37,11 @@ fun MemoryScreen(
     onAboutMe: (String) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    smartSearch: SmartSearch = SmartSearch.Hidden,
+    onGetSmartSearch: () -> Unit = {},
 ) {
     val facts by store.facts.collectAsStateWithLifecycle()
+    val topics by store.topics.collectAsStateWithLifecycle()
     val enabled by store.enabled.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -86,7 +90,7 @@ fun MemoryScreen(
 
     val current = notice
     MemoryPage(
-        state = MemoryPageState(facts, enabled, aboutMe, current?.text, current?.undo),
+        state = MemoryPageState(facts, enabled, aboutMe, current?.text, current?.undo, topics, smartSearch),
         actions =
             MemoryActions(
                 onBack = onBack,
@@ -105,6 +109,8 @@ fun MemoryScreen(
                 onAboutMe = onAboutMe,
                 onExport = { exporter.launch(EXPORT_NAME) },
                 onImport = { importer.launch(arrayOf("application/json", "text/plain", "*/*")) },
+                onTopicNote = { title, note -> scope.launch { store.setTopicNote(title, note) } },
+                onGetSmartSearch = onGetSmartSearch,
             ),
         modifier = modifier,
     )

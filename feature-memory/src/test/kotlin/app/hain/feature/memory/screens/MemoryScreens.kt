@@ -7,12 +7,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
+import app.hain.feature.memory.api.AnswerChips
+import app.hain.feature.memory.api.AnswerChipsView
 import app.hain.feature.memory.api.MemoryActions
 import app.hain.feature.memory.api.MemoryPage
 import app.hain.feature.memory.api.MemoryPageState
 import app.hain.feature.memory.api.MemoryTab
+import app.hain.feature.memory.api.SmartSearch
 import app.hain.memory.api.MemoryCategory
 import app.hain.memory.api.MemoryFact
+import app.hain.memory.api.MemoryTopic
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.theme.HainTheme
 import app.hain.ui.theme.LocalHainColors
@@ -67,6 +71,35 @@ class MemoryScreens {
             }
         }
         captureScreenRoboImage("$OUT/memory_suggestions_light.png")
+    }
+
+    @Test
+    fun topicsLight() {
+        val notes = listOf(MemoryTopic("work", "Mathe fällt mir schwer, Englisch mag ich.", now))
+        val state = MemoryPageState(facts, topics = notes, smartSearch = SmartSearch.Offer(219))
+        compose.setContent {
+            Frame(dark = false) { MemoryPage(state, MemoryActions(), startTab = MemoryTab.TOPICS) }
+        }
+        captureScreenRoboImage("$OUT/memory_topics_light.png")
+    }
+
+    @Test
+    fun smartSearchAndReplacesDark() {
+        val newer = MemoryFact(7, "wohnt jetzt in Bonn", MemoryCategory.PLACE, now, suggested = true, replaces = 5)
+        val state = MemoryPageState(facts + newer, smartSearch = SmartSearch.Loading(42))
+        compose.setContent {
+            Frame(dark = true) { MemoryPage(state, MemoryActions(), startTab = MemoryTab.SUGGESTIONS) }
+        }
+        captureScreenRoboImage("$OUT/memory_suggestions_replaces_dark.png")
+        compose.setContent { Frame(dark = true) { MemoryPage(state, MemoryActions()) } }
+        captureScreenRoboImage("$OUT/memory_smart_search_dark.png")
+    }
+
+    @Test
+    fun answerChipsLight() {
+        val chips = AnswerChips(saved = true, used = facts.take(3))
+        compose.setContent { Frame(dark = false) { AnswerChipsView(chips, onUndo = {}) } }
+        captureScreenRoboImage("$OUT/memory_answer_chips_light.png")
     }
 
     @Test

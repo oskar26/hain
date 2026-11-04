@@ -10,8 +10,8 @@
     <string name="memory_empty_title">Nothing kept yet</string>
     <string name="memory_empty_body">Just say: “Remember that I play the guitar.”</string>
     <string name="memory_no_match">No memory fits your search.</string>
-    <string name="memory_suggestions_empty">No suggestions. Private things like health only end up here, and Pim uses them only after your yes.</string>
-    <string name="memory_suggestions_hint">Pim wants to keep these private things. They are used only after your yes.</string>
+    <string name="memory_suggestions_empty">No suggestions. What Pim finds in your chats and private things like health end up here first. Pim uses them only after your yes.</string>
+    <string name="memory_suggestions_hint">Pim found these in your chats or they are private. They are used only after your yes.</string>
     <string name="memory_edit">Edit</string>
     <string name="memory_save">Save</string>
     <string name="memory_delete">Delete</string>
@@ -42,4 +42,35 @@
     <string name="memory_cat_work">School &amp; work</string>
     <string name="memory_cat_health">Health</string>
     <string name="memory_cat_other">Other</string>
+    <string name="memory_tab_topics">Topics</string>
+    <string name="memory_replaces">Replaces: %1$s</string>
+    <string name="memory_topics_empty_title">No topics yet</string>
+    <string name="memory_topics_empty_body">Once Pim keeps something about you, it shows up here, sorted by topic.</string>
+    <string name="memory_topics_hint">Add a short note to a topic. Pim reads it when a question fits.</string>
+    <string name="memory_topic_note_edit">Write a note on %1$s</string>
+    <string name="memory_topic_more">and %1$d more</string>
+    <string name="memory_topic_note">Your note</string>
+    <string name="memory_topic_note_hint">For example: I am in 10th grade, maths is hard for me.</string>
+    <string name="memory_smart_title">Search by meaning</string>
+    <string name="memory_smart_body">With a small extra pack, Pim also finds memories when you use other words. Everything stays on your phone.</string>
+    <string name="memory_smart_on">On. Pim finds memories by meaning, not only by the same words.</string>
+    <string name="memory_smart_get">Download (%1$d MB)</string>
+    <string name="memory_smart_failed">The download did not work. Try again?</string>
+    <string name="memory_smart_wait">One moment…</string>
+    <string name="memory_smart_loading">Loading… %1$d %%</string>
+    <string name="memory_chip_saved">Saved ✓</string>
+    <string name="memory_chip_forgotten">Forgotten ✓</string>
+    <string name="memory_chip_undone">Undone</string>
+    <string name="memory_chip_open">open</string>
+    <string name="memory_chip_closed">closed</string>
+    <string name="memory_chip_used_title">Pim used this for the answer:</string>
+    <string name="memory_chip_used_hint">You can change or delete it in Settings → Memory.</string>
+    <plurals name="memory_topic_count">
+        <item quantity="one">%d memory</item>
+        <item quantity="other">%d memories</item>
+    </plurals>
+    <plurals name="memory_chip_used">
+        <item quantity="one">%d memory used</item>
+        <item quantity="other">%d memories used</item>
+    </plurals>
 </resources>
