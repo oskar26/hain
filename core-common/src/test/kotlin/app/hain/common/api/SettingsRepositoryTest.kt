@@ -85,4 +85,52 @@ class SettingsRepositoryTest {
         val text = HainSettings(answerLanguage = AnswerLanguage.EN, style = " short ").customInstructions()
         assertEquals("Always answer in English.\nHow the user wants answers: short", text)
     }
+
+    @Test
+    fun developerValuesRoundTripAndSurviveReset() =
+        runTest(UnconfinedTestDispatcher()) {
+            val r = repo()
+            val dev =
+                DevSettings(
+                    enabled = true,
+                    temperature = 0.7f,
+                    topK = 40,
+                    topP = 0.9f,
+                    minP = 0.05f,
+                    repeatPenalty = 1.2f,
+                    contextSize = 4096,
+                    maxTokens = 512,
+                    seed = 42,
+                    thinking = ThinkingOverride.ON,
+                    thinkingBudget = 1024,
+                    showRawThinking = true,
+                    systemPrompt = "Du bist ein Test.",
+                    showStats = true,
+                    customModelPath = "/x/model.gguf",
+                    customModelName = "a/b · model.gguf",
+                )
+            r.setDev(dev)
+            assertEquals(dev, r.settings.first().dev)
+            r.reset()
+            assertEquals(dev, r.settings.first().dev)
+            assertEquals(
+                DevSettings(enabled = true, customModelPath = "/x/model.gguf", customModelName = "a/b · model.gguf"),
+                dev.resetTuning(),
+            )
+        }
+
+    @Test
+    fun updateChoiceIsSavedAndMarksTheQuestionAnswered() =
+        runTest(UnconfinedTestDispatcher()) {
+            val r = repo()
+            assertEquals(UpdateCheck.OFF, r.settings.first().updateCheck)
+            r.setUpdateCheck(UpdateCheck.DAILY)
+            r.setUpdateChannel(UpdateChannel.NIGHTLY)
+            r.setLastUpdateCheck(123L)
+            val s = r.settings.first()
+            assertEquals(UpdateCheck.DAILY, s.updateCheck)
+            assertEquals(UpdateChannel.NIGHTLY, s.updateChannel)
+            assertEquals(true, s.updateAsked)
+            assertEquals(123L, s.lastUpdateCheck)
+        }
 }

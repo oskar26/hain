@@ -216,4 +216,7 @@
     <string name="game_lost_title">No more moves</string>
     <string name="game_lost_body">Pim believes in you. One more round?</string>
     <string name="game_try">Try again</string>
+    <string name="chat_pim_looking">Pim is looking it up…</string>
+    <string name="chat_dev_stats">%1$s tokens/s · first token after %2$s s</string>
+    <string name="chat_dev_copy_debug">Copy debug info</string>
 </resources>

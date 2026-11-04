@@ -109,10 +109,12 @@ inner light and shadow are stronger and the edge fainter, so the light really *g
 
 Radii: SMALL 12, MEDIUM 20, **TILE 24** (glass tiles), LARGE 28 (sheets, **the composer card**), capsule
 (buttons, pills). Real blur (Haze) stays limited to surfaces over scrolling content and to the
-**menu backdrop** (T-104): while a ⋯ menu, a long-press menu (chats in the drawer) or a popover is open,
-`HainMenuBackdrop` blurs the screen behind it softly (14 dp, 16 % page tint, no noise); below Android 12
-a dimming with 75 % of `scrim` instead. It fades with the menu in `MENU_MS`; with "reduce motion" it is
-just there, without animation.
+**frosted menu cards** (T-104, T-210): ⋯ menus, long-press menus (chats in the drawer) and popovers
+(thinking picker) are frosted glass — `Modifier.frostedGlass(shape)` blurs the screen behind the card
+through the card (Haze, 24 dp, white tint 66 % / dark tint 72 %, no noise), with a thin edge that is
+light at the top and a soft 12 dp shadow. The rest of the screen only gets a light dimming (35 % of
+`scrim`), so the card stands out. Below Android 12 the card is an opaque tinted surface. It fades
+with the menu in `MENU_MS`; with "reduce motion" it is just there, without animation.
 
 ### 3D icons
 

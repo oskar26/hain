@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.StateFlow
 import java.io.IOException
 
 /** Why Hain goes online (TOOLS.md §1). Shown in the network log. */
-enum class Purpose { SEARCH, NEWS, WEATHER, WIKI, GEO, PAGE_READ, MODEL_DOWNLOAD, OTHER }
+enum class Purpose { SEARCH, NEWS, WEATHER, WIKI, GEO, PAGE_READ, MODEL_DOWNLOAD, UPDATE, OTHER }
 
 /**
  * One outbound request. [userStarted] marks a request the user asked for directly (a model

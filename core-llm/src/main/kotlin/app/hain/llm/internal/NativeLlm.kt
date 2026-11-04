@@ -11,6 +11,7 @@ fun interface LoadProgress {
 }
 
 /** The whole JNI surface (LLM.md §1). Blocking calls: run them on one background thread. */
+@Suppress("TooManyFunctions") // one function per JNI entry point
 internal object NativeLlm {
     const val STOP_EOS = 0
     const val STOP_MAX_TOKENS = 1
@@ -70,4 +71,18 @@ internal object NativeLlm {
         handle: Long,
         enabled: Boolean,
     )
+
+    /** UTF-8 bytes of the GGUF chat template (`tokenizer.chat_template`), `null` if the file has none. */
+    external fun nativeChatTemplate(handle: Long): ByteArray?
+
+    /**
+     * Applies [template] (UTF-8) to messages with llama.cpp's built-in template engine; `null` when
+     * llama.cpp does not know the template. Roles and contents are UTF-8, same length.
+     */
+    external fun nativeApplyTemplate(
+        template: ByteArray,
+        roles: Array<ByteArray>,
+        contents: Array<ByteArray>,
+        addAssistant: Boolean,
+    ): ByteArray?
 }

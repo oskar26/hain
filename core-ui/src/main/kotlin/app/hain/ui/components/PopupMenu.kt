@@ -36,24 +36,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
+import app.hain.ui.effects.frostedGlass
 import app.hain.ui.effects.rememberMenuBackdrop
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainTween
 import app.hain.ui.motion.rememberHainHaptics
-import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
-import app.hain.ui.theme.hainSurface
 
 /**
  * Compact context menu as a quiet glass tile (T-053, docs/design/DESIGN_LANGUAGE.md "floating"):
  * place it inside the same Box as the button or message it belongs to. It grows out of its anchor
  * with scale + fade in [HainMotion.MENU_MS] ([growFrom] = the corner nearest the anchor), is only as
  * wide as its rows, shrinks back the same way and closes on outside tap or back. No motion when
- * motion is reduced. Inside a `HainMenuBackdrop` the screen behind gets a soft blur (T-104).
+ * motion is reduced. The tile is frosted glass (T-210).
  */
 @Suppress("LongParameterList") // placement options all have defaults
 @Composable
@@ -70,7 +69,7 @@ fun HainPopupMenu(
     val haptics = rememberHainHaptics()
     // one soft tick when a ⋯ / long-press menu opens, nothing when it closes
     LaunchedEffect(expanded) { if (expanded) haptics.menu() }
-    // T-104: soft blur behind the open menu (dimming below Android 12)
+    // T-104/T-210: light dimming behind the open menu; the menu itself is frosted glass
     rememberMenuBackdrop(expanded)
     val shown = remember { MutableTransitionState(false) }
     shown.targetState = expanded
@@ -167,10 +166,23 @@ private fun MenuTile(
                 scaleY = s
                 transformOrigin = growFrom
             }.widthIn(min = MIN_WIDTH.dp, max = MAX_WIDTH.dp)
-            .hainSurface(HainLevel.FLOATING, LocalHainShapes.current.menu)
+            // T-210: frosted glass, the screen behind shows through blurred
+            .frostedGlass(LocalHainShapes.current.menu)
             .padding(LocalHainSpacing.current.xs),
         content = content,
     )
+}
+
+/**
+ * The open menu card without its popup window, for the screenshot tests: there only the main
+ * window really blurs, so they show it in the overlay of a `HainMenuBackdrop`.
+ */
+@Composable
+internal fun HainMenuCard(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    MenuTile(modifier, { 1f }, TransformOrigin.Center, content)
 }
 
 /** One row of a [HainPopupMenu]: icon and label; [danger] paints it red. */

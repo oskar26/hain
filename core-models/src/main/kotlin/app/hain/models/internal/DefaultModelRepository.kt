@@ -40,7 +40,10 @@ class DefaultModelRepository(
 
     override fun isInstalled(model: ModelInfo): Boolean {
         val installed =
-            model.files.all { f -> File(modelsDir, f.fileName).let { it.exists() && it.length() == f.size } }
+            model.files.all { f ->
+                // own models from a direct link have no known size (T-211): the finished file counts
+                File(modelsDir, f.fileName).let { it.exists() && (f.size <= 0 || it.length() == f.size) }
+            }
         // The old Q4_K_M brain is replaced by QAD-Q4_0: free the space once the new file is complete.
         if (installed && model.kind == "brain") File(modelsDir, LEGACY_BRAIN_FILE).delete()
         return installed

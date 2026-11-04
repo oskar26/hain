@@ -372,6 +372,22 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Dateien: feature-chat/src/test/.../screens/{ChatScreens,ChatStyleScreens}.kt, feature-onboarding/src/test/.../screens/OnboardingStyleScreens.kt, feature-settings/src/test/.../screens/SettingsStyleScreens.kt, website/src/components/{Hero,Sections}.tsx, website/src/content.ts, website/public/screenshots/*-en.webp, docs/design/web/t107-*.png, docs/workflow/{TASKS,STATUS,HANDOFF_LOG}.md.
 - Nächstes: Oskar schaut sich die EN-Seite an; evtl. die deutschen Screenshots auf den aktuellen Stand bringen.
 
+## 2026-11-04 · T-210 bis T-215 (0.1.3.1 – Extras) · review · harness: Hark · model: Hark · branch `hark/extras` (Draft-PR #36)
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-210 | review | `MenuBackdropTest` (24 dp, Tönung 60–75 %, Fallback deckend, leichte Abdunklung); Screenshots `menu_frosted_light/dark` | `MenuBackdrop.kt`, `PopupMenu.kt`, `DESIGN_LANGUAGE.md` | Blur in Popups braucht Haze-Quelle im Hauptfenster (`HainMenuBackdrop`) – Dialoge außerhalb davon bleiben deckend |
+| T-211 | review | `DevTuningTest`, `GgufPromptBuilderTest`, `HuggingFaceTest`, `SettingsRepositoryTest` (Dev-Werte), `DeveloperPageTest` | `hain_llm.cpp` + `NativeLlm` (Chat-Template aus GGUF), `LlamaEngine` (Kontext-Neuladen, Statistik), `ChatEngine`, `ChatViewModel`, `ModelDownloadWorker` (sha optional), `DefaultModelRepository` (Größe unbekannt), `MainActivity` | eigene Modelle ohne Werkzeuge; Download nicht durch das Gate (nur HEAD-Vorabfrage) |
+| T-212 | review | `UpdateRulesTest` (JSON, Vergleich, Adressen, täglich, einmal fragen, Gate-Zweck UPDATE) | `apk.yml` (version.json, `v*`-Tags), `NetworkGate` (`Purpose.UPDATE`), `NetworkLogSection` | Kanal „Stabil“ findet erst etwas, wenn es ein `v*`-Release gibt |
+| T-213 | review | `AnswerPimTest`; bestehende Pim-Tests unverändert (Blatt bleibt dran); Screenshot `chat_pim_tools` | `ChatScreen.kt`, `StartPage.kt` | – |
+| T-214 | review | `AboutTapsTest`; Screenshots `lichtung_settings_about_*` | Icons `ic_github/scale/info/code/tag`, `SettingsScreen/Page/Pages/Rows` | – |
+| T-215 | review | `AppInfoTest` | `app/build.gradle.kts` (`buildConfig = true`), `gradle.properties` | – |
+
+- Gradle lokal nicht gestartet (qemu, gemeinsamer RAM): ktlint 1.5.0 CLI lokal, Rest über CI (CI, APK, Screens).
+- README (Funktionstabelle + „Neu im Testbuild“), Website (EN + /de: Update-Prüfung, Entwicklermodus) und `SETTINGS.md` aktualisiert.
+- Nächstes: Oskar testet die APK (Milchglas hell/dunkel, Entwicklermodus mit einem zweiten GGUF, Update-Banner mit Kanal Nightly); für „Stabil“ ein erstes `v0.1.3.1`-Tag setzen, wenn gewünscht.
+- Nachtrag (Abschluss-Lauf): CI-Fehler bei `42d321f` war ein Netzwerk-Aussetzer (Robolectric lädt `android-all` von Maven Central, `IOException` in `HainDatabaseTest`/`NetworkLogStoreTest`), danach ktlint `function-signature` (`HainSettings`, `ChatEngine`) und detekt (Komplexität/Funktionszahl begründet per `@Suppress`, `LlamaEngine`-Bedingungen vereinfacht). Popup-Karten zeichnen in Robolectric in Software, daher zeigt der Screenshot-Test die Karte im neuen `overlay` von `HainMenuBackdrop` (Hauptfenster, echter Blur) mit `LocalForceFrost`. Fallback-Tönung jetzt deckend (`fallbackTint`). Pim schiebt sich bei „Weniger Bewegung“ nicht mehr aus dem Bild. Screenshots in `docs/design/screens/extras_*.png`.
+
 ## 2026-11-04 · T-220 (Keine erfundenen Quellen ohne Werkzeug) · review · harness: Hark · model: Hark · branch `hark/fix-cites`
 - Fehler (Oskars Handy, LFM3-1.7B): ohne Werkzeug stand in der Antwort „… 200+ Jahre alt werden [1].“, darunter „[1] Wikipedia-Artikel zu Baum-Lebensdauer (falls verfügbar) – hier kein aktuelles Werkzeug nötig für diese allgemeine Frage.“, und vorne „**Fakt:**“. Ursache: Die Werkzeug-Regel im System-Prompt sagte „nenne die Quellen als [1], [2]“ ohne Bedingung; das kleine Modell schreibt das dann auch ohne Werkzeug.
 - Prompt: `system_full.{de,en}.txt` (eine Zeile unter „Ehrlich bleiben“), `system_short.*`, `TOOLS_DE/EN` („Hast du ein Werkzeug benutzt, …; ohne Werkzeug: keine [1] …“) und `TOOL_NUDGE_DE/EN` (Hinweis vor der Antwort, nicht im Cache). Assets in `core-llm` neu kopiert (`PromptAssetsTest`).
@@ -381,3 +397,6 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Dateien außerhalb der Liste: `feature-chat/src/test/.../ToolsEveryTurnTest.kt` (Fake-Quellen), README.md (Hinweis „New in the latest test build“).
 - Nächstes: Oskar testet mit der APK die Baum-Frage („Wie alt werden Bäume?“) und eine Wetterfrage (Quellen-Chips + [1] müssen bleiben).
 
+## 2026-11-04 · T-216 (Zurück-Pfeil zeigt nach links) · review · harness: Hark · model: Hark · branch `hark/extras` (Draft-PR #36)
+- Fehler: Zurück-Knopf in den Einstellungs-Unterseiten war `HainIcons.chevronRight` (zeigte nach rechts). Neu `ic_chevron_left.xml` (Lucide, Strich 2.1 wie die anderen, `autoMirrored`) + `HainIcons.back`, in `SettingsScreen` verwendet. Ganze App durchsucht: sonst kein Zurück-Knopf mit chevronRight (`PacksScreen` nutzt ✕, `chevronRight` bleibt als Zeilen-Chevron und gedreht im „nach unten“-Knopf des Chats).
+- ktlint 1.5.0 + detekt 1.23.8 CLI lokal grün, Gradle nicht lokal → CI, APK, Screens.

@@ -79,4 +79,101 @@
     <string name="settings_app_icon_flat">Flat</string>
     <string name="settings_app_icon_hint">The new icon shows up once you leave Hain. Your home screen may need a few seconds.</string>
     <string name="settings_hub_hello">Here you set Hain up the way you like it.</string>
+    <string name="settings_log_update">Update check</string>
+    <string name="about_name">Hain</string>
+    <string name="about_website">Website</string>
+    <string name="about_github">Code on GitHub</string>
+    <string name="about_version">Version</string>
+    <string name="about_built">Built on %1$s</string>
+    <string name="about_licence">Licence</string>
+    <string name="about_open_source">Open-source licences</string>
+    <string name="about_open_source_hint">Libraries Hain is built on</string>
+    <string name="about_dev_already">Developer mode is already on.</string>
+    <string name="about_dev_unlocked">Developer mode is on. You find it in the settings.</string>
+    <string name="about_dev_off">Turn off developer mode</string>
+    <string name="about_dev_off_hint">Hain uses its normal settings again.</string>
+    <string name="about_updates">Updates</string>
+    <string name="about_update_check">Check for updates</string>
+    <string name="about_update_off">Off</string>
+    <string name="about_update_daily">Daily at start</string>
+    <string name="about_update_channel">Channel</string>
+    <string name="about_channel_stable">Stable</string>
+    <string name="about_channel_nightly">Nightly</string>
+    <string name="about_update_privacy">Hain only asks GitHub which version is new. Nothing about you is sent. Hain never installs anything by itself.</string>
+    <string name="about_check_now">Check now</string>
+    <string name="about_update_checking">Checking…</string>
+    <string name="about_update_latest">You have the newest version.</string>
+    <string name="about_update_failed">Could not check. Are you online?</string>
+    <string name="update_banner">New version %1$s available</string>
+    <string name="update_banner_open">Open</string>
+    <string name="update_banner_close">Hide</string>
+    <string name="update_ask_title">Check for updates now and then?</string>
+    <string name="update_ask_text">Once a day at start, Hain asks GitHub if there is a newer version. Nothing about you is sent.</string>
+    <string name="update_ask_yes">Yes, check</string>
+    <string name="update_ask_no">No, thanks</string>
+    <string name="settings_group_dev">Developer</string>
+    <string name="settings_dev_hint">Own models and fine-tuning for tinkerers.</string>
+    <string name="dev_intro">For trying things out. Changes apply to your next message.</string>
+    <string name="dev_model">Model</string>
+    <string name="dev_model_active">In use: %1$s</string>
+    <string name="dev_model_default">LFM3 1.7B (Hain brain)</string>
+    <string name="dev_model_back">Use the Hain brain again</string>
+    <string name="dev_model_back_hint">Your own model stays on the phone.</string>
+    <string name="dev_model_repo">Model from Hugging Face</string>
+    <string name="dev_model_repo_hint">e.g. LiquidAI/LFM3-1.7B-GGUF or https://…/model.gguf</string>
+    <string name="dev_model_search">Show files</string>
+    <string name="dev_model_searching">Looking…</string>
+    <string name="dev_model_warning">Untested models can answer badly or not at all. Tools (search, weather …) are off with them.</string>
+    <string name="dev_model_err_invalid">That is not a Hugging Face model or https link to a .gguf file.</string>
+    <string name="dev_model_err_offline">Offline mode is on.</string>
+    <string name="dev_model_err_not_found">Model not found (or it needs a login).</string>
+    <string name="dev_model_err_network">Could not reach Hugging Face.</string>
+    <string name="dev_model_err_no_gguf">This model has no single .gguf file.</string>
+    <string name="dev_model_size_unknown">Size unknown</string>
+    <string name="dev_model_ram">Needs about %1$d GB RAM, your phone has %2$d GB</string>
+    <string name="dev_model_no_sha">No checksum, the file is not checked.</string>
+    <string name="dev_model_download">Download</string>
+    <string name="dev_model_loading">Loading %1$d %%</string>
+    <string name="dev_model_wait">Waiting…</string>
+    <string name="dev_model_cancel">Cancel</string>
+    <string name="dev_model_use">Use</string>
+    <string name="dev_model_in_use">In use</string>
+    <string name="dev_model_delete">Remove</string>
+    <string name="dev_model_failed">Download failed.</string>
+    <string name="dev_sampling">Sampling</string>
+    <string name="dev_temperature">Temperature</string>
+    <string name="dev_temperature_hint">0 = always the same, higher = more random (0–2)</string>
+    <string name="dev_top_k">top_k</string>
+    <string name="dev_top_k_hint">Only the k likeliest words (0 = off)</string>
+    <string name="dev_top_p">top_p</string>
+    <string name="dev_top_p_hint">0–1, 1 = off</string>
+    <string name="dev_min_p">min_p</string>
+    <string name="dev_min_p_hint">0–1, 0 = off</string>
+    <string name="dev_repeat">Repeat penalty</string>
+    <string name="dev_repeat_hint">1 = off, 1.1 = Hain (1–2)</string>
+    <string name="dev_context">Context size (tokens)</string>
+    <string name="dev_context_warning">More context needs more RAM. On phones with 6 GB or less, Hain can close.</string>
+    <string name="dev_max_tokens">Max answer tokens</string>
+    <string name="dev_max_tokens_hint">64–8192</string>
+    <string name="dev_seed">Seed</string>
+    <string name="dev_seed_hint">-1 = random each time</string>
+    <string name="dev_thinking">Thinking</string>
+    <string name="dev_thinking_mode">Think before answering</string>
+    <string name="dev_thinking_auto">Auto</string>
+    <string name="dev_thinking_on">On</string>
+    <string name="dev_thinking_off">Off</string>
+    <string name="dev_thinking_budget">Thinking budget (tokens)</string>
+    <string name="dev_thinking_budget_hint">Most tokens for thinking + answer</string>
+    <string name="dev_raw_thinking">Show raw thinking</string>
+    <string name="dev_raw_thinking_hint">Thinking opens under every answer.</string>
+    <string name="dev_system_prompt">Own system prompt</string>
+    <string name="dev_system_prompt_hint">Empty = Hain\'s prompt</string>
+    <string name="dev_stats">Show speed</string>
+    <string name="dev_stats_hint">Tokens per second and time to the first token under answers, plus copy debug info.</string>
+    <string name="dev_reset">Back to defaults</string>
+    <string name="dev_reset_hint">Model and developer mode stay.</string>
+    <plurals name="about_dev_taps_left">
+        <item quantity="one">One more tap…</item>
+        <item quantity="other">%d more taps…</item>
+    </plurals>
 </resources>

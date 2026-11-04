@@ -5,6 +5,7 @@ import android.os.SystemClock
 import android.util.Log
 import app.hain.llm.api.EngineState
 import app.hain.llm.api.GenerationEvent
+import app.hain.llm.api.GenerationStats
 import app.hain.llm.api.LlmEngine
 import app.hain.llm.api.SamplingParams
 import app.hain.llm.api.StopReason
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 
 /** [LlmEngine] on top of llama.cpp via [NativeLlm] (T-032). All native calls run on one thread. */
+@Suppress("TooManyFunctions") // the LlmEngine surface plus small native helpers
 @OptIn(ExperimentalCoroutinesApi::class)
 class LlamaEngine(
     private val context: Context,
@@ -30,6 +32,12 @@ class LlamaEngine(
     override val state: StateFlow<EngineState> = mutableState.asStateFlow()
 
     @Volatile private var handle = 0L
+
+    /** Context size the current model was loaded with; a different one loads it again (T-211). */
+    @Volatile private var loadedContext = 0
+
+    /** Chat template of the loaded GGUF (T-211), read once after loading. */
+    @Volatile private var template: ByteArray? = null
 
     // Each generation gets a number; cancel() stops every generation up to the current one. A plain
     // flag could be reset by the end of the previous generation and swallow a stop.
@@ -46,7 +54,10 @@ class LlamaEngine(
     ): Boolean =
         withContext(dispatcher) {
             val current = mutableState.value
-            if (current is EngineState.Ready && current.path == path && handle != 0L) return@withContext true
+            val sameModel = current is EngineState.Ready && current.path == path
+            if (sameModel && handle != 0L && loadedContext == contextSize) {
+                return@withContext true
+            }
             NativeLlm.loadError?.let {
                 mutableState.value = EngineState.Failed(it.message ?: "native library missing")
                 return@withContext false
@@ -69,6 +80,9 @@ class LlamaEngine(
                 }
             val newHandle = NativeLlm.nativeLoad(path, contextSize, threadCount(), 0, progress)
             handle = newHandle
+            loadedContext = if (newHandle != 0L) contextSize else 0
+            template =
+                if (newHandle != 0L) runCatching { NativeLlm.nativeChatTemplate(newHandle) }.getOrNull() else null
             if (newHandle != 0L) {
                 Log.i(TAG, "brain loaded in ${NativeLlm.nativeStats(newHandle)[0].toInt()} ms, context $contextSize")
             }
@@ -104,6 +118,7 @@ class LlamaEngine(
             // T-088: time to the first token in logcat (`adb logcat -s HainLlm`)
             val askedAt = SystemClock.elapsedRealtime()
             var first = true
+            var firstAt = 0L
             val code =
                 NativeLlm.nativeGenerate(
                     h,
@@ -114,13 +129,14 @@ class LlamaEngine(
                 ) { bytes ->
                     if (first) {
                         first = false
-                        Log.i(TAG, "first token after ${SystemClock.elapsedRealtime() - askedAt} ms")
+                        firstAt = SystemClock.elapsedRealtime() - askedAt
+                        Log.i(TAG, "first token after $firstAt ms")
                     }
                     trySend(GenerationEvent.Token(bytes.decodeToString()))
                     me > cancelledUpTo && !isClosedForSend
                 }
-            logStats(h)
-            trySend(GenerationEvent.Done(code.toStopReason()))
+            val stats = logStats(h, firstAt)
+            trySend(GenerationEvent.Done(code.toStopReason(), stats))
             close()
             awaitClose { }
         }.flowOn(dispatcher)
@@ -129,6 +145,25 @@ class LlamaEngine(
         cancelledUpTo = started
         val h = handle
         if (h != 0L) NativeLlm.nativeSetCancel(h, true)
+    }
+
+    override fun chatTemplate(): String? = template?.decodeToString()
+
+    override fun applyTemplate(
+        messages: List<Pair<String, String>>,
+        addAssistant: Boolean,
+    ): String? {
+        val tmpl = template
+        if (tmpl == null || NativeLlm.loadError != null) return null
+        return runCatching {
+            NativeLlm
+                .nativeApplyTemplate(
+                    tmpl,
+                    messages.map { it.first.encodeToByteArray() }.toTypedArray(),
+                    messages.map { it.second.encodeToByteArray() }.toTypedArray(),
+                    addAssistant,
+                )?.decodeToString()
+        }.getOrNull()
     }
 
     override suspend fun unload() =
@@ -141,19 +176,31 @@ class LlamaEngine(
         if (handle != 0L) {
             NativeLlm.nativeFree(handle)
             handle = 0L
+            loadedContext = 0
+            template = null
         }
     }
 
-    private fun logStats(h: Long) {
+    private fun logStats(
+        h: Long,
+        firstTokenMs: Long,
+    ): GenerationStats {
         val s = NativeLlm.nativeStats(h)
-        val genTokens = s[STAT_GEN_TOKENS]
-        val genMs = s[STAT_GEN_MS]
-        val tps = if (genMs > 0f) genTokens * MS_PER_S / genMs else 0f
+        val stats =
+            GenerationStats(
+                promptTokens = s[STAT_PROMPT].toInt(),
+                reusedTokens = s[STAT_REUSED].toInt(),
+                prefillMs = s[STAT_PREFILL_MS].toLong(),
+                genTokens = s[STAT_GEN_TOKENS].toInt(),
+                genMs = s[STAT_GEN_MS].toLong(),
+                firstTokenMs = firstTokenMs,
+            )
         Log.i(
             TAG,
-            "prompt ${s[STAT_PROMPT].toInt()} tok, reused ${s[STAT_REUSED].toInt()}, " +
-                "read in ${s[STAT_PREFILL_MS].toInt()} ms; ${genTokens.toInt()} tok at ${"%.1f".format(tps)} t/s",
+            "prompt ${stats.promptTokens} tok, reused ${stats.reusedTokens}, read in ${stats.prefillMs} ms; " +
+                "${stats.genTokens} tok at ${"%.1f".format(stats.tokensPerSecond)} t/s",
         )
+        return stats
     }
 
     private fun threadCount(): Int = (Runtime.getRuntime().availableProcessors() - 2).coerceIn(2, MAX_THREADS)
@@ -171,7 +218,6 @@ class LlamaEngine(
         const val TAG = "HainLlm"
         const val MAX_THREADS = 6
         const val PROGRESS_STEP = 0.02f
-        const val MS_PER_S = 1000f
         const val STAT_PROMPT = 1
         const val STAT_REUSED = 2
         const val STAT_PREFILL_MS = 3
