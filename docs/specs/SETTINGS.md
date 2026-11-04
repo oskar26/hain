@@ -12,7 +12,8 @@ Level 1 = visible directly; level 2 = under "Erweitert / Advanced".
 | | show_pim | bool | true | 1 |
 | | pim_avatar_in_chat | bool | true | 2 |
 | | reduce_motion | bool | false | 2 |
-| | haptics | bool | true | 2 |
+| | haptics | off/subtle/normal/strong | subtle (T-096, docs/design/HAPTICS.md) | 2 |
+| | app_icon | three_d/flat (launcher icon "Pim im Wald", activity-alias; kept on reset) | three_d (T-103, docs/design/ICON.md) | 1 |
 | | start_screen | chat/home | chat | 2 |
 | Model | brain_model_id | string | lfm3-1.7b-qad-q4_0 | 1 |
 | | answer_mode | fast/thorough/auto | auto | 1 |
@@ -31,7 +32,6 @@ Level 1 = visible directly; level 2 = under "Erweitert / Advanced".
 | Internet | offline_mode | bool | false | 1 |
 | | web_search | on/ask/off | on | 1 |
 | | searxng_url | url? | null | 2 |
-| | ui_style | enum(A, B) | A | 2 |
 | | ddg_enabled | bool | true (marked experimental) | 2 |
 | | search_region | de-de/us-en/auto | auto | 2 |
 | | read_full_pages | bool | true | 2 |
@@ -56,6 +56,18 @@ Level 1 = visible directly; level 2 = under "Erweitert / Advanced".
 | | auto_delete_days | 0(off)/7/30/90 | 0 | 1 |
 | Energy | battery_saver_threshold | 0/15/30 % | 15 | 2 |
 | | show_energy_per_answer | bool | false | 2 |
+| Updates (T-212) | update_check | off/daily (once a day at start, via NetworkGate purpose UPDATE) | off (asked once after the 3rd chat) | 1 (About Hain) |
+| | update_channel | stable/nightly | stable | 1 (About Hain) |
+| | update_asked | bool (one-time card answered) | false | – |
+| | update_last_check | ms | 0 | – |
+| Developer (T-211, hidden: tap version 7× in About Hain; only used while dev_enabled) | dev_enabled | bool | false | 3 |
+| | dev_temperature, dev_top_k, dev_top_p, dev_min_p, dev_repeat_penalty | numbers | 0.1, 50, 1.0, 0.0, 1.1 | 3 |
+| | dev_context | 512–8192 (a change reloads the model) | 8192 | 3 |
+| | dev_max_tokens, dev_seed | int | 1024, -1 (random) | 3 |
+| | dev_thinking, dev_thinking_budget, dev_raw_thinking | auto/on/off, int, bool | auto, 4096, false | 3 |
+| | dev_system_prompt | text (empty = Hain's prompt) | "" | 3 |
+| | dev_stats | bool (tokens/s + time to first token, copy debug info) | false | 3 |
+| | dev_model_path, dev_model_name | own GGUF on the phone (empty = Hain brain) | "" | 3 |
 
 Actions (not keys): export all, delete all, reset settings, manage packs, device check, view system prompt, licences.
 News has **no** per-source settings (ADR-14) — only mode, languages, interval, Wi-Fi, own feed list.

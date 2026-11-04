@@ -17,10 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextOverflow
@@ -29,12 +26,8 @@ import app.hain.ui.HainIcons
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
-import app.hain.ui.theme.LocalHainStyle
 import app.hain.ui.theme.LocalHainTypography
-import app.hain.ui.theme.calmTile
-import app.hain.ui.theme.drawFloorGlow
 import app.hain.ui.theme.isHainDark
-import app.hain.ui.theme.look
 
 /**
  * The message box (T-011): a calm card in the active style (see composerCard). The text grows up
@@ -115,37 +108,16 @@ fun Composer(
     }
 }
 
-/**
- * The message box surface per style (docs/design/STYLE_OPTIONS.md):
- * - Stil A "Lichtung": page-coloured card, hairline edge, a faint 2 dp shadow. No glow.
- * - Stil B "Morgennebel": misty card ([calmTile] lit from below) with a soft green rim and a
- *   blurred green light on the floor under it.
- */
+/** The message box: page-coloured card, hairline edge, a faint 2 dp shadow (Lichtung). */
 @Composable
 private fun Modifier.composerCard(shape: Shape): Modifier {
     val colors = LocalHainColors.current
-    val look = LocalHainStyle.current.look()
-    if (!look.mist) {
-        return this
-            .shadow(A_ELEVATION.dp, shape, clip = false, ambientColor = colors.shadow, spotColor = colors.shadow)
-            .clip(shape)
-            .background(if (isHainDark()) colors.surface else colors.bg, shape)
-            .border(1.dp, colors.border, shape)
-    }
-    val rim =
-        Brush.verticalGradient(
-            listOf(colors.accent.copy(alpha = RIM_TOP), colors.accent.copy(alpha = RIM_BOTTOM)),
-        )
     return this
-        .drawBehind { drawFloorGlow(colors.accent.copy(alpha = FLOOR_ALPHA)) }
-        .calmTile(shape, lightAt = Offset(x = 0.5f, y = 1f), shadow = B_ELEVATION.dp)
-        .border(RIM_WIDTH.dp, rim, shape)
+        .shadow(A_ELEVATION.dp, shape, clip = false, ambientColor = colors.shadow, spotColor = colors.shadow)
+        .clip(shape)
+        .background(if (isHainDark()) colors.surface else colors.bg, shape)
+        .border(1.dp, colors.border, shape)
 }
 
 private const val MAX_LINES = 6
 private const val A_ELEVATION = 2
-private const val B_ELEVATION = 6
-private const val RIM_WIDTH = 1f
-private const val RIM_TOP = 0.10f
-private const val RIM_BOTTOM = 0.28f
-private const val FLOOR_ALPHA = 0.10f

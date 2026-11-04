@@ -296,6 +296,111 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Notes: the brain answers phone requests with the right call in the host test; the tool result tells it that nothing is done yet, so it asks you to tap instead of claiming "eingestellt".
 - Next: 4c (rest), then the plan order 2e-2+2f, 3b, 5 …
 
+
+## 2026-11-03 · T-088 + T-089 (app icon, website "Lichtung") · review · harness: Hark · model: Hark
+- What: T-088 app icon: Pim v2.1 shapes (pim_idle.svg) as a glossy glass drop with leaf (stem grows from the head) on a macOS-like squircle, gradients #5FDCA6 → #22B47A → #0B7A4F, light edge, inner glow, specular highlight, soft shadow. Own SVG + resvg, no image model. Adaptive icon (webp layers mdpi–xxxhdpi, legacy squircle + round), monochrome vector for themed icons, debug variant with a "dev" pill, manifest icon/roundIcon. T-089 website: restyled to style A "Lichtung" (tokens = HainStyle LICHTUNG light/dark), Hanken Grotesk self-hosted (Inter removed), new icon everywhere, feature list with status (12 available, 9 coming soon, from the README feature table), style A screenshots light/dark, "Made in Cologne" and the Köln examples removed, bubbles/3D Pim/grain/tilt/parallax removed. README: icon on top + two "new" bullets.
+- Files: assets/icon/**, app/src/main/res/{mipmap-*,drawable/ic_launcher_monochrome.xml}, app/src/debug/res/**, app/src/main/AndroidManifest.xml, docs/design/ICON.md, website/**, README.md, docs/workflow/{TASKS,STATUS,HANDOFF_LOG}.md.
+- Checks: icon checked at 48/72/96 px, masked round and squircle, safe zone; `npm ci && npm run build` green; Chromium screenshots desktop/mobile, light/dark. Gradle not run locally (parallel run) → CI + APK workflow.
+- Notes/risks: T-089 is a new ID (T-087 may be used by the parallel polish run). Regenerate icons: `pip install resvg-py pillow && python3 assets/icon/src/make_icon.py`.
+- Next: Oskar checks the icon on the phone (themed icon on Android 13+).
+
+## 2026-11-04 · T-055a (language step at first start, localeConfig) · review · harness: Hark · model: Hark
+- What: first onboarding screen "Wähle deine Sprache / Choose your language" (Deutsch / English). One tap sets the answer language and, on Android 13+, the app language via LocaleManager. Manifest now declares `android:localeConfig` (res/xml/locales_config.xml existed already) so the system language picker lists Hain with DE + EN.
+- Files: feature-onboarding/.../LanguageStep.kt, OnboardingScreen.kt (onLanguage), MainActivity.kt (pickLanguage), AndroidManifest.xml, strings EN+DE, README.md.
+- Not done: brain picker in the top bar (rest of T-055) → 2f-2.
+- Next: Oskar checks first start with a fresh install.
+
+## 2026-11-04 · Lichtung + Pim + 2048 + Haptik (Feinschliff) · review · harness: Hark · branch `hark/polish`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-087 | review | compiles in CI | Morgennebel, style switch, 3D icons, jelly Pim removed | – |
+| T-088 | review | TTFT logged as `HainLlm` | `SystemPromptSource` (time moved into the hint) | host before/after numbers still to add |
+| T-096 | review | `HapticsTest` | `HainSettings` (`haptics`), `SettingsPages` | – |
+| T-089 | review | Pim frame tests (leaf root ≤ 1 dp from the head) | `PimMoves`, `PimGeometry`, `LivePim`, `PullPim` | – |
+| T-091 | review | `SuggestionsTest` | `StartPage` | – |
+| T-097 | review | `PimEggTest` (≥ 5 s threshold, ≤ 5× scale, monotonic, trembling builds), `HapticsTest` (charge denser + firmer) | `HeroPim`, `PimEgg`, `Haptics` | sizes: start 88/72/56 dp, thinking 28 dp, drawer 32 dp |
+| T-098 | review | `Game2048Test` (slide, merge once, R/U/D, no-op move, spawn, game over, win, ids) | `MainActivity` (overlay, best score via `recordGame2048`) | no saved game across app restarts (only best score) |
+| T-099 | review | compiles; HAPTICS.md checklist | `PopupMenu`, `PullPim`, `ChatListDrawer` | – |
+
+- Oskar's correction 03.11. 23:26: Pim only a little bigger; the easter egg only after 5 s holding without a break, grows slowly to 5×, then bursts into the 2048 game; subtle haptics everywhere.
+- Still open from the polish list: compact ⋯ menu, About page with website/GitHub, screenshot fixes (composer lines, back arrow, segments), usability pass, new screenshots → next run.
+
+## 2026-11-04 · Day 3b (part 1): network log stays after restart · review · harness: Hark · branch `hark/day-3b`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-060 | review | `NetworkLogStoreTest` (store, load, prune, clear); DB version 2 + migration 1→2 | `AppModule` (shared `DatabaseHolder`) | brain download via gate, per-purpose switches, WeatherCard/WikiCard still open → 3b-2 |
+## 2026-11-04 · T-196 (trademark policy, support coming soon) · review · harness: Hark · model: Hark · branch `hark/trademarks`
+- What: new `TRADEMARKS.md`, German in plain language first, then English: code GPL-3.0-or-later and free for everyone; name "Hain", Pim (look, animations, voice) and app icon/logo are project marks; forks need another name, their own mascot and icon and must not look official; allowed without asking: unchanged official builds, mentions ("based on Hain"), reports/tutorials, distro/F-Droid packaging without code changes beyond the build; contact via GitHub issues; not legal advice, registration may be planned; no location details. README: "Name & Pim / Trademarks" and "Support / Unterstützen" (coming soon: star, issue, tell others) after the licence section; rest of README untouched.
+- Files: TRADEMARKS.md, README.md, docs/workflow/{TASKS,STATUS,HANDOFF_LOG}.md.
+- Not done (on purpose): no `.github/FUNDING.yml`, no sponsor button, website unchanged (other PR).
+- Checks: docs only; CI on the PR.
+- Next: Oskar reads the wording; T-195 (DPMA/TMview search) still open; add FUNDING.yml once a sponsor account exists.
+
+## 2026-11-04 · T-100i (app icon "Pim als Sprechblase") · review · harness: Hark · model: Hark · branch `hark/icon-bubble`
+- What: Oskar chose the motif "Pim als Sprechblase" (04.11.2026). Pim's body path in `assets/icon/src/make_icon.py` is now a round chat bubble (ellipse cx 62 cy 66 rx 36 ry 28.5 + tail at the lower left, one smooth closed path); stem + leaf moved so they grow from the top of the bubble (stem starts inside the body), eyes centred, highlight/inner glow/bounce light/contact shadow kept in the same style and re-placed. Pim scale 0.0068 → 0.0072 (tile), adaptive foreground 0.0051 → 0.0052 (tail tip at ~32 dp of the 33 dp safe radius). Monochrome vector = bubble silhouette with eyes cut out + stem + leaf.
+- Files: assets/icon/** (PNGs + SVGs + make_icon.py), app/src/{main,debug}/res mipmaps, app/src/main/res/drawable/ic_launcher_monochrome.xml, website/public/{favicon.png,apple-touch-icon.png,og.png,img/hain-icon.webp} (OG: only the icon area swapped), website/src/components/ui.tsx (comment), README.md (alt text + feature bullet), docs/design/ICON.md, docs/workflow/{TASKS,STATUS,HANDOFF_LOG}.md.
+- Checks: 1024/96/48 px, masked round and squircle (adaptive crop), monochrome rendered, dev pill clear of the tail; `npm ci && npm run build` green. Gradle not run locally (RAM) → CI + APK workflow.
+- Next: Oskar checks the icon on the phone (launcher, themed icon on Android 13+).
+
+## 2026-11-04 · T-102 bis T-105 (Icon „Pim im Wald“, Icon-Wahl, Menü-Blur, Website) · review · harness: Hark · model: Hark · branch `hark/icon-bubble` (PR #31)
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-102 | review | Icon bei 1024/96/48 px, rund und Squircle maskiert, Safe-Zone geprüft | `assets/icon/**`, Mipmaps in `app/src/{main,debug}/res` (3D + `ic_launcher_flat*`) | Oskar prüft das Icon auf dem Handy |
+| T-103 | review | `SettingsRepositoryTest` (`app_icon`) | `AndroidManifest.xml` (zwei `activity-alias`), `AppIconSwitcher`, `MainActivity`, `AppIconPicker`, `IconStep`, `SettingsPages`, Strings DE/EN | Icon wechselt erst beim Verlassen der App; der Launcher braucht evtl. ein paar Sekunden |
+| T-104 | review | `MenuBackdropTest`; Screenshots `menu_blur_light/dark` über `screens.yml` | `MenuBackdrop.kt` (neu), `PopupMenu`, `Buttons`, `MainActivity`, `ChatListDrawer` (Langdruck) | Blur nur bei Popup-Menüs und Popovern, nicht bei Dialogen |
+| T-105 | review | `npm ci && npm run build` grün (EN + /de vorgerendert) | `website/**`, `README.md` | Englische Seite zeigt deutsche App-Screenshots; Footer-Link „Marke“ zeigt auf `TRADEMARKS.md`, die erst mit `hark/trademarks` (T-196) auf main kommt |
+
+- Website (T-105): Header blendet Hintergrund, Blur und Linie weich als eine Ebene ein (ohne Flackern), Screenshots ohne weißen Streifen unten (Settings kürzer), englische Labels auf /de übersetzt (Navigation, Footer, `og:locale`, `noscript`), Alt-Texte für Icon und Startseite.
+- Nächster Schritt: Oskar testet APK (Icon-Wahl, Blur), danach Merge; Pages-Deploy erst nach dem Merge.
+
+## 2026-11-04 · T-106 (Website: Hero-Screenshots repariert) · review · harness: Hark · model: Hark · branch `hark/web-fix`
+- Was: Im Hero (iPad quer) hatte das zweite, kleinere Handy unter dem Screenshot eine große leere weiße Fläche. Ursache: Der Flex-Container streckte beide Rahmen (`.device`) auf die Höhe des größeren ersten Handys. Jetzt `items-start` am Container und `self-start` an jedem `Shot`, der Rahmen ist so hoch wie sein Bild. Der Screenshot selbst (Denk-Auswahl offen) bleibt unverändert, so gewollt.
+- Geprüft mit Playwright (Chromium) bei 1366×1024, 1024×768, 390×844, 1440×900, hell + dunkel, EN + /de: kein waagerechter Überlauf, keine weiteren abgeschnittenen Bereiche. Vorher/Nachher-Bilder in `docs/design/web/`.
+- Dateien: website/src/components/Hero.tsx, docs/design/web/*.png, docs/workflow/{TASKS,STATUS,HANDOFF_LOG}.md.
+- Nicht gemacht: T-107 (englische App-Screenshots für die EN-Seite). Dafür braucht es EN-Varianten der Roborazzi-Style-Tests (Qualifier `en-…`, englische Beispieltexte in `ChatFrame`/`answerState`/`Drawer`, Onboarding, Einstellungen), einen Lauf von `screens.yml` und eine Sprachweiche in `Shot` (`<id>-<mode>-en.webp`). Zu groß für diesen Lauf.
+- Hinweis: Ganzseiten-Screenshots brauchen die Klasse `cv-off` (sonst rendert `content-visibility` die Abschnitte außerhalb des Bildschirms nicht) – kein Fehler der Seite.
+- Nächstes: Oskar prüft auf dem iPad; dann T-107.
+
+## 2026-11-04 · T-107 (Website: englische App-Screenshots) · review · harness: Hark · model: Hark · branch `hark/web-en` (PR #35)
+- Was: Die englische Seite zeigte deutsche App-Screenshots. Die Lichtung-Screenshot-Tests haben jetzt englische Varianten: `ChatStyleScreensEn`, `OnboardingStyleScreensEn`, `SettingsStyleScreensEn` (Qualifier `en-w392dp-h850dp-xxhdpi`, Dateien `lichtung_<screen>_<mode>_en.png`). Die Tests selbst liegen in abstrakten Basisklassen (`ChatStyleShots` usw.), die deutschen Klassen und ihre Dateinamen bleiben gleich. Beispieltexte stehen in `ShotTexts` (`DE`/`EN`, in `ChatScreens.kt`); `ChatFrame`, `Drawer` und `answerState` nehmen sie als Parameter, Standard ist Deutsch. Englisches Beispiel: Wetter in Paris + Eiffelturm, `LONG_MD_EN`.
+- Website: zwölf neue Bilder `website/public/screenshots/<id>-<mode>-en.webp` (aus dem `screens`-Artefakt, auf 720 px Breite skaliert, unten wie die deutschen beschnitten, WebP q85). `Shot` bekommt `lang` und nimmt auf der EN-Seite die `-en`-Bilder, /de bleibt unverändert. `SHOT_SIZE_EN` für die höhere englische Einstellungsseite (720×1110, die App hat dort inzwischen eine kurze Einleitung oben).
+- Deutsche Screenshots nicht neu erzeugt: Sie zeigen einen etwas älteren Stand (Einstellungen ohne Einleitung, andere Begrüßung). Neu aufnehmen wäre ein eigener Schritt.
+- Geprüft mit Playwright (Chromium) bei 1366×1024 (hell + dunkel) und 390×844, EN + /de: alle Bilder laden, kein waagerechter Überlauf, /de zeigt weiter die deutschen Bilder. Vorher/Nachher in `docs/design/web/t107-*.png`. `npm ci && npm run build` grün. Gradle nicht lokal (zu langsam) → CI, APK, Screens.
+- Dateien: feature-chat/src/test/.../screens/{ChatScreens,ChatStyleScreens}.kt, feature-onboarding/src/test/.../screens/OnboardingStyleScreens.kt, feature-settings/src/test/.../screens/SettingsStyleScreens.kt, website/src/components/{Hero,Sections}.tsx, website/src/content.ts, website/public/screenshots/*-en.webp, docs/design/web/t107-*.png, docs/workflow/{TASKS,STATUS,HANDOFF_LOG}.md.
+- Nächstes: Oskar schaut sich die EN-Seite an; evtl. die deutschen Screenshots auf den aktuellen Stand bringen.
+
+## 2026-11-04 · T-210 bis T-215 (0.1.3.1 – Extras) · review · harness: Hark · model: Hark · branch `hark/extras` (Draft-PR #36)
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-210 | review | `MenuBackdropTest` (24 dp, Tönung 60–75 %, Fallback deckend, leichte Abdunklung); Screenshots `menu_frosted_light/dark` | `MenuBackdrop.kt`, `PopupMenu.kt`, `DESIGN_LANGUAGE.md` | Blur in Popups braucht Haze-Quelle im Hauptfenster (`HainMenuBackdrop`) – Dialoge außerhalb davon bleiben deckend |
+| T-211 | review | `DevTuningTest`, `GgufPromptBuilderTest`, `HuggingFaceTest`, `SettingsRepositoryTest` (Dev-Werte), `DeveloperPageTest` | `hain_llm.cpp` + `NativeLlm` (Chat-Template aus GGUF), `LlamaEngine` (Kontext-Neuladen, Statistik), `ChatEngine`, `ChatViewModel`, `ModelDownloadWorker` (sha optional), `DefaultModelRepository` (Größe unbekannt), `MainActivity` | eigene Modelle ohne Werkzeuge; Download nicht durch das Gate (nur HEAD-Vorabfrage) |
+| T-212 | review | `UpdateRulesTest` (JSON, Vergleich, Adressen, täglich, einmal fragen, Gate-Zweck UPDATE) | `apk.yml` (version.json, `v*`-Tags), `NetworkGate` (`Purpose.UPDATE`), `NetworkLogSection` | Kanal „Stabil“ findet erst etwas, wenn es ein `v*`-Release gibt |
+| T-213 | review | `AnswerPimTest`; bestehende Pim-Tests unverändert (Blatt bleibt dran); Screenshot `chat_pim_tools` | `ChatScreen.kt`, `StartPage.kt` | – |
+| T-214 | review | `AboutTapsTest`; Screenshots `lichtung_settings_about_*` | Icons `ic_github/scale/info/code/tag`, `SettingsScreen/Page/Pages/Rows` | – |
+| T-215 | review | `AppInfoTest` | `app/build.gradle.kts` (`buildConfig = true`), `gradle.properties` | – |
+
+- Gradle lokal nicht gestartet (qemu, gemeinsamer RAM): ktlint 1.5.0 CLI lokal, Rest über CI (CI, APK, Screens).
+- README (Funktionstabelle + „Neu im Testbuild“), Website (EN + /de: Update-Prüfung, Entwicklermodus) und `SETTINGS.md` aktualisiert.
+- Nächstes: Oskar testet die APK (Milchglas hell/dunkel, Entwicklermodus mit einem zweiten GGUF, Update-Banner mit Kanal Nightly); für „Stabil“ ein erstes `v0.1.3.1`-Tag setzen, wenn gewünscht.
+- Nachtrag (Abschluss-Lauf): CI-Fehler bei `42d321f` war ein Netzwerk-Aussetzer (Robolectric lädt `android-all` von Maven Central, `IOException` in `HainDatabaseTest`/`NetworkLogStoreTest`), danach ktlint `function-signature` (`HainSettings`, `ChatEngine`) und detekt (Komplexität/Funktionszahl begründet per `@Suppress`, `LlamaEngine`-Bedingungen vereinfacht). Popup-Karten zeichnen in Robolectric in Software, daher zeigt der Screenshot-Test die Karte im neuen `overlay` von `HainMenuBackdrop` (Hauptfenster, echter Blur) mit `LocalForceFrost`. Fallback-Tönung jetzt deckend (`fallbackTint`). Pim schiebt sich bei „Weniger Bewegung“ nicht mehr aus dem Bild. Screenshots in `docs/design/screens/extras_*.png`.
+
+## 2026-11-04 · T-220 (Keine erfundenen Quellen ohne Werkzeug) · review · harness: Hark · model: Hark · branch `hark/fix-cites`
+- Fehler (Oskars Handy, LFM3-1.7B): ohne Werkzeug stand in der Antwort „… 200+ Jahre alt werden [1].“, darunter „[1] Wikipedia-Artikel zu Baum-Lebensdauer (falls verfügbar) – hier kein aktuelles Werkzeug nötig für diese allgemeine Frage.“, und vorne „**Fakt:**“. Ursache: Die Werkzeug-Regel im System-Prompt sagte „nenne die Quellen als [1], [2]“ ohne Bedingung; das kleine Modell schreibt das dann auch ohne Werkzeug.
+- Prompt: `system_full.{de,en}.txt` (eine Zeile unter „Ehrlich bleiben“), `system_short.*`, `TOOLS_DE/EN` („Hast du ein Werkzeug benutzt, …; ohne Werkzeug: keine [1] …“) und `TOOL_NUDGE_DE/EN` (Hinweis vor der Antwort, nicht im Cache). Assets in `core-llm` neu kopiert (`PromptAssetsTest`).
+- Nachbearbeitung: neu `CitationCleaner` (feature-chat), im `ChatEngine` auf den Live-Text (`TurnUpdate.Streaming`) und die fertige Antwort (`TurnUpdate.Finished`) angewendet, mit der Zahl der Quellen dieses Zugs. Ohne Quellen: Marker `[1]`, `[2, 3]`, `[1][2]`, `[1-3]`, `【1】`/`【1†…】` weg (samt Leerzeichen davor), Quellenzeilen `[n] …`/`[n]: url` weg, Blöcke ab `Quellen:`/`Quelle:`/`Sources:`/`References:` samt Liste weg, Sätze/Klammern über Werkzeuge nur wenn sie Werkzeug-Wort + Verneinung + „nötig/benutzt/needed/used“ + „Frage/Antwort/aktuell/allgemein/question/answer“ enthalten (so bleibt „Dafür brauchst du kein Werkzeug, eine Münze reicht.“ stehen). Mit Quellen: nur Marker mit Nummer 1…n bleiben, Quellenzeilen mit ungültiger Nummer fallen weg. Immer: „**Fakt:**“/„Fakt:“/„Fact:“ am Zeilenanfang weg. Codeblöcke (auch noch offene beim Streamen), Inline-Code und Markdown-Links werden nie verändert; ohne Änderung kommt der Text unverändert zurück.
+- Tests: `CitationCleanerTest` (15 Fälle: Oskars Beispiel, alle Marker-Formen, Quellenblöcke DE/EN, Werkzeug-Sätze DE/EN, Hammer-Fall, „Fakt:“, gültige/ungültige Nummern, Codeblock/Inline-Code/Links, Streaming, Stabilität) lokal mit kotlinc 2.1 + JUnit grün; `ChatEngineTest.answerWithoutToolsLosesFakeCitationsLiveAndAtTheEnd`; in `ToolsEveryTurnTest` bekommen die Fake-Werkzeuge eine Quelle (sonst würde ihr [1] jetzt zu Recht entfernt). ktlint 1.5.0 grün. Gradle nicht lokal → CI.
+- Version: Extras-PR #36 setzt `hain.versionName=0.1.3.1`; auf main gibt es die Property noch nicht, darum hier nicht gesetzt. Nach dem Merge von #36 auf 0.1.3.2 setzen.
+- Dateien außerhalb der Liste: `feature-chat/src/test/.../ToolsEveryTurnTest.kt` (Fake-Quellen), README.md (Hinweis „New in the latest test build“).
+- Nächstes: Oskar testet mit der APK die Baum-Frage („Wie alt werden Bäume?“) und eine Wetterfrage (Quellen-Chips + [1] müssen bleiben).
+
+## 2026-11-04 · T-216 (Zurück-Pfeil zeigt nach links) · review · harness: Hark · model: Hark · branch `hark/extras` (Draft-PR #36)
+- Fehler: Zurück-Knopf in den Einstellungs-Unterseiten war `HainIcons.chevronRight` (zeigte nach rechts). Neu `ic_chevron_left.xml` (Lucide, Strich 2.1 wie die anderen, `autoMirrored`) + `HainIcons.back`, in `SettingsScreen` verwendet. Ganze App durchsucht: sonst kein Zurück-Knopf mit chevronRight (`PacksScreen` nutzt ✕, `chevronRight` bleibt als Zeilen-Chevron und gedreht im „nach unten“-Knopf des Chats).
+- ktlint 1.5.0 + detekt 1.23.8 CLI lokal grün, Gradle nicht lokal → CI, APK, Screens.
+
 ## 2026-11-04 · Werkzeuge 4d – alle Tools + Prompts · review · harness: Hark · branch `hark/day-4d`
 
 | task | status | check result | files outside list (reason) | open issues |

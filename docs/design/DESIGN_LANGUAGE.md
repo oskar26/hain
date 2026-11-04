@@ -1,8 +1,9 @@
 # DESIGN_LANGUAGE.md — one design for the whole app: calm, but with depth (T-011, 03.11.2026)
 
 > **03.11.2026 late: superseded in parts by [STYLE_OPTIONS.md](STYLE_OPTIONS.md).** Oskar found the
-> 3D look too childish. Two calm proposals (A "Lichtung", B "Morgennebel") replace the coloured glass,
-> glossy icons, glossy Pim and Wabi bubbles until he picks one. Font, spacing and motion below stay.
+> 3D look too childish. Since T-087 the only style is **Lichtung** (calm, hairlines, radii 8/12/16 dp);
+> the coloured glass, glossy 3D icons, glossy Pim and Wabi bubbles described below are gone.
+> Font, spacing and motion below stay.
 
 Owner brief (Oskar, 03.11.2026, after #20): *"Where is my 3D redesign? Where are my good design
 decisions?"* — #20 took *"don't overdo it"* too literally and made the app almost flat. This
@@ -107,15 +108,20 @@ TEAL (about, pages read, forest), CLEAR (menus). `glowStrength(dark)` holds the 
 inner light and shadow are stronger and the edge fainter, so the light really *glows* on dark glass.
 
 Radii: SMALL 12, MEDIUM 20, **TILE 24** (glass tiles), LARGE 28 (sheets, **the composer card**), capsule
-(buttons, pills). Real blur (Haze) stays limited to surfaces over scrolling content.
+(buttons, pills). Real blur (Haze) stays limited to surfaces over scrolling content and to the
+**frosted menu cards** (T-104, T-210): ⋯ menus, long-press menus (chats in the drawer) and popovers
+(thinking picker) are frosted glass — `Modifier.frostedGlass(shape)` blurs the screen behind the card
+through the card (Haze, 24 dp, white tint 66 % / dark tint 72 %, no noise), with a thin edge that is
+light at the top and a soft 12 dp shadow. The rest of the screen only gets a light dimming (35 % of
+`scrim`), so the card stands out. Below Android 12 the card is an opaque tinted surface. It fades
+with the menu in `MENU_MS`; with "reduce motion" it is just there, without animation.
 
 ### 3D icons
 
-`Hain3DIcon(Hain3D.X)` — 22 small glossy clay icons, one consistent set (own generation, see
-`docs/specs/LICENSES.md`): weather, book, search, calculator, document, sparkles, phone, leaf, recycle,
-gift, calendar, palette, two speech bubbles, heart, shield, tree, bolt, bulb, parcel, globe, head.
-Light top left, transparent WebP, 192 px, 4–14 KB each (`core-ui/src/main/res/drawable-nodpi/ic3d_*.webp`,
-copies in `assets/illustrations/3d/icons/`). `Hain3DBadge(icon, hue)` puts one in a small glowing glass tile.
+`Hain3DIcon(Hain3D.X)` — since T-087 22 calm Lucide line icons (`res/drawable/icl_*.xml`, ISC):
+weather, book, search, calculator, document, sparkles, phone, leaf, recycle, gift, calendar, palette,
+two speech bubbles, heart, shield, tree, bolt, bulb, parcel, globe, head. The glossy 3D WebPs of #24
+are removed. `Hain3DBadge(icon, hue)` puts one on a small soft grey tile.
 Lucide stays for quiet action icons (copy, share, thumbs, menu, brain button).
 
 ### Pim (reference 7)

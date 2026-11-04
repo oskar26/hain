@@ -2,6 +2,7 @@ package app.hain.feature.chat.internal
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.hain.llm.api.CONTEXT_SIZE
 import app.hain.llm.api.ChatMessage
 import app.hain.llm.api.EngineState
 import app.hain.llm.api.LlmEngine
@@ -55,6 +56,8 @@ class ChatViewModel(
     networkActive: Flow<Boolean> = flowOf(false),
     /** Thumbs up/down on answers, kept on the phone (T-057). */
     private val messageRatings: MessageRatings = InMemoryRatings(),
+    /** Context size for the next load (developer mode, T-211); a change loads the brain again. */
+    private val contextSize: () -> Int = { CONTEXT_SIZE },
 ) : ViewModel() {
     private val local = MutableStateFlow(LocalState())
     private var job: Job? = null
@@ -105,7 +108,7 @@ class ChatViewModel(
                 installed.value = has
                 if (has) {
                     local.update { if (it.error == ChatError.NO_BRAIN) it.copy(error = null) else it }
-                    if (llm.load(modelPath())) {
+                    if (llm.load(modelPath(), contextSize())) {
                         engine.warmUp()
                     } else {
                         local.update { it.copy(error = ChatError.MODEL_LOAD) }
@@ -275,7 +278,7 @@ class ChatViewModel(
             viewModelScope.launch {
                 var lastShown = 0L
                 try {
-                    if (!llm.load(modelPath())) {
+                    if (!llm.load(modelPath(), contextSize())) {
                         store.removeMessage(chatId, answerId)
                         local.update { it.copy(error = ChatError.MODEL_LOAD) }
                         return@launch
@@ -357,6 +360,7 @@ class ChatViewModel(
                 sources = update.sources,
                 trace = update.trace,
                 actions = update.actions,
+                stats = update.stats,
             ),
         )
         when (update.reason) {
@@ -373,7 +377,7 @@ class ChatViewModel(
 
     private companion object {
         const val STOP_TIMEOUT = 5_000L
-        const val STREAM_THROTTLE_MS = 48L
+        const val STREAM_THROTTLE_MS = 50L
         const val MAX_TITLE_ANSWERS = 3
         const val SEARCH_DEBOUNCE = 150L
         const val MS_PER_S = 1000L

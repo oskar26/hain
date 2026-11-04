@@ -45,7 +45,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-059 | ToolTimeline + SourceChips | ui | S | E | T-052,T-062 | review |
 | T-053 | Drawer: chat list, search, rename, delete, pin | ui | M | E | T-052,T-015 | review (redesign 03.11.: glass context menu with scale+fade, marked row, spring drawer + list motion) |
 | T-054 | Export & share chat | feature | S | E | T-053 | todo |
-| T-055 | Model picker in top bar | ui | S | E | T-052,T-081 | todo |
+| T-055 | Model picker in top bar | ui | S | E | T-052,T-081 | partly (language step + localeConfig done; picker open) |
 | T-056 | Private chat + app lock | feature | S | E | T-053 | todo |
 | T-080 | Fill model catalogue with real URLs + sha256 | plan | S | F | - | review (brain now QAD-Q4_0, day 2) |
 | T-081 | Catalog + DeviceCheck | feature | S | F | T-002 | review (DeviceCheck pure rules + Packs screen) |
@@ -53,8 +53,15 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-083 | Onboarding (welcome, language, download brain) | ui | M | F | T-082,T-016 | review (tour + success + skip download; language → 2f) |
 | T-084 | Packs screen in settings | ui | S | F | T-082 | review (packs screen 2c; ID also used 03.11. for the thinking picker in the composer, see HANDOFF_LOG) |
 | T-085 | UI fixes for long texts (bubble fold, follow-scroll, ellipsis, composer 6 lines, 200 % font, 360 dp, landscape) | ui | S | E | T-052 | review (03.11., screenshots via screens.yml) |
+| T-088 | App icon: glossy glass Pim (squircle, adaptive + themed + debug "dev") | ui | S | B | T-061 | review (03.11., own SVG → assets/icon/src/make_icon.py, in app/src/{main,debug}/res) |
+| T-089 | Website in style A "Lichtung" + feature status badges + new icon | docs | S | B | T-088 | review (03.11.) |
+| T-100i | App icon motif "Pim als Sprechblase" (Pim's glass body as a round chat bubble, tail lower left) | ui | S | B | T-088 | review (04.11., Oskar's choice; make_icon.py, res, website copies) |
+| T-102 | App icon motif "Pim im Wald" (glass Pim in front of a round-tree forest), 3D + flat look | ui | S | B | T-100i | review (04.11., Oskar's choice; make_icon.py, res for both looks, website copies) |
+| T-103 | Icon choice in the app (activity-alias 3D/flat, DataStore `app_icon`, onboarding step + Settings → Look) | feature | S | B | T-102,T-100 | review (04.11.; alias switches when you leave the app) |
+| T-104 | Soft background blur behind menus and popups (Haze, dimming under API 31) | ui | S | B | T-011 | review (04.11.) |
+| T-105 | Website: new icon + bug pass (smoother header, phone screenshots, 390/1440 px, EN + /de) | docs | S | B | T-089 | review (04.11.) |
 | T-060 | NetworkGate + network log | feature | S | A | T-020 | review |
-| T-061 | Pim launcher icon + VectorDrawable export | ui | S | B | T-016 | todo |
+| T-061 | Pim launcher icon + VectorDrawable export | ui | S | B | T-016 | done via T-088 (03.11.) |
 | T-062 | ToolRouter + schemas | feature | S | A | T-040,T-060 | review |
 | T-063 | Calculator + units | feature | S | A | T-062 | review |
 | T-064 | Weather tool + WeatherCard | feature | M | A | T-062,T-014 | review |
@@ -100,9 +107,28 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-150 | Multimodal: Omni/VL image input via mtmd | native | M | C | T-030 | todo |
 | T-163 | Pim animated (Compose: blink, breathe, squash, eye tracking) | ui | M | B | T-061,T-019 | review (no eye tracking) |
 | T-170 | Image generation pack (SD1.5+DMD2, MNN) | native | M | D | T-160 | todo |
+| T-087 | Lichtung as the only style (remove Morgennebel, style switch, 3D icons) | ui | S | B | T-086 | review |
+| T-088p | Speed: time out of the system prompt, TTFT log (`HainLlm`) – polish branch (ID also used for the app icon) | perf | S | B | T-045 | review |
+| T-089p | Pim alive everywhere, leaf anchored to the head, frame tests – polish branch (ID also used for the website) | ui | M | B | T-163 | review |
+| T-091 | Start page: big draggable Pim, 60+ rotating suggestions per language | ui | S | B | T-089p | review |
+| T-096 | Premium haptics `HainHaptics` (primitives only, levels Off/Subtle/Normal/Strong) | ui | S | B | T-100 | review |
+| T-097 | Pim normal size + 5 s easter egg (grows to ≤ 5×, trembling, rising haptics, burst) | ui | S | B | T-091,T-096 | review |
+| T-098 | Own 2048 mini game behind Pim (swipe, merge pop, best score, undo, won/lost) | ui | M | B | T-097 | review |
+| T-099 | Subtle haptics everywhere (menus, delete confirm, pull) + HAPTICS.md checklist | ui | S | B | T-096 | review |
 | T-190 | Accessibility & performance pass | fix | M | H | T-052,T-100 | doing (2d-2: non-debuggable CI APK, draw-only animations, throttled streaming; R8 + own baseline profile open) |
 | T-195 | Trademark check name 'Hain' | plan | XS | H | - | todo |
+| T-196 | Trademark policy TRADEMARKS.md (DE+EN) + README sections "Name & Pim" and "Support (coming soon)" | docs | XS | H | - | review (04.11., draft PR) |
+| T-106 | Website: hero screenshots fixed (second phone frame without empty area, both frames sized to their image) | fix | XS | B | T-089 | review (04.11., draft PR) |
+| T-107 | Website: English app screenshots on the EN page (EN variants of the Roborazzi style tests) | docs | S | B | T-106 | review (04.11., draft PR #35) |
+| T-220 | Keine erfundenen Quellen ohne Werkzeug (Prompt-Regel + `CitationCleaner`) | fix | S | B | T-062 | review (04.11., draft PR) |
 | T-199 | Beta release (GitHub + F-Droid metadata) | scaffold | S | H | T-190 | todo |
+| T-210 | Frosted glass action cards (⋯ menu, long-press menu, thinking popover: card blurs what is behind it, light dimming around) | ui | S | B | T-104 | review (04.11., extras PR) |
+| T-215 | Version display: `hain.versionName` in gradle.properties (0.1.3.1), BuildConfig commit + build date, docs/workflow/VERSIONING.md | scaffold | XS | A | T-002 | review (04.11., extras PR) |
+| T-214 | "Über Hain" page: centred Pim header, website, GitHub, version, licence, open-source licences, update rows | ui | S | B | T-215 | review (04.11., extras PR) |
+| T-213 | Pim in the chat more often and bigger: thinking row 40 dp, 24 dp Pim at the newest answer (peeks in while tools run, cheers when done, fright on errors), empty chat 96 dp | ui | S | B | T-163 | review (04.11., extras PR) |
+| T-211 | Developer mode (7× tap on the version): own GGUF from Hugging Face, sampling, context, thinking, own system prompt, speed + debug info | feature | M | C | T-214,T-032 | review (04.11., extras PR) |
+| T-212 | Update check: version.json on nightly + v* releases, optional daily check via NetworkGate (purpose UPDATE), one-time ask card, calm banner → release page | feature | S | C | T-214,T-215 | review (04.11., extras PR) |
+| T-216 | Zurück-Pfeil zeigt nach links: Einstellungs-Unterseiten nutzen `HainIcons.back` (Lucide chevron-left, autoMirrored) statt chevron-right | fix | XS | B | T-214 | review (04.11., extras PR) |
 
 ## M0 · Device check & setup (human)
 
@@ -1108,6 +1134,18 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
   - result noted
 - check: `manual`
 
+### T-196 · Trademark policy + support note (coming soon)
+
+- type: `docs` · size: `XS` · lane: `H` · depends: -
+- read: ADR-20; T-195
+- files: TRADEMARKS.md, README.md
+- do:
+  1. TRADEMARKS.md, German (plain language) then English: "open code, protected brand" (modelled on the Mozilla policy). Code GPL-3.0-or-later; name "Hain", Pim (look, animations, voice) and icon/logo are project marks; forks need another name, own mascot and icon, must not look official; allowed: unchanged official builds, mentions ("based on Hain"), reports/tutorials, distro/F-Droid packaging without code changes beyond the build; contact via issues; not legal advice, registration may be planned; no location details.
+  2. README: short "Name & Pim / Trademarks" section next to the licence, "Support / Unterstützen" section with "coming soon" (star, issue, tell others). No FUNDING.yml, no active sponsor button.
+- accept:
+  - both files render on GitHub, links work
+- check: `manual`
+
 ### T-199 · Beta release (GitHub + F-Droid metadata)
 
 - type: `scaffold` · size: `S` · lane: `H` · depends: T-190
@@ -1119,3 +1157,28 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
   - release APK builds
 - check: `./gradlew assembleRelease`
 
+### T-220 · Keine erfundenen Quellen ohne Werkzeug
+
+- type: `fix` · size: `S` · lane: `B` · depends: T-062
+- read: TOOLS.md §3b, LLM.md §9
+- files: prompts/system_*.txt (+ Kopie in core-llm/src/main/assets/prompts), app/.../SystemPromptSource.kt, feature-chat/.../internal/{CitationCleaner,ChatEngine}.kt, Tests
+- warum: Auf Oskars Handy (LFM3-1.7B) schrieb Pim ohne jedes Werkzeug „… 200+ Jahre alt werden [1].“ plus eine Zeile „[1] Wikipedia-Artikel … (falls verfügbar) – hier kein aktuelles Werkzeug nötig …“ und begann mit „**Fakt:**“.
+- do:
+  1. Prompt (DE+EN, kurz wegen 2048 Kontext): Quellen [n] nur, wenn in dieser Antwort ein Werkzeug benutzt wurde; sonst keine [n], keine Quellenliste, kein Wort über Werkzeuge, keine Etiketten wie „Fakt:“. In `system_full`, `system_short`, `TOOLS_*` und im Hinweis vor der Antwort (`TOOL_NUDGE_*`).
+  2. `CitationCleaner` (deterministisch, auch wenn das Modell den Prompt ignoriert), angewendet im `ChatEngine` auf den Live-Text und die fertige Antwort: ohne Quellen fallen Marker (`[1]`, `[2, 3]`, `[1-3]`, `【1】`), Quellenzeilen (`[1] …`) und -blöcke (`Quellen:`/`Sources:` + Liste) und Sätze „kein Werkzeug nötig für diese Frage“ weg; mit Quellen bleiben nur Marker mit vorhandener Nummer. „Fakt:“/„Fact:“ am Zeilenanfang fällt immer weg. Codeblöcke, Inline-Code und Markdown-Links bleiben unberührt.
+- accept:
+  - Oskars Beispiel wird zu reinem Text ohne [1], Quellenzeile, Werkzeug-Satz und „Fakt:“
+  - Antworten mit Quellen behalten gültige Marker; Code bleibt gleich
+- check: `./gradlew :feature-chat:testDebugUnitTest :core-llm:testDebugUnitTest ktlintCheck detekt` (CI)
+
+### T-216 · Zurück-Pfeil zeigt nach links
+
+- type: `fix` · size: `XS` · lane: `B` · depends: T-214
+- files: core-ui/src/main/res/drawable/ic_chevron_left.xml, core-ui/.../HainIcons.kt, feature-settings/.../SettingsScreen.kt
+- warum: In den Einstellungs-Unterseiten (Aussehen, Entwickler, Über Hain, …) zeigte der Zurück-Knopf oben links nach rechts (`HainIcons.chevronRight`).
+- do:
+  1. Lucide `chevron-left` als Vector-Drawable (gleicher Strich wie die anderen, `autoMirrored` für RTL), `HainIcons.back`.
+  2. Zurück-Knopf in `SettingsScreen` nutzt `HainIcons.back`; Hub behält das ✕. Andere `chevronRight`-Stellen (Zeilen-Chevron, gedrehter „nach unten“-Knopf im Chat) sind keine Zurück-Knöpfe und bleiben.
+- accept:
+  - Alle Unterseiten zeigen einen nach links zeigenden Pfeil
+- check: `ktlintCheck detekt` + Screens (CI)

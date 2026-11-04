@@ -5,6 +5,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
@@ -22,13 +23,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -41,10 +39,8 @@ import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
-import app.hain.ui.theme.LocalHainStyle
 import app.hain.ui.theme.LocalHainTypography
 import app.hain.ui.theme.hainSurface
-import app.hain.ui.theme.look
 
 /**
  * Text button (T-011): a domed capsule. Primary = Hain green with a clear inner gradient, a light
@@ -93,7 +89,7 @@ fun HainButton(
                     enabled = enabled,
                     role = Role.Button,
                     onClick = {
-                        if (style != HainButtonStyle.GHOST) haptics.send()
+                        if (style != HainButtonStyle.GHOST) haptics.tick()
                         onClick()
                     },
                 ).padding(horizontal = spacing.lg, vertical = spacing.md),
@@ -107,33 +103,16 @@ fun HainButton(
 }
 
 /**
- * Filled button surface in [color] (buttons, send, the Pim knob), calm since the style proposals
- * (docs/design/STYLE_OPTIONS.md): no sheen and no glossy edge any more.
- * - Stil A "Lichtung": flat [color], no shadow.
- * - Stil B "Morgennebel": a gentle gradient (a touch lighter on top) and a soft shadow in [color].
- * [elevation] 0 turns the shadow off (disabled buttons).
+ * Filled button surface in [color] (buttons, send, the Pim knob): flat, Lichtung style
+ * (docs/design/STYLE_OPTIONS.md), no sheen, no gradient and no shadow. [elevation] stays for the call sites.
  */
+@Suppress("UnusedParameter", "UNUSED_PARAMETER")
 @Composable
 fun Modifier.dome(
     color: Color,
     shape: Shape,
     elevation: Dp = DOME_ELEVATION.dp,
-): Modifier {
-    val look = LocalHainStyle.current.look()
-    if (!look.buttonGradient) return clip(shape).background(color, shape)
-    val lift = if (elevation > 0.dp) look.buttonShadowDp.dp else 0.dp
-    val top = lerp(color, Color.White, DOME_LIGHT)
-    val bottom = lerp(color, Color.Black, DOME_SHADE)
-    return this
-        .shadow(
-            lift,
-            shape,
-            clip = false,
-            ambientColor = color.copy(alpha = DOME_SHADOW),
-            spotColor = color.copy(alpha = DOME_SHADOW),
-        ).clip(shape)
-        .background(Brush.verticalGradient(listOf(top, color, bottom)), shape)
-}
+): Modifier = clip(shape).background(color, shape)
 
 /** Press-in spring (scale 0.96) shared by every tappable dome; still with reduced motion. */
 @Composable
@@ -228,6 +207,7 @@ fun HainIconButton(
 }
 
 /** Row used by drawers and lists: icon + label, rounded row shape, [selected] = soft grey fill. */
+@Suppress("LongParameterList") // optional selection and long press with defaults
 @Composable
 fun HainMenuRow(
     icon: Painter?,
@@ -235,6 +215,7 @@ fun HainMenuRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     selected: Boolean = false,
+    onLongClick: (() -> Unit)? = null,
 ) {
     val colors = LocalHainColors.current
     val spacing = LocalHainSpacing.current
@@ -243,7 +224,8 @@ fun HainMenuRow(
             modifier
                 .clip(LocalHainShapes.current.row)
                 .background(if (selected) colors.surface else Color.Transparent)
-                .clickable(onClick = onClick)
+                // T-104: a long press opens the row's menu (chats in the drawer)
+                .combinedClickable(onLongClick = onLongClick, onClick = onClick)
                 .padding(horizontal = spacing.md, vertical = spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -265,8 +247,5 @@ internal const val DISABLED_ALPHA = 0.4f
 private const val PRESSED_SCALE = 0.96f
 private const val PRESS_DAMPING = 0.5f
 private const val PRESS_STIFFNESS = 600f
-private const val DOME_LIGHT = 0.10f
-private const val DOME_SHADE = 0.06f
-private const val DOME_SHADOW = 0.30f
 private const val DOME_ELEVATION = 8
 private const val ICON_SHARE = 0.45f

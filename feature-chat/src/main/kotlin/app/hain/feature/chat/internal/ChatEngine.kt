@@ -1,7 +1,10 @@
 package app.hain.feature.chat.internal
 
+import app.hain.common.api.DevSettings
 import app.hain.llm.api.ChatMessage
+import app.hain.llm.api.DevTuning
 import app.hain.llm.api.GenerationEvent
+import app.hain.llm.api.GenerationStats
 import app.hain.llm.api.LlmEngine
 import app.hain.llm.api.ParsedOutput
 import app.hain.llm.api.PromptBuilder
@@ -12,6 +15,7 @@ import app.hain.llm.api.ToolCall
 import app.hain.llm.api.ToolSchema
 import app.hain.llm.api.UiDelta
 import app.hain.llm.internal.AnswerMode
+import app.hain.llm.internal.GgufPromptBuilder
 import app.hain.llm.internal.LfmPromptBuilder
 import app.hain.llm.internal.StreamSplitter
 import app.hain.llm.internal.ThinkingPolicy
@@ -68,6 +72,8 @@ sealed interface TurnUpdate {
         val sources: List<SourceRef> = emptyList(),
         val trace: List<ToolTrace> = emptyList(),
         val actions: List<ActionCard> = emptyList(),
+        /** Speed of the last generation (developer mode, T-211). */
+        val stats: GenerationStats? = null,
     ) : TurnUpdate
 }
 
@@ -104,7 +110,16 @@ class ChatEngine(
     private val turnHint: (userMessages: List<String>) -> String? = { null },
     private val tools: ToolRouter? = null,
     private val toolContext: () -> ToolContext = { ToolContext("en", ZonedDateTime.now(), offline = false) },
+    /** Developer settings (T-211), read at the start of every message. */
+    private val tuning: () -> DevSettings = { DevSettings() },
+    /** `true` while an own GGUF from developer mode is the brain: its template, no tools (T-211). */
+    private val ownModel: () -> Boolean = { false },
 ) {
+    private val ggufBuilder = GgufPromptBuilder(llm::applyTemplate)
+
+    /** Hain's LFM prompt, or the own model's template in developer mode. */
+    private fun builder(): PromptBuilder = if (ownModel()) ggufBuilder else promptBuilder
+
     private var anchor = 0L
 
     /** Time the system prompt is filled with; moves forward at most every [ANCHOR_MS]. */
@@ -116,8 +131,8 @@ class ChatEngine(
 
     /** Reads the system prompt into the brain's memory, so the first answer starts sooner. */
     suspend fun warmUp(): Boolean {
-        val system = systemPrompt(promptAnchor())
-        val prompt = promptBuilder.build(system, schemas(), emptyList(), false, false)
+        val system = DevTuning.systemPrompt(tuning(), systemPrompt(promptAnchor()))
+        val prompt = builder().build(system, schemas(), emptyList(), false, false)
         return llm.prefill(prompt, listOfNotNull(fixedSystemEnd(prompt, system)))
     }
 
@@ -152,9 +167,10 @@ class ChatEngine(
                 emit(quick)
                 return@flow
             }
-            val thinking = ThinkingPolicy.decide(lastUser, mode)
-            val system = systemPrompt(promptAnchor())
-            val schemas = tools?.schemas(ctx.offline).orEmpty()
+            val dev = tuning()
+            val thinking = DevTuning.thinking(dev, ThinkingPolicy.decide(lastUser, mode))
+            val system = DevTuning.systemPrompt(dev, systemPrompt(promptAnchor()))
+            val schemas = if (ownModel()) emptyList() else tools?.schemas(ctx.offline).orEmpty()
             val researchHint = if (schemas.isNotEmpty() && !ctx.offline) researchHint(mode, ctx.lang) else null
             val online = schemas.any { tools?.isOnline(it.name) == true }
             val followUp =
@@ -162,7 +178,7 @@ class ChatEngine(
                     ?: if (schemas.isNotEmpty()) FollowUp.hint(history, ctx.lang) else null
             val hints = listOfNotNull(researchHint, followUp).joinToString(" ").ifBlank { null }
             val base = withLanguageHint(history, lastUser, hints)
-            val turn = Turn(budget, lastUser)
+            val turn = Turn(budget, lastUser, dev)
             active = turn
             try {
                 var round = 0
@@ -196,15 +212,17 @@ class ChatEngine(
                             listOfNotNull(earlier.ifBlank { null }, result.output.reasoning?.ifBlank { null })
                                 .joinToString("\n\n")
                                 .ifBlank { null }
+                        // T-220: no [1] without a source, no tool talk, no "Fakt:" label
                         emit(
                             TurnUpdate.Finished(
-                                result.output.copy(reasoning = reasoning),
+                                result.output.copy(reasoning = reasoning, text = cleaned(result.output.text, turn)),
                                 result.reason,
                                 if (thinking) turn.thinkingMs else null,
                                 turn.steps.toList(),
                                 turn.sources.toList(),
                                 turn.trace.toList(),
                                 turn.actions.toList(),
+                                result.stats,
                             ),
                         )
                         return@flow
@@ -223,6 +241,7 @@ class ChatEngine(
     private class Turn(
         val budget: ResearchBudget,
         val question: String,
+        val dev: DevSettings = DevSettings(),
     ) {
         /** One message of the research; [compact] replaces it once a newer round exists (T-069). */
         class Entry(
@@ -296,6 +315,7 @@ class ChatEngine(
         val output: ParsedOutput,
         val reason: StopReason,
         val thinkingMs: Long?,
+        val stats: GenerationStats? = null,
     )
 
     /** One tool call of a round, its timeline line and whether the search budget refused it. */
@@ -494,14 +514,14 @@ class ChatEngine(
         turn: Turn,
     ): RoundResult {
         val prompt =
-            promptBuilder.build(
+            builder().build(
                 system = system,
                 tools = roundTools,
                 history = messages,
                 addGenerationPrompt = true,
                 enableThinking = thinking,
             )
-        val params = SamplingParams.CHAT.copy(maxTokens = if (thinking) MAX_TOKENS_THINKING else MAX_TOKENS)
+        val params = DevTuning.sampling(turn.dev, thinking, MAX_TOKENS, MAX_TOKENS_THINKING)
         val checkpoints = checkpointsFor(prompt, system, history, roundTools)
         val splitter = StreamSplitter(thinkingEnabled = thinking)
         val reasoning = StringBuilder()
@@ -509,6 +529,7 @@ class ChatEngine(
         val start = clock()
         var thinkingEnd: Long? = null
         var reason = StopReason.ERROR
+        var stats: GenerationStats? = null
         var pending: ToolStep? = null
         val earlier = turn.reasoning.toString()
 
@@ -545,9 +566,12 @@ class ChatEngine(
                         if (text.isNotEmpty()) turn.textStarted = true
                         val steps = turn.steps + listOfNotNull(pending)
                         val shown = (earlier + reasoning).trim()
-                        emit(TurnUpdate.Streaming(shown, text.toString(), thinking, steps, clockOf(turn)))
+                        emit(TurnUpdate.Streaming(shown, cleaned(text, turn), thinking, steps, clockOf(turn)))
                     }
-                    is GenerationEvent.Done -> reason = event.reason
+                    is GenerationEvent.Done -> {
+                        reason = event.reason
+                        stats = event.stats
+                    }
                 }
             }
         if (mayCut && turn.cut && reason != StopReason.END) reason = StopReason.CANCELLED
@@ -565,8 +589,14 @@ class ChatEngine(
             } else {
                 parsed
             }
-        return RoundResult(output, reason, thoughtFor)
+        return RoundResult(output, reason, thoughtFor, stats)
     }
+
+    /** The live text without fake citations (T-220): only markers for sources of this turn. */
+    private fun cleaned(
+        text: CharSequence,
+        turn: Turn,
+    ): String = CitationCleaner.clean(text.toString(), turn.sources.size)
 
     /** "12*7" → answered by the calculator right away (TOOLS.md §5). */
     @Suppress("ReturnCount")
@@ -588,7 +618,10 @@ class ChatEngine(
         )
     }
 
-    private fun schemas(): List<ToolSchema> = tools?.schemas(toolContext().offline).orEmpty()
+    private fun schemas(): List<ToolSchema> {
+        if (ownModel()) return emptyList()
+        return tools?.schemas(toolContext().offline).orEmpty()
+    }
 
     /**
      * Short chat title (2d-2): asks the brain right after the history, thinking off, so the chat is
@@ -596,11 +629,11 @@ class ChatEngine(
      * Returns `null` when nothing usable came back.
      */
     suspend fun title(history: List<ChatMessage>): String? {
-        val system = systemPrompt(promptAnchor())
+        val system = DevTuning.systemPrompt(tuning(), systemPrompt(promptAnchor()))
         val ask = history + ChatMessage(Role.USER, TITLE_REQUEST)
         val tools = schemas()
-        val prompt = promptBuilder.build(system, tools, ask, true, false)
-        val historyEnd = promptBuilder.build(system, tools, history, false, false)
+        val prompt = builder().build(system, tools, ask, true, false)
+        val historyEnd = builder().build(system, tools, history, false, false)
         val checkpoints =
             listOfNotNull(fixedSystemEnd(prompt, system), historyEnd.length.takeIf { prompt.startsWith(historyEnd) })
         val out = StringBuilder()
@@ -638,7 +671,7 @@ class ChatEngine(
         history: List<ChatMessage>,
         tools: List<ToolSchema>,
     ): List<Int> {
-        val build = { h: List<ChatMessage> -> promptBuilder.build(system, tools, h, false, false) }
+        val build = { h: List<ChatMessage> -> builder().build(system, tools, h, false, false) }
         val beforeLastUser = history.dropLastWhile { it.role != Role.USER }.dropLast(1)
         return listOfNotNull(
             fixedSystemEnd(prompt, system),

@@ -1,7 +1,9 @@
 app.hain.feature.onboarding
+string onboarding_background
 string onboarding_body
 string onboarding_cancel
 string onboarding_done
+string onboarding_done_body
 string onboarding_download
 string onboarding_fail_checksum
 string onboarding_fail_network
@@ -11,7 +13,19 @@ string onboarding_licence
 string onboarding_progress
 string onboarding_queued
 string onboarding_retry
+string onboarding_skip
 string onboarding_start
 string onboarding_title
 string onboarding_verifying
 string onboarding_wifi
+string tour_1_body
+string tour_1_title
+string tour_2_body
+string tour_2_title
+string tour_3_body
+string tour_3_title
+string tour_4_body
+string tour_4_title
+string tour_go
+string tour_next
+string tour_skip

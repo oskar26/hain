@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions") // Pim drawing: one small function per body part
+
 package app.hain.ui.pim
 
 import android.content.res.Configuration
@@ -45,25 +47,32 @@ fun Pim(
     PimCanvas(pose = { pose }, size = size, modifier = modifier)
 }
 
-/** Draws the pose [pose] returns, flat and calm; contact shadow when [shadowLift] is set. */
+/**
+ * Draws the pose [pose] returns, flat and calm; contact shadow when [shadowLift] is set. [size] is
+ * Pim's own size (T-089): the canvas shows the 108-unit frame around him, not the old 144-unit
+ * viewBox, so a 30 dp Pim really looks 30 dp. Hops and fx may draw a little outside the canvas.
+ * [colors] overrides the palette (the 2048 easter egg makes him glow).
+ */
 @Composable
 internal fun PimCanvas(
     pose: () -> PimPose,
     size: Dp,
     modifier: Modifier = Modifier,
     shadowLift: Float? = null,
+    colors: (() -> PimColors)? = null,
 ) {
-    val colors = if (LocalHainColors.current.bg.luminance() < DARK_BG_LUMINANCE) DarkPimColors else LightPimColors
+    val palette = if (LocalHainColors.current.bg.luminance() < DARK_BG_LUMINANCE) DarkPimColors else LightPimColors
     val showVein = size >= 64.dp
     // [pose] is read while drawing, so an animated Pim only redraws and never recomposes.
     Canvas(modifier = modifier.size(size)) {
         val now = pose()
-        // viewBox -12 -18 144 144 → fit the 144-unit box into the canvas
-        val fit = this.size.minDimension / PimGeometry.VIEW_BOX_SIZE
+        val fit = this.size.minDimension / PimGeometry.FRAME_SIZE
+        val origin = PimGeometry.FRAME_TOP_LEFT - Offset(PimGeometry.VIEW_BOX_X, PimGeometry.VIEW_BOX_Y)
         scale(fit, fit, Offset.Zero) {
-            if (shadowLift != null) drawContactShadow(-now.y + shadowLift, now.sx)
-            // style proposals (STYLE_OPTIONS.md): flat and calm in both styles, no glossy jelly
-            drawPim(now, colors, showVein, gloss = false)
+            translate(-origin.x, -origin.y) {
+                if (shadowLift != null) drawContactShadow(-now.y + shadowLift, now.sx)
+                drawPim(now, colors?.invoke() ?: palette, showVein)
+            }
         }
     }
 }
@@ -228,3 +237,35 @@ internal const val EYE_CLOSED_MID_Y = 2.5f
 internal const val EYE_SQUEEZE_HALF_W = 6f
 internal const val EYE_SQUEEZE_INNER_X = 1f
 internal const val EYE_SQUEEZE_HALF_H = 4f
+
+/** Flat contact shadow under Pim (Lichtung: a quiet grey oval); shrinks while he is in the air. */
+internal fun DrawScope.drawContactShadow(
+    lift: Float,
+    widthScale: Float,
+) {
+    val fade = (1f - lift * SHADOW_LIFT_FADE).coerceIn(0f, 1f)
+    val w = SHADOW_W * widthScale * fade
+    val h = SHADOW_H * fade
+    translate(-PimGeometry.VIEW_BOX_X, -PimGeometry.VIEW_BOX_Y) {
+        drawOval(
+            color = Color.Black.copy(alpha = SHADOW_ALPHA * fade),
+            topLeft = SHADOW_CENTRE - Offset(w / 2, h / 2),
+            size = Size(w, h),
+        )
+    }
+}
+
+private val SHADOW_CENTRE = Offset(x = 60f, y = 109f)
+private const val SHADOW_W = 44f
+private const val SHADOW_H = 5f
+private const val SHADOW_ALPHA = 0.07f
+private const val SHADOW_LIFT_FADE = 0.03f
+
+/** A still frame of [pose] for the screenshot frame tests. */
+@Composable
+internal fun PimCanvasForTest(
+    pose: PimPose,
+    size: Dp,
+) {
+    PimCanvas(pose = { pose }, size = size, shadowLift = 0f)
+}

@@ -19,4 +19,7 @@ internal enum class SettingsPage(
     YOU(R.string.settings_group_you, R.string.settings_you_hint, Hain3D.HEART, GlowHue.ROSE),
     PRIVACY(R.string.settings_group_privacy, R.string.settings_privacy_hint, Hain3D.SHIELD, GlowHue.SKY),
     ABOUT(R.string.settings_group_about, R.string.settings_about_hint, Hain3D.TREE, GlowHue.TEAL),
+
+    /** Hidden until developer mode is unlocked in "Über Hain" (T-211). */
+    DEVELOPER(R.string.settings_group_dev, R.string.settings_dev_hint, Hain3D.BOLT, GlowHue.LILAC),
 }

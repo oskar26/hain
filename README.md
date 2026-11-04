@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/mascot/v2/preview/hop.gif" alt="Pim, the Hain mascot, hopping" width="140">
+<img src="assets/icon/hain-icon-rounded-1024.png" alt="Hain app icon: Pim as a glossy mint glass figure with a leaf, in a soft forest of round trees" width="128">
 
 # Hain
 
@@ -15,7 +15,7 @@ No account. No cloud. Free and open source. In English and German.
 
 **[Download](https://github.com/oskar26/hain/releases/tag/nightly)** · [Install](#install-in-3-steps) · [Features](#features) · [How it works](#how-it-works) · [Privacy](#privacy) · [FAQ](#faq) · [Contributing](#contributing) · [Deutsch](#auf-deutsch)
 
-Website: https://oskar26.github.io/hain/ *(coming soon)*
+Website: https://oskar26.github.io/hain/
 
 </div>
 
@@ -58,10 +58,10 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 
 <table>
   <tr>
-    <td align="center"><img src="docs/design/screens/3d_onboarding_light.png" alt="Welcome tour with glossy bubbles and Pim" width="190"><br><sub>Welcome tour</sub></td>
-    <td align="center"><img src="docs/design/screens/3d_chat_empty_light.png" alt="Empty chat with glass suggestion tiles" width="190"><br><sub>Chat</sub></td>
-    <td align="center"><img src="docs/design/screens/3d_chat_thinking_picker_light.png" alt="Thinking level picker behind the brain button" width="190"><br><sub>Thinking level</sub></td>
-    <td align="center"><img src="docs/design/screens/3d_settings_light.png" alt="Settings as glass tiles with 3D icons" width="190"><br><sub>Settings &amp; packs</sub></td>
+    <td align="center"><img src="docs/design/screens/style_a_onboarding_light.png" alt="Welcome screen in the calm Lichtung style" width="190"><br><sub>Welcome tour</sub></td>
+    <td align="center"><img src="docs/design/screens/style_a_chat_empty_light.png" alt="Empty chat with three suggestions" width="190"><br><sub>Chat</sub></td>
+    <td align="center"><img src="docs/design/screens/style_a_chat_composer_picker_light.png" alt="Thinking level picker in the message box" width="190"><br><sub>Thinking level</sub></td>
+    <td align="center"><img src="docs/design/screens/style_a_settings_light.png" alt="Settings with calm line icons" width="190"><br><sub>Settings &amp; packs</sub></td>
   </tr>
 </table>
 
@@ -78,15 +78,22 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🌍 Answer language | Pim answers in the language you write in (German, English, French, Turkish, Russian, …), or always in German or English if you want | ✅ |
 | 🌱 First start | Playful welcome tour with Pim, brain download (LFM3-1.7B, 1.0 GB) with resume and checksum, celebration screen; the download can wait or run in the background | ✅ |
 | 🗂️ Saved chats | Stored encrypted on the phone; search, rename, pin, delete, grouped by day | ✅ |
-| ⚙️ Settings | Theme, easy-to-read font, answer mode (fast / auto / thorough), answer language, "about me" and answer style. Thinking level also right in the message box (brain button) | ✅ |
+| ⚙️ Settings | Theme, app icon (3D or flat), easy-to-read font, answer mode (fast / auto / thorough), answer language, "about me" and answer style. Thinking level also right in the message box (brain button) | ✅ |
 | 📦 Knowledge packs | See, download and remove packs, with hints on what fits your phone | ✅ |
-| 🎨 Look | One design everywhere, calm but with depth: glass tiles that glow from inside, small glossy 3D icons, domed buttons that press in, a glossy 3D Pim, a welcome tour with shiny bubbles; light font (Hanken Grotesk), dark mode with glowing glass; "Reduce motion" stops all movement | ✅ |
+| 🎨 Look | One calm design "Lichtung": lots of white, fine hairlines, Hain green only as an accent, radii 12–16 dp, quiet line icons; light font (Hanken Grotesk), dark mode; "Reduce motion" stops all movement | ✅ |
+| 🌱 Pim | Lives everywhere (start page, thinking, done, errors, empty search, pull gestures) and the leaf always stays on his head. Tap him for a different little reaction each time, drag him around on the start page and he springs back | ✅ |
+| 📳 Haptics | Fine, crisp clicks instead of buzzing – send, switches, thinking level, answer done, menus, confirming a delete, pull gestures, errors. Never while text streams. Settings → Look → Vibration: Off / Subtle (default) / Normal / Strong | ✅ |
+| 🎮 Secret | Hold Pim on the start page for 5 seconds without letting go … (hint: 2048) | ✅ |
+| 🪟 Frosted menus | ⋯ menus, long-press menus and the thinking picker are frosted glass: what lies behind shows through softly blurred (Android 12+, a solid card on older phones) | ✅ |
+| ℹ️ About Hain | Pim, version (with build number and commit), website, code on GitHub, licence and open-source licences – links open only after your tap | ✅ |
+| 🔄 Update check | Optional: once a day at start Hain asks GitHub if a newer version is out (stable or nightly) and shows a calm hint that opens the release page. Off until you say yes, nothing is installed by itself, the request shows in the network log | ✅ |
+| 🛠️ Developer mode | Hidden: tap the version in "About Hain" 7 times. Own GGUF model from Hugging Face (size, RAM hint, download with progress), sampling, context size, thinking, own system prompt, tokens per second under answers | ✅ |
 | ✏️ Chat extras | Automatic chat titles; tap your own message to edit or copy it. Chat list: small glass menu at each chat (pin, rename, delete), smooth drawer | ✅ |
 | 📤 Export | Export a chat as Markdown or PDF | 🗓️ |
-| 🧭 Settings, part 2 | Glass tiles with their own colour and 3D icon, sub pages, own "reduce motion" switch, glossy 3D Pim, new first start. Still open: pack picker, language step at first start | 🚧 |
+| 🧭 Settings, part 2 | Glass tiles with their own colour and 3D icon, sub pages, own "reduce motion" switch, glossy 3D Pim, new first start. Language step at first start is in. Still open: brain picker in the top bar | 🚧 |
 | 🔧 Tools | Calculator and units, weather (Open-Meteo), Wikipedia (German/English), web search without API key that reads several pages (or your own SearXNG), reading a link, alarm, timer, calendar entry and route with a confirm card – Pim shows each step and its sources under the answer. Still open: weather card, repeating alarms | 🚧 |
 | ⏰ Phone actions | Alarm, timer, calendar entry, navigation – prepared by Pim as a glass card, done only after your tap | ✅ |
-| 🛡️ Network log | Every tool request goes through one gate: orange "Online" dot while it runs, offline mode, log of the last 7 days in Settings → Privacy. Still open: brain download through the gate, log kept across app restarts | 🚧 |
+| 🛡️ Network log | Every tool request goes through one gate: orange "Online" dot while it runs, offline mode, log of the last 7 days in Settings → Privacy. The log now stays after a restart (7 days, encrypted). Still open: brain download through the gate | 🚧 |
 | 📰 News | Standard mix (incl. junge Welt), standard + own feeds, or only own feeds | 🗓️ |
 | 🃏 Answer cards | Lists, tables, checklists, weather and source cards instead of plain text | 🗓️ |
 | 🧠 Memory | "Remember that …", a memory page you can edit, forget anything | 🗓️ |
@@ -102,6 +109,17 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 ### New in the latest test build
 
 - **Pim picks the right tool more often.** All tools were reworked for the small brain: shorter, clearer tool descriptions, "8 min" really becomes an 8-minute timer, "Freitag 18 Uhr" lands on the right day, "zu Fuß" or "Fahrrad" work for routes, and a half-broken tool call from the brain is repaired instead of showing up as code in the chat. If something is missing ("Wetter?"), Pim asks which city. Follow-ups like "und in München?" call the tool again, links you send are read. Spoken sums ("was ist 17 mal 23") and "Wie spät ist es?" are answered instantly without the brain. Measured with 52 test questions: right tool 88.5 % → 96.2 %.
+- **Version 0.1.3.1.** Hain now shows its version in **Settings → About Hain** (with build number and commit). How the numbers work is in [docs/workflow/VERSIONING.md](docs/workflow/VERSIONING.md).
+- **Frosted glass menus.** The ⋯ menu, the long-press menu in the side panel and the thinking picker are now real frosted glass: the chat behind them shows through, softly blurred, with a thin light edge and a soft shadow. The rest of the screen only dims a little. On phones older than Android 12 the menus are a solid card.
+- **More Pim in the chat.** Pim is bigger while he thinks, sits small next to the newest answer, peeks in while he looks something up, is happy for a moment when the answer is done and gets a fright on an error. On the empty chat he is a bit bigger too. "Reduce motion" keeps him still.
+- **New "About Hain" page.** Pim at the top, then website, code on GitHub, version, licence and the open-source licences. Links open in your browser only when you tap them.
+- **Optional update check.** After a few chats Hain asks once whether it may look for updates. If you say yes, it asks GitHub once a day at start whether there is a newer version (channel "Stable" or "Nightly") and shows a calm banner; a tap opens the release page. Nothing is installed by itself, nothing about you is sent, and the request shows in the network log. You can change it or check right now in **About Hain**.
+- **Developer mode for tinkerers.** Tap the version in **About Hain** 7 times. Under **Settings → Developer** you can try your own GGUF model from Hugging Face (type e.g. `LiquidAI/LFM3-1.7B-GGUF`, pick a file, see its size and whether it fits your phone), change temperature, top_k, top_p, min_p, repeat penalty, context size, answer length, seed and thinking, set your own system prompt and see tokens per second under answers. "Back to defaults" and switching it off bring Hain's normal settings back. Untested models may answer badly, and tools are off with them.
+- **Fixed: back arrow.** The back button on settings pages (Look, Developer, About Hain, …) now points left instead of right.
+- **Fixed: no made-up sources.** When Pim answered from memory, the small brain sometimes still wrote “[1]” and a fake source line (“Wikipedia article … if available”), talked about not needing a tool or started with “**Fakt:**”. Now “[1]” only appears when Pim really used a tool and there is a source chip for it; everything else is cleaned out of the answer, also while it streams. Code blocks and links stay untouched.
+- **New app icon “Pim im Wald”, and you choose the look.** Pim, as a glossy, see-through mint glass figure, stands in front of a soft forest of round trees with mist and a light sky. There is also a **flat** version in plain colours. Pick it at first start (right after the language) or any time in **Settings → Look → App icon** (3D is the default). The new icon shows up once you leave Hain; your home screen may need a few seconds. Themed icons (Android 13+) show Pim's outline, and the test build has a small “dev” tag.
+- **Softer menus.** A long press on a chat in the side panel now opens its menu too.
+- **New website look.** The website (https://oskar26.github.io/hain/) now looks like the app's calm style “Lichtung”, in light and dark, with real screenshots and a clear mark on every feature: green “Available now” or grey “Coming soon”.
 - **The 3D redesign.** Hain now looks like the pictures it was meant to look like: settings groups, tool cards, suggestions, knowledge packs and the side panel are **glass tiles that glow from inside** in their own soft colour, with small **glossy 3D icons** (weather, book, leaf, shield …). Pim is a **glossy 3D jelly** with white oval eyes. The empty chat greets you big and light ("Guten Abend, was kann ich für dich tun?") above three suggestion tiles, the message box is a big white card with a soft green glow and a round domed send button. The welcome tour starts with a cloud of shiny bubbles and a round Pim button. Buttons press in a little when you tap them. Dark mode glows too; "Reduce motion" stops all movement but keeps the depth. The chat text itself stays calm.
 - **Thinking level in the message box.** Tap the **brain** in the message box and pick **Auto** (Pim decides), **Schnell** (answers right away) or **Gründlich** (thinks longer, for hard questions). The bar above the box is gone; next to the brain you see the level when it is not Auto. Same setting as Settings → Answers.
 - **Long texts fixed.** Very long own messages fold after 14 lines ("Mehr anzeigen"), the chat no longer pulls you down while you scroll up to read a long answer (a small button brings you back), tables and code scroll sideways, long chat titles, tool lines and menu entries end neatly instead of being cut off, the message box grows to 6 lines and then scrolls with the buttons staying put; checked with 200 % font, a small 360 dp screen and landscape.
@@ -303,6 +321,18 @@ Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Ger
 ## Licence
 
 [GPL-3.0](LICENSE). Model weights are not bundled and keep their own licences (e.g. LFM Open License v1.0).
+
+## Name & Pim / Trademarks
+
+The code is free (GPL-3.0-or-later), but the name “Hain”, the character Pim (look, animations, voice) and the app icon/logo mark the official project. Forks are welcome under their own name, with their own mascot and icon. Sharing official builds, writing about Hain and packaging it (e.g. F-Droid) are fine. Details: [TRADEMARKS.md](TRADEMARKS.md).
+
+Der Code ist frei, aber Name, Pim und Icon kennzeichnen das offizielle Projekt. Forks bitte mit eigenem Namen, eigener Figur und eigenem Icon. Mehr in [TRADEMARKS.md](TRADEMARKS.md).
+
+## Support / Unterstützen
+
+**Coming soon:** a way to sponsor Hain will follow soon. Until then, the best help is a ⭐ star, an [issue](https://github.com/oskar26/hain/issues) with a bug or an idea, or telling a friend about Hain.
+
+**Bald:** Eine Möglichkeit, Hain finanziell zu unterstützen, folgt bald. Bis dahin hilft ein ⭐ Stern, ein [Issue](https://github.com/oskar26/hain/issues) mit Fehler oder Idee, oder Hain weiterzusagen.
 
 ## Credits
 

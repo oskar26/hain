@@ -3,21 +3,49 @@
 
     <!-- T-068: lets Hain hand an alarm or timer to the clock app after you tap "Stellen" (normal permission, no prompt) -->
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
+    <!-- T-096: short, crisp haptic primitives (VibrationEffect.Composition); normal permission, no prompt -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:name=".HainApp"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:localeConfig="@xml/locales_config"
         android:supportsRtl="true">
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Hain"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- T-103: two launcher entries for the icon "Pim im Wald" (3D default, flat). Only one is
+             enabled at a time; AppIconSwitcher flips them (Settings → Look → App icon, onboarding).
+             Both open MainActivity, which stays exported for direct starts (adb). -->
+        <activity-alias
+            android:name=".Launcher3D"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+        <activity-alias
+            android:name=".LauncherFlat"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_flat"
+            android:roundIcon="@mipmap/ic_launcher_flat_round"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
     </application>
 </manifest>

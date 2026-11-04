@@ -30,4 +30,12 @@
     <string name="tour_go">Los geht\'s</string>
     <string name="onboarding_skip">Später – erst mal umschauen</string>
     <string name="onboarding_background">Im Hintergrund weiterladen</string>
+    <string name="language_title">Wähle deine Sprache</string>
+    <string name="language_body">Du kannst sie später in den Einstellungen ändern.</string>
+    <string name="icon_step_title">Wähle dein Symbol</string>
+    <string name="icon_step_body">Wie soll Pim auf deinem Startbildschirm aussehen? Du kannst es später in Einstellungen → Aussehen ändern.</string>
+    <string name="icon_step_3d">3D</string>
+    <string name="icon_step_flat">Flach</string>
+    <string name="icon_step_next">Weiter</string>
+    <string name="icon_step_hint">Das neue Symbol erscheint, sobald du Hain verlässt. Der Startbildschirm braucht oft ein paar Sekunden.</string>
 </resources>

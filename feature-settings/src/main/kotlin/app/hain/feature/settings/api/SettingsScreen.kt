@@ -43,6 +43,8 @@ import app.hain.ui.components.Hain3DIcon
 import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.TopBar
 import app.hain.ui.components.pressScale
+import app.hain.ui.pim.LivePim
+import app.hain.ui.pim.PimState
 import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
@@ -56,11 +58,13 @@ fun SettingsScreen(
     actions: SettingsActions,
     modifier: Modifier = Modifier,
     networkLog: List<NetworkLogEntry> = emptyList(),
+    extras: SettingsExtras = SettingsExtras(),
 ) {
-    SettingsBody(settings, actions, modifier, networkLog, startPage = null)
+    SettingsBody(settings, actions, modifier, networkLog, startPage = null, extras = extras)
 }
 
 /** The settings screen itself; [startPage] opens a group right away (previews and screenshots). */
+@Suppress("LongParameterList") // optional extras with defaults
 @Composable
 internal fun SettingsBody(
     settings: HainSettings,
@@ -68,6 +72,7 @@ internal fun SettingsBody(
     modifier: Modifier = Modifier,
     networkLog: List<NetworkLogEntry> = emptyList(),
     startPage: SettingsPage? = null,
+    extras: SettingsExtras = SettingsExtras(),
 ) {
     var page by rememberSaveable { mutableStateOf(startPage) }
     BackHandler { if (page != null) page = null else actions.onBack() }
@@ -83,7 +88,7 @@ internal fun SettingsBody(
             title = stringResource(current?.title ?: R.string.settings_title),
             leading = {
                 HainIconButton(
-                    if (current == null) HainIcons.close else HainIcons.chevronRight,
+                    if (current == null) HainIcons.close else HainIcons.back,
                     stringResource(R.string.settings_back),
                     { if (current != null) page = null else actions.onBack() },
                 )
@@ -97,9 +102,10 @@ internal fun SettingsBody(
             verticalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.md),
         ) {
             if (current == null) {
-                Hub(actions) { page = it }
+                Hub(actions, devMode = settings.dev.enabled) { page = it }
             } else {
-                PageHeader(current)
+                // T-214: "Über Hain" has its own centred header with Pim
+                if (current != SettingsPage.ABOUT) PageHeader(current)
                 // the whole page sits on one glass tile lit from above in the group's colour (T-011)
                 Column(
                     Modifier
@@ -108,7 +114,7 @@ internal fun SettingsBody(
                         .padding(LocalHainSpacing.current.lg),
                     verticalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.md),
                 ) {
-                    SettingsPageContent(current, settings, actions, networkLog)
+                    SettingsPageContent(current, settings, actions, networkLog, extras)
                 }
             }
             Spacer(Modifier.height(LocalHainSpacing.current.xl))
@@ -119,9 +125,22 @@ internal fun SettingsBody(
 @Composable
 private fun Hub(
     actions: SettingsActions,
+    devMode: Boolean = false,
     open: (SettingsPage) -> Unit,
 ) {
-    Spacer(Modifier.height(LocalHainSpacing.current.xs))
+    // T-089: Pim greets you at the top of the settings
+    Row(
+        Modifier.fillMaxWidth().padding(top = LocalHainSpacing.current.xs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.md),
+    ) {
+        LivePim(PimState.IDLE, HEADER_PIM.dp)
+        BasicText(
+            stringResource(R.string.settings_hub_hello),
+            style = LocalHainTypography.current.body.copy(color = LocalHainColors.current.textMuted),
+            modifier = Modifier.weight(1f),
+        )
+    }
     Tile(SettingsPage.LOOK.icon, SettingsPage.LOOK.hue, R.string.settings_group_look, R.string.settings_look_hint) {
         open(SettingsPage.LOOK)
     }
@@ -137,6 +156,17 @@ private fun Hub(
     }
     Tile(Hain3D.TREE, GlowHue.TEAL, R.string.settings_group_about, R.string.settings_about_hint) {
         open(SettingsPage.ABOUT)
+    }
+    // T-211: only after "Version" was tapped 7× in "Über Hain"
+    if (devMode) {
+        Tile(
+            SettingsPage.DEVELOPER.icon,
+            SettingsPage.DEVELOPER.hue,
+            R.string.settings_group_dev,
+            R.string.settings_dev_hint,
+        ) {
+            open(SettingsPage.DEVELOPER)
+        }
     }
 }
 
@@ -200,3 +230,5 @@ private fun Tile(
         )
     }
 }
+
+private const val HEADER_PIM = 56

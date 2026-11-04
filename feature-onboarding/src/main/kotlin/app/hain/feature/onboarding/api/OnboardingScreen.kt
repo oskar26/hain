@@ -37,23 +37,27 @@ import app.hain.models.api.ModelRepository
 import app.hain.ui.components.HainButton
 import app.hain.ui.components.HainButtonStyle
 import app.hain.ui.components.ProgressBar
-import app.hain.ui.pim.JuicyPim
+import app.hain.ui.pim.LivePim
 import app.hain.ui.pim.PimState
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 
 /**
- * First start (T-083): welcome tour, then the brain gets downloaded, then Pim cheers.
+ * First start (T-083): language, app icon (T-103), welcome tour, then the brain gets downloaded, then Pim cheers.
  * [onSkip] (2d-2): the download can wait (or keeps running in the background); the chat then
  * shows a friendly reminder.
  */
+@Suppress("LongMethod", "ReturnCount", "LongParameterList") // step switch: language, icon, tour, success, download
 @Composable
 fun OnboardingScreen(
     models: ModelRepository,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
     onSkip: () -> Unit = onDone,
+    onLanguage: (String) -> Unit = {},
+    iconFlat: Boolean = false,
+    onIconFlat: (Boolean) -> Unit = {},
 ) {
     val model = remember { models.defaultBrain }
     val download by remember(model) { models.downloadState(model) }.collectAsState(DownloadState.Idle)
@@ -72,7 +76,20 @@ fun OnboardingScreen(
         }
     }
 
+    var languageDone by rememberSaveable { mutableStateOf(false) }
+    var iconDone by rememberSaveable { mutableStateOf(false) }
     var tourDone by rememberSaveable { mutableStateOf(false) }
+    if (!languageDone && download == DownloadState.Idle) {
+        LanguageStep(onPick = { tag ->
+            onLanguage(tag)
+            languageDone = true
+        }, modifier = modifier)
+        return
+    }
+    if (!iconDone && download == DownloadState.Idle) {
+        IconStep(flat = iconFlat, onSelect = onIconFlat, onNext = { iconDone = true }, modifier = modifier)
+        return
+    }
     if (!tourDone && download == DownloadState.Idle) {
         WelcomeTour(onFinish = { tourDone = true }, modifier = modifier)
         return
@@ -92,7 +109,7 @@ fun OnboardingScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        JuicyPim(state = pimState(download), size = 140.dp)
+        LivePim(state = pimState(download), size = 112.dp)
         Spacer(Modifier.height(spacing.xl))
         BasicText(
             stringResource(R.string.onboarding_title),

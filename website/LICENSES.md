@@ -1,15 +1,17 @@
 # Website licences
 
 The website code in `website/` is part of Hain and licensed under **GPL-3.0** (see `../LICENSE`).
-All images in `public/img/`, `public/og.png`, the favicons and `../assets/icon/` were made for Hain
-(generated with an image model and edited with Pillow); they contain no third-party artwork.
+The app icon (`public/img/hain-icon.webp`, the favicons, `public/og.png`, `../assets/icon/`) is own work:
+drawn as SVG with gradients in `../assets/icon/src/make_icon.py` (Pim's shapes from `../assets/mascot/v2/`),
+rendered with resvg and Pillow. No image model, no third-party artwork. The screenshots in `public/screenshots/`
+are real screenshots of the app (style A "Lichtung", `../docs/design/screens/`).
 
 ## Dependencies
 
 | Package | Version | Licence | Ships to visitors? |
 |---|---|---|---|
-| motion (framer-motion DOM helpers `inView`, `scroll`) | 14.9 | MIT | yes (a few KB) |
-| Inter Variable (`@fontsource-variable/inter`, self-hosted) | 5.3 | OFL-1.1 | yes (font files) |
+| motion (framer-motion DOM helper `inView`) | 14.9 | MIT | yes (a few KB) |
+| Hanken Grotesk 3.014 (the app font, self-hosted WOFF2 in `src/assets/fonts/`, text in `../docs/specs/licenses/HankenGrotesk-OFL.txt`) | 3.014 | OFL-1.1 | yes (font files) |
 | lucide-react (icons, rendered to inline SVG at build time) | 1.66 | ISC | yes (as SVG markup) |
 | React, React DOM (only used at build time to prerender HTML) | 19.3 | MIT | no |
 | Tailwind CSS, @tailwindcss/vite | 4.3 | MIT | generated CSS only |

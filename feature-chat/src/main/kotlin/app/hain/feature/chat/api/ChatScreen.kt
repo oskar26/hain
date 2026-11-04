@@ -14,16 +14,13 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -33,10 +30,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,7 +44,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -59,7 +53,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hain.common.api.AnswerMode
@@ -69,13 +62,13 @@ import app.hain.feature.chat.internal.ChatError
 import app.hain.feature.chat.internal.ChatUiState
 import app.hain.feature.chat.internal.ChatViewModel
 import app.hain.feature.chat.internal.Rating
+import app.hain.feature.chat.internal.StepState
 import app.hain.feature.chat.internal.UiMessage
 import app.hain.llm.api.EngineState
+import app.hain.llm.api.GenerationStats
 import app.hain.ui.HainIcons
 import app.hain.ui.components.AssistantBlock
 import app.hain.ui.components.Composer
-import app.hain.ui.components.Hain3D
-import app.hain.ui.components.Hain3DIcon
 import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.MessageAction
 import app.hain.ui.components.MessageActionKind
@@ -83,7 +76,6 @@ import app.hain.ui.components.PulsingDot
 import app.hain.ui.components.ReasoningBlock
 import app.hain.ui.components.TopBar
 import app.hain.ui.components.UserBubble
-import app.hain.ui.components.pressScale
 import app.hain.ui.effects.ThinkingGlow
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.HainMotionMoment
@@ -91,16 +83,13 @@ import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainTween
 import app.hain.ui.motion.motionSpec
 import app.hain.ui.motion.rememberHainHaptics
-import app.hain.ui.pim.JuicyPim
-import app.hain.ui.pim.Pim
+import app.hain.ui.pim.LivePim
 import app.hain.ui.pim.PimState
-import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
-import app.hain.ui.theme.glassTile
 import app.hain.ui.theme.hainSurface
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -115,6 +104,9 @@ fun ChatScreen(
     onGetBrain: () -> Unit = {},
     answerMode: AnswerMode = AnswerMode.AUTO,
     onAnswerMode: (AnswerMode) -> Unit = {},
+    onOpenGame: () -> Unit = {},
+    extras: ChatExtras = ChatExtras(),
+    banner: @Composable () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var drawerOpen by rememberSaveable { mutableStateOf(false) }
@@ -122,6 +114,14 @@ fun ChatScreen(
     val haptics = rememberHainHaptics()
 
     BackHandler(enabled = drawerOpen) { drawerOpen = false }
+    // T-096: a soft double tick when an answer is done, a short "no" on an error; never while streaming
+    var wasGenerating by remember { mutableStateOf(false) }
+    LaunchedEffect(state.isGenerating, state.error) {
+        if (wasGenerating && !state.isGenerating) {
+            if (state.error != null && state.error != ChatError.NO_BRAIN) haptics.error() else haptics.done()
+        }
+        wasGenerating = state.isGenerating
+    }
 
     Box(modifier.fillMaxSize().background(colors.bg)) {
         val chatScale by animateFloatAsState(
@@ -155,6 +155,8 @@ fun ChatScreen(
             if (!state.brainInstalled && !bannerHidden) {
                 BrainBanner(onGet = onGetBrain, onLater = { bannerHidden = true })
             }
+            // T-212: quiet update banner or the one-time "check for updates?" card (from the app)
+            banner()
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 val pageIn = fadeIn(hainTween(HainMotion.PAGE_MS))
                 val pageSlide = slideInVertically(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV }
@@ -165,7 +167,7 @@ fun ChatScreen(
                     label = "chat-start",
                 ) { empty ->
                     if (empty) {
-                        Greeting(onSuggestion = { viewModel.onInputChange(it) })
+                        Greeting(onSuggestion = { viewModel.onInputChange(it) }, onEgg = onOpenGame)
                     } else {
                         val ratings by viewModel.ratings.collectAsStateWithLifecycle()
                         MessageList(
@@ -175,6 +177,7 @@ fun ChatScreen(
                             onEdit = viewModel::startEdit,
                             onRate = viewModel::rate,
                             onAction = viewModel::resolveAction,
+                            extras = extras,
                         )
                     }
                 }
@@ -264,96 +267,6 @@ private fun engineLine(state: ChatUiState): String? =
         else -> null
     }
 
-/**
- * Empty chat (T-011, like Oskar's reference 6): a small glossy Pim, a big light greeting on the
- * left and three suggestion tiles of glass, each with its 3D icon and its own soft light. With the
- * keyboard open there is little room: then Pim gets smaller and the suggestions step aside, so
- * nothing slides under the status bar (2d-2).
- */
-@Composable
-internal fun Greeting(
-    onSuggestion: (String) -> Unit,
-    hour: Int =
-        remember {
-            java.time.LocalTime
-                .now()
-                .hour
-        },
-) {
-    val spacing = LocalHainSpacing.current
-    val colors = LocalHainColors.current
-    val type = LocalHainTypography.current
-    val suggestions =
-        listOf(
-            Triple(stringResource(R.string.chat_suggestion_1), Hain3D.LEAF, GlowHue.MINT),
-            Triple(stringResource(R.string.chat_suggestion_2), Hain3D.RECYCLE, GlowHue.TEAL),
-            Triple(stringResource(R.string.chat_suggestion_4), Hain3D.CALENDAR, GlowHue.PEACH),
-        )
-    val hello =
-        stringResource(
-            when (hour) {
-                in MORNING -> R.string.chat_hello_morning
-                in EVENING_FROM..LAST_HOUR, in 0 until MORNING.first -> R.string.chat_hello_evening
-                else -> R.string.chat_hello_day
-            },
-        )
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val roomy = maxHeight >= ROOMY_HEIGHT.dp
-        Column(
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = spacing.xl, vertical = spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(spacing.md, Alignment.CenterVertically),
-        ) {
-            JuicyPim(PimState.HAPPY, if (roomy) 64.dp else 48.dp)
-            BasicText(
-                "$hello\n" + stringResource(R.string.chat_hello_question),
-                style = type.display.copy(color = colors.text),
-            )
-            if (roomy) {
-                Spacer(Modifier.height(spacing.xs))
-                suggestions.forEach { (text, icon, hue) -> SuggestionTile(text, icon, hue) { onSuggestion(text) } }
-            }
-        }
-    }
-}
-
-/** One suggestion: a glass tile whose colour shines from its 3D icon on the left (T-011). */
-@Composable
-private fun SuggestionTile(
-    text: String,
-    icon: Hain3D,
-    hue: GlowHue,
-    onClick: () -> Unit,
-) {
-    val colors = LocalHainColors.current
-    val spacing = LocalHainSpacing.current
-    val interaction = remember { MutableInteractionSource() }
-    val scale = pressScale(interaction)
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .graphicsLayer {
-                scaleX = scale.value
-                scaleY = scale.value
-            }.glassTile(hue, elevation = 6.dp, lightAt = Offset(x = 0.06f, y = 0.5f))
-            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick)
-            .padding(horizontal = spacing.md, vertical = spacing.md),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Hain3DIcon(icon, size = 32.dp)
-        Spacer(Modifier.width(spacing.md))
-        BasicText(
-            text,
-            style = LocalHainTypography.current.body.copy(color = colors.text),
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
-
 @Suppress("LongMethod", "LongParameterList") // list, follow logic, jump-down button; one callback per action
 @Composable
 internal fun MessageList(
@@ -363,6 +276,7 @@ internal fun MessageList(
     onEdit: (Long) -> Unit,
     onRate: (Long, Rating) -> Unit,
     onAction: (Long, Int, ActionEvent) -> Unit,
+    extras: ChatExtras = ChatExtras(),
 ) {
     val spacing = LocalHainSpacing.current
     val listState = rememberLazyListState()
@@ -383,6 +297,20 @@ internal fun MessageList(
     LaunchedEffect(last?.text?.length, last?.reasoning?.length, last?.steps?.size) {
         if (follow && state.messages.isNotEmpty()) {
             listState.scrollToItem(state.messages.lastIndex, Int.MAX_VALUE / 2)
+        }
+    }
+    // T-089: the answer that just finished gets a happy Pim for two seconds (not after an error or stop)
+    var cheerId by remember { mutableStateOf<Long?>(null) }
+    var wasGenerating by remember { mutableStateOf(state.isGenerating) }
+    LaunchedEffect(state.isGenerating) {
+        val done = wasGenerating && !state.isGenerating
+        wasGenerating = state.isGenerating
+        val answer = state.messages.lastOrNull()
+        val finished = answer != null && !answer.isUser && !answer.stopped
+        if (done && finished && state.error == null) {
+            cheerId = answer.id
+            delay(CHEER_MS)
+            cheerId = null
         }
     }
     val scope = rememberCoroutineScope()
@@ -410,6 +338,9 @@ internal fun MessageList(
                 } else {
                     Answer(
                         message,
+                        cheer = cheerId == message.id,
+                        latest = message.id == last?.id,
+                        extras = extras,
                         rating = ratings[message.id],
                         canRetry = !state.isGenerating,
                         onRetry = { onRetry(message.id) },
@@ -507,7 +438,7 @@ private fun CopyAction(text: String) {
     )
 }
 
-@Suppress("LongParameterList") // one callback per answer action
+@Suppress("LongParameterList", "LongMethod", "CyclomaticComplexMethod") // one callback per answer action
 @Composable
 private fun Answer(
     message: UiMessage,
@@ -516,23 +447,30 @@ private fun Answer(
     onRetry: () -> Unit,
     onRate: (Rating) -> Unit,
     onAction: (Int, ActionEvent) -> Unit = { _, _ -> },
+    cheer: Boolean = false,
+    latest: Boolean = false,
+    extras: ChatExtras = ChatExtras(),
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     Column(Modifier.fillMaxWidth()) {
+        val waiting = message.text.isEmpty() && message.reasoning == null && message.steps.isEmpty()
+        // T-213: a small Pim next to the newest answer; he peeks in while tools run, cheers when done
+        if (latest && !(message.streaming && waiting)) AnswerPim(message, cheer)
         ToolTimeline(message.steps, research = message.research.takeIf { message.streaming })
         val reasoning = message.reasoning
         if (reasoning != null) {
             val title =
                 message.thinkingSeconds?.let { stringResource(R.string.chat_thought_for, it) }
                     ?: stringResource(R.string.chat_thinking)
-            ReasoningBlock(title = title, reasoning = reasoning)
+            // T-211: developer mode can open the raw thinking right away
+            ReasoningBlock(title = title, reasoning = reasoning, initiallyExpanded = extras.rawThinking)
         }
-        val waiting = message.text.isEmpty() && message.reasoning == null && message.steps.isEmpty()
         if (message.streaming && waiting) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Pim(PimState.THINKING, 28.dp)
-                Spacer(Modifier.width(8.dp))
+                // T-089/T-213: a real Pim, 40 dp, the leaf wiggling while he thinks
+                LivePim(PimState.THINKING, THINKING_PIM.dp, tappable = false)
+                Spacer(Modifier.width(12.dp))
                 BasicText(stringResource(R.string.chat_thinking), style = type.bodySmall.copy(color = colors.textMuted))
             }
         } else {
@@ -552,7 +490,92 @@ private fun Answer(
             if (message.stopped) {
                 BasicText(stringResource(R.string.chat_stopped), style = type.label.copy(color = colors.textMuted))
             }
+            // T-211: speed under the answer in developer mode
+            val stats = message.stats
+            if (extras.showStats && stats != null && !message.streaming) AnswerStats(stats, extras.debugInfo(stats))
         }
+    }
+}
+
+/**
+ * T-213: Pim, 24 dp, at the newest answer. While tools run he peeks in from the side (searching);
+ * when the answer is done he is happy for a moment ([cheer]); on a failed answer he gets a fright.
+ * With "reduce motion" he simply sits there in his mood.
+ */
+@Composable
+private fun AnswerPim(
+    message: UiMessage,
+    cheer: Boolean,
+) {
+    val colors = LocalHainColors.current
+    val type = LocalHainTypography.current
+    val reduce = LocalReduceMotion.current
+    val tooling = message.streaming && message.text.isEmpty() && message.steps.any { it.state == StepState.RUNNING }
+    val mood = answerPimMood(message, cheer, tooling)
+    val peek by animateFloatAsState(
+        if (tooling && !reduce) 1f else 0f,
+        hainTween(HainMotion.PAGE_MS, reduce),
+        label = "pim-peek",
+    )
+    Row(
+        Modifier.padding(bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        LivePim(
+            mood,
+            AVATAR_PIM.dp,
+            Modifier.graphicsLayer {
+                // a calm peek: leans in from the left and tilts a little
+                translationX = if (tooling && !reduce) -PEEK_SHIFT * size.width * (1f - peek) else 0f
+                rotationZ = PEEK_TILT * peek
+            },
+            tappable = false,
+        )
+        if (tooling) {
+            Spacer(Modifier.width(8.dp))
+            BasicText(stringResource(R.string.chat_pim_looking), style = type.label.copy(color = colors.textMuted))
+        }
+    }
+}
+
+/** Pim's mood at the newest answer (T-213): fright on failure, joy when done, thinking while busy. */
+internal fun answerPimMood(
+    message: UiMessage,
+    cheer: Boolean,
+    tooling: Boolean,
+): PimState =
+    when {
+        message.failed -> PimState.ERROR
+        cheer -> PimState.HAPPY
+        tooling || message.streaming -> PimState.THINKING
+        else -> PimState.IDLE
+    }
+
+/** T-211: "21.4 Token/s · erstes Token nach 0.8 s" and a button that copies the debug line. */
+@Composable
+private fun AnswerStats(
+    stats: GenerationStats,
+    debug: String,
+) {
+    val colors = LocalHainColors.current
+    val clipboard = LocalClipboardManager.current
+    val line =
+        stringResource(
+            R.string.chat_dev_stats,
+            "%.1f".format(stats.tokensPerSecond),
+            "%.1f".format(stats.firstTokenMs / MS_PER_S),
+        )
+    Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        BasicText(line, style = LocalHainTypography.current.label.copy(color = colors.textMuted))
+        Spacer(Modifier.width(LocalHainSpacing.current.sm))
+        BasicText(
+            stringResource(R.string.chat_dev_copy_debug),
+            style = LocalHainTypography.current.label.copy(color = colors.accent),
+            modifier =
+                Modifier
+                    .clickable(role = Role.Button) { clipboard.setText(AnnotatedString(debug)) }
+                    .padding(vertical = 4.dp),
+        )
     }
 }
 
@@ -627,11 +650,15 @@ private fun ErrorLine(
             ChatError.CONTEXT_FULL -> stringResource(R.string.chat_error_context)
             else -> stringResource(R.string.chat_error_generation)
         }
-    BasicText(
-        text,
-        style = LocalHainTypography.current.bodySmall.copy(color = colors.danger),
-        modifier = Modifier.padding(horizontal = LocalHainSpacing.current.lg),
-    )
+    // T-089: Pim gets a fright next to the error
+    Row(
+        Modifier.padding(horizontal = LocalHainSpacing.current.lg),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        LivePim(PimState.ERROR, ERROR_PIM.dp, tappable = false)
+        Spacer(Modifier.width(LocalHainSpacing.current.sm))
+        BasicText(text, style = LocalHainTypography.current.bodySmall.copy(color = colors.danger))
+    }
 }
 
 /** Quiet reminder while the brain is missing: one line, a button, "later" hides it until next start. */
@@ -651,7 +678,7 @@ private fun BrainBanner(
             .padding(start = spacing.md, top = spacing.sm, bottom = spacing.sm, end = spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Pim(PimState.SLEEPING, 32.dp)
+        LivePim(PimState.SLEEPING, 32.dp, tappable = false)
         Spacer(Modifier.width(spacing.sm))
         BasicText(
             stringResource(R.string.chat_brain_banner),
@@ -697,13 +724,14 @@ private fun EditBar(onCancel: () -> Unit) {
 
 private const val OPEN_SCALE = 0.94f
 private const val QUARTER_TURN = 90f
-private const val MORNING_FROM = 5
-private const val MORNING_TO = 10
-private val MORNING = MORNING_FROM..MORNING_TO
-private const val EVENING_FROM = 18
-private const val LAST_HOUR = 23
 private const val PERCENT = 100
-private const val ROOMY_HEIGHT = 420
 private const val COPIED_MS = 1500L
 
 private const val SLIDE_DIV = 14
+private const val CHEER_MS = 2_200L
+private const val ERROR_PIM = 32
+private const val THINKING_PIM = 40
+private const val AVATAR_PIM = 24
+private const val PEEK_SHIFT = 0.6f
+private const val PEEK_TILT = -8f
+private const val MS_PER_S = 1000f

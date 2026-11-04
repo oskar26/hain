@@ -144,4 +144,23 @@ class ChatEngineTest {
     }
 
     private fun user(text: String) = listOf(ChatMessage(Role.USER, text))
+
+    @Test
+    fun answerWithoutToolsLosesFakeCitationsLiveAndAtTheEnd() =
+        runTest {
+            // T-220, Oskar's phone: no tool ran, yet the brain wrote "[1]", a source line and tool talk
+            val llm =
+                FakeLlm(
+                    listOf(
+                        "**Fakt:** Eichen werden 200+ Jahre alt [1].",
+                        "\n\n[1] Wikipedia (falls verfügbar) – hier kein aktuelles Werkzeug nötig für die Frage.",
+                        "\n\nKurz gesagt: sehr alt.",
+                    ),
+                )
+            val updates = ChatEngine(llm, { "SYS" }).respond(user("Wie alt werden Bäume?"), AnswerMode.FAST).toList()
+            val last = updates.last() as TurnUpdate.Finished
+            assertEquals("Eichen werden 200+ Jahre alt.\n\nKurz gesagt: sehr alt.", last.output.text)
+            val live = updates.filterIsInstance<TurnUpdate.Streaming>().map { it.text }
+            assertTrue(live.none { it.contains("[1]") || it.contains("Fakt:") || it.contains("Werkzeug") })
+        }
 }

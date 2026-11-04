@@ -4,13 +4,16 @@ import app.hain.common.api.net.GateRequest
 import app.hain.common.api.net.GateResponse
 import app.hain.common.api.net.NetworkGate
 import app.hain.common.api.net.NetworkLogEntry
+import app.hain.common.api.net.NetworkLogStore
 import app.hain.common.api.net.OfflineException
 import app.hain.common.api.net.Purpose
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -28,17 +31,32 @@ fun interface Transport {
  * logs host, purpose and size (full address only with [detailedLog]) and keeps the log 7 days.
  * Only https addresses pass.
  */
+@Suppress("LongParameterList") // every parameter is an injectable seam with a default
 class HttpNetworkGate(
     private val offline: () -> Boolean = { false },
     private val detailedLog: () -> Boolean = { false },
     private val userAgent: String = DEFAULT_USER_AGENT,
     private val clock: () -> Long = System::currentTimeMillis,
     private val transport: Transport = UrlConnectionTransport(),
+    private val store: NetworkLogStore? = null,
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : NetworkGate {
     private val entries = MutableStateFlow<List<NetworkLogEntry>>(emptyList())
     private val running = MutableStateFlow(0)
     override val log: StateFlow<List<NetworkLogEntry>> = entries.asStateFlow()
     override val active: StateFlow<Int> = running.asStateFlow()
+
+    init {
+        store?.let { saved ->
+            scope.launch {
+                runCatching {
+                    saved.prune(clock() - KEEP_MS)
+                    val old = saved.load(clock() - KEEP_MS)
+                    entries.update { fresh -> (fresh + old).sortedByDescending { it.at }.take(MAX_ENTRIES) }
+                }
+            }
+        }
+    }
 
     override suspend fun fetch(request: GateRequest): GateResponse {
         val uri = runCatching { URI(request.url) }.getOrNull()
@@ -70,6 +88,7 @@ class HttpNetworkGate(
 
     override fun clearLog() {
         entries.value = emptyList()
+        store?.let { scope.launch { runCatching { it.clear() } } }
     }
 
     private fun record(
@@ -80,6 +99,7 @@ class HttpNetworkGate(
     ) {
         val now = clock()
         val entry = NetworkLogEntry(now, host, request.purpose, bytes, code, request.url.takeIf { detailedLog() })
+        store?.let { scope.launch { runCatching { it.append(entry) } } }
         entries.update { list -> (listOf(entry) + list.filter { now - it.at < KEEP_MS }).take(MAX_ENTRIES) }
     }
 

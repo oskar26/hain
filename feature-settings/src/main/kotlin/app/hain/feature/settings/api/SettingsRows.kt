@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import app.hain.ui.components.HainSwitch
 import app.hain.ui.components.SegmentedControl
+import app.hain.ui.motion.rememberHainHaptics
 import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
@@ -45,6 +46,8 @@ internal fun <T> Choice(
     selected: T,
     options: List<Pair<T, Int>>,
     onSelect: (T) -> Unit,
+    /** Plain labels (e.g. numbers) instead of the string resources in [options]. */
+    labels: List<String>? = null,
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
@@ -52,7 +55,7 @@ internal fun <T> Choice(
         BasicText(stringResource(label), style = type.body.copy(color = colors.text))
         // one shared either-or control for the whole app (T-010)
         SegmentedControl(
-            options = options.map { stringResource(it.second) },
+            options = labels ?: options.map { stringResource(it.second) },
             selected = options.indexOfFirst { it.first == selected }.coerceAtLeast(0),
             onSelect = { onSelect(options[it].first) },
         )
@@ -68,12 +71,15 @@ internal fun Toggle(
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
+    val haptics = rememberHainHaptics()
     Row(
         Modifier
             .fillMaxWidth()
             .clip(LocalHainShapes.current.row)
-            .toggleable(value = checked, role = Role.Switch, onValueChange = onChange)
-            .padding(vertical = LocalHainSpacing.current.sm),
+            .toggleable(value = checked, role = Role.Switch) {
+                haptics.toggle()
+                onChange(it)
+            }.padding(vertical = LocalHainSpacing.current.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f).padding(end = LocalHainSpacing.current.md)) {

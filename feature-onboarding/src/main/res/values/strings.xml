@@ -30,4 +30,12 @@
     <string name="tour_go">Let\'s go</string>
     <string name="onboarding_skip">Later – look around first</string>
     <string name="onboarding_background">Keep loading in the background</string>
+    <string name="language_title">Choose your language</string>
+    <string name="language_body">You can change it later in the settings.</string>
+    <string name="icon_step_title">Pick your icon</string>
+    <string name="icon_step_body">How should Pim look on your home screen? You can change it later in Settings → Look.</string>
+    <string name="icon_step_3d">3D</string>
+    <string name="icon_step_flat">Flat</string>
+    <string name="icon_step_next">Next</string>
+    <string name="icon_step_hint">The new icon shows up once you leave Hain. Your home screen may need a few seconds.</string>
 </resources>

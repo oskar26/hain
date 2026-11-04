@@ -12,12 +12,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.hain.common.api.AnswerLanguage
 import app.hain.common.api.AnswerMode
+import app.hain.common.api.AppIcon
 import app.hain.common.api.HainSettings
+import app.hain.common.api.HapticStrength
 import app.hain.common.api.SearxAddress
 import app.hain.common.api.ThemeChoice
-import app.hain.common.api.UiStyle
 import app.hain.common.api.net.NetworkLogEntry
 import app.hain.feature.settings.R
+import app.hain.ui.components.AppIconPicker
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
@@ -30,6 +32,7 @@ internal fun SettingsPageContent(
     settings: HainSettings,
     actions: SettingsActions,
     networkLog: List<NetworkLogEntry> = emptyList(),
+    extras: SettingsExtras = SettingsExtras(),
 ) {
     when (page) {
         SettingsPage.LOOK -> {
@@ -43,15 +46,30 @@ internal fun SettingsPageContent(
                 ),
                 actions.onTheme,
             )
-            Choice(
-                R.string.settings_ui_style,
-                settings.uiStyle,
-                listOf(
-                    UiStyle.A to R.string.settings_ui_style_a,
-                    UiStyle.B to R.string.settings_ui_style_b,
-                ),
-                actions.onUiStyle,
+            // T-103: launcher icon "Pim im Wald", 3D or flat
+            BasicText(
+                stringResource(R.string.settings_app_icon),
+                style = LocalHainTypography.current.body.copy(color = LocalHainColors.current.text),
             )
+            AppIconPicker(
+                flat = settings.appIcon == AppIcon.FLAT,
+                label3d = stringResource(R.string.settings_app_icon_3d),
+                labelFlat = stringResource(R.string.settings_app_icon_flat),
+                onSelect = { flat -> actions.onAppIcon(if (flat) AppIcon.FLAT else AppIcon.THREE_D) },
+            )
+            Info(R.string.settings_app_icon_hint)
+            Choice(
+                R.string.settings_haptics,
+                settings.haptics,
+                listOf(
+                    HapticStrength.OFF to R.string.settings_haptics_off,
+                    HapticStrength.SUBTLE to R.string.settings_haptics_subtle,
+                    HapticStrength.NORMAL to R.string.settings_haptics_normal,
+                    HapticStrength.STRONG to R.string.settings_haptics_strong,
+                ),
+                actions.onHaptics,
+            )
+            Info(R.string.settings_haptics_hint)
             Toggle(
                 R.string.settings_readable,
                 R.string.settings_readable_hint,
@@ -115,7 +133,8 @@ internal fun SettingsPageContent(
             SearxSetting(settings.searxUrl, actions.onSearxUrl)
             NetworkLogSection(networkLog, settings.networkLogDetail, actions)
         }
-        SettingsPage.ABOUT -> Info(R.string.settings_about_text)
+        SettingsPage.ABOUT -> AboutPage(settings, actions, extras.appInfo, extras.updateStatus)
+        SettingsPage.DEVELOPER -> DeveloperPage(settings.dev, actions, extras.devModels)
     }
 }
 
@@ -144,7 +163,7 @@ private fun SearxSetting(
 }
 
 @Composable
-private fun Info(text: Int) {
+internal fun Info(text: Int) {
     BasicText(
         stringResource(text),
         style = LocalHainTypography.current.bodySmall.copy(color = LocalHainColors.current.text),
