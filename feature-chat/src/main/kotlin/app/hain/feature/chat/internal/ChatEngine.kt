@@ -185,9 +185,10 @@ class ChatEngine(
                             listOfNotNull(earlier.ifBlank { null }, result.output.reasoning?.ifBlank { null })
                                 .joinToString("\n\n")
                                 .ifBlank { null }
+                        // T-220: no [1] without a source, no tool talk, no "Fakt:" label
                         emit(
                             TurnUpdate.Finished(
-                                result.output.copy(reasoning = reasoning),
+                                result.output.copy(reasoning = reasoning, text = cleaned(result.output.text, turn)),
                                 result.reason,
                                 if (thinking) turn.thinkingMs else null,
                                 turn.steps.toList(),
@@ -525,7 +526,7 @@ class ChatEngine(
                         if (text.isNotEmpty()) turn.textStarted = true
                         val steps = turn.steps + listOfNotNull(pending)
                         val shown = (earlier + reasoning).trim()
-                        emit(TurnUpdate.Streaming(shown, text.toString(), thinking, steps, clockOf(turn)))
+                        emit(TurnUpdate.Streaming(shown, cleaned(text, turn), thinking, steps, clockOf(turn)))
                     }
                     is GenerationEvent.Done -> reason = event.reason
                 }
@@ -547,6 +548,12 @@ class ChatEngine(
             }
         return RoundResult(output, reason, thoughtFor)
     }
+
+    /** The live text without fake citations (T-220): only markers for sources of this turn. */
+    private fun cleaned(
+        text: CharSequence,
+        turn: Turn,
+    ): String = CitationCleaner.clean(text.toString(), turn.sources.size)
 
     /** "12*7" → answered by the calculator right away (TOOLS.md §5). */
     @Suppress("ReturnCount")
