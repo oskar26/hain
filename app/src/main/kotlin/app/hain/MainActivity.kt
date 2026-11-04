@@ -93,6 +93,7 @@ import app.hain.models.api.DownloadState
 import app.hain.models.api.Fit
 import app.hain.models.api.ModelInfo
 import app.hain.models.api.ModelRepository
+import app.hain.tools.api.Favicons
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.ToolContext
 import app.hain.tools.internal.news.NewsRepository
@@ -175,6 +176,7 @@ class MainActivity : FragmentActivity() {
             onSearxUrl = { write { repo.setSearxUrl(it) } },
             onConfirmActions = { write { repo.setConfirmActions(it) } },
             onWebSearch = { write { repo.setWebSearch(it) } },
+            onSourceIcons = { write { repo.setSourceIcons(it) } },
             onWeatherLocation = { on ->
                 if (on && !WeatherLocation.allowed(this)) {
                     locationPermission.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -303,6 +305,9 @@ class MainActivity : FragmentActivity() {
     private val brainPath: () -> String? = {
         ownModelPath() ?: brainPicking.path().takeIf { models.isInstalled(brainPicking.active()) }
     }
+
+    /** T-064c: site icons for the source chips, through the gate, kept in the app's cache folder. */
+    private val favicons by lazy { Favicons(networkGate, File(cacheDir, "favicons")) }
 
     /** T-211: own models from Hugging Face for developer mode. */
     private val devModels by lazy { DevModels(models, networkGate, deviceRamGb()) }
@@ -542,6 +547,7 @@ class MainActivity : FragmentActivity() {
                                         confirmActions = settings.confirmActions,
                                         // 7b: "Gemerkt ✓ · Rückgängig" and "3 Erinnerungen genutzt" under answers
                                         answerFooter = { userMessages -> MemoryAnswerChips(memoryTurn, userMessages) },
+                                        favicons = if (settings.sourceIcons) favicons else null,
                                         debugInfo = { stats ->
                                             val model = File(brainPicking.path()).name
                                             DevTuning.debugLine(model, current.dev, stats)

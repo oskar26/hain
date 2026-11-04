@@ -32,6 +32,7 @@ class SettingsRepository(
                 confirmActions = p[CONFIRM_ACTIONS] ?: true,
                 webSearch = p[WEB_SEARCH].toEnum(WebSearch.ON),
                 weatherLocation = p[WEATHER_LOCATION] ?: false,
+                sourceIcons = p[SOURCE_ICONS] ?: true,
                 haptics = p[HAPTICS].toEnum(HapticStrength.SUBTLE),
                 appIcon = p[APP_ICON].toEnum(AppIcon.THREE_D),
                 game2048Best = p[GAME_2048_BEST] ?: 0,
@@ -129,6 +130,8 @@ class SettingsRepository(
 
     suspend fun setWeatherLocation(value: Boolean) = store.edit { it[WEATHER_LOCATION] = value }
 
+    suspend fun setSourceIcons(value: Boolean) = store.edit { it[SOURCE_ICONS] = value }
+
     suspend fun setHaptics(value: HapticStrength) = store.edit { it[HAPTICS] = value.name }
 
     suspend fun setAppIcon(value: AppIcon) = store.edit { it[APP_ICON] = value.name }
@@ -182,6 +185,7 @@ class SettingsRepository(
         val CONFIRM_ACTIONS = booleanPreferencesKey("confirm_actions")
         val WEB_SEARCH = stringPreferencesKey("web_search")
         val WEATHER_LOCATION = booleanPreferencesKey("weather_location")
+        val SOURCE_ICONS = booleanPreferencesKey("source_icons")
         val HAPTICS = stringPreferencesKey("haptics")
         val GAME_2048_BEST = intPreferencesKey("game_2048_best")
         val APP_ICON = stringPreferencesKey("app_icon")

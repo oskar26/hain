@@ -49,6 +49,8 @@ internal object NativeLlm {
         cutBytes: IntArray,
         params: FloatArray,
         grammar: String?,
+        /** T-133: GBNF used only inside ```card blocks (card.gbnf), `null` = off. */
+        cardGrammar: String?,
         cb: TokenCallback,
     ): Int
 

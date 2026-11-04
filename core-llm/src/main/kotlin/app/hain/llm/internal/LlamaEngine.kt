@@ -46,6 +46,17 @@ class LlamaEngine(
     @Volatile private var cancelledUpTo = 0
     private var initialized = false
 
+    /**
+     * T-133: the card grammar from :core-cards (`assets/card.gbnf`, merged into the app's assets). The
+     * native loop switches it on only after a line "```card" and off after the closing "```"; `null`
+     * when the file is missing, then cards are read leniently as before.
+     */
+    private val cardGrammar: String? by lazy {
+        runCatching { context.assets.open(CARD_GRAMMAR).use { it.readBytes().decodeToString() } }
+            .getOrNull()
+            ?.takeIf { it.isNotBlank() }
+    }
+
     override val isAvailable: Boolean get() = NativeLlm.loadError == null
 
     override suspend fun load(
@@ -126,6 +137,8 @@ class LlamaEngine(
                     byteOffsets(prompt, checkpoints),
                     params.toArray(),
                     params.grammar,
+                    // T-133 cards only in free text; a whole-answer grammar (T-114 memory JSON) wins
+                    if (params.grammar == null) cardGrammar else null,
                 ) { bytes ->
                     if (first) {
                         first = false
@@ -216,6 +229,7 @@ class LlamaEngine(
 
     private companion object {
         const val TAG = "HainLlm"
+        const val CARD_GRAMMAR = "card.gbnf"
         const val MAX_THREADS = 6
         const val PROGRESS_STEP = 0.02f
         const val STAT_PROMPT = 1

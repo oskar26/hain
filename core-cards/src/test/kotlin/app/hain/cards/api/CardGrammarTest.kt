@@ -42,6 +42,8 @@ class CardGrammarTest {
                 "Table\n| Stadt | Grad |\n| Köln | 9 |\nProgress value=40 label=\"Woche\"\n" to 2,
                 "List\n- eins\n- zwei\nButton label=\"Mehr\" action=ask:\"Und dann?\"\n" +
                     "Button label=\"T\" action=share\n" to 3,
+                "Chart type=bar title=\"Schlaf\" unit=\"h\"\n- Mo: 7.5\n- Di: 6\n" +
+                    "Chart type=line\n- 9 Uhr: -2\n- 12 Uhr: 4\n" to 2,
             )
         samples.forEach { (body, blocks) -> assertEquals(body, blocks, CardParser.parse(body)!!.blocks.size) }
     }

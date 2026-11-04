@@ -127,6 +127,7 @@ private fun purposeLabel(purpose: Purpose): Int =
         Purpose.NEWS -> R.string.settings_log_news
         Purpose.MODEL_DOWNLOAD -> R.string.settings_log_download
         Purpose.UPDATE -> R.string.settings_log_update
+        Purpose.IMAGES -> R.string.settings_log_images
         else -> R.string.settings_log_other
     }
 

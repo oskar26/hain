@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "e481954700c1fad62873c1a4eb4599b1",
+    "identityHash": "5d64d83ce692a4644d6df8c1f85cba5e",
     "entities": [
       {
         "tableName": "chat",
@@ -76,7 +76,7 @@
       },
       {
         "tableName": "message",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `chat_id` INTEGER NOT NULL, `role` TEXT NOT NULL, `content` TEXT NOT NULL, `reasoning` TEXT, `tool_calls_json` TEXT, `tool_call_id` TEXT, `cards_json` TEXT, `sources_json` TEXT, `attachments_json` TEXT, `created_at` INTEGER NOT NULL, `tokens` INTEGER, `parent_id` INTEGER, `thinking_ms` INTEGER, `status` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`chat_id`) REFERENCES `chat`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `chat_id` INTEGER NOT NULL, `role` TEXT NOT NULL, `content` TEXT NOT NULL, `reasoning` TEXT, `tool_calls_json` TEXT, `tool_call_id` TEXT, `cards_json` TEXT, `sources_json` TEXT, `attachments_json` TEXT, `created_at` INTEGER NOT NULL, `tokens` INTEGER, `parent_id` INTEGER, `thinking_ms` INTEGER, `status` TEXT NOT NULL, `selected_at` INTEGER, PRIMARY KEY(`id`), FOREIGN KEY(`chat_id`) REFERENCES `chat`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -158,6 +158,11 @@
             "columnName": "status",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "selectedAt",
+            "columnName": "selected_at",
+            "affinity": "INTEGER"
           }
         ],
         "primaryKey": {
@@ -548,7 +553,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e481954700c1fad62873c1a4eb4599b1')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5d64d83ce692a4644d6df8c1f85cba5e')"
     ]
   }
 }

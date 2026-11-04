@@ -35,6 +35,8 @@ class SettingsActions(
     val onWebSearch: (WebSearch) -> Unit = {},
     /** Location for the weather on/off; on asks Android for the permission first (3b-2). */
     val onWeatherLocation: (Boolean) -> Unit = {},
+    /** Site icons at the source chips on/off (T-064c). */
+    val onSourceIcons: (Boolean) -> Unit = {},
     val onHaptics: (HapticStrength) -> Unit = {},
     val onAppIcon: (AppIcon) -> Unit = {},
     /** Developer mode on/off and all its values at once (T-211). */

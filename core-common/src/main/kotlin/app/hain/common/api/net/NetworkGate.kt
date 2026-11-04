@@ -3,8 +3,11 @@ package app.hain.common.api.net
 import kotlinx.coroutines.flow.StateFlow
 import java.io.IOException
 
-/** Why Hain goes online (TOOLS.md §1). Shown in the network log. */
-enum class Purpose { SEARCH, NEWS, WEATHER, WIKI, GEO, PAGE_READ, MODEL_DOWNLOAD, UPDATE, OTHER }
+/**
+ * Why Hain goes online (TOOLS.md §1). Shown in the network log. [IMAGES] = the small site icons at
+ * the source chips (T-064c, "Quellen-Bilder").
+ */
+enum class Purpose { SEARCH, NEWS, WEATHER, WIKI, GEO, PAGE_READ, MODEL_DOWNLOAD, UPDATE, IMAGES, OTHER }
 
 /**
  * One outbound request. [userStarted] marks a request the user asked for directly (a model
