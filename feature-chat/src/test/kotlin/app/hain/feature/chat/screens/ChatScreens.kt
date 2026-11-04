@@ -225,6 +225,8 @@ internal fun ChatFrame(
     state: ChatUiState,
     mode: AnswerMode = AnswerMode.AUTO,
     texts: ShotTexts = ShotTexts.DE,
+    /** T-235: no menu button when the chat list stays open on the left. */
+    menu: Boolean = true,
 ) {
     // T-230/T-232: the same frosted frame as the app (top bar and message box over the chat)
     val glass = rememberHainGlassState()
@@ -237,7 +239,7 @@ internal fun ChatFrame(
                     title = "Hain",
                     subtitle = texts.subtitle,
                     onTitleClick = {},
-                    leading = { HainIconButton(HainIcons.menu, texts.menu, {}) },
+                    leading = { if (menu) HainIconButton(HainIcons.menu, texts.menu, {}) },
                     trailing = {
                         HainIconButton(HainIcons.share, texts.menu, {})
                         HainIconButton(HainIcons.plus, texts.newChat, {})

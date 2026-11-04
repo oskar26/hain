@@ -64,5 +64,5 @@ private fun WideChat(state: ChatUiState) {
         currentChatId = 2,
         actions = DrawerActions({}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}, onNews = {}),
     )
-    Box(Modifier.fillMaxSize().padding(start = ChatSidePanelWidth)) { ChatFrame(state) }
+    Box(Modifier.fillMaxSize().padding(start = ChatSidePanelWidth)) { ChatFrame(state, menu = false) }
 }

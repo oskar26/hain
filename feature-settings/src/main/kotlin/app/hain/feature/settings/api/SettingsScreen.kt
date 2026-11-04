@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
@@ -162,7 +163,10 @@ private fun SettingsListDetail(
             Column(
                 Modifier
                     .weight(1f)
+                    .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
+                    // T-238: the page stays readable and sits in the middle of the free space
+                    .wrapContentWidth(Alignment.CenterHorizontally)
                     .padding(horizontal = spacing.xl)
                     .widthIn(max = DETAIL_MAX_WIDTH.dp),
                 verticalArrangement = Arrangement.spacedBy(spacing.md),

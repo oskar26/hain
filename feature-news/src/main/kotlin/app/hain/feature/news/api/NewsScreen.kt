@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -352,15 +353,26 @@ private fun SummaryPart(
     }
 }
 
-/** Quiet green text button ("Zusammenfassen", "Im Browser öffnen"). */
+/**
+ * Quiet green text button ("Zusammenfassen", "Im Browser öffnen"). T-238: the text stays small, the
+ * touch target is 48 dp high and at least 48 dp wide.
+ */
 @Composable
 internal fun TextAction(
     text: String,
     onClick: () -> Unit,
 ) {
-    BasicText(
-        text,
-        style = LocalHainTypography.current.label.copy(color = LocalHainColors.current.accent),
-        modifier = Modifier.clickable(role = Role.Button, onClick = onClick).padding(vertical = 6.dp),
-    )
+    Box(
+        Modifier
+            .defaultMinSize(minWidth = TOUCH_MIN.dp, minHeight = TOUCH_MIN.dp)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        BasicText(
+            text,
+            style = LocalHainTypography.current.label.copy(color = LocalHainColors.current.accent),
+        )
+    }
 }
+
+private const val TOUCH_MIN = 48
