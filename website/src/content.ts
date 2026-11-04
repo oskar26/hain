@@ -12,14 +12,15 @@ export const LINKS = {
   license: 'https://github.com/oskar26/hain/blob/main/LICENSE',
   concept: 'https://github.com/oskar26/hain/blob/main/docs/concept/KONZEPT.md',
   roadmap: 'https://github.com/oskar26/hain/blob/main/docs/workflow/ROADMAP.md',
+  trademarks: 'https://github.com/oskar26/hain/blob/main/TRADEMARKS.md',
 }
 
 export type Status = 'ready' | 'soon'
 
 type Copy = {
   meta: { switchTo: string; switchLabel: string }
-  nav: { why: string; features: string; how: string; privacy: string; faq: string; download: string; menu: string; close: string }
-  hero: { badge: string; title: [string, string, string]; sub: string; cta: string; ctaHelp: string; note: string; pimAlt: string }
+  nav: { why: string; features: string; how: string; privacy: string; faq: string; download: string; menu: string; close: string; mainLabel: string; mobileLabel: string }
+  hero: { badge: string; title: [string, string, string]; sub: string; cta: string; ctaHelp: string; note: string; pimAlt: string; iconAlt: string }
   marquee: string[]
   why: { kicker: string; title: string; sub: string; items: { title: string; text: string }[] }
   status: Record<Status, string>
@@ -44,13 +45,13 @@ type Copy = {
   faq: { kicker: string; title: string; items: { q: string; a: string }[] }
   join: { kicker: string; title: string; sub: string; items: { title: string; text: string; cta: string; href: string }[] }
   ai: { title: string; text: string }
-  footer: { tagline: string; source: string; license: string; imprint: string; imprintNote: string; noCookies: string }
+  footer: { tagline: string; source: string; license: string; imprint: string; imprintNote: string; noCookies: string; issues: string; concept: string; trademarks: string; support: string; soon: string }
 }
 
 export const COPY: Record<Lang, Copy> = {
   en: {
     meta: { switchTo: 'Deutsch', switchLabel: 'Diese Seite auf Deutsch' },
-    nav: { why: 'Why Hain', features: 'Features', how: 'Install', privacy: 'Privacy', faq: 'FAQ', download: 'Download', menu: 'Open menu', close: 'Close menu' },
+    nav: { why: 'Why Hain', features: 'Features', how: 'Install', privacy: 'Privacy', faq: 'FAQ', download: 'Download', menu: 'Open menu', close: 'Close menu', mainLabel: 'Main', mobileLabel: 'Menu' },
     hero: {
       badge: 'Alpha · in development',
       title: ['Your AI.', 'Your phone.', 'Nobody else.'],
@@ -58,7 +59,8 @@ export const COPY: Record<Lang, Copy> = {
       cta: 'Download for Android',
       ctaHelp: 'How to install',
       note: 'Free · Open source · Android 10 or newer',
-      pimAlt: 'Pim, the little green mascot of Hain',
+      pimAlt: 'Hain’s start page: Pim says hello and suggests a few questions',
+      iconAlt: 'Hain app icon: Pim, a glossy green glass figure, in a soft forest',
     },
     marquee: ['No account', 'No cloud', 'No ads', 'No tracking', 'No Google services', 'Works offline', 'Open source', 'Free', 'German & English'],
     why: {
@@ -217,12 +219,17 @@ export const COPY: Record<Lang, Copy> = {
       imprint: 'Imprint',
       imprintNote: 'Imprint coming soon',
       noCookies: 'This website uses no cookies and no tracking.',
+      issues: 'Report a problem',
+      concept: 'Concept (German)',
+      trademarks: 'Trademarks',
+      support: 'Support Hain',
+      soon: 'coming soon',
     },
   },
 
   de: {
     meta: { switchTo: 'English', switchLabel: 'This page in English' },
-    nav: { why: 'Warum Hain', features: 'Funktionen', how: 'Installieren', privacy: 'Datenschutz', faq: 'Fragen', download: 'Laden', menu: 'Menü öffnen', close: 'Menü schließen' },
+    nav: { why: 'Warum Hain', features: 'Funktionen', how: 'Installieren', privacy: 'Datenschutz', faq: 'Fragen', download: 'Laden', menu: 'Menü öffnen', close: 'Menü schließen', mainLabel: 'Hauptnavigation', mobileLabel: 'Menü' },
     hero: {
       badge: 'Alpha · in Entwicklung',
       title: ['Deine KI.', 'Dein Handy.', 'Sonst niemand.'],
@@ -230,7 +237,8 @@ export const COPY: Record<Lang, Copy> = {
       cta: 'Für Android laden',
       ctaHelp: 'So installierst du Hain',
       note: 'Kostenlos · Open Source · ab Android 10',
-      pimAlt: 'Pim, das kleine grüne Maskottchen von Hain',
+      pimAlt: 'Startseite von Hain: Pim sagt Hallo und schlägt ein paar Fragen vor',
+      iconAlt: 'App-Symbol von Hain: Pim, eine glänzende grüne Glasfigur, in einem weichen Wald',
     },
     marquee: ['Kein Konto', 'Keine Cloud', 'Keine Werbung', 'Kein Tracking', 'Keine Google-Dienste', 'Läuft offline', 'Open Source', 'Kostenlos', 'Deutsch & Englisch'],
     why: {
@@ -389,6 +397,11 @@ export const COPY: Record<Lang, Copy> = {
       imprint: 'Impressum',
       imprintNote: 'Impressum folgt',
       noCookies: 'Diese Website nutzt keine Cookies und kein Tracking.',
+      issues: 'Problem melden',
+      concept: 'Konzept',
+      trademarks: 'Marke',
+      support: 'Hain unterstützen',
+      soon: 'kommt bald',
     },
   },
 }
@@ -397,3 +410,14 @@ export const COPY: Record<Lang, Copy> = {
 // Each has a light and a dark file in public/screenshots/: <id>-light.webp, <id>-dark.webp.
 // The page shows the one matching the visitor's colour scheme.
 export const SCREENSHOTS: string[] = ['onboarding', 'chat_empty', 'chat_composer_picker', 'chat_long_answer', 'drawer', 'settings']
+
+// Pixel size of each screenshot (light and dark are the same). They are cropped to where the app
+// content ends (T-105): no empty bottom strip, and the short settings page ends after its last row.
+export const SHOT_SIZE: Record<string, [number, number]> = {
+  onboarding: [720, 1548],
+  chat_empty: [720, 1548],
+  chat_composer_picker: [720, 1548],
+  chat_long_answer: [720, 1548],
+  drawer: [720, 1548],
+  settings: [720, 1008],
+}

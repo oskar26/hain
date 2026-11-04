@@ -1,6 +1,6 @@
 import type React from 'react'
 import { Download, Menu, X, ArrowDown, Languages, Check } from 'lucide-react'
-import { COPY, LINKS, type Lang } from '../content'
+import { COPY, LINKS, SHOT_SIZE, type Lang } from '../content'
 import { AppIcon, BASE, Container, GitHubIcon } from './ui'
 
 export function Nav({ lang }: { lang: Lang }) {
@@ -14,40 +14,42 @@ export function Nav({ lang }: { lang: Lang }) {
   ] as const
   const other = lang === 'en' ? `${BASE}de/` : BASE
   return (
-    <header data-nav className="fixed inset-x-0 top-0 z-50 border-b border-transparent transition-colors duration-300 data-[scrolled]:border-line data-[scrolled]:bg-bg/80 data-[scrolled]:backdrop-blur-xl">
-      <Container className="flex h-16 items-center justify-between gap-4">
+    <header data-nav className="site-nav fixed inset-x-0 top-0 z-50">
+      {/* T-105: background, blur, hairline and shadow fade in softly as one layer (see .nav-bg in styles.css) */}
+      <div className="nav-bg" aria-hidden />
+      <Container className="nav-row relative flex items-center justify-between gap-4">
         <a href="#top" className="flex items-center gap-2.5 font-medium tracking-tight" aria-label="Hain">
           <AppIcon size={32} eager />
           <span className="text-lg">Hain</span>
         </a>
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
+        <nav className="hidden items-center gap-1 lg:flex" aria-label={t.nav.mainLabel}>
           {links.map(([href, label]) => (
-            <a key={href} href={href} className="rounded-[10px] px-3 py-2 text-[15px] text-muted transition hover:bg-surface hover:text-ink">
+            <a key={href} href={href} className="nav-link rounded-[10px] px-3 py-2 text-[15px] text-muted">
               {label}
             </a>
           ))}
         </nav>
         <div className="flex items-center gap-1">
-          <a href={other} hrefLang={lang === 'en' ? 'de' : 'en'} lang={lang === 'en' ? 'de' : 'en'} aria-label={t.meta.switchLabel} className="inline-flex items-center gap-1.5 rounded-[10px] px-3 py-2 text-sm font-medium text-muted transition hover:bg-surface hover:text-ink">
+          <a href={other} hrefLang={lang === 'en' ? 'de' : 'en'} lang={lang === 'en' ? 'de' : 'en'} aria-label={t.meta.switchLabel} className="nav-link inline-flex items-center gap-1.5 rounded-[10px] px-3 py-2 text-sm font-medium text-muted">
             <Languages className="h-4 w-4" strokeWidth={1.75} aria-hidden />
             <span>{lang === 'en' ? 'DE' : 'EN'}</span>
           </a>
-          <a href={LINKS.repo} aria-label="GitHub" className="hidden rounded-[10px] p-2.5 text-muted transition hover:bg-surface hover:text-ink sm:inline-flex">
+          <a href={LINKS.repo} aria-label="GitHub" className="nav-link hidden rounded-[10px] p-2.5 text-muted sm:inline-flex">
             <GitHubIcon className="h-5 w-5" />
           </a>
           <a href={LINKS.download} className="btn btn-primary !hidden !px-4 !py-2 !text-sm sm:!inline-flex">
             <Download className="h-4 w-4" strokeWidth={1.75} aria-hidden /> {t.nav.download}
           </a>
-          <button type="button" data-menu-toggle data-label-open={t.nav.menu} data-label-close={t.nav.close} className="group rounded-[10px] p-2.5 text-ink lg:hidden" aria-expanded="false" aria-controls="mobile-nav" aria-label={t.nav.menu}>
+          <button type="button" data-menu-toggle data-label-open={t.nav.menu} data-label-close={t.nav.close} className="nav-link group rounded-[10px] p-2.5 text-ink lg:hidden" aria-expanded="false" aria-controls="mobile-nav" aria-label={t.nav.menu}>
             <Menu className="h-6 w-6 group-aria-expanded:hidden" strokeWidth={1.75} aria-hidden />
             <X className="hidden h-6 w-6 group-aria-expanded:block" strokeWidth={1.75} aria-hidden />
           </button>
         </div>
       </Container>
-      <nav id="mobile-nav" hidden className="border-t border-line bg-bg lg:hidden" aria-label="Mobile">
+      <nav id="mobile-nav" hidden className="relative border-t border-line bg-bg lg:hidden" aria-label={t.nav.mobileLabel}>
         <Container className="flex flex-col py-3">
           {links.map(([href, label]) => (
-            <a key={href} href={href} data-menu-link className="rounded-[12px] px-3 py-3 text-lg text-ink hover:bg-surface">
+            <a key={href} href={href} data-menu-link className="nav-link rounded-[12px] px-3 py-3 text-lg text-ink">
               {label}
             </a>
           ))}
@@ -74,7 +76,7 @@ export function Hero({ lang }: { lang: Lang }) {
       <Container className="relative grid items-center gap-12 pb-16 pt-10 sm:pt-16 lg:grid-cols-[1.1fr_1fr] lg:gap-8 lg:pb-24">
         <div className="text-center lg:text-left">
           <div className="fade-up flex justify-center lg:justify-start">
-            <AppIcon size={88} eager className="float drop-shadow-[0_18px_24px_rgba(11,122,79,.28)]" />
+            <AppIcon size={88} eager alt={t.iconAlt} className="float drop-shadow-[0_18px_24px_rgba(11,122,79,.28)]" />
           </div>
           <p className="fade-up mt-7 inline-flex items-center gap-2 rounded-full border border-line bg-card/80 px-3 py-1 text-[13px] font-medium text-muted backdrop-blur" style={{ '--d': '0.05s' } as React.CSSProperties}>
             <span className="h-1.5 w-1.5 rounded-full bg-hain" aria-hidden />
@@ -115,11 +117,12 @@ export function Hero({ lang }: { lang: Lang }) {
 /** One app screenshot, light or dark to match the visitor. */
 export function Shot({ id, alt, className = '', eager = false }: { id: string; alt: string; className?: string; eager?: boolean }) {
   const src = (m: string) => `${BASE}screenshots/${id}-${m}.webp`
+  const [w, h] = SHOT_SIZE[id] ?? [720, 1548]
   return (
     <div className={`device ${className}`}>
       <picture>
         <source srcSet={src('dark')} media="(prefers-color-scheme: dark)" />
-        <img src={src('light')} alt={alt} width={720} height={1561} loading={eager ? 'eager' : 'lazy'} className="block h-auto w-full" />
+        <img src={src('light')} alt={alt} width={w} height={h} loading={eager ? 'eager' : 'lazy'} className="block h-auto w-full" />
       </picture>
     </div>
   )

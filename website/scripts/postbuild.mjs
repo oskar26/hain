@@ -25,6 +25,9 @@ const de = template
     '<meta property="og:description" content="Ein privater KI-Assistent für Android, der auf deinem Handy läuft. Kein Konto, keine Cloud, kein Tracking. Kostenlos und Open Source."',
   )
   .replace(/<meta property="og:url" content="[^"]*"/, '<meta property="og:url" content="https://oskar26.github.io/hain/de/"')
+  .replace(/<meta property="og:image:alt" content="[^"]*"/, '<meta property="og:image:alt" content="App-Symbol von Hain: Pim, eine glänzende grüne Glasfigur, in einem weichen Wald"')
+  .replace('<meta property="og:locale" content="en_US" />', '<meta property="og:locale" content="de_DE" />')
+  .replace('<noscript>Hain – a private AI for Android. Download:', '<noscript>Hain – eine private KI für Android. Download:')
 
 writeFileSync('dist/index.html', en)
 mkdirSync('dist/de', { recursive: true })

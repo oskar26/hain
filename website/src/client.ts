@@ -20,9 +20,22 @@ document.querySelectorAll<HTMLElement>('[data-reveal]').forEach((el) => {
   inView(el, () => el.classList.add('in'), { margin: '0px 0px -60px 0px' })
 })
 
-// Header background after scrolling, mobile menu
+// Header background after scrolling (T-105): with a little hysteresis (on after 24 px, off again
+// above 8 px) and at most once per frame, so it never flickers; the fade itself is CSS.
 const nav = document.querySelector<HTMLElement>('[data-nav]')
-const onScroll = () => nav?.toggleAttribute('data-scrolled', window.scrollY > 12 || menuOpen())
+let scrolled = false
+let ticking = false
+const update = () => {
+  ticking = false
+  const y = window.scrollY
+  scrolled = scrolled ? y > 8 : y > 24
+  nav?.toggleAttribute('data-scrolled', scrolled || menuOpen())
+}
+const onScroll = () => {
+  if (ticking) return
+  ticking = true
+  requestAnimationFrame(update)
+}
 const menu = document.getElementById('mobile-nav')
 const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]')
 const menuOpen = () => !!menu && !menu.hidden
@@ -31,11 +44,11 @@ function setMenu(open: boolean) {
   menu.hidden = !open
   toggle.setAttribute('aria-expanded', String(open))
   toggle.setAttribute('aria-label', (open ? toggle.dataset.labelClose : toggle.dataset.labelOpen) ?? '')
-  onScroll()
+  update()
 }
 toggle?.addEventListener('click', () => setMenu(!menuOpen()))
 document.querySelectorAll('[data-menu-link]').forEach((a) => a.addEventListener('click', () => setMenu(false)))
 document.addEventListener('keydown', (e) => e.key === 'Escape' && menuOpen() && setMenu(false))
 window.addEventListener('scroll', onScroll, { passive: true })
-onScroll()
+update()
 
