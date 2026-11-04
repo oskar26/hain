@@ -7,4 +7,9 @@
     <string name="card_item_done">done</string>
     <string name="card_item_open">open</string>
     <string name="card_writing">Pim is still writing…</string>
+    <!-- 3b-2: weather and Wikipedia cards under an answer -->
+    <string name="cards_weather_degrees">%1$d°</string>
+    <string name="cards_weather_wind">Wind %1$d km/h</string>
+    <string name="cards_weather_rain">Rain %1$d %%</string>
+    <string name="cards_wiki_open">Read on Wikipedia</string>
 </resources>

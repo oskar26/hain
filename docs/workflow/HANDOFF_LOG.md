@@ -413,3 +413,23 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Prompt: neuer Abschnitt „# Karten“/„# Cards“ mit einem Beispiel (≈100 Token mehr im gecachten System-Prompt). Mit echtem LFM3 auf dem Host nicht geprüft (kein C++-Build in dieser Sandbox) → Oskar bitte mit „Schreib mir eine Einkaufsliste für Pfannkuchen“ und „Lernplan Mathe bis Freitag“ testen.
 - Version `hain.versionName=0.1.6`. Gradle lokal nicht gestartet: ktlint 1.5.0 + detekt 1.23.8 CLI lokal grün, Rest über CI (CI, APK, Screens).
 - Parallel laufen `hark/day-3b2-4b2`, `hark/day-5`, `hark/day-7`: Konflikte in README/STATUS/HANDOFF_LOG/Website/gradle.properties beim Mergen → beide Blöcke behalten, Version = höchste.
+
+## 2026-11-04 · 3b-2 + 4b-2 (0.1.4 – Werkzeuge Rest) · review · harness: Hark · model: Hark · branch `hark/day-3b2-4b2`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-068a | review | `TimeParserTest.repeatDays`, `PhoneToolsTest.repeatingAlarm` + JSON | `PhoneAction` (`days`, `calendarDays`), `ConfirmCard` (Tage), `SystemPromptSource` (PHONE_DE/EN) | – |
+| T-068b | review | `ActionWordingTest`, `PhoneActionsTest` (Antwort „vorbereitet“) | `ChatEngine.cleaned`, `PhoneTools.TAP_HINT` | Regel ersetzt nur Partizipien/Hilfsverb-Formen, nicht jede Umschreibung |
+| T-068c | review | `SettingsRepositoryTest.phoneActionsAskFirstByDefault` | `HainSettings`, `SettingsRepository`, `SettingsActions/Pages`, `ChatExtras`, `ChatScreen` (nur frische Antworten), `MainActivity` | Countdown nicht als UI-Test |
+| T-068d | review | `PhoneIntentsTest` (Robolectric, sdk 34) | – | `launch()` (kein App-Fall) nicht getestet |
+| T-060a | review | `HttpNetworkGateTest.brainDownloadStreamsThroughTheGate`, `streamKeepsOfflineModeAndLogsFailures` | `NetworkGate` (`stream`, `NetworkGates`), `AppModule`, `ModelDownloadWorker` | Worker nach Prozess-Neustart ohne Activity: Gate noch nicht gesetzt → Download ohne Log-Eintrag |
+| T-060b | review | `WebSearchSwitchTest`, `SearchConsentTest` | `ToolRouter` (`schemas(offline, webSearch)`), `ToolContext`, `ChatEngine`, `ToolTimeline`, Settings | „Erst fragen“ erkennt das Ja per Wortliste (DE/EN) |
+| T-064a | review | `InfoCardsTest` (Parser, gespeichert in `sources_json`), `WeatherToolTest` (card) | `ToolResult.card`/`InfoCard`, `ChatEngine/ChatStore/ChatViewModel/ToolStepsJson/RoomChatPersistence`, `ChatScreen`, neu `core-cards` res | Karten nur Wetter + Wikipedia; höchstens 3 pro Antwort |
+| T-064b | review | `WeatherToolTest.noPlaceUsesTheAllowedLocation`, `noPlaceWithoutLocationAsksForThePlace` | `AndroidManifest` (`ACCESS_COARSE_LOCATION`), neu `WeatherLocation`, `MainActivity` (Permission-Launcher) | nur letzter bekannter Standort, keine neue Ortung |
+
+- Gradle lokal nicht gestartet (qemu, paralleler Agent): ktlint 1.5.0 + detekt 1.23.8 CLI lokal, `tools/check_strings.py` grün; Rest über CI, APK, Screens.
+- Version `hain.versionName=0.1.4` (VERSIONING.md: Häppchen 3b-2 + 4b-2).
+- README (Funktionstabelle Werkzeuge ✅ + „Neu“), Website EN + /de (Wikipedia & Wetter, Handy-Aktionen, Netzwerk-Log), `TOOLS.md`, `SETTINGS.md` nachgezogen.
+- Nicht gemacht: Favicons (T-064c, Bilder müssten durchs Gate), ConfirmCard nach core-cards (T-068e, reiner Umbau ohne Nutzen für 0.2), Host-Test mit echtem LFM3 für `days`/Wetter ohne Ort (kein Host-Lauf in diesem Durchgang).
+- Nächstes: Oskar testet auf dem Handy: „Weck mich werktags um 6:30“, Schalter „Handy-Aktionen bestätigen“ aus, „Wie wird das Wetter?“ mit Standort, Websuche „Erst fragen“.
+

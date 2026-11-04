@@ -23,6 +23,12 @@ internal object PhoneIntents {
                     .putExtra(AlarmClock.EXTRA_MINUTES, action.minute)
                     .putExtra(AlarmClock.EXTRA_SKIP_UI, false)
                     .apply { action.label?.let { putExtra(AlarmClock.EXTRA_MESSAGE, it) } }
+                    // 4b-2: a repeating alarm (Calendar day numbers, Sunday = 1)
+                    .apply {
+                        if (action.days.isNotEmpty()) {
+                            putIntegerArrayListExtra(AlarmClock.EXTRA_DAYS, ArrayList(action.calendarDays))
+                        }
+                    }
             is PhoneAction.Timer ->
                 Intent(AlarmClock.ACTION_SET_TIMER)
                     .putExtra(AlarmClock.EXTRA_LENGTH, action.seconds)

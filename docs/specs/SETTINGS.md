@@ -30,7 +30,8 @@ Level 1 = visible directly; level 2 = under "Erweitert / Advanced".
 | | use_chat_history | bool | true | 1 |
 | | profile_in_private_chats | bool | false | 2 |
 | Internet | offline_mode | bool | false | 1 |
-| | web_search | on/ask/off | on | 1 |
+| | web_search | on/ask/off (built 0.1.4: Settings → Privacy) | on | 1 |
+| | weather_location | bool (0.1.4: last known rough location for weather without a place; asks for the permission) | false | 1 |
 | | searxng_url | url? | null | 2 |
 | | ddg_enabled | bool | true (marked experimental) | 2 |
 | | search_region | de-de/us-en/auto | auto | 2 |
@@ -48,7 +49,7 @@ Level 1 = visible directly; level 2 = under "Erweitert / Advanced".
 | Images | image_edit_enabled | bool | true | 1 |
 | | image_steps | 4–8 | 4 | 2 |
 | Documents | ocr_quality | fast/accurate | fast | 1 |
-| Phone | confirm_actions | bool | true | 1 |
+| Phone | confirm_actions | bool (built 0.1.4: Settings → Privacy; off = 3 s countdown with undo) | true | 1 |
 | | screen_context | bool | false | 1 |
 | Storage | downloads_wifi_only | bool | true | 1 |
 | Privacy | app_lock | bool | false | 1 |

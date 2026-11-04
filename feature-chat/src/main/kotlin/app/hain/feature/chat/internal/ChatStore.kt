@@ -1,6 +1,7 @@
 package app.hain.feature.chat.internal
 
 import app.hain.llm.api.GenerationStats
+import app.hain.tools.api.InfoCard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +35,8 @@ data class UiMessage(
     val stats: GenerationStats? = null,
     /** Checklist ticks the user set on this answer's cards (T-131, `cards_json`, see CardState). */
     val cardState: String? = null,
+    /** Weather and Wikipedia cards under the answer (3b-2). */
+    val cards: List<InfoCard> = emptyList(),
 )
 
 data class Chat(
