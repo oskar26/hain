@@ -61,4 +61,50 @@ class MemoryTurnTest {
             assertNull(MemoryTurn(store, backgroundScope).hint(listOf("Merk dir, dass ich Rosa heiße"), "de"))
             assertTrue(store.facts.value.isEmpty())
         }
+
+    @Test
+    fun chipsKnowWhatWasUsedSavedAndForgotten() =
+        runTest(UnconfinedTestDispatcher()) {
+            val store = DefaultMemoryStore(InMemoryFactSource(), backgroundScope)
+            store.remember("mag keine Pilze")
+            val turn = MemoryTurn(store, backgroundScope)
+
+            val ask = listOf("Hallo", "Hast du ein Rezept mit Pilzen?")
+            turn.hint(ask, "de")
+            assertEquals(
+                listOf("mag keine Pilze"),
+                turn.uses.value[MemoryTurn.key(ask)]!!
+                    .used
+                    .map { it.text },
+            )
+
+            val save = listOf("Merk dir, dass ich Gitarre spiele")
+            turn.hint(save, "de")
+            val saved = turn.uses.value[MemoryTurn.key(save)]!!
+            assertEquals(listOf("ich Gitarre spiele"), saved.saved.map { it.text })
+            // "Rückgängig" deletes it again, once
+            turn.undo(MemoryTurn.key(save))
+            assertTrue(turn.uses.value[MemoryTurn.key(save)]!!.undone)
+            assertEquals(listOf("mag keine Pilze"), store.facts.value.map { it.text })
+
+            val forget = listOf("Vergiss, dass ich keine Pilze mag")
+            turn.hint(forget, "de")
+            assertTrue(store.facts.value.isEmpty())
+            turn.undo(MemoryTurn.key(forget))
+            assertEquals(listOf("mag keine Pilze"), store.facts.value.map { it.text })
+        }
+
+    @Test
+    fun theRememberToolSavesIntoTheCurrentTurn() =
+        runTest(UnconfinedTestDispatcher()) {
+            val store = DefaultMemoryStore(InMemoryFactSource(), backgroundScope)
+            val turn = MemoryTurn(store, backgroundScope)
+            val ask = listOf("Ich heiße übrigens Oskar, das darfst du behalten")
+            turn.hint(ask, "de")
+            val fact = store.remember("heißt Oskar")!!
+            turn.onToolSaved(fact)
+            assertEquals(listOf(fact), turn.uses.value[MemoryTurn.key(ask)]!!.saved)
+            // equal last messages in different chats are different turns
+            assertTrue(MemoryTurn.key(listOf("a", "Hallo")) != MemoryTurn.key(listOf("Hallo")))
+        }
 }

@@ -6,6 +6,8 @@
 | `system_full.en.txt` | Same prompt in English: answer language `en`, or `auto` on other devices. |
 | `system_short.en.txt` | Battery saver / low-RAM devices (≈180 tokens). |
 | `system_short.de.txt` | German variant, only for A/B test (T-090). |
+| `extract_facts.txt` | Background extraction (T-114): lasting facts about the user from the last ≤ 12 messages, JSON forced by a grammar. Copy in `core-memory/src/main/assets/prompts/` (a test checks they match). |
+| `compare_facts.txt` | Background extraction (T-114): is a new fact the same as, an update of, a contradiction of or new next to the closest saved one. Copy in `core-memory/src/main/assets/prompts/`. |
 | `lfm3-1.7b_chat_template.jinja` | Official template, reference only. `PromptBuilder` re-implements it in Kotlin. Golden tests must match its output. |
 | `lfm3-omni-2b_chat_template.jinja` | Omni template, reference only. |
 | `lfm3-1.7b_tokenizer_config.json` | Special tokens reference. |

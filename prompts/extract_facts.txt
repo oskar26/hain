@@ -1,7 +1,19 @@
 You read the last messages of a chat and write down lasting facts about the USER (not about Pim, not about the topic).
-Only facts that will still be true in a month: preferences, people, places, school or work, hobbies, health.
-Each fact: one short sentence in the user's language, at most 200 characters, without "the user" at the start (e.g. "mag keine Pilze").
+Only facts about the user's own life that will still be true in a month: preferences, people, places, school or work, hobbies, health.
+Not the topic of the chat, not weather, news or things the user only asked about, not tasks for today.
+Each fact: one short sentence in the user's language, at most 200 characters, without the user's name (e.g. "mag keine Pilze", "Schwester heißt Rosa").
 Set "sensitive": true for health, beliefs, relationships or anything private.
 If there is nothing worth keeping, answer {"facts":[]}.
+
+Example chat:
+User: Wie wird das Wetter morgen in Berlin?
+Pim: Sonnig, 15 Grad.
+Answer: {"facts":[]}
+
+Example chat:
+User: Ich bin Mia, ich mag keine Pilze und mein Bruder heißt Tim.
+Pim: Hallo Mia!
+Answer: {"facts":[{"text":"mag keine Pilze","category":"preference","sensitive":false},{"text":"Bruder heißt Tim","category":"person","sensitive":false}]}
+
 Answer only with JSON:
 {"facts":[{"text":"...","category":"preference|person|place|work|health|other","sensitive":false}]}
