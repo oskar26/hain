@@ -3,6 +3,8 @@ package app.hain.data
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.test.core.app.ApplicationProvider
+import app.hain.common.api.net.NetworkLogEntry
+import app.hain.common.api.net.Purpose
 import app.hain.data.dao.FtsQuery
 import app.hain.data.entities.ChatEntity
 import app.hain.data.entities.MessageEntity
@@ -94,4 +96,39 @@ class HainDatabaseTest {
         text: String,
         role: String = MessageEntity.ROLE_USER,
     ) = MessageEntity(id = id, chatId = chatId, role = role, content = text, createdAt = id)
+}
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
+@ConscryptMode(ConscryptMode.Mode.OFF)
+class NetworkLogStoreTest {
+    private lateinit var db: HainDatabase
+
+    @Before
+    fun setUp() {
+        db =
+            Room
+                .inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), HainDatabase::class.java)
+                .setDriver(BundledSQLiteDriver())
+                .build()
+    }
+
+    @After
+    fun tearDown() = db.close()
+
+    @Test
+    fun storesLoadsAndPrunesEntries() =
+        runTest {
+            val store = RoomNetworkLogStore(db.networkLog())
+            store.append(NetworkLogEntry(100, "old.example", Purpose.SEARCH, 10, 200))
+            store.append(NetworkLogEntry(200, "api.open-meteo.com", Purpose.WEATHER, 20, 200, "https://x/y"))
+            assertEquals(listOf("api.open-meteo.com", "old.example"), store.load(0).map { it.host })
+            store.prune(150)
+            val left = store.load(0)
+            assertEquals(1, left.size)
+            assertEquals(Purpose.WEATHER, left[0].purpose)
+            assertEquals("https://x/y", left[0].url)
+            store.clear()
+            assertTrue(store.load(0).isEmpty())
+        }
 }

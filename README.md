@@ -89,7 +89,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🧭 Settings, part 2 | Glass tiles with their own colour and 3D icon, sub pages, own "reduce motion" switch, glossy 3D Pim, new first start. Language step at first start is in. Still open: brain picker in the top bar | 🚧 |
 | 🔧 Tools | Calculator and units, weather (Open-Meteo), Wikipedia (German/English), web search without API key that reads several pages (or your own SearXNG), reading a link, alarm, timer, calendar entry and route with a confirm card – Pim shows each step and its sources under the answer. Still open: weather card, repeating alarms | 🚧 |
 | ⏰ Phone actions | Alarm, timer, calendar entry, navigation – prepared by Pim as a glass card, done only after your tap | ✅ |
-| 🛡️ Network log | Every tool request goes through one gate: orange "Online" dot while it runs, offline mode, log of the last 7 days in Settings → Privacy. Still open: brain download through the gate, log kept across app restarts | 🚧 |
+| 🛡️ Network log | Every tool request goes through one gate: orange "Online" dot while it runs, offline mode, log of the last 7 days in Settings → Privacy. The log now stays after a restart (7 days, encrypted). Still open: brain download through the gate | 🚧 |
 | 📰 News | Standard mix (incl. junge Welt), standard + own feeds, or only own feeds | 🗓️ |
 | 🃏 Answer cards | Lists, tables, checklists, weather and source cards instead of plain text | 🗓️ |
 | 🧠 Memory | "Remember that …", a memory page you can edit, forget anything | 🗓️ |
@@ -308,6 +308,18 @@ Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Ger
 ## Licence
 
 [GPL-3.0](LICENSE). Model weights are not bundled and keep their own licences (e.g. LFM Open License v1.0).
+
+## Name & Pim / Trademarks
+
+The code is free (GPL-3.0-or-later), but the name “Hain”, the character Pim (look, animations, voice) and the app icon/logo mark the official project. Forks are welcome under their own name, with their own mascot and icon. Sharing official builds, writing about Hain and packaging it (e.g. F-Droid) are fine. Details: [TRADEMARKS.md](TRADEMARKS.md).
+
+Der Code ist frei, aber Name, Pim und Icon kennzeichnen das offizielle Projekt. Forks bitte mit eigenem Namen, eigener Figur und eigenem Icon. Mehr in [TRADEMARKS.md](TRADEMARKS.md).
+
+## Support / Unterstützen
+
+**Coming soon:** a way to sponsor Hain will follow soon. Until then, the best help is a ⭐ star, an [issue](https://github.com/oskar26/hain/issues) with a bug or an idea, or telling a friend about Hain.
+
+**Bald:** Eine Möglichkeit, Hain finanziell zu unterstützen, folgt bald. Bis dahin hilft ein ⭐ Stern, ein [Issue](https://github.com/oskar26/hain/issues) mit Fehler oder Idee, oder Hain weiterzusagen.
 
 ## Credits
 

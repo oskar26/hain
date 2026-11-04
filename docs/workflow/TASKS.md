@@ -110,6 +110,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-099 | Subtle haptics everywhere (menus, delete confirm, pull) + HAPTICS.md checklist | ui | S | B | T-096 | review |
 | T-190 | Accessibility & performance pass | fix | M | H | T-052,T-100 | doing (2d-2: non-debuggable CI APK, draw-only animations, throttled streaming; R8 + own baseline profile open) |
 | T-195 | Trademark check name 'Hain' | plan | XS | H | - | todo |
+| T-196 | Trademark policy TRADEMARKS.md (DE+EN) + README sections "Name & Pim" and "Support (coming soon)" | docs | XS | H | - | review (04.11., draft PR) |
 | T-199 | Beta release (GitHub + F-Droid metadata) | scaffold | S | H | T-190 | todo |
 
 ## M0 · Device check & setup (human)
@@ -1114,6 +1115,18 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
   1. Human: DPMA/TMview search classes 9 and 42.
 - accept:
   - result noted
+- check: `manual`
+
+### T-196 · Trademark policy + support note (coming soon)
+
+- type: `docs` · size: `XS` · lane: `H` · depends: -
+- read: ADR-20; T-195
+- files: TRADEMARKS.md, README.md
+- do:
+  1. TRADEMARKS.md, German (plain language) then English: "open code, protected brand" (modelled on the Mozilla policy). Code GPL-3.0-or-later; name "Hain", Pim (look, animations, voice) and icon/logo are project marks; forks need another name, own mascot and icon, must not look official; allowed: unchanged official builds, mentions ("based on Hain"), reports/tutorials, distro/F-Droid packaging without code changes beyond the build; contact via issues; not legal advice, registration may be planned; no location details.
+  2. README: short "Name & Pim / Trademarks" section next to the licence, "Support / Unterstützen" section with "coming soon" (star, issue, tell others). No FUNDING.yml, no active sponsor button.
+- accept:
+  - both files render on GitHub, links work
 - check: `manual`
 
 ### T-199 · Beta release (GitHub + F-Droid metadata)

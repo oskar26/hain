@@ -4,6 +4,8 @@
 
 ## Now
 
+- **Trademarks + support (04.11., `hark/trademarks`):** T-196 `TRADEMARKS.md` (DE+EN, "open code, protected brand": name Hain, Pim and icon are project marks, forks rename and replace them) + README sections "Name & Pim / Trademarks" and "Support / Unterstützen" (coming soon, no sponsor button yet). Actual DPMA/TMview check stays T-195 (human).
+
 - **App-Icon „Pim im Wald“ + Menü-Blur + Website (04.11., `hark/icon-bubble`, PR #31):** T-102: neues Icon-Motiv „Pim im Wald“ (Pim als glänzende Glasfigur vor einem weichen Wald aus runden Bäumen), in 3D und flach; ersetzt „Pim als Sprechblase“. T-103: Icon wählbar im Onboarding (nach der Sprache) und unter Einstellungen → Aussehen → App-Symbol, umgesetzt mit zwei `activity-alias` (`.Launcher3D`, `.LauncherFlat`), DataStore `app_icon`; das Icon wechselt erst, wenn man die App verlässt. T-104: dezenter Blur hinter Popup-Menüs und Popovern (Haze, unter Android 12 nur Abdunkeln), Langdruck auf einen Chat in der Seitenleiste öffnet das Menü. T-105: Website mit neuem Icon, weicherem Header, Footer (Marke, „Unterstützen – kommt bald“), Screenshots ohne weißen Rest, /de-Übersetzungen, Alt-Texte. Offen: englische Seite zeigt deutsche App-Screenshots.
 - **App icon v3 (04.11., `hark/icon-bubble`):** T-100i: new motif “Pim als Sprechblase” (Oskar's choice): Pim's glossy mint glass body is a round chat bubble with a small tail lower left, two dot eyes, stem + leaf growing from the top, green squircle. Same pipeline (`assets/icon/src/make_icon.py`), all launcher layers + themed + debug regenerated, website favicon/apple-touch/OG/`hain-icon.webp` updated.
 - **Day 2f (04.11., `hark/day-2f`):** T-055a: first onboarding screen asks Deutsch / English (sets answer language + app language on Android 13+), manifest `localeConfig` so the system language picker lists Hain. Brain picker in the top bar → 2f-2.
@@ -103,3 +105,4 @@ _Agents add ideas here instead of doing them._
 | 2026-10-30 | T-004 follow-up | KNOWN_ISSUES.md created (KI-01..KI-03); on-device check deferred by human (KI-02); Pixel_7 AVD repaired | ZCode (GLM-5.3) |
 | 2026-11-01 | batch T-005, T-006, T-010, T-018, T-019, T-016, T-017 | all 7 tasks review/done: strings+checker, CI, tokens+fonts, UI libs+wrappers, motion system, Pim v2, Lucide icons | ZCode (GLM-5.3) |
 | 2026-11-04 | T-087, T-088, T-089, T-091, T-096, T-097, T-098, T-099 | Lichtung only style, speed, living Pim, start page, premium haptics; Pim normal size, 5 s easter egg → own 2048 game, subtle haptics everywhere (review, branch hark/polish) | Hark |
+| 2026-11-04 | T-196 | TRADEMARKS.md (DE+EN) + README "Name & Pim" and "Support (coming soon)" (review, branch hark/trademarks) | Hark |
