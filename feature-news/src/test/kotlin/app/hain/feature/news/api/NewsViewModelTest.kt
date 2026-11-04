@@ -125,7 +125,7 @@ class NewsViewModelTest {
         runTest {
             val free =
                 "<html><head><title>Haushalt beschlossen</title></head><body><article>" +
-                    (1..8).joinToString("") { "<p>Satz $it über den Haushalt des Bundes, mit Zahlen.</p>" } +
+                    (1..12).joinToString("") { "<p>Satz $it über den Haushalt des Bundes, mit Zahlen.</p>" } +
                     "</article></body></html>"
             val vm = viewModel(FakeGate { GateResponse(200, free) })
             vm.start()
