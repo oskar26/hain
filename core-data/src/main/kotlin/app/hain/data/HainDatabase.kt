@@ -18,7 +18,13 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
 /** The app database `hain.db` (DATA.md), encrypted with SQLCipher. */
 @Database(
-    entities = [ChatEntity::class, MessageEntity::class, MessageFts::class, ChatSummaryEntity::class, NetworkLogEntity::class],
+    entities = [
+        ChatEntity::class,
+        MessageEntity::class,
+        MessageFts::class,
+        ChatSummaryEntity::class,
+        NetworkLogEntity::class,
+    ],
     version = 2,
     exportSchema = true,
 )

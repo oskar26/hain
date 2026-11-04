@@ -31,6 +31,7 @@ fun interface Transport {
  * logs host, purpose and size (full address only with [detailedLog]) and keeps the log 7 days.
  * Only https addresses pass.
  */
+@Suppress("LongParameterList") // every parameter is an injectable seam with a default
 class HttpNetworkGate(
     private val offline: () -> Boolean = { false },
     private val detailedLog: () -> Boolean = { false },
