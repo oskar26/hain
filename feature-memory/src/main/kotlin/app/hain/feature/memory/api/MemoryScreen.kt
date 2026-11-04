@@ -21,7 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.SerializationException
 import java.io.IOException
 
 /**
@@ -120,8 +119,7 @@ private suspend fun importOrNull(
     try {
         store.importJson(json)
     } catch (e: IllegalArgumentException) {
-        null
-    } catch (e: SerializationException) {
+        // also a broken JSON file (SerializationException is an IllegalArgumentException)
         null
     } catch (e: IOException) {
         null
