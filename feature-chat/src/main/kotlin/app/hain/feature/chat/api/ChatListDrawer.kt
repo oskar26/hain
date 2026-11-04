@@ -43,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
@@ -67,6 +68,8 @@ import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.HainMenuRow
 import app.hain.ui.components.HainPopupItem
 import app.hain.ui.components.HainPopupMenu
+import app.hain.ui.effects.GlassEdge
+import app.hain.ui.effects.chromeGlass
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.HainMotionMoment
 import app.hain.ui.motion.LocalReduceMotion
@@ -86,6 +89,7 @@ import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 import app.hain.ui.theme.glassTile
 import app.hain.ui.theme.hainSurface
+import dev.chrisbanes.haze.HazeState
 
 /** Chat list drawer: search, sections Pinned/Today/Yesterday/7 days/Older, rename, pin, delete (T-053). */
 @Suppress("LongParameterList", "LongMethod") // drawer state is passed flat so previews stay simple
@@ -97,6 +101,8 @@ internal fun ChatListDrawer(
     searchQuery: String,
     currentChatId: Long?,
     actions: DrawerActions,
+    /** T-233: the chat behind the panel; with it the panel is frosted glass over the chat. */
+    glass: HazeState? = null,
 ) {
     val colors = LocalHainColors.current
     val spacing = LocalHainSpacing.current
@@ -124,7 +130,7 @@ internal fun ChatListDrawer(
             Modifier
                 .fillMaxHeight()
                 .width(DRAWER_WIDTH.dp)
-                .glassTile(GlowHue.MINT, DrawerShape, DRAWER_ELEVATION.dp, Offset(x = 0.15f, y = 0f), floorGlow = false)
+                .drawerSurface(glass)
                 .statusBarsPadding()
                 .navigationBarsPadding()
                 .padding(spacing.md),
@@ -492,6 +498,26 @@ private fun ConfirmDelete(
         }
     }
 }
+
+/**
+ * T-233: over the chat the side panel is frosted glass (the chat shows through blurred, a soft
+ * shadow lifts it); without a glass source the mint-lit glass tile of T-011.
+ */
+@Composable
+private fun Modifier.drawerSurface(glass: HazeState?): Modifier =
+    if (glass != null) {
+        val colors = LocalHainColors.current
+        this
+            .shadow(
+                DRAWER_ELEVATION.dp,
+                DrawerShape,
+                clip = false,
+                ambientColor = colors.shadow,
+                spotColor = colors.shadow,
+            ).chromeGlass(glass, DrawerShape, GlassEdge.ALL)
+    } else {
+        glassTile(GlowHue.MINT, DrawerShape, DRAWER_ELEVATION.dp, Offset(x = 0.15f, y = 0f), floorGlow = false)
+    }
 
 private const val DRAWER_WIDTH = 300
 private const val DRAWER_ELEVATION = 24

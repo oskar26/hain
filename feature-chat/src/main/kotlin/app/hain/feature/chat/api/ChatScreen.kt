@@ -300,6 +300,7 @@ fun ChatScreen(
             }
         }
         ChatListDrawer(
+            glass = chrome,
             open = drawerOpen,
             hasChats = state.chats.isNotEmpty(),
             groups = state.groups,
