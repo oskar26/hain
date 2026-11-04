@@ -144,4 +144,24 @@ class SettingsRepositoryTest {
             assertEquals(true, s.updateAsked)
             assertEquals(123L, s.lastUpdateCheck)
         }
+
+    @Test
+    fun appLockSettingsAreReadBackAndSurviveReset() =
+        runTest(UnconfinedTestDispatcher()) {
+            val r = repo()
+            val defaults = r.settings.first()
+            assertEquals(false, defaults.appLock)
+            assertEquals(LockDelay.IMMEDIATE, defaults.lockDelay)
+            assertEquals(false, defaults.blockScreenshots)
+            r.setAppLock(true)
+            r.setLockDelay(LockDelay.FIVE_MINUTES)
+            r.setBlockScreenshots(true)
+            r.setTheme(ThemeChoice.DARK)
+            r.reset()
+            val s = r.settings.first()
+            assertEquals(ThemeChoice.SYSTEM, s.theme)
+            assertEquals(true, s.appLock)
+            assertEquals(LockDelay.FIVE_MINUTES, s.lockDelay)
+            assertEquals(true, s.blockScreenshots)
+        }
 }

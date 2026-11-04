@@ -44,9 +44,9 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-058 | ChatViewport + scroll-to-bottom pill | ui | S | E | T-052 | todo |
 | T-059 | ToolTimeline + SourceChips | ui | S | E | T-052,T-062 | review |
 | T-053 | Drawer: chat list, search, rename, delete, pin | ui | M | E | T-052,T-015 | review (redesign 03.11.: glass context menu with scale+fade, marked row, spring drawer + list motion) |
-| T-054 | Export & share chat | feature | S | E | T-053 | todo |
+| T-054 | Export & share chat | feature | S | E | T-053 | review (04.11., 0.1.8: Markdown + own PDF, SAF/share sheet, all chats as ZIP) |
 | T-055 | Model picker in top bar | ui | S | E | T-052,T-081 | review (2f-2, `hark/picker-perf`: brain picker in the top bar; language step + localeConfig done in 2f) |
-| T-056 | Private chat + app lock | feature | S | E | T-053 | todo |
+| T-056 | Private chat + app lock | feature | S | E | T-053 | review (04.11., 0.1.8: private chat in memory only, BiometricPrompt + PIN, delay, FLAG_SECURE) |
 | T-080 | Fill model catalogue with real URLs + sha256 | plan | S | F | - | review (brain now QAD-Q4_0, day 2) |
 | T-081 | Catalog + DeviceCheck | feature | S | F | T-002 | review (DeviceCheck pure rules + Packs screen) |
 | T-082 | PackDownloader (WorkManager) | feature | M | F | T-081 | review |
@@ -583,12 +583,13 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 
 - type: `feature` · size: `S` · lane: `E` · depends: T-053
 - read: DATA.md
-- files: feature-chat/.../export/ChatExporter.kt + test
+- files: feature-chat/.../export/ (ChatMarkdown, ChatZip, MarkdownBlocks, PdfLayout, ChatPdf, ChatExport, ExportMenu) + tests
 - do:
-  1. Markdown and JSON export via SAF; share sheet with plain text.
+  1. One chat as Markdown and as PDF (own, android.graphics.pdf.PdfDocument: title, date, roles, paragraphs, lists, code, page break, footer, Lichtung green); save via SAF or share sheet (FileProvider `${applicationId}.exports`). Single answer share stays in the answer row (T-057).
+  2. All chats as Markdown ZIP (Settings → Privacy). Private chats never exported. (04.11.: JSON export dropped in favour of PDF, per Oskar's sprint list.)
 - accept:
-  - exporter unit tests
-- check: `./gradlew :feature-chat:testDebugUnitTest --tests "*ChatExporter*"`
+  - exporter unit tests (Markdown, ZIP, Markdown → PDF blocks, PDF page breaks)
+- check: `./gradlew :feature-chat:testDebugUnitTest --tests "*export*"`
 
 ### T-055 · Model picker in top bar
 
@@ -606,12 +607,12 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 
 - type: `feature` · size: `S` · lane: `E` · depends: T-053
 - read: DATA.md; SETTINGS.md
-- files: feature-chat/..., app/.../lock/AppLock.kt
+- files: feature-chat/... (ChatStore, ChatViewModel, api/PrivateChat.kt), core-common/api/lock/AppLockGate.kt, app/.../lock/AppLock.kt + LockScreen.kt
 - do:
-  1. Private chat flag (no memory, not listed after close if setting).
-  2. BiometricPrompt app lock on resume.
+  1. Private chat: only in memory, never in DB/search/memory, clearly marked, deleted on leave; tools work.
+  2. BiometricPrompt app lock (BIOMETRIC_WEAK | DEVICE_CREDENTIAL) after background with delay now/1 min/5 min; FLAG_SECURE switch.
 - accept:
-  - manual + VM test
+  - `PrivateChatTest` (no DB writes, not searchable, deleted on leave), `AppLockGateTest` (timing logic), manual check on the phone
 - check: `./gradlew assembleDebug`
 
 ## M5 · Models & onboarding

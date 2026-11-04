@@ -38,6 +38,8 @@ data class ChatUiState(
     val editingId: Long? = null,
     /** `true` while a request is on its way to the internet (orange dot, T-069). */
     val online: Boolean = false,
+    /** Private chat (T-056): nothing is saved, the chat is gone once you leave it. */
+    val privateChat: Boolean = false,
 )
 
 enum class ChatError { MODEL_LOAD, CONTEXT_FULL, GENERATION, NO_BRAIN }
@@ -77,11 +79,12 @@ class ChatViewModel(
         val searchQuery: String = "",
         val searchHits: Set<Long>? = null,
         val editingId: Long? = null,
+        val privateMode: Boolean = false,
     )
 
     val state: StateFlow<ChatUiState> =
         combine(store.chats, local, llm.state, installed, networkActive) { chats, l, engineState, hasBrain, online ->
-            val visible = chats.filter { it.messages.isNotEmpty() }
+            val visible = chats.filter { it.messages.isNotEmpty() && !it.isPrivate }
             val hits = l.searchHits
             ChatUiState(
                 chats = visible,
@@ -97,6 +100,7 @@ class ChatViewModel(
                 brainInstalled = hasBrain,
                 editingId = l.editingId,
                 online = online,
+                privateChat = l.privateMode,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT), ChatUiState())
 
@@ -186,12 +190,38 @@ class ChatViewModel(
 
     fun newChat() {
         stop()
-        local.update { it.copy(currentChatId = null, input = "", error = null, editingId = null) }
+        leavePrivate()
+        local.update {
+            it.copy(currentChatId = null, input = "", error = null, editingId = null, privateMode = false)
+        }
     }
 
     fun openChat(id: Long) {
         stop()
-        local.update { it.copy(currentChatId = id, error = null, editingId = null) }
+        if (id != local.value.currentChatId) leavePrivate()
+        local.update { it.copy(currentChatId = id, error = null, editingId = null, privateMode = store.isPrivate(id)) }
+    }
+
+    /**
+     * Starts an empty private chat (T-056): it is not saved, not searchable, not read by the memory,
+     * and deleted when you leave it. Tools work as usual. Tapping again while private ends it.
+     */
+    fun togglePrivateChat() {
+        if (local.value.privateMode) {
+            newChat()
+            return
+        }
+        stop()
+        leavePrivate()
+        local.update {
+            it.copy(currentChatId = null, input = "", error = null, editingId = null, privateMode = true)
+        }
+    }
+
+    /** Forgets the open chat if it is private (leaving it = deleting it). */
+    private fun leavePrivate() {
+        val id = local.value.currentChatId ?: return
+        if (store.isPrivate(id)) store.discardPrivate(id)
     }
 
     /** Puts a sent message back into the composer; sending replaces it and answers again from there. */
@@ -249,7 +279,12 @@ class ChatViewModel(
             answer(current)
             return
         }
-        val chatId = current ?: store.create(store.titleFrom(text)).id
+        val chatId =
+            current ?: if (local.value.privateMode) {
+                store.createPrivate(store.titleFrom(text)).id
+            } else {
+                store.create(store.titleFrom(text)).id
+            }
         store.upsertMessage(chatId, UiMessage(store.nextId(), isUser = true, text = text))
         local.update { it.copy(currentChatId = chatId, input = "", error = null, editingId = null) }
         answer(chatId)
@@ -362,6 +397,7 @@ class ChatViewModel(
     @Suppress("ReturnCount")
     private fun maybeTitle(chatId: Long) {
         val chat = store.chat(chatId) ?: return
+        if (chat.isPrivate) return // T-056: no title run, the chat is never listed anyway
         val firstUser = chat.messages.firstOrNull { it.isUser } ?: return
         val answers = chat.messages.count { !it.isUser && !it.failed && !it.stopped && it.text.isNotBlank() }
         if (answers !in 1..MAX_TITLE_ANSWERS || chat.title != store.titleFrom(firstUser.text)) return
@@ -411,6 +447,7 @@ class ChatViewModel(
     override fun onCleared() {
         stop()
         cancelTitle()
+        leavePrivate()
     }
 
     private companion object {

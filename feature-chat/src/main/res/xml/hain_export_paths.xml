@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- T-054: exported chats are written to the cache folder "exports" and handed to the share sheet. -->
+<paths>
+    <cache-path name="exports" path="exports/" />
+</paths>

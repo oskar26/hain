@@ -49,6 +49,11 @@ data class Chat(
     val updatedAt: Long,
     val pinned: Boolean = false,
     val createdAt: Long = updatedAt,
+    /**
+     * Private chat (T-056): lives only in memory, never written to the database, never found by the
+     * search or read by the memory, and gone once you leave it.
+     */
+    val isPrivate: Boolean = false,
 )
 
 /**
@@ -96,6 +101,17 @@ class ChatStore(
         if (persistence != null && scope != null) writes.trySend(block)
     }
 
+    /** Writes [block] unless [chatId] is a private chat (T-056: those never reach the database). */
+    private fun writeFor(
+        chatId: Long,
+        block: suspend (ChatPersistence) -> Unit,
+    ) {
+        if (!isPrivate(chatId)) write(block)
+    }
+
+    /** `true` for a private chat (T-056); the memory and any export must skip it. */
+    fun isPrivate(chatId: Long?): Boolean = chat(chatId)?.isPrivate == true
+
     fun nextId(): Long = ids.getAndIncrement()
 
     fun chat(id: Long?): Chat? = mutableChats.value.firstOrNull { it.id == id }
@@ -106,6 +122,19 @@ class ChatStore(
         mutableChats.update { listOf(chat) + it }
         write { it.saveChat(chat) }
         return chat
+    }
+
+    /** A private chat (T-056): only in memory, see [Chat.isPrivate]. */
+    fun createPrivate(title: String): Chat {
+        val now = clock()
+        val chat = Chat(nextId(), title, emptyList(), now, createdAt = now, isPrivate = true)
+        mutableChats.update { listOf(chat) + it }
+        return chat
+    }
+
+    /** Forgets a private chat completely; does nothing for a normal chat. */
+    fun discardPrivate(chatId: Long) {
+        mutableChats.update { list -> list.filterNot { it.id == chatId && it.isPrivate } }
     }
 
     fun upsertMessage(
@@ -130,7 +159,7 @@ class ChatStore(
                     }
                 }.sortedByDescending { it.updatedAt }
         }
-        if (!message.streaming) write { it.saveMessage(chatId, message, now) }
+        if (!message.streaming) writeFor(chatId) { it.saveMessage(chatId, message, now) }
     }
 
     fun removeMessage(
@@ -140,7 +169,7 @@ class ChatStore(
         mutableChats.update { list ->
             list.map { c -> if (c.id == chatId) c.copy(messages = c.messages.filterNot { it.id == messageId }) else c }
         }
-        write { it.deleteMessage(messageId) }
+        writeFor(chatId) { it.deleteMessage(messageId) }
     }
 
     /**
@@ -160,12 +189,13 @@ class ChatStore(
         mutableChats.update { list ->
             list.map { c -> if (c.id == chatId) c.copy(messages = c.messages.filterNot { it.id in gone }) else c }
         }
-        write { p -> gone.forEach { p.deleteMessage(it) } }
+        writeFor(chatId) { p -> gone.forEach { p.deleteMessage(it) } }
     }
 
     fun delete(chatId: Long) {
+        val inMemoryOnly = isPrivate(chatId)
         mutableChats.update { list -> list.filterNot { it.id == chatId } }
-        write { it.deleteChat(chatId) }
+        if (!inMemoryOnly) write { it.deleteChat(chatId) }
     }
 
     fun rename(
@@ -190,12 +220,12 @@ class ChatStore(
         mutableChats.update { list ->
             list.map { c -> if (c.id == chatId) change(c).also { changed = it } else c }
         }
-        changed?.let { chat -> write { it.saveChat(chat) } }
+        changed?.let { chat -> if (!chat.isPrivate) write { it.saveChat(chat) } }
     }
 
     /**
      * Ids of chats matching [query]: title or message text contains it, plus full-text hits from the
-     * database (word prefixes). Blank query → `null` (no filter).
+     * database (word prefixes). Blank query → `null` (no filter). Private chats are never found.
      */
     suspend fun search(query: String): Set<Long>? {
         val q = query.trim()
@@ -207,7 +237,12 @@ class ChatStore(
                         chat.messages.any { it.text.contains(q, ignoreCase = true) }
                 }.map { it.id }
         val indexed = runCatching { persistence?.search(q) }.getOrNull().orEmpty()
-        return (local + indexed).toSet()
+        val hidden =
+            mutableChats.value
+                .filter { it.isPrivate }
+                .map { it.id }
+                .toSet()
+        return (local + indexed).toSet() - hidden
     }
 
     /** First words of the first user message, at most [MAX_TITLE] characters. */

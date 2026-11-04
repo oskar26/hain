@@ -24,6 +24,21 @@ enum class UpdateCheck { OFF, DAILY }
 /** Which builds the update check looks at (SETTINGS.md `update_channel`): tagged releases or nightly. */
 enum class UpdateChannel { STABLE, NIGHTLY }
 
+/**
+ * App lock (SETTINGS.md `app_lock_delay`, T-056): how long Hain may be in the background before it
+ * asks for the fingerprint or the phone's PIN again.
+ */
+enum class LockDelay(
+    val millis: Long,
+) {
+    IMMEDIATE(0L),
+    ONE_MINUTE(MINUTE_MS),
+    FIVE_MINUTES(FIVE_MINUTES_MS),
+}
+
+private const val MINUTE_MS = 60_000L
+private const val FIVE_MINUTES_MS = 300_000L
+
 /** Developer mode: think always, never, or let Hain decide (SETTINGS.md `dev_thinking`, T-211). */
 enum class ThinkingOverride { AUTO, ON, OFF }
 
@@ -112,6 +127,11 @@ data class HainSettings(
     val lastUpdateCheck: Long = 0L,
     /** Developer mode (T-211). */
     val dev: DevSettings = DevSettings(),
+    /** App lock with fingerprint or the phone's PIN (SETTINGS.md `app_lock`, T-056). */
+    val appLock: Boolean = false,
+    val lockDelay: LockDelay = LockDelay.IMMEDIATE,
+    /** No screenshots or screen recordings of Hain (FLAG_SECURE, SETTINGS.md `block_screenshots`). */
+    val blockScreenshots: Boolean = false,
 ) {
     /** Text for the "user instructions" slot of the system prompt; empty if nothing is set. */
     fun customInstructions(deviceLanguage: String = "English"): String =

@@ -97,6 +97,9 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.kotlinx.coroutines.android)
+    // T-056: app lock with fingerprint / phone PIN (BiometricPrompt needs a FragmentActivity)
+    implementation(libs.androidx.biometric)
+    implementation(libs.androidx.fragment)
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     // T-190: compiles the baseline profile (src/main/baselineProfiles) on phones without Play

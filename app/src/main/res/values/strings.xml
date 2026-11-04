@@ -12,4 +12,18 @@
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
     <string name="delete">Delete</string>
+
+    <!-- T-056 app lock, T-054 export all -->
+    <string name="lock_title">Hain is locked</string>
+    <string name="lock_hint">Unlock with your fingerprint or your phone’s PIN.</string>
+    <string name="lock_unlock">Unlock</string>
+    <string name="lock_prompt_title">Unlock Hain</string>
+    <string name="lock_prompt_subtitle">Your chats stay private.</string>
+    <string name="lock_enable_title">Turn on app lock</string>
+    <string name="lock_enable_subtitle">Confirm it’s you.</string>
+    <plurals name="export_all_done">
+        <item quantity="one">%1$d chat exported</item>
+        <item quantity="other">%1$d chats exported</item>
+    </plurals>
+    <string name="export_all_failed">Export didn’t work</string>
 </resources>

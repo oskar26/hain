@@ -2,10 +2,13 @@ package app.hain
 
 import android.Manifest
 import android.app.LocaleManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.LocaleList
-import androidx.activity.ComponentActivity
+import android.os.SystemClock
+import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -29,6 +33,7 @@ import app.hain.common.api.AnswerLanguage
 import app.hain.common.api.AppIcon
 import app.hain.common.api.BrainChoiceStore
 import app.hain.common.api.HainSettings
+import app.hain.common.api.LockDelay
 import app.hain.common.api.SearxAddress
 import app.hain.common.api.SettingsRepository
 import app.hain.common.api.ThemeChoice
@@ -39,6 +44,9 @@ import app.hain.common.api.update.UpdateResult
 import app.hain.common.api.update.UpdateRules
 import app.hain.feature.chat.api.ChatExtras
 import app.hain.feature.chat.api.ChatScreen
+import app.hain.feature.chat.export.ChatZip
+import app.hain.feature.chat.export.exportLabels
+import app.hain.feature.chat.export.fileDate
 import app.hain.feature.chat.game.Game2048Screen
 import app.hain.feature.chat.internal.ChatEngine
 import app.hain.feature.chat.internal.ChatStore
@@ -57,6 +65,8 @@ import app.hain.feature.settings.api.UpdateBanner
 import app.hain.feature.settings.api.UpdateStatus
 import app.hain.llm.api.DevTuning
 import app.hain.llm.api.LlmEngine
+import app.hain.lock.AppLock
+import app.hain.lock.LockScreen
 import app.hain.memory.api.MemoryStore
 import app.hain.memory.api.MemoryTurn
 import app.hain.memory.api.RememberTool
@@ -65,6 +75,7 @@ import app.hain.models.api.ModelRepository
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.ToolContext
 import app.hain.tools.internal.news.NewsRepository
+import app.hain.ui.LocalExternalLaunch
 import app.hain.ui.effects.HainMenuBackdrop
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.HapticLevel
@@ -79,13 +90,15 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.time.ZonedDateTime
 import javax.inject.Inject
 import app.hain.llm.internal.AnswerMode as LlmAnswerMode
 
+@Suppress("TooManyFunctions") // activity: lifecycle, settings wiring, app lock, export
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     @Inject lateinit var llm: LlmEngine
 
     @Inject lateinit var models: ModelRepository
@@ -151,7 +164,71 @@ class MainActivity : ComponentActivity() {
             onUpdateChannel = { write { repo.setUpdateChannel(it) } },
             onCheckUpdate = { checkForUpdate() },
             onOpenMemory = onOpenMemory,
+            onAppLock = { on ->
+                if (on) {
+                    // T-056: the lock only turns on after the phone confirmed it is you
+                    val title = getString(R.string.lock_enable_title)
+                    appLock.authenticate(title, getString(R.string.lock_enable_subtitle)) {
+                        if (it) write { repo.setAppLock(true) }
+                    }
+                } else {
+                    write { repo.setAppLock(false) }
+                    appLock.disable()
+                }
+            },
+            onLockDelay = { write { repo.setLockDelay(it) } },
+            onBlockScreenshots = { write { repo.setBlockScreenshots(it) } },
+            onExportAll = ::exportAllChats,
         )
+    }
+
+    /** T-054: every saved chat as a Markdown file in one ZIP, written to the file you picked. */
+    private fun exportAllChats(uri: Uri) {
+        lifecycleScope.launch {
+            chatStore.loaded.first { it }
+            val chats = chatStore.chats.value
+            val count =
+                withContext(Dispatchers.IO) {
+                    runCatching {
+                        contentResolver.openOutputStream(uri)?.use { out ->
+                            ChatZip.write(
+                                chats,
+                                out,
+                                labelsOf = { exportLabels(this@MainActivity, it) },
+                                dateOf = { fileDate(it.updatedAt) },
+                            )
+                        }
+                    }.getOrNull()
+                }
+            val text =
+                if (count == null) {
+                    getString(R.string.export_all_failed)
+                } else {
+                    resources.getQuantityString(R.plurals.export_all_done, count, count)
+                }
+            Toast.makeText(this@MainActivity, text, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** T-056: fingerprint / PIN lock; created in onCreate, before the activity is resumed. */
+    private lateinit var appLock: AppLock
+
+    /**
+     * T-056: no screenshots while "Bildschirmfotos verhindern" is on; with the app lock (or the
+     * block) the preview in recent apps stays blank (Android 13+).
+     */
+    private fun applyWindowPrivacy(
+        blockScreenshots: Boolean,
+        lock: Boolean,
+    ) {
+        if (blockScreenshots) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            setRecentsScreenshotEnabled(!lock && !blockScreenshots)
+        }
     }
 
     /** 3b-2: Android asks for the rough location once; only a yes switches "Standort fürs Wetter" on. */
@@ -268,7 +345,22 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val prompts = SystemPromptSource(applicationContext) { current }
-        lifecycleScope.launch { settingsRepository.settings.collect { storedIcon = it.appIcon } }
+        // T-056: start locked when the lock is on (read synchronously, so the chat never flashes up)
+        val lockOn = startPrefs.getBoolean(KEY_LOCK, false)
+        appLock = AppLock(this, initiallyLocked = lockOn)
+        applyWindowPrivacy(startPrefs.getBoolean(KEY_NO_SCREENSHOTS, false), lockOn)
+        lifecycleScope.launch {
+            settingsRepository.settings.collect {
+                storedIcon = it.appIcon
+                startPrefs
+                    .edit()
+                    .putBoolean(KEY_LOCK, it.appLock)
+                    .putString(KEY_LOCK_DELAY, it.lockDelay.name)
+                    .putBoolean(KEY_NO_SCREENSHOTS, it.blockScreenshots)
+                    .apply()
+                applyWindowPrivacy(it.blockScreenshots, it.appLock)
+            }
+        }
         // T-212: once a day at start, only when switched on (off by default)
         lifecycleScope.launch {
             val stored = settingsRepository.settings.first()
@@ -295,7 +387,20 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalReduceMotion provides (settings.reduceMotion || systemReducesMotion()),
                     LocalHapticLevel provides HapticLevel.entries[settings.haptics.ordinal],
+                    LocalExternalLaunch provides appLock::expectReturn,
                 ) {
+                    // T-056: while locked only the lock screen is there (no chat, menu or popup underneath)
+                    val locked by appLock.locked.collectAsStateWithLifecycle()
+                    if (locked) {
+                        LockScreen(
+                            onUnlock = {
+                                val title = getString(R.string.lock_prompt_title)
+                                appLock.unlock(title, getString(R.string.lock_prompt_subtitle))
+                            },
+                            onLeave = { moveTaskToBack(true) },
+                        )
+                        return@CompositionLocalProvider
+                    }
                     HainMenuBackdrop {
                         var installed by remember {
                             mutableStateOf(brainPicking.anyInstalled())
@@ -423,7 +528,13 @@ class MainActivity : ComponentActivity() {
                                         onOpenMemory = { showMemory = true },
                                     ),
                                     networkLog = log,
-                                    extras = SettingsExtras(appInfo, updateStatus, devModels),
+                                    extras =
+                                        SettingsExtras(
+                                            appInfo,
+                                            updateStatus,
+                                            devModels,
+                                            lockAvailable = appLock.available(),
+                                        ),
                                 )
                             }
                             // T-115: Settings → Gedächtnis
@@ -465,12 +576,23 @@ class MainActivity : ComponentActivity() {
     /** Stored icon choice; null until DataStore was read, so [onStop] never flips it by mistake. */
     private var storedIcon: AppIcon? = null
 
+    /** T-056: back on screen → lock if Hain was away longer than the chosen time. */
+    override fun onStart() {
+        super.onStart()
+        val delay =
+            LockDelay.entries.firstOrNull { it.name == startPrefs.getString(KEY_LOCK_DELAY, null) }
+                ?: LockDelay.IMMEDIATE
+        appLock.onForeground(SystemClock.elapsedRealtime(), startPrefs.getBoolean(KEY_LOCK, false), delay)
+    }
+
     /**
      * T-103: the launcher alias follows the stored icon choice when you leave Hain. Switching it
      * while Hain is in front can close the app on some phones; not on a rotation or language change.
+     * T-056: leaving also starts the app-lock clock.
      */
     override fun onStop() {
         super.onStop()
+        if (!isChangingConfigurations) appLock.onBackground(SystemClock.elapsedRealtime())
         val icon = storedIcon
         if (icon != null && !isChangingConfigurations) AppIconSwitcher.apply(applicationContext, icon)
     }
@@ -490,3 +612,6 @@ private const val BYTES_PER_GB = 1_000_000_000.0
 private const val START_PREFS = "hain_start"
 private const val KEY_SKIPPED = "onboarding_skipped"
 private const val RATINGS_PREFS = "hain_ratings"
+private const val KEY_LOCK = "app_lock"
+private const val KEY_LOCK_DELAY = "app_lock_delay"
+private const val KEY_NO_SCREENSHOTS = "block_screenshots"

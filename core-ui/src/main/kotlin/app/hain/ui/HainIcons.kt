@@ -60,6 +60,9 @@ object HainIcons {
     val info: Painter @Composable get() = painterResource(R.drawable.ic_info)
     val code: Painter @Composable get() = painterResource(R.drawable.ic_code)
     val tag: Painter @Composable get() = painterResource(R.drawable.ic_tag)
+
+    /** Private chat (T-056). */
+    val privateChat: Painter @Composable get() = painterResource(R.drawable.ic_eye_off)
 }
 
 @Preview(name = "Light — icon grid")

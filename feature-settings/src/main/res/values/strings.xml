@@ -187,4 +187,18 @@
     </plurals>
     <string name="settings_memory">Memory</string>
     <string name="settings_memory_hint">What Pim keeps about you.</string>
+    <!-- T-056 app lock, T-054 export all -->
+    <string name="settings_lock_title">App lock</string>
+    <string name="settings_lock">Lock with fingerprint or PIN</string>
+    <string name="settings_lock_hint">Hain asks for your fingerprint or your phone’s PIN when you come back.</string>
+    <string name="settings_lock_unavailable">To use the app lock, first set up a screen lock (PIN, pattern or fingerprint) in your phone’s settings.</string>
+    <string name="settings_lock_delay">Lock again after</string>
+    <string name="settings_lock_now">Right away</string>
+    <string name="settings_lock_1min">1 min</string>
+    <string name="settings_lock_5min">5 min</string>
+    <string name="settings_screenshots">Block screenshots</string>
+    <string name="settings_screenshots_hint">No screenshots or screen recordings of Hain, and a blank preview in recent apps.</string>
+    <string name="settings_export_title">Export</string>
+    <string name="settings_export_all">Export all chats</string>
+    <string name="settings_export_all_hint">One ZIP file with every chat as a Markdown file. You choose where it’s saved.</string>
 </resources>

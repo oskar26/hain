@@ -25,4 +25,6 @@ data class SettingsExtras(
     val updateStatus: UpdateStatus = UpdateStatus.Idle,
     /** Own models in developer mode; `null` in previews and screenshots. */
     val devModels: DevModels? = null,
+    /** The phone has a screen lock (fingerprint, PIN, pattern or password), so the app lock can work. */
+    val lockAvailable: Boolean = true,
 )

@@ -62,6 +62,8 @@ import app.hain.cards.api.NewsCard
 import app.hain.cards.api.NewsCardItem
 import app.hain.common.api.AnswerMode
 import app.hain.feature.chat.R
+import app.hain.feature.chat.export.ExportButton
+import app.hain.feature.chat.export.rememberChatExport
 import app.hain.feature.chat.internal.ActionEvent
 import app.hain.feature.chat.internal.ChatError
 import app.hain.feature.chat.internal.ChatUiState
@@ -73,6 +75,7 @@ import app.hain.llm.api.EngineState
 import app.hain.llm.api.GenerationStats
 import app.hain.tools.api.NewsHeadline
 import app.hain.ui.HainIcons
+import app.hain.ui.LocalExternalLaunch
 import app.hain.ui.components.Composer
 import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.MessageAction
@@ -101,7 +104,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /** Chat screen (T-052) with the chat drawer (T-053, basic). */
-@Suppress("LongMethod", "LongParameterList") // screen scaffold: top bar, list, composer, drawer
+@Suppress("LongMethod", "LongParameterList", "CyclomaticComplexMethod") // scaffold: top bar, list, composer, drawer
 @Composable
 fun ChatScreen(
     viewModel: ChatViewModel,
@@ -120,6 +123,8 @@ fun ChatScreen(
     var drawerOpen by rememberSaveable { mutableStateOf(false) }
     val colors = LocalHainColors.current
     val haptics = rememberHainHaptics()
+    // T-054: export of one chat; T-056: private chats are never exported
+    val export = rememberChatExport { id -> state.chats.firstOrNull { it.id == id } }
 
     BackHandler(enabled = drawerOpen) { drawerOpen = false }
     // T-096: a soft double tick when an answer is done, a short "no" on an error; never while streaming
@@ -151,7 +156,7 @@ fun ChatScreen(
             // T-055: tapping "Hain · Auf diesem Handy" opens the brain picker
             var pickerOpen by rememberSaveable { mutableStateOf(false) }
             TopBar(
-                title = stringResource(R.string.chat_title),
+                title = stringResource(if (state.privateChat) R.string.chat_private_title else R.string.chat_title),
                 subtitle = engineLine(state),
                 onTitleClick = brainPicker?.let { { pickerOpen = !pickerOpen } },
                 titleClickLabel = stringResource(R.string.chat_brain_picker_open),
@@ -163,10 +168,17 @@ fun ChatScreen(
                 },
                 trailing = {
                     if (state.online) OnlineDot()
+                    val openChat = state.chats.firstOrNull { it.id == state.currentChatId }
+                    if (openChat != null) {
+                        ExportButton(openChat, export)
+                    } else {
+                        PrivateChatButton(state.privateChat, viewModel::togglePrivateChat)
+                    }
                     HainIconButton(HainIcons.plus, stringResource(R.string.chat_new), viewModel::newChat)
                 },
             )
             BrainLoadBar(state)
+            if (state.privateChat) PrivateChatBanner(onEnd = viewModel::newChat)
             var bannerHidden by rememberSaveable { mutableStateOf(false) }
             if (!state.brainInstalled && !bannerHidden) {
                 BrainBanner(onGet = onGetBrain, onLater = { bannerHidden = true })
@@ -243,6 +255,11 @@ fun ChatScreen(
                     onRename = viewModel::renameChat,
                     onPin = viewModel::setPinned,
                     onSearch = viewModel::onSearchChange,
+                    onExport = { id, format, share ->
+                        state.chats.firstOrNull { it.id == id }?.let { chat ->
+                            if (share) export.share(chat, format) else export.save(chat, format)
+                        }
+                    },
                     onSettings = {
                         drawerOpen = false
                         onOpenSettings()
@@ -648,6 +665,7 @@ private fun AnswerActions(
     onRate: (Rating) -> Unit,
 ) {
     val context = LocalContext.current
+    val external = LocalExternalLaunch.current
     val shareLabel = stringResource(R.string.chat_share)
     CopyAction(text)
     MessageAction(MessageActionKind.SHARE, shareLabel, onClick = {
@@ -655,6 +673,7 @@ private fun AnswerActions(
             Intent(Intent.ACTION_SEND)
                 .setType("text/plain")
                 .putExtra(Intent.EXTRA_TEXT, text)
+        external()
         context.startActivity(Intent.createChooser(send, shareLabel))
     })
     MessageAction(

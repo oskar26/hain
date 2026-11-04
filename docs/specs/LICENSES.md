@@ -38,6 +38,7 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | Room, Compose, Hilt, WorkManager | Apache-2.0 | ok |
 | Room 2.7.2 (runtime, ktx, compiler via KSP) + androidx.sqlite 2.5.2 | Apache-2.0 | ok (T-020) |
 | net.zetetic:sqlcipher-android 4.10.0 | BSD-style (zetetic.net/sqlcipher/license) | ok (T-020, encrypted `hain.db`) |
+| androidx.biometric 1.1.0 (+ androidx.fragment-ktx 1.8.9; pulls androidx.appcompat 1.2.0 at runtime) | Apache-2.0 | ok (T-056, app lock with BiometricPrompt + device PIN; no Play Services) |
 | Robolectric 4.16 + androidx.test:core 1.7.0 (test only) | MIT / Apache-2.0 | ok (T-020 DAO tests) |
 | multiplatform-markdown-renderer | Apache-2.0 | ok |
 | Hanken Grotesk 3.014 (Light, Regular, Medium, SemiBold; app font since 03.11.2026, text in `docs/specs/licenses/HankenGrotesk-OFL.txt`), Atkinson Hyperlegible, JetBrains Mono | OFL-1.1 | ok |
