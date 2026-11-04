@@ -421,3 +421,9 @@ export const SHOT_SIZE: Record<string, [number, number]> = {
   drawer: [720, 1548],
   settings: [720, 1008],
 }
+
+// The English screenshots (`<id>-<mode>-en.webp`, T-107) were recorded later: the settings page
+// has a short intro at the top since then, so it is taller. Others are as in SHOT_SIZE.
+export const SHOT_SIZE_EN: Record<string, [number, number]> = {
+  settings: [720, 1110],
+}
