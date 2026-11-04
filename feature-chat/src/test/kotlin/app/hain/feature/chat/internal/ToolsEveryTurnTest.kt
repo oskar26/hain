@@ -109,8 +109,11 @@ class ToolsEveryTurnTest {
     @Test
     fun secondQuestionStillOffersToolsAndShowsTheFirstCall() =
         runTest {
-            val wiki = FakeTool("wikipedia") { ToolResult("{\"extract\":\"Licht\"}", "Photosynthese") }
-            val weather = FakeTool("weather") { ToolResult("{\"t\":4}", "Berlin") }
+            val wikiSource = listOf(ToolSource("Photosynthese", "https://de.wikipedia.org/wiki/Photosynthese"))
+            val wiki = FakeTool("wikipedia") { ToolResult("{\"extract\":\"Licht\"}", "Photosynthese", wikiSource) }
+            // T-220: a [1] stays only when the tool gave a source to point at
+            val weatherSource = listOf(ToolSource("Open-Meteo", "https://open-meteo.com"))
+            val weather = FakeTool("weather") { ToolResult("{\"t\":4}", "Berlin", weatherSource) }
             val llm =
                 FakeLlm(
                     listOf(call("wikipedia", "topic", "Photosynthese")),
