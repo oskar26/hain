@@ -209,7 +209,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Suppress("LongMethod") // compose root: theme, onboarding, chat, settings overlays
+    @Suppress("LongMethod", "CyclomaticComplexMethod") // compose root: theme, onboarding, chat, settings overlays
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

@@ -438,7 +438,7 @@ private fun CopyAction(text: String) {
     )
 }
 
-@Suppress("LongParameterList", "LongMethod") // one callback per answer action
+@Suppress("LongParameterList", "LongMethod", "CyclomaticComplexMethod") // one callback per answer action
 @Composable
 private fun Answer(
     message: UiMessage,

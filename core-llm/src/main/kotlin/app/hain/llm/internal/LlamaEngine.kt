@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 
 /** [LlmEngine] on top of llama.cpp via [NativeLlm] (T-032). All native calls run on one thread. */
+@Suppress("TooManyFunctions") // the LlmEngine surface plus small native helpers
 @OptIn(ExperimentalCoroutinesApi::class)
 class LlamaEngine(
     private val context: Context,
@@ -53,7 +54,8 @@ class LlamaEngine(
     ): Boolean =
         withContext(dispatcher) {
             val current = mutableState.value
-            if (current is EngineState.Ready && current.path == path && handle != 0L && loadedContext == contextSize) {
+            val sameModel = current is EngineState.Ready && current.path == path
+            if (sameModel && handle != 0L && loadedContext == contextSize) {
                 return@withContext true
             }
             NativeLlm.loadError?.let {
@@ -151,8 +153,8 @@ class LlamaEngine(
         messages: List<Pair<String, String>>,
         addAssistant: Boolean,
     ): String? {
-        val tmpl = template ?: return null
-        if (NativeLlm.loadError != null) return null
+        val tmpl = template
+        if (tmpl == null || NativeLlm.loadError != null) return null
         return runCatching {
             NativeLlm
                 .nativeApplyTemplate(

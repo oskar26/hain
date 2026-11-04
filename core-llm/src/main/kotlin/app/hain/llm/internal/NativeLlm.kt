@@ -11,6 +11,7 @@ fun interface LoadProgress {
 }
 
 /** The whole JNI surface (LLM.md §1). Blocking calls: run them on one background thread. */
+@Suppress("TooManyFunctions") // one function per JNI entry point
 internal object NativeLlm {
     const val STOP_EOS = 0
     const val STOP_MAX_TOKENS = 1

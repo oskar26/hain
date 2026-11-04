@@ -40,6 +40,7 @@ class SettingsRepository(
             )
         }
 
+    @Suppress("CyclomaticComplexMethod") // one fallback per developer setting
     private fun devOf(p: Preferences): DevSettings {
         val d = DevSettings()
         return DevSettings(

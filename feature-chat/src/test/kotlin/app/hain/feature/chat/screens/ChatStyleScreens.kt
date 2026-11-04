@@ -87,7 +87,8 @@ abstract class ChatStyleShots(
                 streaming = true,
                 steps = listOf(ToolStep("web_search", "Köln Wetter", StepState.RUNNING, online = true)),
             )
-        compose.setContent { Frame(dark) { ChatFrame(ChatUiState(messages = listOf(question, answer)), texts = texts) } }
+        val state = ChatUiState(messages = listOf(question, answer))
+        compose.setContent { Frame(dark) { ChatFrame(state, texts = texts) } }
         shot("chat_pim_tools")
     }
 
