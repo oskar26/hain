@@ -89,6 +89,8 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.hilt.android)
+    // T-144: home screen widget "Frag Pim" (Apache-2.0, docs/specs/LICENSES.md)
+    implementation(libs.androidx.glance.appwidget)
     ksp(libs.hilt.android.compiler)
     debugImplementation(libs.androidx.compose.ui.tooling)
 

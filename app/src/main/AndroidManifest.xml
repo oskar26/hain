@@ -14,11 +14,21 @@
         android:localeConfig="@xml/locales_config"
         android:supportsRtl="true">
 
+        <!-- T-144: singleTask so the share sheet, the widget and the tile reach the one open Hain
+             (onNewIntent). Shared text (and links) open a new chat with the text in the message box;
+             nothing is sent on its own. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.Hain"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter android:label="@string/share_target_label">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
 
         <!-- T-103: two launcher entries for the icon "Pim im Wald" (3D default, flat). Only one is
              enabled at a time; AppIconSwitcher flips them (Settings → Look → App icon, onboarding).
@@ -47,5 +57,33 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity-alias>
+
+        <!-- T-144: home screen widget "Frag Pim" (Glance) -->
+        <receiver
+            android:name=".entry.HainWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/hain_widget_info" />
+        </receiver>
+
+        <!-- T-144: quick settings tile "Neuer Chat" -->
+        <service
+            android:name=".entry.NewChatTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_new_chat"
+            android:label="@string/tile_new_chat"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
+                android:value="false" />
+        </service>
     </application>
 </manifest>
