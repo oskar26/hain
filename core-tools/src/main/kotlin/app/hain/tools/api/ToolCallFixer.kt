@@ -57,6 +57,7 @@ class ToolCallFixer(
         }
         joinSplitStart(name, call.arguments, args)
         if (name == TIMER) timerSeconds(call.arguments, args)
+        if (name == WIKI) wikiLang(call.arguments, args)
         spec.params.forEach { p -> args[p.name]?.let { args[p.name] = value(p, it, now) } }
         // unknown keys are dropped: tools never read them and they confuse the stored history
         args.keys.retainAll(spec.params.map { it.name }.toSet() + TOOL_ONLY)
@@ -155,6 +156,25 @@ class ToolCallFixer(
         return "The call $tool needs '$param'. $ask"
     }
 
+    /**
+     * `wikipedia` no longer shows `lang` to the brain, but when it sends one anyway ("language": "German")
+     * the tool still gets a code it reads (de/en); anything else is dropped.
+     */
+    private fun wikiLang(
+        raw: Map<String, Any?>,
+        args: MutableMap<String, Any?>,
+    ) {
+        val value =
+            raw.entries
+                .firstOrNull { it.key.trim().lowercase() in LANG_KEYS }
+                ?.value
+                ?.toString()
+                ?.trim()
+                ?.lowercase()
+        val code = value?.let { LANG_WORDS[it] ?: it.take(2).takeIf { c -> c == "de" || c == "en" } }
+        if (code == null) args.remove("lang") else args["lang"] = code
+    }
+
     companion object {
         private const val CALENDAR = "add_calendar_event"
         private val DATE_PARAMS = setOf("start", "end")
@@ -164,7 +184,10 @@ class ToolCallFixer(
 
         /** Values the tool reads under another name than the brain sees (`minutes` → `seconds`). */
         private val TOOL_NAMES = mapOf("minutes" to "seconds")
-        private val TOOL_ONLY = setOf("seconds")
+        private val TOOL_ONLY = setOf("seconds", "lang")
+        private const val WIKI = "wikipedia"
+        private val LANG_KEYS = setOf("lang", "language", "sprache")
+        private val LANG_WORDS = mapOf("german" to "de", "deutsch" to "de", "english" to "en", "englisch" to "en")
 
         private val RELATIVE_DAYS =
             linkedMapOf(
