@@ -84,13 +84,18 @@ class MemoryScreens {
     }
 
     @Test
-    fun smartSearchAndReplacesDark() {
+    fun suggestionReplacesDark() {
         val newer = MemoryFact(7, "wohnt jetzt in Bonn", MemoryCategory.PLACE, now, suggested = true, replaces = 5)
         val state = MemoryPageState(facts + newer, smartSearch = SmartSearch.Loading(42))
         compose.setContent {
             Frame(dark = true) { MemoryPage(state, MemoryActions(), startTab = MemoryTab.SUGGESTIONS) }
         }
         captureScreenRoboImage("$OUT/memory_suggestions_replaces_dark.png")
+    }
+
+    @Test
+    fun smartSearchDark() {
+        val state = MemoryPageState(facts, smartSearch = SmartSearch.Loading(42))
         compose.setContent { Frame(dark = true) { MemoryPage(state, MemoryActions()) } }
         captureScreenRoboImage("$OUT/memory_smart_search_dark.png")
     }

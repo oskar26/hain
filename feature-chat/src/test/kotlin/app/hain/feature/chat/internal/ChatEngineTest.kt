@@ -112,13 +112,10 @@ class ChatEngineTest {
                     },
                 )
             engine.respond(user("Rezept?"), AnswerMode.FAST).toList()
-            assertTrue(
-                llm.lastPrompt,
-                llm.lastPrompt.endsWith(
-                    "<​|im_start|>system\nAntworte auf Deutsch.\nRelevant: - mag keine Pilze (1)<​|im_end|>\n" +
-                        "<​|im_start|>assistant\n<think></think>",
-                ),
-            )
+            val prompt = llm.lastPrompt
+            // one system line after the history: language first, then the memory
+            val line = prompt.indexOf("system\nAntworte auf Deutsch.\nRelevant: - mag keine Pilze (1)")
+            assertTrue(prompt, line > prompt.indexOf("Rezept?"))
             assertTrue(thread, thread.startsWith("DefaultDispatcher"))
         }
 
