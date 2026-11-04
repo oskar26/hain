@@ -1,4 +1,4 @@
-# Hain app icon (T-088, glossy Pim)
+# Hain app icon (T-088, motif "Pim als Sprechblase" since T-100i)
 
 Status: **in the app** (launcher icon, adaptive + themed), on the website and in the README.
 
@@ -6,17 +6,17 @@ Status: **in the app** (launcher icon, adaptive + themed), on the website and in
 
 ## What it shows
 
-Pim in the current v2.1 shape: a mint drop with a small leaf whose stem grows out of the top of the head (so the leaf is fixed to Pim), two dot eyes with a tiny catch-light. Drawn like a modern macOS app icon:
+**Motif: "Pim als Sprechblase"** — chosen by Oskar on 04.11.2026 (T-100i; reference sketch "Konzept F"). Pim's glossy mint glass body has the shape of a round chat bubble: a soft oval, a bit wider than tall, with a small rounded tail at the lower left, all one smooth path. Inside sit Pim's two dark dot eyes with a tiny catch-light. Pim's stem grows out of the top of the bubble (it starts inside the body, so the leaf is fixed to Pim) and carries the leaf. The bubble says "chat", the eyes and leaf say "Pim". Drawn like a modern macOS app icon:
 
 - **Tile:** continuous-corner squircle (superellipse n = 5, 824/1024 like the macOS grid), soft vertical gradient `#5FDCA6` → Hain green `#16A36B`-ish `#22B47A` → `#0B7A4F`, a white glow top-left, a darker pool bottom-right, a thin light edge (glass rim) and a soft drop shadow.
-- **Pim:** glass look — radial mint gradient (almost white → `#7EDDB0` → `#3DBF85`), white inner glow along the edge, a specular highlight top-left, a light edge on top, a mint bounce light at the bottom, a contact shadow.
+- **Pim (bubble):** ellipse cx 62 cy 66 rx 36 ry 28.5 in Pim units plus the tail (tip at 25.5/97); glass look — radial mint gradient (almost white → `#7EDDB0` → `#3DBF85`), white inner glow along the edge, a specular highlight top-left, a light edge on top, a mint bounce light at the bottom, a contact shadow.
 - Calm and adult: no text, no outlines, no extra props. Recognisable at 48 px (checked masked round and squircle).
 
 **Debug build:** same icon with a small dark pill “dev” at the bottom (inside the safe zone), so the debug app (`app.hain.debug`) is easy to tell apart.
 
 ## Source
 
-`assets/icon/src/make_icon.py` builds everything from one SVG description (pure vector, gradients + Gaussian blur, rendered with resvg). Pim's paths are copied 1:1 from `assets/mascot/v2/static/pim_idle.svg`.
+`assets/icon/src/make_icon.py` builds everything from one SVG description (pure vector, gradients + Gaussian blur, rendered with resvg). Units, eyes, stem and leaf follow `assets/mascot/v2/static/pim_idle.svg`; the bubble body is drawn in the script (`BODY`).
 
 ```bash
 pip install resvg-py pillow
@@ -41,8 +41,14 @@ Own work, no image model and no third-party artwork. The SVGs are in `assets/ico
 
 - `mipmap-anydpi-v26/ic_launcher.xml` + `ic_launcher_round.xml`: adaptive icon with background, foreground and **monochrome** layer.
 - `mipmap-{m,h,xh,xxh,xxxh}dpi/`: `ic_launcher_foreground.webp`, `ic_launcher_background.webp` (108 dp layers) and the legacy `ic_launcher.webp` (squircle) / `ic_launcher_round.webp` (48 dp).
-- `drawable/ic_launcher_monochrome.xml`: themed icon (Android 13+), Pim silhouette with the eyes cut out, vector.
+- `drawable/ic_launcher_monochrome.xml`: themed icon (Android 13+), Pim bubble silhouette (body + stem + leaf) with the eyes cut out, vector.
 - The debug source set only overrides the mipmaps (with the “dev” pill); the monochrome layer comes from `main`.
 - `AndroidManifest.xml`: `android:icon="@mipmap/ic_launcher"`, `android:roundIcon="@mipmap/ic_launcher_round"`.
 
-Replaces the earlier 3D icon (02.11., image model), which was never built into the app.
+Website copies (`website/public/`): `img/hain-icon.webp` (rounded, 256 px), `favicon.png` (rounded, 64 px), `apple-touch-icon.png` (full-bleed, 180 px), `og.png` (rounded icon at 420 px, placed at 700/105). Update them whenever the icon changes.
+
+## History
+
+- 04.11.2026 (T-100i): "Pim als Sprechblase" (this icon).
+- 03.11.2026 (T-088): glossy glass Pim as a mint drop (Pim v2.1 shape) on the same squircle.
+- 02.11.2026: 3D icon from an image model, never built into the app.

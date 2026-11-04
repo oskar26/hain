@@ -325,3 +325,9 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 
 - Oskar's correction 03.11. 23:26: Pim only a little bigger; the easter egg only after 5 s holding without a break, grows slowly to 5×, then bursts into the 2048 game; subtle haptics everywhere.
 - Still open from the polish list: compact ⋯ menu, About page with website/GitHub, screenshot fixes (composer lines, back arrow, segments), usability pass, new screenshots → next run.
+
+## 2026-11-04 · T-100i (app icon "Pim als Sprechblase") · review · harness: Hark · model: Hark · branch `hark/icon-bubble`
+- What: Oskar chose the motif "Pim als Sprechblase" (04.11.2026). Pim's body path in `assets/icon/src/make_icon.py` is now a round chat bubble (ellipse cx 62 cy 66 rx 36 ry 28.5 + tail at the lower left, one smooth closed path); stem + leaf moved so they grow from the top of the bubble (stem starts inside the body), eyes centred, highlight/inner glow/bounce light/contact shadow kept in the same style and re-placed. Pim scale 0.0068 → 0.0072 (tile), adaptive foreground 0.0051 → 0.0052 (tail tip at ~32 dp of the 33 dp safe radius). Monochrome vector = bubble silhouette with eyes cut out + stem + leaf.
+- Files: assets/icon/** (PNGs + SVGs + make_icon.py), app/src/{main,debug}/res mipmaps, app/src/main/res/drawable/ic_launcher_monochrome.xml, website/public/{favicon.png,apple-touch-icon.png,og.png,img/hain-icon.webp} (OG: only the icon area swapped), website/src/components/ui.tsx (comment), README.md (alt text + feature bullet), docs/design/ICON.md, docs/workflow/{TASKS,STATUS,HANDOFF_LOG}.md.
+- Checks: 1024/96/48 px, masked round and squircle (adaptive crop), monochrome rendered, dev pill clear of the tail; `npm ci && npm run build` green. Gradle not run locally (RAM) → CI + APK workflow.
+- Next: Oskar checks the icon on the phone (launcher, themed icon on Android 13+).

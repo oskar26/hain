@@ -27,7 +27,7 @@ export function SectionHead({ kicker, title, sub, center = true }: { kicker: str
   )
 }
 
-/** The app icon (glossy Pim). */
+/** The app icon (glossy Pim as a chat bubble). */
 export function AppIcon({ size, className = '', eager = false }: { size: number; className?: string; eager?: boolean }) {
   return (
     <img

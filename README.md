@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/icon/hain-icon-rounded-1024.png" alt="Hain app icon: Pim, a glossy mint drop with a leaf" width="128">
+<img src="assets/icon/hain-icon-rounded-1024.png" alt="Hain app icon: Pim as a glossy mint chat bubble with a leaf" width="128">
 
 # Hain
 
@@ -104,7 +104,7 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
-- **A real app icon.** Hain now has its own launcher icon: Pim as a glossy mint drop with a leaf on a soft green tile, like a modern macOS app. It works as a round or rounded icon, follows your wallpaper colours with themed icons (Android 13+), and the test build shows a small “dev” tag so you can tell it apart.
+- **A real app icon.** Hain now has its own launcher icon: Pim as a glossy mint chat bubble with a leaf on a soft green tile, like a modern macOS app. It works as a round or rounded icon, follows your wallpaper colours with themed icons (Android 13+), and the test build shows a small “dev” tag so you can tell it apart.
 - **New website look.** The website (https://oskar26.github.io/hain/) now looks like the app's calm style “Lichtung”, in light and dark, with real screenshots and a clear mark on every feature: green “Available now” or grey “Coming soon”.
 - **The 3D redesign.** Hain now looks like the pictures it was meant to look like: settings groups, tool cards, suggestions, knowledge packs and the side panel are **glass tiles that glow from inside** in their own soft colour, with small **glossy 3D icons** (weather, book, leaf, shield …). Pim is a **glossy 3D jelly** with white oval eyes. The empty chat greets you big and light ("Guten Abend, was kann ich für dich tun?") above three suggestion tiles, the message box is a big white card with a soft green glow and a round domed send button. The welcome tour starts with a cloud of shiny bubbles and a round Pim button. Buttons press in a little when you tap them. Dark mode glows too; "Reduce motion" stops all movement but keeps the depth. The chat text itself stays calm.
 - **Thinking level in the message box.** Tap the **brain** in the message box and pick **Auto** (Pim decides), **Schnell** (answers right away) or **Gründlich** (thinks longer, for hard questions). The bar above the box is gone; next to the brain you see the level when it is not Auto. Same setting as Settings → Answers.
