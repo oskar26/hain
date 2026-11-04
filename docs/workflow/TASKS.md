@@ -79,7 +79,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-064a | WeatherCard + WikiCard in core-cards under the answer (incl. T-065a) | ui | S | A | T-064,T-065 | review (04.11., 0.1.4) |
 | T-064b | Weather without a place = last known location (setting `weather_location`, asks first) | feature | S | A | T-064 | review (04.11., 0.1.4) |
 | T-064c | Favicons at the source chips (needs image fetch through the NetworkGate) | ui | S | A | T-059,T-060 | todo |
-| T-068e | ConfirmCard into core-cards (needs a chat-free card state) | refactor | S | A | T-068 | todo |
+| T-068e | ConfirmCard into core-cards (needs a chat-free card state) | refactor | S | A | T-068 | review (04.11., 0.1.6.1) |
 | T-070 | Feed parser RSS2/Atom/RDF | feature | S | B | T-002 | review |
 | T-071 | Standard feed list + repository | feature | S | B | T-070,T-060 | todo |
 | T-072 | news tool + NewsCard | feature | S | B | T-071,T-062 | todo |

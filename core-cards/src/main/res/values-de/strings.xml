@@ -12,4 +12,30 @@
     <string name="cards_weather_wind">Wind %1$d km/h</string>
     <string name="cards_weather_rain">Regen %1$d %%</string>
     <string name="cards_wiki_open">Auf Wikipedia lesen</string>
+    <!-- T-068e: ConfirmCard (Wecker, Timer, Kalendereintrag, Route) -->
+    <string name="cards_action_alarm">Wecker um %1$s</string>
+    <string name="cards_action_timer">Timer für %1$s</string>
+    <string name="cards_action_hours">%1$d Std.</string>
+    <string name="cards_action_minutes">%1$d Min.</string>
+    <string name="cards_action_seconds">%1$d Sek.</string>
+    <string name="cards_action_all_day">ganztägig</string>
+    <string name="cards_action_pending_hint">Vorbereitet – tipp auf „%1$s“, dann geht’s los.</string>
+    <string name="cards_action_auto_in">Startet in %1$d s …</string>
+    <string name="cards_action_undo">Rückgängig</string>
+    <string name="cards_action_every_day">Jeden Tag</string>
+    <string name="cards_action_weekdays">Mo–Fr</string>
+    <string name="cards_action_weekend">Am Wochenende</string>
+    <string name="cards_action_route_hint">Öffnet die Route in deiner Karten-App</string>
+    <string name="cards_action_set">Stellen</string>
+    <string name="cards_action_start">Starten</string>
+    <string name="cards_action_add">Eintragen</string>
+    <string name="cards_action_cancel">Abbrechen</string>
+    <string name="cards_action_cancelled">Abgebrochen. Es wurde nichts geändert.</string>
+    <string name="cards_action_done_alarm">An deine Uhr-App übergeben</string>
+    <string name="cards_action_done_timer">Timer an deine Uhr-App übergeben</string>
+    <string name="cards_action_done_event">In deinem Kalender geöffnet – dort speichern</string>
+    <string name="cards_action_done_route">In deiner Karten-App geöffnet</string>
+    <string name="cards_action_no_clock">Auf deinem Handy ist keine Uhr-App, die Wecker und Timer annimmt. Du kannst eine im App-Store holen.</string>
+    <string name="cards_action_no_calendar">Auf deinem Handy ist noch keine Kalender-App. Hol dir eine im App-Store und versuch es dann noch mal.</string>
+    <string name="cards_action_no_maps">Auf deinem Handy ist noch keine Karten-App. Organic Maps oder OsmAnd sind kostenlos – danach klappt es.</string>
 </resources>
