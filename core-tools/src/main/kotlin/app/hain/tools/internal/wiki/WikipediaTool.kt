@@ -49,16 +49,21 @@ class WikipediaTool(
                 },
         )
 
+    @Suppress("ReturnCount")
     override suspend fun run(
         args: Map<String, Any?>,
         ctx: ToolContext,
     ): ToolResult {
         val topic = Args.required(args, "topic")
         val lang = (Args.string(args, "lang") ?: ctx.lang).lowercase().takeIf { it == "de" || it == "en" } ?: "en"
-        val title =
-            WikiParser.firstTitle(get(searchUrl(topic, lang)))
+        // 4c: the asked language first, then the other one (a German topic may only exist in English)
+        val summary =
+            lookUp(topic, lang)
+                ?: lookUp(topic, if (lang == "de") "en" else "de")
                 ?: return ToolRouter.failure("not_found", "Wikipedia has no page about '$topic'.")
-        val summary = WikiParser.summary(get(summaryUrl(title, lang))) ?: throw IOException("no summary")
+        if (summary.disambiguation) {
+            return ToolRouter.failure("disambiguation", "'$topic' has several meanings on Wikipedia.")
+        }
         val json =
             buildJsonObject {
                 put("title", summary.title)
@@ -70,6 +75,15 @@ class WikipediaTool(
             label = summary.title,
             sources = listOf(ToolSource("Wikipedia: ${summary.title}", summary.url)),
         )
+    }
+
+    /** Best page about [topic] in [lang], or `null` when there is none or it has no text. */
+    private suspend fun lookUp(
+        topic: String,
+        lang: String,
+    ): WikiSummary? {
+        val title = WikiParser.firstTitle(get(searchUrl(topic, lang))) ?: return null
+        return WikiParser.summary(get(summaryUrl(title, lang)))?.takeIf { it.extract.isNotBlank() }
     }
 
     private suspend fun get(url: String): String {
@@ -100,6 +114,8 @@ data class WikiSummary(
     val title: String,
     val extract: String,
     val url: String,
+    /** A page that only lists other pages ("Merkur may mean …"). */
+    val disambiguation: Boolean = false,
 )
 
 /** Reads Wikipedia answers (unit tested with fixtures). */
@@ -126,7 +142,7 @@ object WikiParser {
                 ?.jsonObject
                 ?.text("page")
                 ?: return null
-        return WikiSummary(title, extract, url)
+        return WikiSummary(title, extract, url, root.text("type") == "disambiguation")
     }
 
     private fun JsonObject.text(key: String): String? = (this[key] as? JsonPrimitive)?.jsonPrimitive?.content

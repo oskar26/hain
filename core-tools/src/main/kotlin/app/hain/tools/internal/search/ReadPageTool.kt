@@ -36,17 +36,23 @@ class PageReader(
     private val gate: NetworkGate,
     private val timeoutMs: Long = PAGE_TIMEOUT_MS,
 ) {
-    /** One page; throws on network errors, `null` when it holds no readable text. */
+    /**
+     * One page; throws on network errors, `null` when it holds no readable text. With a [focus]
+     * (the question), only the paragraphs that fit it best are kept (T-069, [Excerpt]); without
+     * one, the start of the page.
+     */
     suspend fun read(
         url: String,
         maxChars: Int,
+        focus: String? = null,
     ): ReadPage? {
         require(url.startsWith("https://") || url.startsWith("http://")) { "Not a web address." }
         val response = gate.fetch(GateRequest(url, Purpose.PAGE_READ))
         if (!response.ok) throw IOException("HTTP ${response.code}")
-        val page = HtmlText.extract(response.body.take(MAX_HTML), maxChars)
-        if (page.text.length < MIN_TEXT) return null
-        return ReadPage(url, page.title.ifBlank { hostOf(url) }, page.text)
+        val raw = HtmlText.extract(response.body.take(MAX_HTML), if (focus.isNullOrBlank()) maxChars else MAX_TEXT)
+        if (raw.text.length < MIN_TEXT) return null
+        val text = if (focus.isNullOrBlank()) raw.text else Excerpt.select(raw.text, focus, maxChars)
+        return ReadPage(url, raw.title.ifBlank { hostOf(url) }, text)
     }
 
     /** Several pages at the same time, each with its own time limit; pages that fail are left out. */
@@ -54,13 +60,14 @@ class PageReader(
     suspend fun readAll(
         urls: List<String>,
         maxChars: Int,
+        focus: String? = null,
     ): List<ReadPage> =
         coroutineScope {
             urls
                 .map { url ->
                     async {
                         try {
-                            withTimeoutOrNull(timeoutMs) { read(url, maxChars) }
+                            withTimeoutOrNull(timeoutMs) { read(url, maxChars, focus) }
                         } catch (e: CancellationException) {
                             throw e
                         } catch (e: OfflineException) {
@@ -78,10 +85,19 @@ class PageReader(
         private const val MAX_HTML = 600_000
         private const val MIN_TEXT = 80
 
+        /** Text looked at before the best paragraphs are picked. */
+        private const val MAX_TEXT = 40_000
+
         fun hostOf(url: String): String = url.substringAfter("://").substringBefore('/').removePrefix("www.")
 
-        /** Pages as the brain reads them: `{"pages":[{"n","title","url","text"}]}`. */
-        fun forModel(pages: List<ReadPage>): String =
+        /**
+         * Pages as the brain reads them: `{"pages":[{"n","title","url","text"}]}`. [numbers] are the
+         * source numbers the answer cites (the chips under it); by default 1, 2, 3 …
+         */
+        fun forModel(
+            pages: List<ReadPage>,
+            numbers: List<Int> = pages.indices.map { it + 1 },
+        ): String =
             JsonObject(
                 mapOf(
                     "pages" to
@@ -89,7 +105,7 @@ class PageReader(
                             pages.mapIndexed { i, p ->
                                 JsonObject(
                                     mapOf(
-                                        "n" to JsonPrimitive(i + 1),
+                                        "n" to JsonPrimitive(numbers.getOrElse(i) { i + 1 }),
                                         "title" to JsonPrimitive(p.title),
                                         "url" to JsonPrimitive(p.url),
                                         "text" to JsonPrimitive(p.text),

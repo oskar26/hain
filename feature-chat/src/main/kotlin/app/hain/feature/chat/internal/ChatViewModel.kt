@@ -245,6 +245,8 @@ class ChatViewModel(
     fun stop() {
         val running = job
         if (running == null || !running.isActive) return
+        // T-069: during a research Stop ends only the looking-up; Pim answers with what it found
+        if (engine.stopResearch()) return
         val shown = live
         live = null
         generation++
@@ -289,6 +291,7 @@ class ChatViewModel(
                                         reasoning = update.reasoning.ifBlank { null },
                                         streaming = true,
                                         steps = update.steps,
+                                        research = update.research,
                                     )
                                 live = chatId to message
                                 val now = clock()

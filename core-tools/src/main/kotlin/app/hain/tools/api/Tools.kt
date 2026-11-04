@@ -12,12 +12,22 @@ data class ToolContext(
     val pagesToRead: Int = DEFAULT_PAGES,
     /** The user's own SearXNG address from the settings (asked first), or `null` (4b). */
     val searxUrl: String? = null,
+    /** Search hits a web search keeps, one per site (4c: up to 8). */
+    val hits: Int = MAX_HITS,
 ) {
     companion object {
         const val DEFAULT_PAGES = 3
         const val FAST_PAGES = 1
+        const val MAX_HITS = 8
     }
 }
+
+/** One search hit: a page the brain may want, with the search engine's short text about it. */
+data class ToolHit(
+    val title: String,
+    val url: String,
+    val snippet: String,
+)
 
 /** A page a tool used; shown as a source chip under the answer. */
 data class ToolSource(
@@ -33,6 +43,9 @@ data class ToolSource(
  * @property error short English code (`offline`, `timeout`, `not_found` …); `null` = it worked.
  * @property readUrls pages the chat engine should read next with [ToolRouter.readPages] (web search).
  * @property action a phone action the user still has to confirm on a card (T-068); `null` = none.
+ * @property via the tool that really answered when the one called had nothing (4c fallback):
+ *   `web_search` after an empty Wikipedia, `wikipedia` after an empty web search; `null` = no fallback.
+ * @property hits the search hits behind [readUrls], one per site (web search only).
  */
 data class ToolResult(
     val forModel: String,
@@ -41,6 +54,8 @@ data class ToolResult(
     val error: String? = null,
     val readUrls: List<String> = emptyList(),
     val action: PhoneAction? = null,
+    val via: String? = null,
+    val hits: List<ToolHit> = emptyList(),
 )
 
 /** One tool the brain may call. [online] tools go through the NetworkGate. */
