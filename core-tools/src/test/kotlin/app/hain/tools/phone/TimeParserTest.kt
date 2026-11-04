@@ -4,6 +4,7 @@ import app.hain.tools.internal.phone.TimeParser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
@@ -106,5 +107,30 @@ class TimeParserTest {
         assertEquals(w(LocalDate.of(2026, 11, 4), t(15)), at("2026-11-04T15:00+01:00"))
         assertEquals(w(LocalDate.of(2026, 11, 4), null), at("2026-11-04"))
         assertNull(at("irgendwann"))
+    }
+
+    @Test
+    fun repeatDays() {
+        val mo = DayOfWeek.MONDAY
+        val workdays = listOf(mo, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY)
+        val weekend = listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)
+        assertEquals(workdays, TimeParser.weekdays("Mo-Fr"))
+        assertEquals(workdays, TimeParser.weekdays("werktags"))
+        assertEquals(workdays, TimeParser.weekdays("Montag bis Freitag"))
+        assertEquals(workdays, TimeParser.weekdays("weekdays"))
+        assertEquals(workdays, TimeParser.weekdays("monday to friday"))
+        assertEquals(DayOfWeek.entries.toList(), TimeParser.weekdays("täglich"))
+        assertEquals(DayOfWeek.entries.toList(), TimeParser.weekdays("every day"))
+        assertEquals(weekend, TimeParser.weekdays("am Wochenende"))
+        assertEquals(weekend, TimeParser.weekdays("Sa, So"))
+        assertEquals(listOf(mo, DayOfWeek.THURSDAY), TimeParser.weekdays("montags und donnerstags"))
+        assertEquals(listOf(mo, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY), TimeParser.weekdays("Mon, Wed, Fri"))
+        val monWedFri = listOf(mo, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY)
+        assertEquals(monWedFri, TimeParser.weekdays("[\"mon\", \"wed\", \"fri\"]"))
+        assertEquals(listOf(mo, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY), TimeParser.weekdays("1,3,5"))
+        // a range over the weekend wraps around
+        assertEquals(listOf(mo, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY), TimeParser.weekdays("Fr-Mo"))
+        assertNull(TimeParser.weekdays("bald"))
+        assertNull(TimeParser.weekdays(""))
     }
 }

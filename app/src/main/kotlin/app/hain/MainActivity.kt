@@ -1,5 +1,6 @@
 package app.hain
 
+import android.Manifest
 import android.app.LocaleManager
 import android.os.Build
 import android.os.Bundle
@@ -7,6 +8,7 @@ import android.os.LocaleList
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -109,6 +111,15 @@ class MainActivity : ComponentActivity() {
             onNetworkLogDetail = { write { repo.setNetworkLogDetail(it) } },
             onClearNetworkLog = networkGate::clearLog,
             onSearxUrl = { write { repo.setSearxUrl(it) } },
+            onConfirmActions = { write { repo.setConfirmActions(it) } },
+            onWebSearch = { write { repo.setWebSearch(it) } },
+            onWeatherLocation = { on ->
+                if (on && !WeatherLocation.allowed(this)) {
+                    locationPermission.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                } else {
+                    write { repo.setWeatherLocation(on) }
+                }
+            },
             onHaptics = { write { repo.setHaptics(it) } },
             onAppIcon = { write { repo.setAppIcon(it) } },
             onDev = { write { repo.setDev(it) } },
@@ -117,6 +128,12 @@ class MainActivity : ComponentActivity() {
             onCheckUpdate = { checkForUpdate() },
         )
     }
+
+    /** 3b-2: Android asks for the rough location once; only a yes switches "Standort fürs Wetter" on. */
+    private val locationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            lifecycleScope.launch { settingsRepository.setWeatherLocation(granted) }
+        }
 
     /** T-215: build facts for "Über Hain". */
     private val appInfo =
@@ -168,6 +185,8 @@ class MainActivity : ComponentActivity() {
                             ZonedDateTime.now(),
                             cfg.offlineMode,
                             searxUrl = SearxAddress.normalize(cfg.searxUrl),
+                            webSearch = cfg.webSearch,
+                            here = if (cfg.weatherLocation) WeatherLocation.last(this) else null,
                         )
                     },
                     tuning = { settings().dev },
@@ -278,6 +297,7 @@ class MainActivity : ComponentActivity() {
                                     ChatExtras(
                                         showStats = dev.enabled && dev.showStats,
                                         rawThinking = dev.enabled && dev.showRawThinking,
+                                        confirmActions = settings.confirmActions,
                                         debugInfo = { stats ->
                                             val model = File(ownModelPath() ?: models.mainFile(brain).absolutePath).name
                                             DevTuning.debugLine(model, current.dev, stats)

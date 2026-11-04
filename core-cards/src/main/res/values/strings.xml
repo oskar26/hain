@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 3b-2: weather and Wikipedia cards under an answer -->
+    <string name="cards_weather_degrees">%1$d°</string>
+    <string name="cards_weather_wind">Wind %1$d km/h</string>
+    <string name="cards_weather_rain">Rain %1$d %%</string>
+    <string name="cards_wiki_open">Read on Wikipedia</string>
+</resources>

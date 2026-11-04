@@ -10,6 +10,9 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import app.hain.common.api.net.GateRequest
+import app.hain.common.api.net.NetworkGates
+import app.hain.common.api.net.Purpose
 import app.hain.models.R
 import app.hain.models.api.FailReason
 import kotlinx.coroutines.Dispatchers
@@ -45,9 +48,22 @@ class ModelDownloadWorker(
             }
             runCatching { setForeground(foregroundInfo(title, 0)) }
             try {
-                fetch(url, part, size, title)
+                // 3b-2: through the NetworkGate, so the download shows up in the network log
+                val before = part.length()
+                val gate = NetworkGates.current
+                val request = GateRequest(url, Purpose.MODEL_DOWNLOAD, userStarted = true)
+                if (gate == null) {
+                    fetch(url, part, size, title)
+                } else {
+                    gate.stream(request) {
+                        fetch(url, part, size, title)
+                        (part.length() - before).coerceAtLeast(0)
+                    }
+                }
             } catch (e: IOException) {
                 return@withContext if (runAttemptCount < MAX_RETRIES) Result.retry() else fail(FailReason.NETWORK, e)
+            } catch (e: IllegalArgumentException) {
+                return@withContext fail(FailReason.UNKNOWN, e) // not an https address
             }
             setProgress(workDataOf(KEY_PHASE to PHASE_VERIFY))
             if (sha.isNotBlank() && !sha256(part).equals(sha, ignoreCase = true)) {
