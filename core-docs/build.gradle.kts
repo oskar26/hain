@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -30,8 +31,18 @@ android {
 dependencies {
     implementation(project(":core-common"))
     implementation(project(":core-data"))
+    // T-123: search_document is a chat tool (Tool, ToolSchema, BM25 from 4c)
+    api(project(":core-tools"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.serialization.json)
+
+    // T-123: own encrypted database hain_docs.db (the chat schema stays as it is)
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+    implementation(libs.sqlcipher.android)
+    implementation(libs.androidx.sqlite)
 
     // T-120: PDF text layer (Apache-2.0); page pictures come from android.graphics.pdf.PdfRenderer
     implementation(libs.pdfbox.android)
@@ -43,4 +54,6 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
+    // Robolectric's native SQLite has no linux-aarch64 build; the DAO test uses the bundled driver.
+    testImplementation(libs.androidx.sqlite.bundled.jvm)
 }

@@ -50,9 +50,11 @@ class ToolRouter(
     fun schemas(
         offline: Boolean,
         webSearch: WebSearch = WebSearch.ON,
+        documents: Boolean = false,
     ): List<ToolSchema> =
         tools
             .filter { !offline || !it.online }
+            .filter { documents || it.schema.name !in DOCUMENT_TOOLS }
             .filter { webSearch != WebSearch.OFF || it.schema.name !in SEARCH_TOOLS }
             .map { it.schema }
 
@@ -169,6 +171,9 @@ class ToolRouter(
 
         /** Tools that search or read the open web; they follow the setting `web_search` (3b-2). */
         val SEARCH_TOOLS = setOf(SearchTool.NAME, ReadPageTool.NAME)
+
+        /** Häppchen 9: tools for attached documents; only in the prompt while a long one is attached. */
+        val DOCUMENT_TOOLS = setOf("search_document")
         const val SEARCH_OFF = "search_off"
         const val ASK_FIRST = "ask_first"
         private const val SEARCH_OFF_HINT =

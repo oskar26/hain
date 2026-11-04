@@ -45,6 +45,8 @@ dependencies {
     implementation(project(":core-memory"))
     implementation(project(":core-cards"))
     implementation(project(":core-models"))
+    // Häppchen 9: attach PDFs, photos and text files (Meine Dateien, search_document)
+    implementation(project(":core-docs"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

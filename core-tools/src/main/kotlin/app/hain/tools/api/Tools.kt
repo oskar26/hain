@@ -21,6 +21,8 @@ data class ToolContext(
     val searchApproved: Boolean = false,
     /** The phone's last known location, only when the user allowed it for the weather (3b-2). */
     val here: GeoPoint? = null,
+    /** Häppchen 9: long documents attached in this chat; `search_document` reads only these. */
+    val documents: List<Long> = emptyList(),
 ) {
     companion object {
         const val DEFAULT_PAGES = 3

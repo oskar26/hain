@@ -1,5 +1,6 @@
 package app.hain.feature.chat.internal
 
+import app.hain.docs.api.DocAttachment
 import app.hain.llm.api.GenerationStats
 import app.hain.tools.api.InfoCard
 import kotlinx.coroutines.CoroutineScope
@@ -35,6 +36,8 @@ data class UiMessage(
     val stats: GenerationStats? = null,
     /** Weather and Wikipedia cards under the answer (3b-2). */
     val cards: List<InfoCard> = emptyList(),
+    /** Häppchen 9: files attached to this user message (chips; text in "Meine Dateien"). */
+    val attachments: List<DocAttachment> = emptyList(),
 )
 
 data class Chat(

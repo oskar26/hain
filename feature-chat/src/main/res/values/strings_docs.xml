@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Häppchen 9: documents in the chat (attach, Meine Dateien, text recognition). Same keys in values/ and values-de/. -->
+<resources>
+    <string name="docs_attach">Attach a file</string>
+    <string name="docs_pick_file">File or photo</string>
+    <string name="docs_my_files">My files</string>
+    <string name="docs_chip_one">%1$s · 1 page</string>
+    <string name="docs_chip_many">%1$s · %2$d pages</string>
+    <string name="docs_remove_attachment">Remove %1$s</string>
+    <string name="docs_reading">Reading page %1$d of %2$d …</string>
+    <string name="docs_recognizing">Recognizing text on page %1$d of %2$d …</string>
+    <string name="docs_saving">Saving …</string>
+    <string name="docs_ocr_title">Load text recognition?</string>
+    <string name="docs_ocr_body">This file has pages that are only pictures. To read them, Hain needs its text recognition (%1$s MB, once). After that it runs only on your phone.</string>
+    <string name="docs_ocr_load">Load</string>
+    <string name="docs_ocr_without">Text pages only</string>
+    <string name="docs_ocr_cancel">Not now</string>
+    <string name="docs_ocr_loading">Loading text recognition … %1$d %%</string>
+    <string name="docs_ocr_failed">The text recognition could not be loaded. Check your connection and try again.</string>
+    <string name="docs_error_unreadable">Hain can\'t read this file.</string>
+    <string name="docs_error_locked">This PDF has a password. Save it without a password and try again.</string>
+    <string name="docs_error_empty">There is no text in this file.</string>
+    <string name="docs_error_too_big">This file is too big (at most 50 MB).</string>
+    <string name="docs_error_unsupported">Hain reads PDFs, photos and text files.</string>
+    <string name="docs_error_no_ocr">Without text recognition Hain can\'t read pictures.</string>
+    <string name="docs_dismiss">Close</string>
+    <string name="docs_back">Back</string>
+    <string name="docs_library_empty">No files yet</string>
+    <string name="docs_library_empty_body">Attach a PDF, a photo or a text file with the paper clip. Hain keeps only the text, encrypted on your phone.</string>
+    <string name="docs_attach_this">Attach %1$s</string>
+    <string name="docs_delete">Delete %1$s</string>
+    <string name="docs_missing_pages">%1$d pages without text</string>
+    <string name="docs_ocr_badge">Text recognized</string>
+    <string name="docs_pack_title">Text recognition</string>
+    <string name="docs_pack_installed">On your phone · %1$s MB</string>
+    <string name="docs_pack_missing">Not loaded · %1$s MB</string>
+    <string name="docs_pack_remove">Remove pack</string>
+    <string name="docs_pack_note">PP-OCRv5 by PaddlePaddle (Apache-2.0). Reads photos and scanned pages on your phone. Your files stay when you remove the pack.</string>
+</resources>

@@ -159,6 +159,8 @@ class ChatEngine(
     fun respond(
         history: List<ChatMessage>,
         mode: AnswerMode = answerMode(),
+        /** Häppchen 9: long documents attached in this chat (their tool joins the prompt). */
+        documents: List<Long> = emptyList(),
     ): Flow<TurnUpdate> =
         flow {
             val lastUser = history.lastOrNull()?.content.orEmpty()
@@ -167,6 +169,7 @@ class ChatEngine(
                 toolContext().copy(
                     pagesToRead = budget.pagesPerSearch,
                     searchApproved = SearchConsent.approved(history),
+                    documents = documents,
                 )
             val quick = quickAnswer(history, ctx)
             if (quick != null) {
@@ -176,7 +179,8 @@ class ChatEngine(
             val dev = tuning()
             val thinking = DevTuning.thinking(dev, ThinkingPolicy.decide(lastUser, mode))
             val system = DevTuning.systemPrompt(dev, systemPrompt(promptAnchor()))
-            val schemas = if (ownModel()) emptyList() else tools?.schemas(ctx.offline, ctx.webSearch).orEmpty()
+            val docs = ctx.documents.isNotEmpty()
+            val schemas = if (ownModel()) emptyList() else tools?.schemas(ctx.offline, ctx.webSearch, docs).orEmpty()
             val researchHint = if (schemas.isNotEmpty() && !ctx.offline) researchHint(mode, ctx.lang) else null
             val base = withLanguageHint(history, lastUser, researchHint)
             val turn = Turn(budget, lastUser, dev)

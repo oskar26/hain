@@ -4,6 +4,8 @@ package app.hain.feature.chat.api
 
 import android.content.Intent
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -95,7 +97,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /** Chat screen (T-052) with the chat drawer (T-053, basic). */
-@Suppress("LongMethod", "LongParameterList") // screen scaffold: top bar, list, composer, drawer
+@Suppress("LongMethod", "LongParameterList", "CyclomaticComplexMethod") // scaffold: bar, list, composer, drawer
 @Composable
 fun ChatScreen(
     viewModel: ChatViewModel,
@@ -107,9 +109,16 @@ fun ChatScreen(
     onOpenGame: () -> Unit = {},
     extras: ChatExtras = ChatExtras(),
     banner: @Composable () -> Unit = {},
+    /** Häppchen 9: attach files (paper clip, "Meine Dateien"); `null` = no files. */
+    docs: ChatDocs? = null,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var drawerOpen by rememberSaveable { mutableStateOf(false) }
+    var showFiles by rememberSaveable { mutableStateOf(false) }
+    val picker =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) docs?.open(uri) { viewModel.attach(it) }
+        }
     val colors = LocalHainColors.current
     val haptics = rememberHainHaptics()
 
@@ -184,6 +193,17 @@ fun ChatScreen(
             }
             ErrorLine(state, onGetBrain)
             if (state.editingId != null) EditBar(onCancel = viewModel::cancelEdit)
+            if (docs != null) {
+                val docState by docs.state.collectAsStateWithLifecycle()
+                DocsBar(
+                    docState,
+                    state.attachments,
+                    docs.packMegabytes,
+                    onAnswer = docs::answer,
+                    onDismiss = docs::dismissError,
+                    onRemove = { viewModel.detach(it.id) },
+                )
+            }
             Composer(
                 text = state.input,
                 onTextChange = viewModel::onInputChange,
@@ -199,7 +219,12 @@ fun ChatScreen(
                 enabled = state.engineAvailable,
                 modifier = Modifier.padding(LocalHainSpacing.current.md),
                 // T-084: the thinking level lives inside the message box (brain + popover)
-                leading = { ThinkingPicker(answerMode, onAnswerMode) },
+                leading = {
+                    if (docs != null) {
+                        AttachButton(onFile = { picker.launch(DOC_TYPES) }, onLibrary = { showFiles = true })
+                    }
+                    ThinkingPicker(answerMode, onAnswerMode)
+                },
             )
         }
         ChatListDrawer(
@@ -229,8 +254,21 @@ fun ChatScreen(
                     },
                 ),
         )
+        if (showFiles && docs != null) {
+            MyFilesScreen(
+                docs,
+                onAttach = {
+                    viewModel.attach(it)
+                    showFiles = false
+                },
+                onBack = { showFiles = false },
+            )
+        }
     }
 }
+
+/** Häppchen 9: what the paper clip offers in the system file picker. */
+private val DOC_TYPES = arrayOf("application/pdf", "image/*", "text/plain", "text/markdown", "text/*")
 
 /** Orange point while Hain is online (T-069); the network log in Privacy shows every request. */
 @Composable
@@ -403,17 +441,25 @@ private fun UserMessage(
     canEdit: Boolean,
     onEdit: () -> Unit,
 ) {
-    UserBubble(
-        message.text,
-        actionsVisible = open,
-        onTap = onTap,
-        moreLabel = stringResource(R.string.chat_show_more),
-        lessLabel = stringResource(R.string.chat_show_less),
-        actions = {
-            if (canEdit) MessageAction(MessageActionKind.EDIT, stringResource(R.string.chat_edit), onEdit)
-            CopyAction(message.text)
-        },
-    )
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+        // Häppchen 9: the files of this message as chips above the bubble
+        if (message.attachments.isNotEmpty()) {
+            AttachmentChips(message.attachments, Modifier.padding(bottom = 4.dp))
+        }
+        if (message.text.isNotBlank()) {
+            UserBubble(
+                message.text,
+                actionsVisible = open,
+                onTap = onTap,
+                moreLabel = stringResource(R.string.chat_show_more),
+                lessLabel = stringResource(R.string.chat_show_less),
+                actions = {
+                    if (canEdit) MessageAction(MessageActionKind.EDIT, stringResource(R.string.chat_edit), onEdit)
+                    CopyAction(message.text)
+                },
+            )
+        }
+    }
 }
 
 /** Copy, then a short green check so you know it worked. */

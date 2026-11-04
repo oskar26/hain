@@ -2,6 +2,8 @@ package app.hain.feature.chat.internal
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.hain.docs.api.DocAttachment
+import app.hain.docs.api.DocPrompt
 import app.hain.llm.api.CONTEXT_SIZE
 import app.hain.llm.api.ChatMessage
 import app.hain.llm.api.EngineState
@@ -38,6 +40,8 @@ data class ChatUiState(
     val editingId: Long? = null,
     /** `true` while a request is on its way to the internet (orange dot, T-069). */
     val online: Boolean = false,
+    /** Häppchen 9: files waiting in the composer for the next message. */
+    val attachments: List<DocAttachment> = emptyList(),
 )
 
 enum class ChatError { MODEL_LOAD, CONTEXT_FULL, GENERATION, NO_BRAIN }
@@ -58,6 +62,8 @@ class ChatViewModel(
     private val messageRatings: MessageRatings = InMemoryRatings(),
     /** Context size for the next load (developer mode, T-211); a change loads the brain again. */
     private val contextSize: () -> Int = { CONTEXT_SIZE },
+    /** Häppchen 9: the attached documents as prompt blocks (whole or as a search note). */
+    private val documentPrompt: suspend (List<DocAttachment>) -> DocPrompt.ForChat = { DocPrompt.ForChat() },
 ) : ViewModel() {
     private val local = MutableStateFlow(LocalState())
     private var job: Job? = null
@@ -77,6 +83,7 @@ class ChatViewModel(
         val searchQuery: String = "",
         val searchHits: Set<Long>? = null,
         val editingId: Long? = null,
+        val attachments: List<DocAttachment> = emptyList(),
     )
 
     val state: StateFlow<ChatUiState> =
@@ -97,6 +104,7 @@ class ChatViewModel(
                 brainInstalled = hasBrain,
                 editingId = l.editingId,
                 online = online,
+                attachments = l.attachments,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT), ChatUiState())
 
@@ -148,14 +156,28 @@ class ChatViewModel(
 
     fun onInputChange(text: String) = local.update { it.copy(input = text, error = null) }
 
+    /** Häppchen 9: a file from "Datei oder Foto" or "Meine Dateien" waits in the composer. */
+    fun attach(doc: DocAttachment) =
+        local.update { s ->
+            if (s.attachments.any { it.id == doc.id } || s.attachments.size >= MAX_ATTACHMENTS) {
+                s
+            } else {
+                s.copy(attachments = s.attachments + doc)
+            }
+        }
+
+    fun detach(id: Long) = local.update { s -> s.copy(attachments = s.attachments.filterNot { it.id == id }) }
+
     fun newChat() {
         stop()
-        local.update { it.copy(currentChatId = null, input = "", error = null, editingId = null) }
+        local.update {
+            it.copy(currentChatId = null, input = "", error = null, editingId = null, attachments = emptyList())
+        }
     }
 
     fun openChat(id: Long) {
         stop()
-        local.update { it.copy(currentChatId = id, error = null, editingId = null) }
+        local.update { it.copy(currentChatId = id, error = null, editingId = null, attachments = emptyList()) }
     }
 
     /** Puts a sent message back into the composer; sending replaces it and answers again from there. */
@@ -198,7 +220,8 @@ class ChatViewModel(
     @Suppress("ReturnCount") // early exits keep the three cases readable
     fun send() {
         val text = local.value.input.trim()
-        if (text.isEmpty() || local.value.generating) return
+        val files = local.value.attachments
+        if ((text.isEmpty() && files.isEmpty()) || local.value.generating) return
         if (!installed.value) {
             local.update { it.copy(error = ChatError.NO_BRAIN) }
             return
@@ -208,14 +231,24 @@ class ChatViewModel(
         val current = local.value.currentChatId
         if (editing != null && current != null && store.chat(current)?.messages?.any { it.id == editing } == true) {
             store.truncateFrom(current, editing, keep = true)
-            store.upsertMessage(current, UiMessage(editing, isUser = true, text = text))
-            local.update { it.copy(input = "", error = null, editingId = null) }
+            val before =
+                store
+                    .chat(current)
+                    ?.messages
+                    ?.firstOrNull { it.id == editing }
+                    ?.attachments
+                    .orEmpty()
+            val kept = (before + files).distinctBy { it.id }
+            store.upsertMessage(current, UiMessage(editing, isUser = true, text = text, attachments = kept))
+            local.update { it.copy(input = "", error = null, editingId = null, attachments = emptyList()) }
             answer(current)
             return
         }
-        val chatId = current ?: store.create(store.titleFrom(text)).id
-        store.upsertMessage(chatId, UiMessage(store.nextId(), isUser = true, text = text))
-        local.update { it.copy(currentChatId = chatId, input = "", error = null, editingId = null) }
+        val chatId = current ?: store.create(store.titleFrom(text.ifEmpty { files.first().name })).id
+        store.upsertMessage(chatId, UiMessage(store.nextId(), isUser = true, text = text, attachments = files))
+        local.update {
+            it.copy(currentChatId = chatId, input = "", error = null, editingId = null, attachments = emptyList())
+        }
         answer(chatId)
     }
 
@@ -262,12 +295,7 @@ class ChatViewModel(
     }
 
     private fun answer(chatId: Long) {
-        val history =
-            store
-                .chat(chatId)
-                ?.messages
-                .orEmpty()
-                .toPromptHistory()
+        val messages = store.chat(chatId)?.messages.orEmpty()
         val answerId = store.nextId()
         val placeholder = UiMessage(answerId, isUser = false, text = "", streaming = true)
         store.upsertMessage(chatId, placeholder)
@@ -283,7 +311,11 @@ class ChatViewModel(
                         local.update { it.copy(error = ChatError.MODEL_LOAD) }
                         return@launch
                     }
-                    engine.respond(history).collect { update ->
+                    // Häppchen 9: attached documents go into their message (small) or the search tool (long)
+                    val attached = messages.filter { it.isUser }.flatMap { it.attachments }
+                    val docs = if (attached.isEmpty()) DocPrompt.ForChat() else documentPrompt(attached)
+                    val history = DocMessages.withDocuments(messages, docs.blocks).toPromptHistory()
+                    engine.respond(history, documents = docs.search).collect { update ->
                         when (update) {
                             is TurnUpdate.Streaming -> {
                                 val message =
@@ -383,6 +415,7 @@ class ChatViewModel(
         const val SEARCH_DEBOUNCE = 150L
         const val MS_PER_S = 1000L
         const val MS_ROUND = 500L
+        const val MAX_ATTACHMENTS = 5
     }
 }
 

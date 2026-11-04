@@ -7,7 +7,7 @@ import kotlin.math.ln
  * one page. Words are cut to their first [STEM] letters so "Wärmepumpen" still finds "Wärmepumpe",
  * and common German and English filler words do not count.
  */
-internal object Relevance {
+object Relevance {
     private const val STEM = 6
     private const val MIN_WORD = 3
     private const val K1 = 1.2

@@ -4,6 +4,7 @@ import app.hain.data.HainDatabase
 import app.hain.data.dao.FtsQuery
 import app.hain.data.entities.ChatEntity
 import app.hain.data.entities.MessageEntity
+import app.hain.docs.api.DocAttachment
 
 /** [ChatPersistence] on the encrypted database (T-020). */
 class RoomChatPersistence(
@@ -72,6 +73,7 @@ internal fun MessageEntity.toUi(): UiMessage {
         trace = ToolStepsJson.decodeTrace(toolCallsJson),
         actions = ToolStepsJson.decodeActions(sourcesJson),
         cards = ToolStepsJson.decodeCards(sourcesJson),
+        attachments = DocAttachment.decode(attachmentsJson),
     )
 }
 
@@ -86,6 +88,7 @@ internal fun UiMessage.toEntity(
     reasoning = reasoning,
     sourcesJson = ToolStepsJson.encode(steps, sources, actions, cards),
     toolCallsJson = ToolStepsJson.encodeTrace(trace),
+    attachmentsJson = DocAttachment.encode(attachments),
     createdAt = createdAt,
     thinkingMillis = thinkingSeconds?.let { it * MS_PER_S },
     status =

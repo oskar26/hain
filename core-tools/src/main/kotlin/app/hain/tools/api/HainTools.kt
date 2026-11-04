@@ -15,10 +15,14 @@ import app.hain.tools.internal.wiki.WikipediaTool
 /**
  * The tools: calculator and the phone actions (offline; alarm, timer, calendar, route only after a
  * tap on their card); weather, Wikipedia, web search and page reading (online, all
- * through [gate], so every request shows in the network log).
+ * through [gate], so every request shows in the network log). [extra] adds tools of other modules
+ * (Häppchen 9: `search_document`).
  */
 object HainTools {
-    fun router(gate: NetworkGate): ToolRouter {
+    fun router(
+        gate: NetworkGate,
+        extra: List<Tool> = emptyList(),
+    ): ToolRouter {
         val reader = PageReader(gate)
         val tools =
             listOf(
@@ -31,7 +35,7 @@ object HainTools {
                 SetTimerTool(),
                 AddCalendarEventTool(),
                 NavigateTool(),
-            )
+            ) + extra // Häppchen 9: search_document from core-docs
         return ToolRouter(tools, pages = reader, fallbacks = FALLBACKS)
     }
 

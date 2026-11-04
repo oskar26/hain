@@ -36,6 +36,9 @@ import app.hain.common.api.net.NetworkGate
 import app.hain.common.api.update.UpdateChecker
 import app.hain.common.api.update.UpdateResult
 import app.hain.common.api.update.UpdateRules
+import app.hain.data.KeystoreKeyProvider
+import app.hain.docs.api.DocLibrary
+import app.hain.feature.chat.api.ChatDocs
 import app.hain.feature.chat.api.ChatExtras
 import app.hain.feature.chat.api.ChatScreen
 import app.hain.feature.chat.game.Game2048Screen
@@ -161,6 +164,14 @@ class MainActivity : ComponentActivity() {
     /** T-211: the own GGUF of developer mode when it is in use and on the phone, else `null`. */
     private fun ownModelPath(): String? = DevTuning.ownModel(current.dev) { File(it).isFile }
 
+    /** Häppchen 9: "Meine Dateien" (own encrypted hain_docs.db) and the text recognition pack. */
+    private val docLibrary by lazy {
+        DocLibrary(applicationContext, KeystoreKeyProvider(applicationContext), networkGate)
+    }
+
+    /** Häppchen 9: attaching files in the chat (paper clip, progress, "Texterkennung laden?"). */
+    private val chatDocs by lazy { ChatDocs(docLibrary, lifecycleScope) }
+
     /** T-211: own models from Hugging Face for developer mode. */
     private val devModels by lazy { DevModels(models, networkGate, deviceRamGb()) }
 
@@ -177,7 +188,7 @@ class MainActivity : ComponentActivity() {
                     prompts::current,
                     answerMode = { LlmAnswerMode.fromKey(settings().answerMode.name.lowercase()) },
                     turnHint = prompts::turnHint,
-                    tools = HainTools.router(networkGate),
+                    tools = HainTools.router(networkGate, extra = listOf(docLibrary.searchTool)),
                     toolContext = {
                         val cfg = settings()
                         ToolContext(
@@ -198,6 +209,7 @@ class MainActivity : ComponentActivity() {
             networkActive = networkGate.active.map { it > 0 },
             messageRatings = PrefsRatings(getSharedPreferences(RATINGS_PREFS, MODE_PRIVATE)),
             contextSize = { DevTuning.contextSize(settings().dev) },
+            documentPrompt = docLibrary::forPrompt,
         )
     }
 
@@ -293,6 +305,7 @@ class MainActivity : ComponentActivity() {
                                     lifecycleScope.launch { settingsRepository.setAnswerMode(mode) }
                                 },
                                 onOpenGame = { showGame = true },
+                                docs = chatDocs,
                                 extras =
                                     ChatExtras(
                                         showStats = dev.enabled && dev.showStats,
