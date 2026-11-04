@@ -100,10 +100,10 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-115 | Memory screen | ui | M | C | T-113 | review (04.11., draft PR #38) |
 | T-116 | Memory chips under answers, topics tab, "Suche nach Bedeutung" tile | ui | S | C | T-115,T-110 | review (04.11., 7b, draft PR #46) |
 | T-117 | Wire memory part 2 (embed pack, extraction, chips) into the app | feature | S | C | T-110,T-114,T-116 | review (04.11., 7b, draft PR #46) |
-| T-120 | PDF text layer + page render | feature | S | D | T-002 | todo |
-| T-121 | PP-OCRv5 Latin via ONNX Runtime | native | M | D | T-120 | todo |
-| T-122 | GermanOcrFixer | feature | S | D | T-002 | todo |
-| T-123 | Chunking + doc search tool + attach in chat | feature | M | D | T-121,T-122,T-062 | todo |
+| T-120 | PDF text layer + page render | feature | S | D | T-002 | review (Hark, PR #49) |
+| T-121 | PP-OCRv5 Latin via ONNX Runtime | native | M | D | T-120 | review (Hark, PR #49) |
+| T-122 | GermanOcrFixer | feature | S | D | T-002 | review (Hark, PR #49) |
+| T-123 | Chunking + doc search tool + attach in chat | feature | M | D | T-121,T-122,T-062 | review (Hark, PR #49) |
 | T-130 | Card parser | feature | S | E | T-002 | done |
 | T-131 | Card renderer + GBNF | ui | M | E | T-130,T-014 | done |
 | T-140 | STT Moonshine + mic button | feature | M | F | T-082 | review (Hark, hark/day-10) |

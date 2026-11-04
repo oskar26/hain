@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Häppchen 9: documents in the chat (attach, Meine Dateien, text recognition). Same keys in values/ and values-de/. -->
+<resources>
+    <string name="docs_attach">Datei anhängen</string>
+    <string name="docs_pick_file">Datei oder Foto</string>
+    <string name="docs_my_files">Meine Dateien</string>
+    <string name="docs_chip_one">%1$s · 1 Seite</string>
+    <string name="docs_chip_many">%1$s · %2$d Seiten</string>
+    <string name="docs_remove_attachment">%1$s entfernen</string>
+    <string name="docs_reading">Lese Seite %1$d von %2$d …</string>
+    <string name="docs_recognizing">Erkenne Text auf Seite %1$d von %2$d …</string>
+    <string name="docs_saving">Speichere …</string>
+    <string name="docs_ocr_title">Texterkennung laden?</string>
+    <string name="docs_ocr_body">Diese Datei hat Seiten, die nur Bilder sind. Damit Pim sie lesen kann, braucht Hain die Texterkennung (%1$s MB, einmalig). Danach läuft sie nur auf deinem Handy.</string>
+    <string name="docs_ocr_load">Laden</string>
+    <string name="docs_ocr_without">Nur Textseiten</string>
+    <string name="docs_ocr_cancel">Jetzt nicht</string>
+    <string name="docs_ocr_loading">Lade Texterkennung … %1$d %%</string>
+    <string name="docs_ocr_failed">Die Texterkennung konnte nicht geladen werden. Prüf deine Verbindung und versuch es noch mal.</string>
+    <string name="docs_error_unreadable">Hain kann diese Datei nicht lesen.</string>
+    <string name="docs_error_locked">Dieses PDF hat ein Passwort. Speicher es ohne Passwort und versuch es noch mal.</string>
+    <string name="docs_error_empty">In dieser Datei steht kein Text.</string>
+    <string name="docs_error_too_big">Diese Datei ist zu groß (höchstens 50 MB).</string>
+    <string name="docs_error_unsupported">Hain liest PDFs, Fotos und Textdateien.</string>
+    <string name="docs_error_no_ocr">Ohne Texterkennung kann Hain keine Bilder lesen.</string>
+    <string name="docs_dismiss">Schließen</string>
+    <string name="docs_back">Zurück</string>
+    <string name="docs_library_empty">Noch keine Dateien</string>
+    <string name="docs_library_empty_body">Häng mit der Büroklammer ein PDF, ein Foto oder eine Textdatei an. Hain behält nur den Text, verschlüsselt auf deinem Handy.</string>
+    <string name="docs_attach_this">%1$s anhängen</string>
+    <string name="docs_delete">%1$s löschen</string>
+    <string name="docs_missing_pages">%1$d Seiten ohne Text</string>
+    <string name="docs_ocr_badge">Text erkannt</string>
+    <string name="docs_pack_title">Texterkennung</string>
+    <string name="docs_pack_installed">Auf deinem Handy · %1$s MB</string>
+    <string name="docs_pack_missing">Nicht geladen · %1$s MB</string>
+    <string name="docs_pack_remove">Pack entfernen</string>
+    <string name="docs_pack_note">PP-OCRv5 von PaddlePaddle (Apache-2.0). Liest Fotos und gescannte Seiten auf deinem Handy. Deine Dateien bleiben, wenn du das Pack entfernst.</string>
+</resources>

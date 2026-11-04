@@ -4,6 +4,7 @@ import app.hain.data.HainDatabase
 import app.hain.data.dao.FtsQuery
 import app.hain.data.entities.ChatEntity
 import app.hain.data.entities.MessageEntity
+import app.hain.docs.api.DocAttachment
 
 /**
  * [ChatPersistence] on the encrypted database (T-020). [load] hands every message of a chat, all
@@ -79,6 +80,7 @@ internal fun MessageEntity.toUi(): UiMessage {
         cardState = cardsJson,
         parentId = parentId,
         selectedAt = selectedAt,
+        attachments = DocAttachment.decode(attachmentsJson),
     )
 }
 
@@ -94,6 +96,7 @@ internal fun UiMessage.toEntity(
     sourcesJson = ToolStepsJson.encode(steps, sources, actions, cards, news),
     toolCallsJson = ToolStepsJson.encodeTrace(trace),
     cardsJson = cardState,
+    attachmentsJson = DocAttachment.encode(attachments),
     createdAt = createdAt,
     thinkingMillis = thinkingSeconds?.let { it * MS_PER_S },
     status =

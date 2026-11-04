@@ -31,7 +31,16 @@ Tests: `Uberprüfung→Überprüfung`, `GröBe→Größe`, `StraBe→Straße`, `
 - Attach → reading progress bar → "📄 Rechnung.pdf · 3 Seiten" chip in composer.
 - Small doc (< 3,000 tokens) → put text directly into the user message as `<document name="…">…</document>`.
 - Larger → `search_documents` tool active for this chat, top 4 chunks with page numbers; answer cites `[S. 2]`.
-- "Eigene Dateien" library screen (v1: list + delete).
+- "Eigene Dateien" library screen (v1: list + delete). Built as **"Meine Dateien"** (EN "My files"): list with preview, tap = attach again, delete, text recognition pack (load / remove).
+- Tool name as built: `search_document` (args `query`, optional `document`); only in the prompt while a long document is attached in the chat.
+
+## As built (Häppchen 9, 0.1.9)
+
+- Module `core-docs`: `internal/pdf` (PdfTextExtractor, PdfPages), `internal/text` (TextFiles), `ocr` (OcrPack, OrtOcrEngine, DbPostProcess, CtcDecoder, ReadingOrder, RecDictionary, OcrImage), `fix` (GermanOcrFixer, WordList), `internal/chunk` (Chunker), `internal/db` (hain_docs.db), `api` (DocLibrary, DocPrompt, DocAttachment, SearchDocumentTool).
+- **T-121 decision: own ONNX Runtime pipeline** (not RapidOCR-Android). ONNX Runtime Android **1.28.0, pinned** (1.29+ ships a Microsoft telemetry initializer); `ai.onnxruntime.TelemetryInitializer` is removed in the manifest anyway. Same version as Häppchen 10.
+- Models (Apache-2.0) from PaddlePaddle's own Hugging Face repos, pinned commits, SHA-256 checked, together 13.9 MB, stored in `filesDir/ocr/`: `PP-OCRv5_mobile_det_onnx@e6f4fa8`, `latin_PP-OCRv5_mobile_rec_onnx@89d3a50` (+ its `inference.yml` with the 836-character dictionary), `PP-LCNet_x0_25_textline_ori_onnx@aea1f18`. Downloaded only after "Texterkennung laden?" via `NetworkGate.stream` (purpose MODEL_DOWNLOAD, user-started). "Pack entfernen" in "Meine Dateien".
+- Pipeline: detection on the long side ≤ 1,280 px (multiples of 32, BGR, ImageNet mean/std) → DB post-process (thresh 0.3, box 0.6, unclip 1.5, axis-aligned boxes) → crop per line, vertical lines turned, orientation model (180° when ≥ 0.9) → recognition at height 48 → greedy CTC → reading order (lines by vertical overlap, paragraphs by gap, two columns by a gutter no box crosses, full-width titles first) → GermanOcrFixer. Lines below 0.3 certainty are dropped.
+- Not built yet: "Genauer lesen" with PaddleOCR-VL (confidence < 0.80 / tables), `doc_chunk_fts`/`doc_chunk_vec` (search is BM25 in memory over the attached documents, enough for a handful of files), EXIF-less HEIC on old phones.
 
 ## Optional packs
 

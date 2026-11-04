@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- No telemetry: the ONNX Runtime telemetry starter is removed once, in core-voice's manifest
+         (both modules use the same pinned onnxruntime-android 1.28.0, merged into one app). -->
+</manifest>

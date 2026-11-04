@@ -21,7 +21,7 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | Parakeet TDT 0.6B v3 | CC-BY-4.0 | verify, attribution |
 | PP-OCRv5 / PaddleOCR | Apache-2.0 | ok |
 | PaddleOCR-VL-1.6 | Apache-2.0 | verify |
-| ONNX Runtime (`onnxruntime-android` **1.28.0**, Häppchen 10) | MIT | ok – pinned: from 1.29 the Android AAR adds Microsoft 1DS telemetry (`ai.onnxruntime.TelemetryInitializer`, `mobile.events.data.microsoft.com`); 1.28.0 has none, and core-voice's manifest removes the provider in case a newer version is pulled in. Every ORT user (also OCR, T-121) must stay on ≤ 1.28.0 |
+| ONNX Runtime (`onnxruntime-android` **1.28.0**, Häppchen 10 dictation + Häppchen 9 OCR, one library, one `.so`) | MIT | ok – pinned: from 1.29 the Android AAR adds Microsoft 1DS telemetry (`ai.onnxruntime.TelemetryInitializer`, `mobile.events.data.microsoft.com`); 1.28.0 has none, and core-voice's manifest removes the provider in case a newer version is pulled in. Every ORT user (also OCR, T-121) must stay on ≤ 1.28.0 |
 | Moonshine Streaming Small DE/EN (ONNX int8 exports `Masterx/moonshine-streaming-small(-de)-ONNX`, of `moonshine-ai/moonshine-streaming-small(-de)`) | MIT | ok – downloaded at runtime (catalog.json, pinned commit + SHA-256), not in the APK; third-party export of the official weights, checked on the host (same text as the reference pipeline) |
 | kotlinx.serialization (json, 1.8.1) | Apache-2.0 | ok (T-040, ToolSchema JSON) |
 | kxml2 2.3.0 (test only, XmlPullParser on the JVM) | BSD-style (MIT-like) | ok (T-070) |
@@ -30,8 +30,10 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | reactivecircus/android-emulator-runner (GitHub Action, CI only, not in the app) | Apache-2.0 | ok (T-190, release smoke test) |
 | LFM3-1.7B GGUF (downloaded at runtime, not bundled) | LFM Open License v1.0 | model weights, not linked code; licence shown in onboarding (T-083) |
 | LFM2.5-Embedding-350M-Q4_0 GGUF (optional pack "Suche nach Bedeutung", downloaded at runtime, not bundled; T-110) | LFM Open License v1.0 (https://huggingface.co/LiquidAI/LFM2.5-Embedding-350M-GGUF/blob/main/LICENSE) | model weights, not linked code; catalogue entry carries `licence` + `licence_url` |
-| pdfbox-android | Apache-2.0 | ok |
+| pdfbox-android (`com.tom-roush:pdfbox-android` 2.0.27.0, T-120) | Apache-2.0 | ok |
+| PP-OCRv5 mobile det + latin rec + PP-LCNet textline orientation, ONNX exports from huggingface.co/PaddlePaddle (downloaded at runtime, pinned commit + SHA-256) | Apache-2.0 | ok (T-121; shown in "Meine Dateien") |
 | MuPDF | AGPL | **do not use** |
+| German word list `core-docs/src/main/assets/dict/de_words.txt` (208,341 words, T-122): igerman98 (Björn Jacke, GPL-2.0/GPL-3.0) + FrequencyWords DE (Hermit Dave, CC-BY-SA-4.0) | GPL / CC-BY-SA-4.0 (one-way compatible with GPL-3.0) | ok; sources in `assets/dict/README.txt` |
 | Readability4K | Apache-2.0 | verify |
 | jsoup | MIT | ok |
 | OkHttp | Apache-2.0 | ok |

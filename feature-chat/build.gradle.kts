@@ -47,6 +47,8 @@ dependencies {
     implementation(project(":core-models"))
     // Häppchen 10: dictation (Moonshine) and read aloud
     implementation(project(":core-voice"))
+    // Häppchen 9: attach PDFs, photos and text files (Meine Dateien, search_document)
+    implementation(project(":core-docs"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

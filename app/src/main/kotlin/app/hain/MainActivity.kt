@@ -46,11 +46,14 @@ import app.hain.common.api.net.NetworkGate
 import app.hain.common.api.update.UpdateChecker
 import app.hain.common.api.update.UpdateResult
 import app.hain.common.api.update.UpdateRules
+import app.hain.data.KeystoreKeyProvider
+import app.hain.docs.api.DocLibrary
 import app.hain.entry.HainWidget
 import app.hain.entry.LaunchIntents
 import app.hain.entry.LaunchRequest
 import app.hain.entry.WidgetData
 import app.hain.entry.applyTo
+import app.hain.feature.chat.api.ChatDocs
 import app.hain.feature.chat.api.ChatExtras
 import app.hain.feature.chat.api.ChatScreen
 import app.hain.feature.chat.api.ChatVoice
@@ -285,6 +288,14 @@ class MainActivity : FragmentActivity() {
     /** T-211: the own GGUF of developer mode when it is in use and on the phone, else `null`. */
     private fun ownModelPath(): String? = DevTuning.ownModel(current.dev) { File(it).isFile }
 
+    /** Häppchen 9: "Meine Dateien" (own encrypted hain_docs.db) and the text recognition pack. */
+    private val docLibrary by lazy {
+        DocLibrary(applicationContext, KeystoreKeyProvider(applicationContext), networkGate)
+    }
+
+    /** Häppchen 9: attaching files in the chat (paper clip, progress, "Texterkennung laden?"). */
+    private val chatDocs by lazy { ChatDocs(docLibrary, lifecycleScope) }
+
     /**
      * T-074: the brain file for news summaries, `null` while no brain is on the phone; the brain
      * picked in the top bar (T-055) like in the chat.
@@ -318,7 +329,11 @@ class MainActivity : FragmentActivity() {
                         HainTools.router(
                             networkGate,
                             newsRepository,
-                            listOf(RememberTool(memory, memoryTurn::onToolSaved) { privateChatOpen }),
+                            listOf(
+                                RememberTool(memory, memoryTurn::onToolSaved) { privateChatOpen },
+                                // Häppchen 9: search_document in the attached files
+                                docLibrary.searchTool,
+                            ),
                         ),
                     toolContext = {
                         val cfg = settings()
@@ -350,6 +365,7 @@ class MainActivity : FragmentActivity() {
             // T-114: two minutes after the last answer the memory looks for facts in the chat
             // (never for a private chat, T-056: it is not in the database and the memory must skip it)
             onAnswered = { chatId -> if (!chatStore.isPrivate(chatId)) MemoryExtraction.current?.schedule(chatId) },
+            documentPrompt = docLibrary::forPrompt,
         )
 
     /** T-110: the pack "Suche nach Bedeutung" from the catalogue (kind `embed`). */
@@ -514,6 +530,7 @@ class MainActivity : FragmentActivity() {
                                     lifecycleScope.launch { settingsRepository.setAnswerMode(mode) }
                                 },
                                 onOpenGame = { showGame = true },
+                                docs = chatDocs,
                                 onOpenNews = { showNews = true },
                                 brainPicker = brainPicker,
                                 focusTick = composerFocus,

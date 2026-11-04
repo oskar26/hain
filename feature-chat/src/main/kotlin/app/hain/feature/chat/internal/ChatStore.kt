@@ -1,5 +1,6 @@
 package app.hain.feature.chat.internal
 
+import app.hain.docs.api.DocAttachment
 import app.hain.llm.api.GenerationStats
 import app.hain.tools.api.InfoCard
 import app.hain.tools.api.NewsHeadline
@@ -44,6 +45,8 @@ data class UiMessage(
     val parentId: Long? = null,
     /** When this version was picked among its siblings (T-057); the newest pick is shown. */
     val selectedAt: Long? = null,
+    /** Häppchen 9: files attached to this user message (chips; text in "Meine Dateien"). */
+    val attachments: List<DocAttachment> = emptyList(),
 )
 
 data class Chat(

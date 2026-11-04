@@ -20,6 +20,7 @@ import java.time.ZonedDateTime
  * The tools: calculator and the phone actions (offline; alarm, timer, calendar, route only after a
  * tap on their card); weather, Wikipedia, web search, page reading and, with [news], the headlines
  * of the user's news mode (T-072) (online, all through [gate], so every request shows in the network log).
+ * [extra] adds tools of other modules (Häppchen 9: `search_document`).
  */
 object HainTools {
     /** All tools; [extra] are tools of other modules, e.g. `remember` from the memory (T-112). */

@@ -42,6 +42,7 @@ androidxTestCore = "1.7.0"
 profileinstaller = "1.4.1"
 biometric = "1.1.0"
 fragment = "1.8.9"
+pdfboxAndroid = "2.0.27.0"
 # T-140: Moonshine dictation (MIT). Pinned to 1.28.0: from 1.29 the Android AAR ships Microsoft 1DS
 # telemetry (TelemetryInitializer → mobile.events.data.microsoft.com); Hain has no telemetry.
 onnxruntime = "1.28.0"
@@ -105,6 +106,8 @@ androidx-profileinstaller = { module = "androidx.profileinstaller:profileinstall
 # App lock (T-056) — Apache-2.0, see LICENSES.md
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-fragment = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment" }
+# Documents (DOCS_OCR.md, Häppchen 9) — see LICENSES.md
+pdfbox-android = { module = "com.tom-roush:pdfbox-android", version.ref = "pdfboxAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
