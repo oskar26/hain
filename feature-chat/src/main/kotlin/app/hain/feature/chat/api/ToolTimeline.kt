@@ -166,6 +166,8 @@ private fun toolText(step: ToolStep): String {
 private fun failureText(error: String?): String =
     when (error) {
         "offline" -> stringResource(R.string.chat_tool_offline)
+        "ask_first" -> stringResource(R.string.chat_tool_ask_first)
+        "search_off" -> stringResource(R.string.chat_tool_search_off)
         "limit" -> stringResource(R.string.chat_tool_limit)
         "time_up" -> stringResource(R.string.chat_tool_time_up)
         "stopped" -> stringResource(R.string.chat_tool_stopped)

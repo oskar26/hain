@@ -25,7 +25,7 @@ class PhoneActionsTest {
             val call =
                 "<tool_call>\n<function=set_alarm>\n<parameter=time>\n06:30\n</parameter>\n" +
                     "</function>\n</tool_call>"
-            val llm = FakeLlm(listOf(call), listOf("Ich hab dir den Wecker für 6:30 vorbereitet."))
+            val llm = FakeLlm(listOf(call), listOf("Ich hab dir den Wecker für 6:30 gestellt."))
             val engine = ChatEngine(llm, { "SYS" }, tools = ToolRouter(listOf(SetAlarmTool())), toolContext = { ctx })
             val last =
                 engine
@@ -33,6 +33,8 @@ class PhoneActionsTest {
                     .toList()
                     .last() as TurnUpdate.Finished
             assertEquals(listOf(ActionCard(alarm, ActionState.PENDING)), last.actions)
+            // 4b-2: nothing is set before the tap, so the answer says "vorbereitet"
+            assertEquals("Ich hab dir den Wecker für 6:30 vorbereitet.", last.output.text)
             assertEquals(ToolStep("set_alarm", "06:30", StepState.DONE, online = false), last.steps.single())
             assertTrue(
                 last.trace

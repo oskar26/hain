@@ -59,11 +59,7 @@ class HttpNetworkGate(
     }
 
     override suspend fun fetch(request: GateRequest): GateResponse {
-        val uri = runCatching { URI(request.url) }.getOrNull()
-        val host = uri?.host
-        require(uri != null && host != null && uri.scheme == "https") { "only https addresses" }
-        val allowedOffline = request.purpose == Purpose.MODEL_DOWNLOAD && request.userStarted
-        if (offline() && !allowedOffline) throw OfflineException()
+        val host = check(request)
         val headers = mapOf("User-Agent" to userAgent) + request.headers
         running.update { it + 1 }
         try {
@@ -84,6 +80,34 @@ class HttpNetworkGate(
         } finally {
             running.update { it - 1 }
         }
+    }
+
+    override suspend fun stream(
+        request: GateRequest,
+        transfer: suspend () -> Long,
+    ): Long {
+        val host = check(request)
+        running.update { it + 1 }
+        try {
+            val bytes = transfer()
+            record(host, request, bytes, OK)
+            return bytes
+        } catch (e: IOException) {
+            record(host, request, 0, null)
+            throw e
+        } finally {
+            running.update { it - 1 }
+        }
+    }
+
+    /** Only https; offline mode lets only a download the user started pass. Returns the host. */
+    private fun check(request: GateRequest): String {
+        val uri = runCatching { URI(request.url) }.getOrNull()
+        val host = uri?.host
+        require(uri != null && host != null && uri.scheme == "https") { "only https addresses" }
+        val allowedOffline = request.purpose == Purpose.MODEL_DOWNLOAD && request.userStarted
+        if (offline() && !allowedOffline) throw OfflineException()
+        return host
     }
 
     override fun clearLog() {
@@ -107,6 +131,7 @@ class HttpNetworkGate(
         const val DEFAULT_USER_AGENT = "Hain/0.1 (https://github.com/oskar26/hain)"
         const val KEEP_MS = 7 * 24 * 60 * 60 * 1000L
         const val MAX_ENTRIES = 500
+        private const val OK = 200
     }
 }
 

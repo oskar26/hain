@@ -1,6 +1,7 @@
 package app.hain.feature.chat.internal
 
 import app.hain.llm.api.GenerationStats
+import app.hain.tools.api.InfoCard
 import app.hain.tools.api.NewsHeadline
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -35,6 +36,8 @@ data class UiMessage(
     val research: ResearchClock? = null,
     /** Speed of this answer for developer mode (T-211; not stored). */
     val stats: GenerationStats? = null,
+    /** Weather and Wikipedia cards under the answer (3b-2). */
+    val cards: List<InfoCard> = emptyList(),
 )
 
 data class Chat(

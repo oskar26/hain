@@ -1,5 +1,6 @@
 package app.hain.feature.chat.internal
 
+import app.hain.tools.api.InfoCard
 import app.hain.tools.api.NewsHeadline
 import app.hain.tools.api.PhoneAction
 import kotlinx.serialization.json.Json
@@ -22,9 +23,10 @@ internal object ToolStepsJson {
         steps: List<ToolStep>,
         sources: List<SourceRef>,
         actions: List<ActionCard> = emptyList(),
+        cards: List<InfoCard> = emptyList(),
         news: List<NewsHeadline> = emptyList(),
     ): String? {
-        if (listOf(steps, sources, actions, news).all { it.isEmpty() }) return null
+        if (listOf(steps, sources, actions, cards, news).all { it.isEmpty() }) return null
         return buildJsonObject {
             putJsonArray("steps") {
                 steps.forEach { s ->
@@ -54,6 +56,18 @@ internal object ToolStepsJson {
                 putJsonArray("actions") {
                     actions.forEach { a ->
                         add(JsonObject(PhoneAction.toJson(a.action) + ("state" to JsonPrimitive(a.state.name))))
+                    }
+                }
+            }
+            if (cards.isNotEmpty()) {
+                putJsonArray("cards") {
+                    cards.forEach { c ->
+                        add(
+                            buildJsonObject {
+                                put("kind", c.kind)
+                                put("data", c.data)
+                            },
+                        )
                     }
                 }
             }
@@ -98,6 +112,21 @@ internal object ToolStepsJson {
             val action = PhoneAction.fromJson(o) ?: return@mapNotNull null
             val state = ActionState.entries.firstOrNull { it.name == o.text("state") } ?: ActionState.PENDING
             ActionCard(action, state)
+        }
+    }
+
+    /** The weather and Wikipedia cards in [json] (3b-2); broken ones are skipped. */
+    fun decodeCards(json: String?): List<InfoCard> {
+        val root =
+            json
+                ?.takeIf { it.isNotBlank() }
+                ?.let { runCatching { Json.parseToJsonElement(it).jsonObject }.getOrNull() }
+                ?: return emptyList()
+        return (root["cards"] as? JsonArray).orEmpty().mapNotNull { el ->
+            val o = el as? JsonObject ?: return@mapNotNull null
+            val kind = o.text("kind") ?: return@mapNotNull null
+            val data = o.text("data") ?: return@mapNotNull null
+            InfoCard(kind, data)
         }
     }
 

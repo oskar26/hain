@@ -15,7 +15,7 @@ class NewsCardJsonTest {
         )
 
     @Test fun newsSurvivesTheDatabase() {
-        val json = ToolStepsJson.encode(emptyList(), emptyList(), emptyList(), news)
+        val json = ToolStepsJson.encode(emptyList(), emptyList(), news = news)
         assertNotNull(json)
         assertEquals(news, ToolStepsJson.decodeNews(json))
         val message = UiMessage(1, isUser = false, text = "x", news = news)

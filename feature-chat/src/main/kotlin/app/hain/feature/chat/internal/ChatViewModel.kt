@@ -362,6 +362,7 @@ class ChatViewModel(
                 actions = update.actions,
                 news = update.news,
                 stats = update.stats,
+                cards = update.cards,
             ),
         )
         when (update.reason) {

@@ -96,6 +96,12 @@
     <string name="chat_action_minutes">%1$d min</string>
     <string name="chat_action_seconds">%1$d s</string>
     <string name="chat_action_all_day">all day</string>
+    <string name="chat_action_pending_hint">Prepared – tap “%1$s” to do it.</string>
+    <string name="chat_action_auto_in">Starts in %1$d s …</string>
+    <string name="chat_action_undo">Undo</string>
+    <string name="chat_action_every_day">Every day</string>
+    <string name="chat_action_weekdays">Mon–Fri</string>
+    <string name="chat_action_weekend">Weekends</string>
     <string name="chat_action_route_hint">Opens the route in your map app</string>
     <string name="chat_action_set">Set</string>
     <string name="chat_action_start">Start</string>
@@ -111,6 +117,8 @@
     <string name="chat_action_no_maps">Your phone has no map app yet. Organic Maps or OsmAnd are free – then try again.</string>
     <string name="chat_tool_failed">didn’t work</string>
     <string name="chat_tool_offline">you’re offline</string>
+    <string name="chat_tool_ask_first">asks first</string>
+    <string name="chat_tool_search_off">web search is off</string>
     <string name="chat_tool_running">looking it up…</string>
     <string name="chat_sources">Sources</string>
     <string name="chat_online">Online</string>

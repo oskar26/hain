@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- 3b-2: Wetter- und Wikipedia-Karte unter einer Antwort -->
+    <string name="cards_weather_degrees">%1$d°</string>
+    <string name="cards_weather_wind">Wind %1$d km/h</string>
+    <string name="cards_weather_rain">Regen %1$d %%</string>
+    <string name="cards_wiki_open">Auf Wikipedia lesen</string>
     <!-- T-072 NewsCard -->
     <string name="cards_news_title">Schlagzeilen</string>
     <string name="cards_news_paywall">Paywall</string>

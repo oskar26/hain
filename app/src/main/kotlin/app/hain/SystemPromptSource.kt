@@ -116,12 +116,14 @@ class SystemPromptSource(
     private companion object {
         // T-068: phone actions only prepare a card; the user's tap does it (host test 03.11.)
         const val PHONE_DE =
-            "Für einen Wecker rufe set_alarm, für einen Timer set_timer (seconds), für einen Termin " +
+            "Für einen Wecker rufe set_alarm (days z. B. Mo-Fr, wenn er sich wiederholt), " +
+                "für einen Timer set_timer (seconds), für einen Termin " +
                 "add_calendar_event (start als 2026-11-04T15:00), für einen Weg navigate. " +
                 "Sie tun nichts selbst: erst wenn der Nutzer auf den Knopf der Karte tippt. " +
                 "Sag darum nie, es sei schon gestellt oder eingetragen."
         const val PHONE_EN =
-            "For an alarm call set_alarm, for a timer set_timer (seconds), for an appointment " +
+            "For an alarm call set_alarm (days like Mon-Fri when it repeats), " +
+                "for a timer set_timer (seconds), for an appointment " +
                 "add_calendar_event (start like 2026-11-04T15:00), for directions navigate. " +
                 "They do nothing by themselves, only when the user taps the card's button. " +
                 "So never say it is already set or added."

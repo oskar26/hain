@@ -13,8 +13,10 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
+import java.time.DayOfWeek
 import java.time.Duration
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.util.Locale
 
 /*
@@ -64,7 +66,8 @@ private fun prepared(
 
 private const val TAP_HINT =
     "Nothing is done yet, so never say it is set or added. A card under your answer shows it. " +
-        "In one short sentence say what you prepared and that a tap on the card's button does it."
+        "In one short sentence say what you prepared (German: vorbereitet) and that a tap on the card's " +
+        "button does it, e.g. 'Vorbereitet – tipp auf Stellen.'"
 
 /** `set_alarm`: AlarmClock.ACTION_SET_ALARM after the tap. */
 class SetAlarmTool : Tool {
@@ -76,6 +79,7 @@ class SetAlarmTool : Tool {
             listOf(
                 Triple("time", "string", "Time of day, HH:mm, e.g. 06:30"),
                 Triple("label", "string", "Optional short text for the alarm"),
+                Triple("days", "string", "Optional repeat days, e.g. Mo-Fr, täglich, Mon,Wed. Leave out for once"),
             ),
             listOf("time"),
         )
@@ -86,9 +90,46 @@ class SetAlarmTool : Tool {
     ): ToolResult {
         val raw = Args.required(args, "time")
         val time = TimeParser.clock(raw) ?: throw BadArgumentsException("Cannot read the time '$raw'. Use HH:mm.")
-        val action = PhoneAction.Alarm(time.hour, time.minute, Args.string(args, "label"))
-        val fields = listOfNotNull("time" to action.clock, action.label?.let { "label" to it }).toMap()
-        return prepared(fields, action.clock, action)
+        // 4b-2: repeating alarms; days the brain wrote but nobody can read are an error, not "once"
+        val days =
+            Args
+                .string(args, "days")
+                ?.let { rawDays ->
+                    TimeParser.weekdays(rawDays) ?: throw BadArgumentsException("Cannot read the days '$rawDays'.")
+                }.orEmpty()
+        val action = PhoneAction.Alarm(time.hour, time.minute, Args.string(args, "label"), days.map { it.value })
+        val fields =
+            listOfNotNull(
+                "time" to action.clock,
+                action.label?.let { "label" to it },
+                days
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { d -> "repeats" to d.joinToString(",") { it.name.take(SHORT_DAY) } },
+            ).toMap()
+        val label = if (days.isEmpty()) action.clock else action.clock + " · " + daysLabel(days, ctx.lang)
+        return prepared(fields, label, action)
+    }
+
+    companion object {
+        private const val WORK_DAYS = 5
+        private const val SHORT_DAY = 3
+
+        /** "täglich", "Mo–Fr", "Sa, So", "Mo, Mi" / "daily", "Mon–Fri", "Sat, Sun", "Mon, Wed". */
+        fun daysLabel(
+            days: List<DayOfWeek>,
+            lang: String,
+        ): String {
+            val de = lang == "de"
+            return when (days) {
+                DayOfWeek.entries -> if (de) "täglich" else "daily"
+                DayOfWeek.entries.take(WORK_DAYS) -> if (de) "Mo–Fr" else "Mon–Fri"
+                listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY) -> if (de) "Sa, So" else "Sat, Sun"
+                else -> {
+                    val locale = if (de) Locale.GERMAN else Locale.ENGLISH
+                    days.joinToString(", ") { it.getDisplayName(TextStyle.SHORT, locale).trimEnd('.') }
+                }
+            }
+        }
     }
 }
 
