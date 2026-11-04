@@ -85,12 +85,14 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-072 | news tool + NewsCard | feature | S | B | T-071,T-062 | todo |
 | T-073 | News screen (3-mode switch, own feeds) | ui | M | B | T-072 | todo |
 | T-074 | Article summary on demand | feature | S | B | T-073,T-067 | todo |
-| T-110 | Embedder (LFM2.5-Embedding via llama.cpp) | native | S | C | T-030 | todo |
+| T-110 | Embedder (LFM2.5-Embedding via llama.cpp) | native | S | C | T-030 | review (04.11., 7b, draft PR #46) |
 | T-111 | Memory tables + DAO | feature | S | C | T-020 | review (04.11., draft PR #38) |
 | T-112 | Explicit remember/forget + remember tool | feature | S | C | T-111,T-062 | review (04.11., draft PR #38) |
 | T-113 | Retrieval & ranking | feature | S | C | T-111 | review (04.11., draft PR #38) |
-| T-114 | Background extraction worker | feature | M | C | T-112,T-113,T-110 | todo |
+| T-114 | Background extraction worker | feature | M | C | T-112,T-113,T-110 | review (04.11., 7b, draft PR #46) |
 | T-115 | Memory screen | ui | M | C | T-113 | review (04.11., draft PR #38) |
+| T-116 | Memory chips under answers, topics tab, "Suche nach Bedeutung" tile | ui | S | C | T-115,T-110 | review (04.11., 7b, draft PR #46) |
+| T-117 | Wire memory part 2 (embed pack, extraction, chips) into the app | feature | S | C | T-110,T-114,T-116 | review (04.11., 7b, draft PR #46) |
 | T-120 | PDF text layer + page render | feature | S | D | T-002 | todo |
 | T-121 | PP-OCRv5 Latin via ONNX Runtime | native | M | D | T-120 | todo |
 | T-122 | GermanOcrFixer | feature | S | D | T-002 | todo |
@@ -899,6 +901,30 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - accept:
   - UI test
 - check: `./gradlew :feature-memory:testDebugUnitTest`
+
+### T-116 · Memory chips under answers, topics tab, "Suche nach Bedeutung" tile
+
+- type: `ui` · size: `S` · lane: `C` · depends: T-115,T-110
+- read: MEMORY.md §2.1, §3.5, §5
+- files: feature-memory/.../AnswerChips.kt, MemoryTopicsTab.kt, MemoryPage.kt, MemoryScreen.kt; feature-chat/.../ChatExtras.kt (`answerFooter`), ChatScreen.kt; feature-settings/.../PacksScreen.kt; strings DE/EN
+- do:
+  1. Chips "Gemerkt ✓ · Rückgängig", "Vergessen ✓ · Rückgängig", "N Erinnerungen genutzt" (tap shows which) under finished answers, 48 dp targets, TalkBack labels.
+  2. Tab "Themen" (facts by kind + own note), "Ersetzt: …" under suggestions, hint tile "Suche nach Bedeutung" with download/progress; packs screen describes kind `embed`.
+- accept:
+  - `MemoryListTest` (topics, replaced, chips, tile state), `AnswerFooterTest`; screenshots via screens.yml
+- check: `./gradlew :feature-memory:testDebugUnitTest :feature-chat:testDebugUnitTest`
+
+### T-117 · Wire memory part 2 (embed pack, extraction, chips) into the app
+
+- type: `feature` · size: `S` · lane: `C` · depends: T-110,T-114,T-116
+- read: MEMORY.md §7
+- files: core-models/.../catalog.json, Models.kt; app/.../AppModule.kt, HainApp.kt, MainActivity.kt; feature-chat/.../ChatEngine.kt (`memoryHint`), ChatViewModel.kt (`onAnswered`)
+- do:
+  1. Catalogue entry kind `embed` (min_ram_gb 3, verified sha256/size), `TextEmbedder` + `MemoryTurn` singletons, `PackEmbedder` on the store.
+  2. `ChatEngine.memoryHint` (suspend, Dispatchers.Default), `MemoryExtraction.current` in `HainApp`, `schedule(chatId)` after each finished answer, `yieldToChat` when the user writes.
+- accept:
+  - `CatalogParserTest`, `ChatEngineTest.memoryLineFollowsTheLanguageHintOffTheMainThread`, `ChatViewModelTest.aFinishedAnswerTellsTheMemory…`
+- check: `./gradlew assembleDebug testDebugUnitTest`
 
 ## M9 · Documents & OCR
 

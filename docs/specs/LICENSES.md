@@ -7,7 +7,7 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | llama.cpp / ggml | MIT | ok |
 | AndroidX DataStore (preferences) | Apache-2.0 | ok |
 | LFM3 models (1.7B, VL, Omni, Audio) | LFM Open License v1.0 (free < $10M revenue) | ok for non-commercial/small; show in About |
-| LFM2.5-Embedding-350M | LFM Open License | verify |
+| LFM2.5-Embedding-350M | LFM Open License v1.0 (`lfm1.0`, checked 04.11.2026 on the Hugging Face model card) | ok, same terms as the brain; optional pack |
 | sherpa-onnx | Apache-2.0 | ok |
 | Piper (engine, current) | GPL-3.0 | ok with GPL app |
 | espeak-ng | GPL-3.0 | ok |
@@ -26,6 +26,7 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | kxml2 2.3.0 (test only, XmlPullParser on the JVM) | BSD-style (MIT-like) | ok (T-070) |
 | androidx.work (work-runtime-ktx 2.12.0) | Apache-2.0 | ok (T-082, model downloads) |
 | LFM3-1.7B GGUF (downloaded at runtime, not bundled) | LFM Open License v1.0 | model weights, not linked code; licence shown in onboarding (T-083) |
+| LFM2.5-Embedding-350M-Q4_0 GGUF (optional pack "Suche nach Bedeutung", downloaded at runtime, not bundled; T-110) | LFM Open License v1.0 (https://huggingface.co/LiquidAI/LFM2.5-Embedding-350M-GGUF/blob/main/LICENSE) | model weights, not linked code; catalogue entry carries `licence` + `licence_url` |
 | pdfbox-android | Apache-2.0 | ok |
 | MuPDF | AGPL | **do not use** |
 | Readability4K | Apache-2.0 | verify |

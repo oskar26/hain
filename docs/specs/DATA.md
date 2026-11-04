@@ -1,7 +1,7 @@
 # DATA.md — database & storage
 
 Room database `hain.db`, encrypted with **SQLCipher** (key in Android Keystore-wrapped random 32 bytes, DataStore holds the wrapped key).
-SQLite build: SQLCipher for Android (`net.zetetic:sqlcipher-android`), decided in T-020 (STATUS.md → Pinned versions). Full-text tables are **FTS4** (Room `@Fts4`, tokenizer unicode61); sqlite-vec decided in T-110.
+SQLite build: SQLCipher for Android (`net.zetetic:sqlcipher-android`), decided in T-020 (STATUS.md → Pinned versions). Full-text tables are **FTS4** (Room `@Fts4`, tokenizer unicode61); sqlite-vec decided in T-110: **not used** – vectors are a plain BLOB table and the cosine runs in Kotlin (a few thousand facts × 1024 floats are a few MB; no extra native library).
 
 ## Tables
 
@@ -13,9 +13,9 @@ SQLite build: SQLCipher for Android (`net.zetetic:sqlcipher-android`), decided i
 | `chat_summary` | chat_id PK, summary, updated_at |
 | `memory_profile` | not a table (T-111): L0 "Über dich" is the setting `about_me` (DataStore), already in the system prompt; the memory page edits it |
 | `memory_topic` | id, title UNIQUE, note, updated_at |
-| `memory_fact` | id, text, category, status (active/suggested/deleted), sensitive bool, importance REAL, origin_chat_id?, created_at, superseded_by? |
+| `memory_fact` | id, text, category, status (active/suggested/deleted), sensitive bool, importance REAL, origin_chat_id?, created_at, superseded_by?, replaces? (v5: a suggestion that would replace this older fact once accepted) |
 | `memory_fact_fts` | FTS4(text, content='memory_fact'), unicode61 — Room keeps it in sync (DB version 3, T-111) |
-| `memory_fact_vec` | vec0(embedding float[1024]) rowid = fact id (dimension from model, check T-110) — not yet, comes with T-110 |
+| `memory_fact_vec` | fact_id PK → memory_fact(id) ON DELETE CASCADE, model TEXT, text_hash INT, dim INT, vector BLOB (little-endian float32, L2-normalised). LFM2.5-Embedding-350M: **dim 1024** (measured on the host 04.11.). A different model or an edited text (other hash) gets a new vector (T-110, DB version 5) |
 | `document` | id, name, uri, mime, pages, added_at, status |
 | `doc_chunk` | id, document_id, page, text, ocr bool, confidence REAL? |
 | `doc_chunk_fts`, `doc_chunk_vec` | as above |
@@ -27,7 +27,7 @@ SQLite build: SQLCipher for Android (`net.zetetic:sqlcipher-android`), decided i
 
 Migrations: every schema change = new Room version + migration test (`MigrationTestHelper`).
 
-Versions: 1 chats/messages (T-020) · 2 `network_log` (3b) · **3 memory: `memory_fact` (+ index on status), `memory_fact_fts`, `memory_topic` (T-111, `MIGRATION_2_3`)**. `HainMigrationTest` builds a version-2 file from `schemas/…/2.json` and opens it with version 3 (Room checks every table). If another branch also takes version 3, the later merge renumbers its migration to the next free version. `schemas/…/3.json` is written by the first Gradle build (KSP) and should then be committed.
+Versions: 1 chats/messages (T-020) · 2 `network_log` (3b) · **3 memory: `memory_fact` (+ index on status), `memory_fact_fts`, `memory_topic` (T-111, `MIGRATION_2_3`)** · 4 taken by Häppchen 8b (T-057 branches); on this branch `MIGRATION_3_4` is an empty placeholder with the same name, so keeping both does not compile – 8b's wins · **5 memory part 2: `memory_fact.replaces`, `memory_fact_vec` (7b, `MIGRATION_4_5`)**; `HainMigrationTest` also opens a version-3 file from `3.json` with version 5. `HainMigrationTest` builds a version-2 file from `schemas/…/2.json` and opens it with version 3 (Room checks every table). If another branch also takes version 3, the later merge renumbers its migration to the next free version. `schemas/…/3.json` is written by the first Gradle build (KSP) and should then be committed.
 
 ## Settings
 
