@@ -63,6 +63,7 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | Roborazzi (screenshot testing) | Apache-2.0 | ok |
 | Roborazzi compose + junit-rule, Robolectric, compose ui-test-junit4/-manifest (test only, T-011 screenshots in feature modules) | Apache-2.0 / MIT | ok |
 | Lucide (icon SVG sources) | ISC | ok |
+| AndroidX Glance (glance-appwidget 1.1.1; home screen widget "Frag Pim", T-144; no glance-material3) | Apache-2.0 | ok |
 
 **Added in T-018 (2026-10-30).** All licences verified against the artifacts' POMs on Maven Central.
 Newest stable versions that still work with the pinned toolchain (AGP 9.0.1 / compileSdk 36 /

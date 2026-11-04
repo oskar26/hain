@@ -26,4 +26,12 @@
         <item quantity="other">%1$d Chats exportiert</item>
     </plurals>
     <string name="export_all_failed">Export hat nicht geklappt</string>
+    <!-- T-144 Teilen-Ziel, Widget, Schnellkachel -->
+    <string name="share_target_label">Frag Pim</string>
+    <string name="widget_label">Frag Pim</string>
+    <string name="widget_description">Frag Pim, starte einen neuen Chat oder geh zurück zu deinem letzten Chat.</string>
+    <string name="widget_ask">Frag Pim …</string>
+    <string name="widget_new_chat">Neuer Chat</string>
+    <string name="widget_last_chat">Letzter Chat: %1$s</string>
+    <string name="tile_new_chat">Neuer Chat</string>
 </resources>

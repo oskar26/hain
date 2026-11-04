@@ -40,6 +40,17 @@ data class ChatUiState(
     val online: Boolean = false,
     /** Private chat (T-056): nothing is saved, the chat is gone once you leave it. */
     val privateChat: Boolean = false,
+    /** "‹ 2/3 ›" per shown message that has other versions (T-057). */
+    val branches: Map<Long, BranchInfo> = emptyMap(),
+    /** Messages sent while Pim was still answering; they go out one by one afterwards (T-057). */
+    val queue: List<QueuedMessage> = emptyList(),
+)
+
+/** A message waiting until Pim's current answer is done (T-057, shown as "wartet"). */
+data class QueuedMessage(
+    val id: Long,
+    val chatId: Long,
+    val text: String,
 )
 
 enum class ChatError { MODEL_LOAD, CONTEXT_FULL, GENERATION, NO_BRAIN }
@@ -80,18 +91,20 @@ class ChatViewModel(
         val searchHits: Set<Long>? = null,
         val editingId: Long? = null,
         val privateMode: Boolean = false,
+        val queue: List<QueuedMessage> = emptyList(),
     )
 
     val state: StateFlow<ChatUiState> =
         combine(store.chats, local, llm.state, installed, networkActive) { chats, l, engineState, hasBrain, online ->
             val visible = chats.filter { it.messages.isNotEmpty() && !it.isPrivate }
             val hits = l.searchHits
+            val current = chats.firstOrNull { it.id == l.currentChatId }
             ChatUiState(
                 chats = visible,
                 groups = groupChats(if (hits == null) visible else visible.filter { it.id in hits }, clock()),
                 searchQuery = l.searchQuery,
                 currentChatId = l.currentChatId,
-                messages = chats.firstOrNull { it.id == l.currentChatId }?.messages.orEmpty(),
+                messages = current?.messages.orEmpty(),
                 input = l.input,
                 isGenerating = l.generating,
                 engine = engineState,
@@ -101,6 +114,8 @@ class ChatViewModel(
                 editingId = l.editingId,
                 online = online,
                 privateChat = l.privateMode,
+                branches = current?.let { Branches.info(it.all, it.messages) }.orEmpty(),
+                queue = l.queue.filter { it.chatId == l.currentChatId },
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT), ChatUiState())
 
@@ -189,6 +204,7 @@ class ChatViewModel(
     fun onInputChange(text: String) = local.update { it.copy(input = text, error = null) }
 
     fun newChat() {
+        dropQueue()
         stop()
         leavePrivate()
         local.update {
@@ -196,7 +212,14 @@ class ChatViewModel(
         }
     }
 
+    /** T-144: a new chat with [text] in the message box (shared from another app); nothing is sent. */
+    fun newChatWith(text: String) {
+        newChat()
+        local.update { it.copy(input = text) }
+    }
+
     fun openChat(id: Long) {
+        if (id != local.value.currentChatId) dropQueue()
         stop()
         if (id != local.value.currentChatId) leavePrivate()
         local.update { it.copy(currentChatId = id, error = null, editingId = null, privateMode = store.isPrivate(id)) }
@@ -261,10 +284,14 @@ class ChatViewModel(
             }
     }
 
-    @Suppress("ReturnCount") // early exits keep the three cases readable
+    @Suppress("ReturnCount") // early exits keep the cases readable
     fun send() {
         val text = local.value.input.trim()
-        if (text.isEmpty() || local.value.generating) return
+        if (text.isEmpty()) return
+        if (local.value.generating) {
+            enqueue(text)
+            return
+        }
         if (!installed.value) {
             local.update { it.copy(error = ChatError.NO_BRAIN) }
             return
@@ -272,9 +299,11 @@ class ChatViewModel(
         cancelTitle()
         val editing = local.value.editingId
         val current = local.value.currentChatId
-        if (editing != null && current != null && store.chat(current)?.messages?.any { it.id == editing } == true) {
-            store.truncateFrom(current, editing, keep = true)
-            store.upsertMessage(current, UiMessage(editing, isUser = true, text = text))
+        // T-057: an edit becomes a new version next to the old one; "‹ 2/2 ›" switches back
+        if (editing != null &&
+            current != null &&
+            store.branchFrom(current, editing, UiMessage(store.nextId(), isUser = true, text = text))
+        ) {
             local.update { it.copy(input = "", error = null, editingId = null) }
             answer(current)
             return
@@ -290,7 +319,55 @@ class ChatViewModel(
         answer(chatId)
     }
 
-    /** Drops the answer [answerId] (default: the last one) and everything after it, then asks again. */
+    /** T-057: sent while Pim answers → waits ("wartet") and goes out after the answer. */
+    private fun enqueue(text: String) {
+        val chatId = local.value.currentChatId ?: return
+        if (local.value.editingId != null) return
+        local.update {
+            it.copy(input = "", error = null, queue = it.queue + QueuedMessage(store.nextId(), chatId, text))
+        }
+    }
+
+    /** Takes a waiting message back out of the queue (its ✕). */
+    fun cancelQueued(id: Long) = local.update { s -> s.copy(queue = s.queue.filterNot { it.id == id }) }
+
+    private fun dropQueue() = local.update { it.copy(queue = emptyList()) }
+
+    /**
+     * Sends the next waiting message once Pim is free. After an error nothing is sent on its own:
+     * the waiting texts go back into the message box, so nothing is lost.
+     */
+    @Suppress("ReturnCount")
+    private fun sendQueued() {
+        val now = local.value
+        val next = now.queue.firstOrNull() ?: return
+        if (now.generating) return
+        if (next.chatId != now.currentChatId) {
+            dropQueue()
+            return
+        }
+        if (now.error != null || !installed.value) {
+            val back = (listOf(now.input) + now.queue.map { it.text }).filter { it.isNotBlank() }
+            local.update { it.copy(input = back.joinToString("\n\n"), queue = emptyList()) }
+            return
+        }
+        local.update { it.copy(queue = it.queue.drop(1)) }
+        cancelTitle()
+        store.upsertMessage(next.chatId, UiMessage(next.id, isUser = true, text = next.text))
+        answer(next.chatId)
+    }
+
+    /** T-057: shows another version of a message ("‹ 2/3 ›"); not while Pim answers. */
+    fun selectBranch(messageId: Long) {
+        val chatId = local.value.currentChatId ?: return
+        if (local.value.generating) return
+        store.selectBranch(chatId, messageId)
+    }
+
+    /**
+     * Asks again for the answer [answerId] (default: the last one). The old answer and what followed
+     * it stay as another version (T-057); without an answer at the end it simply answers.
+     */
     @Suppress("ReturnCount")
     fun regenerate(answerId: Long? = null) {
         val chatId = local.value.currentChatId ?: return
@@ -302,8 +379,13 @@ class ChatViewModel(
             return
         }
         cancelTitle()
-        if (!target.isUser) store.truncateFrom(chatId, target.id, keep = false)
-        answer(chatId)
+        if (!target.isUser && target.failed && target.text.isBlank()) {
+            // an empty failed answer is not worth keeping as a version
+            store.truncateFrom(chatId, target.id, keep = false)
+            answer(chatId)
+            return
+        }
+        answer(chatId, replacing = target.id.takeIf { !target.isUser })
     }
 
     private fun cancelTitle() {
@@ -330,19 +412,35 @@ class ChatViewModel(
             store.upsertMessage(chatId, message.copy(streaming = false, stopped = true))
         }
         local.update { it.copy(generating = false) }
+        // T-057: Stop ends this answer only; a waiting message goes out once the brain has let go
+        if (local.value.queue.isNotEmpty()) {
+            viewModelScope.launch {
+                running.join()
+                sendQueued()
+            }
+        }
     }
 
-    private fun answer(chatId: Long) {
+    /** Answers the newest message; with [replacing] the answer becomes a new version of that one. */
+    @Suppress("LongMethod") // placeholder, history, stream, finish: one answer
+    private fun answer(
+        chatId: Long,
+        replacing: Long? = null,
+    ) {
+        val answerId = store.nextId()
+        val placeholder = UiMessage(answerId, isUser = false, text = "", streaming = true)
+        if (replacing == null || !store.branchFrom(chatId, replacing, placeholder)) {
+            store.upsertMessage(chatId, placeholder)
+        }
+        // what the brain reads: the shown path up to this answer
         val history =
             store
                 .chat(chatId)
                 ?.messages
                 .orEmpty()
+                .takeWhile { it.id != answerId }
                 .toPromptHistory()
-        val answerId = store.nextId()
-        val placeholder = UiMessage(answerId, isUser = false, text = "", streaming = true)
-        store.upsertMessage(chatId, placeholder)
-        live = chatId to placeholder
+        live = chatId to (store.chat(chatId)?.messages?.lastOrNull { it.id == answerId } ?: placeholder)
         local.update { it.copy(generating = true) }
         val turn = ++generation
         job =
@@ -384,9 +482,13 @@ class ChatViewModel(
                     if (generation == turn) {
                         live = null
                         local.update { it.copy(generating = false) }
+                        // the brain did not load: waiting messages go back into the box (T-057)
+                        if (local.value.error != null) sendQueued()
                     }
                 }
-                if (generation == turn) maybeTitle(chatId)
+                if (generation == turn) {
+                    if (local.value.queue.isEmpty()) maybeTitle(chatId) else sendQueued()
+                }
             }
     }
 
@@ -445,6 +547,7 @@ class ChatViewModel(
     }
 
     override fun onCleared() {
+        dropQueue()
         stop()
         cancelTitle()
         leavePrivate()

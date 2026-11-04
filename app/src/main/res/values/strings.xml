@@ -26,4 +26,12 @@
         <item quantity="other">%1$d chats exported</item>
     </plurals>
     <string name="export_all_failed">Export didn’t work</string>
+    <!-- T-144 share target, widget, quick settings tile -->
+    <string name="share_target_label">Ask Pim</string>
+    <string name="widget_label">Ask Pim</string>
+    <string name="widget_description">Ask Pim, start a new chat or go back to your last chat.</string>
+    <string name="widget_ask">Ask Pim…</string>
+    <string name="widget_new_chat">New chat</string>
+    <string name="widget_last_chat">Last chat: %1$s</string>
+    <string name="tile_new_chat">New chat</string>
 </resources>

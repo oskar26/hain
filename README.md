@@ -90,6 +90,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🔄 Update check | Optional: once a day at start Hain asks GitHub if a newer version is out (stable or nightly) and shows a calm hint that opens the release page. Off until you say yes, nothing is installed by itself, the request shows in the network log | ✅ |
 | 🛠️ Developer mode | Hidden: tap the version in "About Hain" 7 times. Own GGUF model from Hugging Face (size, RAM hint, download with progress), sampling, context size, thinking, own system prompt, tokens per second under answers | ✅ |
 | ✏️ Chat extras | Automatic chat titles; tap your own message to edit or copy it. Chat list: small glass menu at each chat (pin, rename, delete), smooth drawer | ✅ |
+| 🌿 Versions & next question | Edit a message or ask again and the old version stays – switch with "‹ 2/3 ›" under the message. Send your next question while Pim still answers: it waits ("wartet", ✕ takes it back) and goes out afterwards. A frosted "↓" brings you back down ("Neue Antwort" when something new came in); the chat only follows new text while you are at the bottom | ✅ |
 | 📤 Export | Save or share a chat as Markdown or as a tidy PDF (title, date, roles, code, page numbers); all chats at once as a Markdown ZIP in Settings → Privacy | ✅ |
 | 🧭 Settings, part 2 | Glass tiles with their own colour and 3D icon, sub pages, own "reduce motion" switch, glossy 3D Pim, new first start with a language step, brain picker in the top bar | ✅ |
 | 🔧 Tools | Calculator and units, weather (Open-Meteo), Wikipedia (German/English), web search without API key that reads several pages (or your own SearXNG), reading a link, alarm (also repeating, e.g. every weekday), timer, calendar entry and route with a confirm card (or start after 3 s with Undo), weather and Wikipedia cards under the answer, weather for your location if you allow it, web search on / ask first / off – Pim shows each step and its sources under the answer. Still open: favicons at the sources | ✅ |
@@ -101,7 +102,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🔒 Private chats | Private chat (eye button at the top): never saved, never searched, deleted when you leave it, tools still work. App lock with fingerprint or the phone's PIN (right away / 1 min / 5 min), block screenshots | ✅ |
 | 📄 Documents | Ask your PDFs and photos of text (PP-OCRv5), answers with sources | 🗓️ |
 | 🎙️ Voice | Dictation (Moonshine), read aloud, Pim's own voice | 🗓️ |
-| 📲 On the phone | Share menu target, widget, quick tile, default assistant | 🗓️ |
+| 📲 On the phone | Share text or links from any app into Hain (new chat, text in the box, nothing sent by itself), home screen widget "Ask Pim" (ask, new chat, last chat), quick settings tile "New chat". Still open: sharing pictures/PDFs, default assistant | 🚧 |
 | 🌳 Mini-apps | Many key-free integrations (e.g. KVB / Transitous), shown as trees in Pim's forest | 🗓️ later |
 | 🖼️ Images | Erase objects, remove background, upscale; optional image generation pack | 🗓️ later |
 
@@ -118,6 +119,12 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
   - **Block screenshots.** Also in **Privacy**: no screenshots or screen recordings of Hain, and a blank preview in recent apps.
   - **Export a chat.** In an open chat tap **Share** at the top (or ⋯ → **Exportieren** in the side panel): **PDF** or **Markdown**, to **share** with any app or to **save** where you choose. The PDF is set like a little document: title, date, "Du" and "Hain" (in green), paragraphs, lists, code on a grey band, page numbers. The thinking is left out.
   - **Export all chats.** **Settings → Privacy → Export all chats** saves one ZIP with every chat as a Markdown file (private chats are never in it).
+- **Version 0.1.8: versions, waiting messages, sharing, widget.**
+  - **Old versions stay.** When you edit one of your messages or tap "ask again", the old version is no longer thrown away. Under the message you see **‹ 2/3 ›** – tap the arrows to switch between the versions, together with everything that came after them. Your choice is saved.
+  - **Send while Pim answers.** You can type and send your next question while Pim is still writing. It waits above the message box ("wartet"), the ✕ takes it back, and it goes out on its own as soon as the answer is done. Stop ends only the current answer.
+  - **Calmer scrolling.** The chat only follows new text while you are at the bottom. Scroll up to read and it stays where you are; a small frosted **↓** brings you back, and says **"Neue Antwort"** when something new came in.
+  - **Share into Hain.** In any app tap **Share → Frag Pim**: a new chat opens with the text or link in the message box (a shared link keeps its page title). Nothing is sent until you tap send.
+  - **Widget and quick tile.** Add the **"Frag Pim"** widget to your home screen: the field opens a new chat with the keyboard, **+** starts a new chat, below it your last chat. In the quick settings you can add the tile **"Neuer Chat"**.
 - **Version 0.1.4 – tools, the rest.**
   - **Repeating alarms.** "Weck mich jeden Werktag um 6:30", "täglich um 7", "montags und donnerstags um 8": the card shows the days (Mo–Fr, Jeden Tag …) and your clock app gets a repeating alarm.
   - **Pim says what really happened.** After an alarm, timer, event or route Pim now says "vorbereitet – tipp auf Stellen" instead of "eingestellt", because nothing happens before your tap. The card says it too.

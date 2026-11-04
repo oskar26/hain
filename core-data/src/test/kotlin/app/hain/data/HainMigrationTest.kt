@@ -9,6 +9,7 @@ import app.hain.data.entities.MemoryFactEntity
 import kotlinx.coroutines.test.runTest
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -17,28 +18,22 @@ import org.robolectric.annotation.ConscryptMode
 import java.io.File
 
 /**
- * T-111: a database written by version 2 (built from the exported schema `schemas/…/2.json`) opens
- * with version 3 through [HainDatabase.MIGRATION_2_3]; Room checks every table against the entities.
+ * T-111 + T-057: a database written by version 2 (built from the exported schema `schemas/…/2.json`)
+ * opens with version 4 through [HainDatabase.MIGRATION_2_3] (memory, #38) and
+ * [HainDatabase.MIGRATION_3_4] (branches, #47); Room checks every table against the entities.
+ * A version-3 database with memories keeps them on the way to 4.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 @ConscryptMode(ConscryptMode.Mode.OFF)
 class HainMigrationTest {
     @Test
-    fun version2MigratesToVersion3() =
+    fun version2MigratesToVersion4() =
         runTest {
             val file = File.createTempFile("hain-v2", ".db").also { it.delete() }
             createVersion2(file)
 
-            val db =
-                Room
-                    .databaseBuilder(
-                        ApplicationProvider.getApplicationContext(),
-                        HainDatabase::class.java,
-                        file.absolutePath,
-                    ).setDriver(BundledSQLiteDriver())
-                    .addMigrations(HainDatabase.MIGRATION_1_2, HainDatabase.MIGRATION_2_3)
-                    .build()
+            val db = open(file)
             try {
                 assertEquals("Alt", db.chats().byId(1)!!.title)
                 val id =
@@ -61,7 +56,49 @@ class HainMigrationTest {
             }
         }
 
-    private fun createVersion2(file: File) {
+    @Test
+    fun version3WithMemoriesMigratesToVersion4() =
+        runTest {
+            val file = File.createTempFile("hain-v3", ".db").also { it.delete() }
+            createVersion2(
+                file,
+                extra =
+                    MEMORY_SQL +
+                        listOf(
+                            "INSERT INTO memory_fact (id, text, category, status, sensitive, importance, " +
+                                "origin_chat_id, created_at, superseded_by) " +
+                                "VALUES (7, 'spielt Gitarre', 'preference', 'active', 0, 0.5, 1, 5, NULL)",
+                            "INSERT INTO message (id, chat_id, role, content, created_at, status) " +
+                                "VALUES (10, 1, 'user', 'Frage', 100, 'ok')",
+                            "INSERT INTO message (id, chat_id, role, content, created_at, status) " +
+                                "VALUES (11, 1, 'assistant', 'Antwort', 200, 'ok')",
+                        ),
+                version = 3,
+            )
+            val db = open(file)
+            try {
+                assertEquals(listOf(7L), db.memory().search(FtsQuery.of("gitarre")!!).map { it.id })
+                val messages = db.messages().forChat(1).associateBy { it.id }
+                assertEquals(10L, messages.getValue(11).parentId)
+                assertNull(messages.getValue(11).selectedAt)
+            } finally {
+                db.close()
+                file.delete()
+            }
+        }
+
+    private fun open(file: File): HainDatabase =
+        Room
+            .databaseBuilder(ApplicationProvider.getApplicationContext(), HainDatabase::class.java, file.absolutePath)
+            .setDriver(BundledSQLiteDriver())
+            .addMigrations(HainDatabase.MIGRATION_1_2, HainDatabase.MIGRATION_2_3, HainDatabase.MIGRATION_3_4)
+            .build()
+
+    private fun createVersion2(
+        file: File,
+        extra: List<String> = emptyList(),
+        version: Int = 2,
+    ) {
         val schema = JSONObject(File(SCHEMA_V2).readText()).getJSONObject("database")
         val statements = mutableListOf<String>()
         val entities = schema.getJSONArray("entities")
@@ -71,7 +108,8 @@ class HainMigrationTest {
         statements +=
             "INSERT INTO chat (id, title, created_at, updated_at, model_id, pinned, private, archived) " +
             "VALUES (1, 'Alt', 1, 1, NULL, 0, 0, 0)"
-        statements += "PRAGMA user_version = 2"
+        statements += extra
+        statements += "PRAGMA user_version = $version"
         val connection = BundledSQLiteDriver().open(file.absolutePath)
         try {
             statements.forEach { connection.execSQL(it) }

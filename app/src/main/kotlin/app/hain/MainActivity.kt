@@ -19,8 +19,10 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -43,6 +45,11 @@ import app.hain.common.api.net.NetworkGate
 import app.hain.common.api.update.UpdateChecker
 import app.hain.common.api.update.UpdateResult
 import app.hain.common.api.update.UpdateRules
+import app.hain.entry.HainWidget
+import app.hain.entry.LaunchIntents
+import app.hain.entry.LaunchRequest
+import app.hain.entry.WidgetData
+import app.hain.entry.applyTo
 import app.hain.feature.chat.api.ChatExtras
 import app.hain.feature.chat.api.ChatScreen
 import app.hain.feature.chat.export.ChatZip
@@ -88,6 +95,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -347,10 +356,30 @@ class MainActivity : FragmentActivity() {
         }
     }
 
+    /** T-144: what the share sheet, widget or tile asked for; handled once the chat is there. */
+    private var launchRequest by mutableStateOf<LaunchRequest?>(null)
+
+    /** T-144: counts up when the message box should open the keyboard. */
+    private var composerFocus by mutableIntStateOf(0)
+
     @Suppress("LongMethod", "CyclomaticComplexMethod") // compose root: theme, onboarding, chat, settings overlays
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (savedInstanceState == null) launchRequest = LaunchIntents.of(intent)
+        // singleTask: share sheet, widget and tile reach the open Hain here
+        addOnNewIntentListener { next ->
+            setIntent(next)
+            LaunchIntents.of(next)?.let { launchRequest = it }
+        }
+        // T-144: the home screen widget shows the newest chat; redraw it when that changes
+        lifecycleScope.launch {
+            chatStore.chats
+                .map { WidgetData.latest(it) }
+                .distinctUntilChanged()
+                .drop(1)
+                .collect { HainWidget.refresh(applicationContext) }
+        }
         val prompts = SystemPromptSource(applicationContext) { current }
         // T-056: start locked when the lock is on (read synchronously, so the chat never flashes up)
         val lockOn = startPrefs.getBoolean(KEY_LOCK, false)
@@ -437,6 +466,16 @@ class MainActivity : FragmentActivity() {
                                 remember(chatViewModel) {
                                     brainPicking.state(chatViewModel::switchBrain) { showPacks = true }
                                 }
+                            val request = launchRequest
+                            LaunchedEffect(request) {
+                                if (request != null) {
+                                    showSettings = false
+                                    showPacks = false
+                                    showGame = false
+                                    request.applyTo(chatStore, chatViewModel) { composerFocus++ }
+                                    launchRequest = null
+                                }
+                            }
                             var updateHidden by rememberSaveable { mutableStateOf(false) }
                             val dev = settings.dev
                             ChatScreen(
@@ -450,6 +489,7 @@ class MainActivity : FragmentActivity() {
                                 onOpenGame = { showGame = true },
                                 onOpenNews = { showNews = true },
                                 brainPicker = brainPicker,
+                                focusTick = composerFocus,
                                 extras =
                                     ChatExtras(
                                         showStats = dev.enabled && dev.showStats,

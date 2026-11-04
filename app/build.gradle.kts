@@ -101,6 +101,8 @@ dependencies {
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.fragment)
     implementation(libs.hilt.android)
+    // T-144: home screen widget "Frag Pim" (Apache-2.0, docs/specs/LICENSES.md)
+    implementation(libs.androidx.glance.appwidget)
     ksp(libs.hilt.android.compiler)
     // T-190: compiles the baseline profile (src/main/baselineProfiles) on phones without Play
     implementation(libs.androidx.profileinstaller)

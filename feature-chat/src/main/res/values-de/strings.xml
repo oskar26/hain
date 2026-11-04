@@ -262,4 +262,15 @@
     <string name="chat_export_sources">Quellen</string>
     <string name="chat_export_page">Seite %1$d von %2$d</string>
     <string name="chat_export_untitled">Chat</string>
+    <!-- T-057 Versionen (Verzweigungen) und wartende Nachrichten -->
+    <string name="chat_branch_position">Version %1$d von %2$d</string>
+    <string name="chat_branch_previous">Vorherige Version</string>
+    <string name="chat_branch_next">Nächste Version</string>
+    <string name="chat_queued">wartet</string>
+    <string name="chat_queued_described">Wartet: %1$s</string>
+    <string name="chat_queued_cancel">Nicht senden</string>
+    <string name="chat_send_queue">Nach der Antwort senden</string>
+    <!-- T-058 Scroll-Pille -->
+    <string name="chat_new_answer">Neue Antwort</string>
+    <string name="chat_scroll_down_new">Neue Antwort, nach unten springen</string>
 </resources>

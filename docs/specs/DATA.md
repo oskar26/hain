@@ -8,7 +8,7 @@ SQLite build: SQLCipher for Android (`net.zetetic:sqlcipher-android`), decided i
 | table | columns |
 |---|---|
 | `chat` | id PK, title, created_at, updated_at, model_id, pinned bool, private bool, archived bool (T-056: private chats are never written, so `private` stays false in the DB; no schema change) |
-| `message` | id PK, chat_id FK, role (system/user/assistant/tool), content TEXT, reasoning TEXT?, tool_calls_json TEXT?, tool_call_id TEXT?, cards_json TEXT?, sources_json TEXT?, attachments_json TEXT?, created_at, tokens INT?, parent_id (for edit/regenerate branches), thinking_ms INT?, status (ok/stopped/failed) |
+| `message` | id PK, chat_id FK, role (system/user/assistant/tool), content TEXT, reasoning TEXT?, tool_calls_json TEXT?, tool_call_id TEXT?, cards_json TEXT?, sources_json TEXT?, attachments_json TEXT?, created_at, tokens INT?, parent_id (for edit/regenerate branches; 0 = first message), thinking_ms INT?, status (ok/stopped/failed), selected_at INT? (T-057: when this version was picked among its siblings; newest pick is shown) |
 | `message_fts` | FTS4(content, content='message'), unicode61 — Room keeps it in sync |
 | `chat_summary` | chat_id PK, summary, updated_at |
 | `memory_profile` | not a table (T-111): L0 "Über dich" is the setting `about_me` (DataStore), already in the system prompt; the memory page edits it |
@@ -27,7 +27,7 @@ SQLite build: SQLCipher for Android (`net.zetetic:sqlcipher-android`), decided i
 
 Migrations: every schema change = new Room version + migration test (`MigrationTestHelper`).
 
-Versions: 1 chats/messages (T-020) · 2 `network_log` (3b) · **3 memory: `memory_fact` (+ index on status), `memory_fact_fts`, `memory_topic` (T-111, `MIGRATION_2_3`)**. `HainMigrationTest` builds a version-2 file from `schemas/…/2.json` and opens it with version 3 (Room checks every table). If another branch also takes version 3, the later merge renumbers its migration to the next free version. `schemas/…/3.json` is written by the first Gradle build (KSP) and should then be committed.
+Versions: 1 chats/messages (T-020) · 2 `network_log` (3b) · **3 memory: `memory_fact` (+ index on status), `memory_fact_fts`, `memory_topic` (T-111, `MIGRATION_2_3`, PR #38)** · **4 branches (T-057, `MIGRATION_3_4`, PR #47)**: adds `message.selected_at` and fills empty `parent_id` with the message before it by id (per chat), so old chats stay one line; safe to run twice. Path on the phone: 2 → 3 → 4 (the 8b placeholder `MIGRATION_2_3` was dropped in the integration PR #50, the real one from #38 stays). Tests: `HainMigrationTest` (v2 file from `schemas/…/2.json` → v4, and a v3 file with memories → v4), `BranchMigrationTest` (v2 → v4, branches). `schemas/…/3.json` and `4.json` are written by KSP on the first Gradle build and are committed from the CI artifact when available.
 
 ## Settings
 

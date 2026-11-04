@@ -34,7 +34,8 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
         MemoryFactFts::class,
         MemoryTopicEntity::class,
     ],
-    version = 3,
+    // 3 = Häppchen 7 memory (PR #38); 4 = T-057 branches (selected_at + parent_id filled in, PR #47)
+    version = 4,
     exportSchema = true,
 )
 abstract class HainDatabase : RoomDatabase() {
@@ -79,6 +80,34 @@ abstract class HainDatabase : RoomDatabase() {
                 }
             }
 
+        /**
+         * Version 4 (T-057): edit and "ask again" keep the old versions as branches. Adds
+         * `message.selected_at` (which sibling is shown) and links every older message to the one
+         * before it (`parent_id`, by id, per chat), so old chats stay one straight line. Safe to run
+         * twice: the column is only added when it is missing, only empty links are filled.
+         */
+        @Suppress("MagicNumber") // schema versions
+        val MIGRATION_3_4 =
+            object : Migration(3, 4) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    val columns = mutableListOf<String>()
+                    db.query("PRAGMA table_info(`message`)").use { c ->
+                        val name = c.getColumnIndex("name")
+                        while (c.moveToNext()) columns += c.getString(name)
+                    }
+                    BranchSql.statements(columns).forEach(db::execSQL)
+                }
+
+                // the JVM tests run Room on the bundled SQLite driver, which migrates through a connection
+                override fun migrate(connection: SQLiteConnection) {
+                    val columns = mutableListOf<String>()
+                    connection.prepare("PRAGMA table_info(`message`)").use { st ->
+                        while (st.step()) columns += st.getText(1)
+                    }
+                    BranchSql.statements(columns).forEach { connection.execSQL(it) }
+                }
+            }
+
         /** Opens the encrypted database. The key comes from [KeyProvider] and never leaves memory unwrapped. */
         fun open(
             context: Context,
@@ -91,7 +120,7 @@ abstract class HainDatabase : RoomDatabase() {
             return Room
                 .databaseBuilder(context.applicationContext, HainDatabase::class.java, NAME)
                 .openHelperFactory(factory)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .build()
         }
     }
@@ -121,3 +150,19 @@ internal val MEMORY_SQL =
             "`title` TEXT NOT NULL, `note` TEXT NOT NULL, `updated_at` INTEGER NOT NULL)",
         "CREATE UNIQUE INDEX IF NOT EXISTS `index_memory_topic_title` ON `memory_topic` (`title`)",
     )
+
+/** SQL of [HainDatabase.MIGRATION_3_4]; [columns] = the columns `message` already has. */
+internal object BranchSql {
+    const val ADD_SELECTED = "ALTER TABLE `message` ADD COLUMN `selected_at` INTEGER"
+
+    /** Every message without a parent gets the message before it in its chat (none for the first). */
+    const val LINK_PARENTS =
+        "UPDATE `message` SET `parent_id` = (SELECT p.`id` FROM `message` p " +
+            "WHERE p.`chat_id` = `message`.`chat_id` AND p.`id` < `message`.`id` ORDER BY p.`id` DESC LIMIT 1) " +
+            "WHERE `parent_id` IS NULL"
+
+    fun statements(columns: List<String>): List<String> {
+        val add = ADD_SELECTED.takeIf { "selected_at" !in columns }
+        return listOfNotNull(add, LINK_PARENTS)
+    }
+}

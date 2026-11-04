@@ -5,7 +5,6 @@ package app.hain.feature.chat.api
 import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -30,26 +29,25 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -86,6 +84,8 @@ import app.hain.ui.components.ReasoningBlock
 import app.hain.ui.components.TopBar
 import app.hain.ui.components.UserBubble
 import app.hain.ui.effects.ThinkingGlow
+import app.hain.ui.effects.hainGlassSource
+import app.hain.ui.effects.rememberHainGlassState
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.HainMotionMoment
 import app.hain.ui.motion.LocalReduceMotion
@@ -94,12 +94,10 @@ import app.hain.ui.motion.motionSpec
 import app.hain.ui.motion.rememberHainHaptics
 import app.hain.ui.pim.LivePim
 import app.hain.ui.pim.PimState
-import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
-import app.hain.ui.theme.hainSurface
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -118,8 +116,21 @@ fun ChatScreen(
     banner: @Composable () -> Unit = {},
     onOpenNews: (() -> Unit)? = null,
     brainPicker: BrainPickerState? = null,
+    /** Counts up when the message box should get the keyboard (widget "Frag Pim", T-144). */
+    focusTick: Int = 0,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val composerFocus = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
+    LaunchedEffect(focusTick) {
+        if (focusTick > 0) {
+            delay(FOCUS_DELAY_MS) // the window has to have focus first (fresh start from widget or tile)
+            runCatching { composerFocus.requestFocus() }
+            keyboard?.show()
+        }
+    }
+    // T-058: your own message always scrolls the chat down
+    var sendTick by remember { mutableIntStateOf(0) }
     var drawerOpen by rememberSaveable { mutableStateOf(false) }
     val colors = LocalHainColors.current
     val haptics = rememberHainHaptics()
@@ -209,12 +220,16 @@ fun ChatScreen(
                                 onRate = viewModel::rate,
                                 onAction = viewModel::resolveAction,
                                 extras = extras,
+                                onSelectBranch = viewModel::selectBranch,
+                                sendTick = sendTick,
                             )
                         }
                     }
                 }
             }
             ErrorLine(state, onGetBrain)
+            // T-057: messages sent while Pim answers wait here ("wartet", ✕ takes one back)
+            if (state.queue.isNotEmpty()) QueuedMessages(state.queue, viewModel::cancelQueued)
             if (state.editingId != null) EditBar(onCancel = viewModel::cancelEdit)
             Composer(
                 text = state.input,
@@ -223,8 +238,12 @@ fun ChatScreen(
                 isGenerating = state.isGenerating,
                 onSend = {
                     haptics.send()
+                    if (!state.isGenerating) sendTick++
                     viewModel.send()
                 },
+                canQueue = state.editingId == null,
+                queueLabel = stringResource(R.string.chat_send_queue),
+                focusRequester = composerFocus,
                 onStop = viewModel::stop,
                 sendLabel = stringResource(R.string.chat_send),
                 stopLabel = stringResource(R.string.chat_stop),
@@ -337,28 +356,18 @@ internal fun MessageList(
     onRate: (Long, Rating) -> Unit,
     onAction: (Long, Int, ActionEvent) -> Unit,
     extras: ChatExtras = ChatExtras(),
+    onSelectBranch: (Long) -> Unit = {},
+    sendTick: Int = 0,
 ) {
     val spacing = LocalHainSpacing.current
-    val listState = rememberLazyListState()
+    val viewport = rememberChatViewportState()
+    val listState = viewport.list
+    val glass = rememberHainGlassState()
     // the one own message whose actions are showing (tap again or tap another to switch)
     var openId by rememberSaveable { mutableStateOf<Long?>(null) }
     val last = state.messages.lastOrNull()
-    // T-085: follow the streaming answer only while you are at the bottom. Scrolling up to read stops
-    // the follow (it used to yank you back down with every new word); back at the bottom it resumes.
-    var follow by remember { mutableStateOf(true) }
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.isScrollInProgress to listState.canScrollForward }
-            .collect { (moving, more) -> if (moving) follow = !more }
-    }
-    LaunchedEffect(state.messages.size) {
-        follow = true
-        if (state.messages.isNotEmpty()) listState.scrollToItem(state.messages.lastIndex, Int.MAX_VALUE / 2)
-    }
-    LaunchedEffect(last?.text?.length, last?.reasoning?.length, last?.steps?.size) {
-        if (follow && state.messages.isNotEmpty()) {
-            listState.scrollToItem(state.messages.lastIndex, Int.MAX_VALUE / 2)
-        }
-    }
+    // T-085/T-058: follow the streaming answer only while you are at the bottom (ChatViewport)
+    ChatViewportEffects(viewport, state.currentChatId, state.messages, sendTick)
     // T-089: the answer that just finished gets a happy Pim for two seconds (not after an error or stop)
     var cheerId by remember { mutableStateOf<Long?>(null) }
     var wasGenerating by remember { mutableStateOf(state.isGenerating) }
@@ -375,26 +384,39 @@ internal fun MessageList(
     }
     val scope = rememberCoroutineScope()
     Box(Modifier.fillMaxSize()) {
+        val reduce = LocalReduceMotion.current
         LazyColumn(
             state = listState,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().hainGlassSource(glass),
             contentPadding =
                 androidx.compose.foundation.layout
                     .PaddingValues(spacing.lg),
             verticalArrangement = Arrangement.spacedBy(spacing.lg),
         ) {
             items(state.messages, key = { it.id }) { message ->
-                if (message.isUser) {
-                    UserMessage(
-                        message,
-                        open = openId == message.id,
-                        onTap = { openId = if (openId == message.id) null else message.id },
-                        canEdit = !state.isGenerating,
-                        onEdit = {
-                            openId = null
-                            onEdit(message.id)
-                        },
+                val branch = state.branches[message.id]
+                // T-058: new messages and switched versions slide into place (only fade with reduce motion)
+                val item =
+                    Modifier.animateItem(
+                        fadeInSpec = hainTween(HainMotion.PAGE_MS, reduce),
+                        placementSpec = if (reduce) null else hainTween(HainMotion.PAGE_MS, false),
+                        fadeOutSpec = hainTween(HainMotion.FAST_MS, reduce),
                     )
+                if (message.isUser) {
+                    Column(item.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+                        UserMessage(
+                            message,
+                            open = openId == message.id,
+                            onTap = { openId = if (openId == message.id) null else message.id },
+                            canEdit = !state.isGenerating,
+                            onEdit = {
+                                openId = null
+                                onEdit(message.id)
+                            },
+                        )
+                        // T-057: "‹ 2/3 ›" under an edited message
+                        if (branch != null) BranchPicker(branch, !state.isGenerating, onSelectBranch)
+                    }
                 } else {
                     Answer(
                         message,
@@ -406,51 +428,21 @@ internal fun MessageList(
                         onRetry = { onRetry(message.id) },
                         onRate = { onRate(message.id, it) },
                         onAction = { index, event -> onAction(message.id, index, event) },
+                        modifier = item,
+                        branch = {
+                            if (branch != null) BranchPicker(branch, !state.isGenerating, onSelectBranch)
+                        },
                     )
                 }
             }
         }
-        ScrollDownButton(
-            visible = !follow && listState.canScrollForward,
-            onClick = {
-                follow = true
-                scope.launch { listState.animateScrollToItem(state.messages.lastIndex, Int.MAX_VALUE / 2) }
-            },
+        ScrollToBottomPill(
+            visible = viewport.showPill,
+            newAnswer = viewport.unseen,
+            glass = glass,
+            onClick = { scope.launch { viewport.jumpToEnd(state.messages.lastIndex, animate = true) } },
             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = spacing.sm),
         )
-    }
-}
-
-/** Small round glass button that brings you back to the newest message (T-085). */
-@Composable
-private fun ScrollDownButton(
-    visible: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val reduce = LocalReduceMotion.current
-    AnimatedVisibility(
-        visible,
-        modifier = modifier,
-        enter =
-            fadeIn(hainTween(HainMotion.PILL_FADE_MS, reduce)) +
-                slideInVertically(hainTween(HainMotion.PILL_FADE_MS, reduce)) { it / 2 },
-        exit = fadeOut(hainTween(HainMotion.PILL_FADE_MS, reduce)),
-    ) {
-        Box(
-            Modifier
-                .size(40.dp)
-                .hainSurface(HainLevel.FLOATING, CircleShape)
-                .clickable(role = Role.Button, onClick = onClick),
-            contentAlignment = Alignment.Center,
-        ) {
-            Image(
-                HainIcons.chevronRight,
-                contentDescription = stringResource(R.string.chat_scroll_down),
-                colorFilter = ColorFilter.tint(LocalHainColors.current.text),
-                modifier = Modifier.size(20.dp).rotate(QUARTER_TURN),
-            )
-        }
     }
 }
 
@@ -510,10 +502,12 @@ private fun Answer(
     cheer: Boolean = false,
     latest: Boolean = false,
     extras: ChatExtras = ChatExtras(),
+    modifier: Modifier = Modifier,
+    branch: @Composable () -> Unit = {},
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
-    Column(Modifier.fillMaxWidth()) {
+    Column(modifier.fillMaxWidth()) {
         val waiting = message.text.isEmpty() && message.reasoning == null && message.steps.isEmpty()
         // true once this answer was seen while it was still being written (4b-2)
         var fresh by remember(message.id) { mutableStateOf(message.streaming) }
@@ -544,7 +538,11 @@ private fun Answer(
                     if (message.streaming) {
                         null
                     } else {
-                        { AnswerActions(message.plainAnswer(), rating, canRetry, onRetry, onRate) }
+                        {
+                            // T-057: "‹ 2/3 ›" first in the row, like ChatGPT
+                            branch()
+                            AnswerActions(message.plainAnswer(), rating, canRetry, onRetry, onRate)
+                        }
                     },
             )
             if (!message.streaming) {
@@ -798,7 +796,7 @@ private fun EditBar(onCancel: () -> Unit) {
 }
 
 private const val OPEN_SCALE = 0.94f
-private const val QUARTER_TURN = 90f
+private const val FOCUS_DELAY_MS = 200L
 private const val PERCENT = 100
 private const val COPIED_MS = 1500L
 

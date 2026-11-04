@@ -40,11 +40,16 @@ data class UiMessage(
     val cards: List<InfoCard> = emptyList(),
     /** Checklist ticks the user set on this answer's cards (T-131, `cards_json`, see CardState). */
     val cardState: String? = null,
+    /** The message this one answers or follows (T-057 branches); [Branches.ROOT] for the first. */
+    val parentId: Long? = null,
+    /** When this version was picked among its siblings (T-057); the newest pick is shown. */
+    val selectedAt: Long? = null,
 )
 
 data class Chat(
     val id: Long,
     val title: String,
+    /** The messages the chat shows: the picked version at every step (T-057). */
     val messages: List<UiMessage>,
     val updatedAt: Long,
     val pinned: Boolean = false,
@@ -54,7 +59,18 @@ data class Chat(
      * search or read by the memory, and gone once you leave it.
      */
     val isPrivate: Boolean = false,
-)
+    /** Other versions (T-057): older edits and answers, kept for the "‹ 2/3 ›" switch. */
+    val hidden: List<UiMessage> = emptyList(),
+) {
+    /** Every message of the chat, shown or not. */
+    val all: List<UiMessage> get() = messages + hidden
+
+    /** This chat with [all] sorted into the shown path and the other versions. */
+    internal fun withAll(all: List<UiMessage>): Chat {
+        val (path, rest) = Branches.split(Branches.normalize(all))
+        return copy(messages = path, hidden = rest)
+    }
+}
 
 /**
  * All chats, held in memory for the UI and written through to [persistence] (the encrypted Room
@@ -93,7 +109,8 @@ class ChatStore(
         ids.updateAndGet { maxOf(it, maxId + 1) }
         mutableChats.update { current ->
             val fresh = current.map { it.id }.toSet()
-            (current + saved.filterNot { it.id in fresh }).sortedByDescending { it.updatedAt }
+            val restored = saved.filterNot { it.id in fresh }.map { it.withAll(it.all) }
+            (current + restored).sortedByDescending { it.updatedAt }
         }
     }
 
@@ -142,24 +159,72 @@ class ChatStore(
         message: UiMessage,
     ) {
         val now = clock()
+        var stored = message
         mutableChats.update { list ->
             list
                 .map { chat ->
                     if (chat.id != chatId) {
                         chat
                     } else {
-                        val exists = chat.messages.any { it.id == message.id }
-                        val messages =
-                            if (exists) {
-                                chat.messages.map { if (it.id == message.id) message else it }
-                            } else {
-                                chat.messages + message
-                            }
-                        chat.copy(messages = messages, updatedAt = now)
+                        val old = chat.all.firstOrNull { it.id == message.id }
+                        if (old != null) {
+                            // updates (streaming, finished, a card tap) keep the message's place in the tree
+                            stored =
+                                message.copy(
+                                    parentId = message.parentId ?: old.parentId,
+                                    selectedAt = message.selectedAt ?: old.selectedAt,
+                                )
+                            chat.copy(
+                                messages = chat.messages.map { if (it.id == message.id) stored else it },
+                                hidden = chat.hidden.map { if (it.id == message.id) stored else it },
+                                updatedAt = now,
+                            )
+                        } else {
+                            // a new message follows the newest one shown
+                            val parent = message.parentId ?: chat.messages.lastOrNull()?.id ?: Branches.ROOT
+                            stored = message.copy(parentId = parent)
+                            chat.withAll(chat.all + stored).copy(updatedAt = now)
+                        }
                     }
                 }.sortedByDescending { it.updatedAt }
         }
-        if (!message.streaming) writeFor(chatId) { it.saveMessage(chatId, message, now) }
+        val saved = stored
+        if (!saved.streaming) writeFor(chatId) { it.saveMessage(chatId, saved, now) }
+    }
+
+    /**
+     * T-057: [message] becomes a new version of [replacedId] (same parent) and is shown from now on;
+     * the old version and everything after it stay as a branch. Returns `false` when [replacedId]
+     * is not in the chat.
+     */
+    @Suppress("ReturnCount")
+    fun branchFrom(
+        chatId: Long,
+        replacedId: Long,
+        message: UiMessage,
+    ): Boolean {
+        val chat = chat(chatId) ?: return false
+        val replaced = chat.all.firstOrNull { it.id == replacedId } ?: return false
+        val parent = replaced.parentId ?: Branches.ROOT
+        val version = message.copy(parentId = parent, selectedAt = Branches.pickTime(chat.all, parent, clock()))
+        upsertMessage(chatId, version)
+        return true
+    }
+
+    /** T-057: shows version [messageId] (and the versions picked after it). */
+    fun selectBranch(
+        chatId: Long,
+        messageId: Long,
+    ) {
+        val chat = chat(chatId) ?: return
+        val target = chat.hidden.firstOrNull { it.id == messageId } ?: return
+        val picked = target.copy(selectedAt = Branches.pickTime(chat.all, target.parentId, clock()))
+        mutableChats.update { list ->
+            list.map { c ->
+                if (c.id != chatId) c else c.withAll(c.all.map { if (it.id == messageId) picked else it })
+            }
+        }
+        writeFor(chatId) { it.saveMessage(chatId, picked, chat.updatedAt) }
     }
 
     fun removeMessage(
@@ -167,7 +232,7 @@ class ChatStore(
         messageId: Long,
     ) {
         mutableChats.update { list ->
-            list.map { c -> if (c.id == chatId) c.copy(messages = c.messages.filterNot { it.id == messageId }) else c }
+            list.map { c -> if (c.id == chatId) c.withAll(c.all.filterNot { it.id == messageId }) else c }
         }
         writeFor(chatId) { it.deleteMessage(messageId) }
     }
@@ -181,13 +246,20 @@ class ChatStore(
         messageId: Long,
         keep: Boolean,
     ) {
-        val messages = chat(chatId)?.messages.orEmpty()
+        val chat = chat(chatId) ?: return
+        val messages = chat.messages
         val index = messages.indexOfFirst { it.id == messageId }
         val dropped = if (index < 0) emptyList() else messages.drop(if (keep) index + 1 else index)
         if (dropped.isEmpty()) return
-        val gone = dropped.map { it.id }.toSet()
+        // other versions below a dropped message go with it (T-057)
+        val gone = dropped.map { it.id }.toMutableSet()
+        var grew = true
+        while (grew) {
+            val more = chat.hidden.filter { it.id !in gone && it.parentId in gone }.map { it.id }
+            grew = gone.addAll(more)
+        }
         mutableChats.update { list ->
-            list.map { c -> if (c.id == chatId) c.copy(messages = c.messages.filterNot { it.id in gone }) else c }
+            list.map { c -> if (c.id == chatId) c.withAll(c.all.filterNot { it.id in gone }) else c }
         }
         writeFor(chatId) { p -> gone.forEach { p.deleteMessage(it) } }
     }
@@ -234,7 +306,7 @@ class ChatStore(
             mutableChats.value
                 .filter { chat ->
                     chat.title.contains(q, ignoreCase = true) ||
-                        chat.messages.any { it.text.contains(q, ignoreCase = true) }
+                        chat.all.any { it.text.contains(q, ignoreCase = true) }
                 }.map { it.id }
         val indexed = runCatching { persistence?.search(q) }.getOrNull().orEmpty()
         val hidden =

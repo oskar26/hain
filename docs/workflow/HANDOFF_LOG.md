@@ -511,3 +511,15 @@ Brain switched to `LFM3-1.7B-QAD-Q4_0.gguf` (1,049,615,680 bytes, sha256 43a7d09
 - Version `hain.versionName=0.1.8`. README (Tabelle + „New in the latest test build“), Website (EN + /de) und SETTINGS/MEMORY/DATA/LICENSES aktualisiert.
 - Konflikte erwartet mit `hark/day-8b`: `ChatScreen.kt`, `website/src/content.ts` (Zeile „Export & share“ aufgeteilt), README, STATUS/HANDOFF_LOG/TASKS, `gradle.properties`, `libs.versions.toml`.
 
+## 2026-11-04 · T-057 (Rest), T-058, T-144 (0.1.8 – Häppchen 8b) · review · harness: Hark · model: Hark · branch `hark/day-8b`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-057 | review | `BranchesTest` (Pfad, Auswahl, Info, Schleifen, Store, Neustart), `ChatViewModelTest` (Bearbeiten/Nochmal behalten Versionen, Umschalten, Warteschlange: wartet → danach senden, ✕, Stopp, neuer Chat leert), `BranchMigrationTest` (v2-Datei → v4, Eltern nach id, zweimal laufen) | `core-data` (`MessageEntity.selected_at`, `HainDatabase` v4 + `BranchSql`), `ChatStore`, `RoomChatPersistence`, `Composer` (Senden während Antwort, Fokus) | Folgefragen-Vorschläge; `schemas/…/4.json` erzeugt erst der Gradle-Build (nicht eingecheckt) |
+| T-058 | review | `ViewportRules` rein; Screenshot `branches_queue` | `ChatScreen.kt` (MessageList nutzt ChatViewport), `feature-chat/build.gradle.kts` (haze für `hainGlass`) | Shared Element Composer→Blase nicht gemacht |
+| T-144 | review | `LaunchRequestTest` (Teilen-Text, Titel+Link, leer/falscher Typ, unsichtbare Zeichen, Kürzen, Widget/Kachel, neuester Chat fürs Widget) | `MainActivity` (singleTask, `addOnNewIntentListener`, Widget neu zeichnen), Manifest, `libs.versions.toml` (Glance 1.1.1), `LICENSES.md` | Bilder/PDF teilen (braucht Häppchen 9), Kachel → Sprachmodus (Häppchen 10); privater Chat/App-Sperre (8a): Widget soll private Chats nicht zeigen und bei App-Sperre keinen Titel |
+
+- Verzweigungen: jede Nachricht hat einen Eltern-Eintrag (`parent_id`, erste = 0), Geschwister = Versionen. Angezeigt wird ab der Wurzel jeweils das zuletzt gewählte Kind (`selected_at`, sonst das neueste). Alte Chats: Migration füllt `parent_id` mit der vorigen Nachricht (nach id), im Code fängt `Branches.normalize` dasselbe ab. `Chat.messages` bleibt der sichtbare Pfad (alle anderen Stellen unverändert), `Chat.hidden` hält die anderen Versionen.
+- Warteschlange: nur im Speicher; beim Chatwechsel/neuen Chat verworfen; nach einem Fehler kommen die Texte zurück ins Eingabefeld statt automatisch zu senden.
+- **Schema-Konflikt mit Häppchen 7 (#38):** #38 nimmt Version 3 (Gedächtnis). Dieser Branch nimmt 4 und hat einen leeren `MIGRATION_2_3`-Platzhalter mit demselben Namen. Beim Mergen: `MIGRATION_2_3` aus #38 behalten, `MIGRATION_3_4` von hier dazu; `addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)`. Wer eine 8b-Test-APK installiert hatte (DB v4 ohne Gedächtnis-Tabellen), muss nach dem Merge die App-Daten löschen.
+- Gradle lokal nicht gestartet (Sprint-Regel); ktlint 1.5.0 + detekt 1.23.8 CLI + `check_strings.py` lokal grün, Rest über CI.

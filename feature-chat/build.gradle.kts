@@ -55,6 +55,8 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.foundation)
+    // T-058: the scroll pill is frosted glass over the messages (hainGlass takes a HazeState)
+    implementation(libs.haze)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)

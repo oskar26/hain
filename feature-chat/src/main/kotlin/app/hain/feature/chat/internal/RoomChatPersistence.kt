@@ -5,7 +5,10 @@ import app.hain.data.dao.FtsQuery
 import app.hain.data.entities.ChatEntity
 import app.hain.data.entities.MessageEntity
 
-/** [ChatPersistence] on the encrypted database (T-020). */
+/**
+ * [ChatPersistence] on the encrypted database (T-020). [load] hands every message of a chat, all
+ * versions included (T-057); [ChatStore] sorts them into the shown path and the other versions.
+ */
 class RoomChatPersistence(
     private val db: HainDatabase,
 ) : ChatPersistence {
@@ -74,6 +77,8 @@ internal fun MessageEntity.toUi(): UiMessage {
         cards = ToolStepsJson.decodeCards(sourcesJson),
         news = ToolStepsJson.decodeNews(sourcesJson),
         cardState = cardsJson,
+        parentId = parentId,
+        selectedAt = selectedAt,
     )
 }
 
@@ -97,6 +102,8 @@ internal fun UiMessage.toEntity(
             stopped -> MessageEntity.STATUS_STOPPED
             else -> MessageEntity.STATUS_OK
         },
+    parentId = parentId,
+    selectedAt = selectedAt,
 )
 
 private const val MS_PER_S = 1000L
