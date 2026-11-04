@@ -86,6 +86,7 @@ import app.hain.ui.components.TopBar
 import app.hain.ui.components.UserBubble
 import app.hain.ui.effects.hainGlassSource
 import app.hain.ui.effects.rememberHainGlassState
+import app.hain.ui.layout.currentHainWindowSize
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.HainMotionMoment
 import app.hain.ui.motion.LocalReduceMotion
@@ -150,6 +151,9 @@ fun ChatScreen(
     // T-054: export of one chat; T-056: private chats are never exported
     val export = rememberChatExport { id -> state.chats.firstOrNull { it.id == id } }
 
+    // T-235: from 840 dp on the chat list stays open on the left instead of sliding in
+    val wide = currentHainWindowSize().isExpanded
+    LaunchedEffect(wide) { if (wide) drawerOpen = false }
     BackHandler(enabled = drawerOpen) { drawerOpen = false }
     // T-096: a soft double tick when an answer is done, a short "no" on an error; never while streaming
     var wasGenerating by remember { mutableStateOf(false) }
@@ -160,7 +164,43 @@ fun ChatScreen(
         wasGenerating = state.isGenerating
     }
 
+    val drawerActions =
+        DrawerActions(
+            onClose = { drawerOpen = false },
+            onNewChat = {
+                viewModel.newChat()
+                drawerOpen = false
+            },
+            onOpen = {
+                viewModel.openChat(it)
+                drawerOpen = false
+            },
+            onDelete = viewModel::deleteChat,
+            onRename = viewModel::renameChat,
+            onPin = viewModel::setPinned,
+            onSearch = viewModel::onSearchChange,
+            onExport = { id, format, share ->
+                state.chats.firstOrNull { it.id == id }?.let { chat ->
+                    if (share) export.share(chat, format) else export.save(chat, format)
+                }
+            },
+            onSettings = {
+                drawerOpen = false
+                onOpenSettings()
+            },
+            onNews =
+                onOpenNews?.let { open ->
+                    {
+                        drawerOpen = false
+                        open()
+                    }
+                },
+        )
+
     Box(modifier.fillMaxSize().background(colors.bg)) {
+        if (wide) {
+            ChatSidePanel(state.chats.isNotEmpty(), state.groups, state.searchQuery, state.currentChatId, drawerActions)
+        }
         val chatScale by animateFloatAsState(
             if (drawerOpen) OPEN_SCALE else 1f,
             motionSpec(HainMotionMoment.DRAWER),
@@ -175,7 +215,7 @@ fun ChatScreen(
             glass = chrome,
             thinking = state.isGenerating,
             modifier =
-                Modifier.graphicsLayer {
+                Modifier.padding(start = if (wide) ChatSidePanelWidth else 0.dp).graphicsLayer {
                     scaleX = chatScale
                     scaleY = chatScale
                 },
@@ -193,7 +233,8 @@ fun ChatScreen(
                         // T-230: the online dot sits quietly in front of "Auf diesem Handy"
                         subtitleLeading = { if (state.online) OnlineDot() },
                         leading = {
-                            HainIconButton(HainIcons.menu, stringResource(R.string.chat_menu), { drawerOpen = true })
+                            val menu = stringResource(R.string.chat_menu)
+                            if (!wide) HainIconButton(HainIcons.menu, menu, { drawerOpen = true })
                         },
                         trailing = {
                             val openChat = state.chats.firstOrNull { it.id == state.currentChatId }
@@ -299,46 +340,17 @@ fun ChatScreen(
                 }
             }
         }
-        ChatListDrawer(
-            glass = chrome,
-            open = drawerOpen,
-            hasChats = state.chats.isNotEmpty(),
-            groups = state.groups,
-            searchQuery = state.searchQuery,
-            currentChatId = state.currentChatId,
-            actions =
-                DrawerActions(
-                    onClose = { drawerOpen = false },
-                    onNewChat = {
-                        viewModel.newChat()
-                        drawerOpen = false
-                    },
-                    onOpen = {
-                        viewModel.openChat(it)
-                        drawerOpen = false
-                    },
-                    onDelete = viewModel::deleteChat,
-                    onRename = viewModel::renameChat,
-                    onPin = viewModel::setPinned,
-                    onSearch = viewModel::onSearchChange,
-                    onExport = { id, format, share ->
-                        state.chats.firstOrNull { it.id == id }?.let { chat ->
-                            if (share) export.share(chat, format) else export.save(chat, format)
-                        }
-                    },
-                    onSettings = {
-                        drawerOpen = false
-                        onOpenSettings()
-                    },
-                    onNews =
-                        onOpenNews?.let { open ->
-                            {
-                                drawerOpen = false
-                                open()
-                            }
-                        },
-                ),
-        )
+        if (!wide) {
+            ChatListDrawer(
+                glass = chrome,
+                open = drawerOpen,
+                hasChats = state.chats.isNotEmpty(),
+                groups = state.groups,
+                searchQuery = state.searchQuery,
+                currentChatId = state.currentChatId,
+                actions = drawerActions,
+            )
+        }
         if (showFiles && docs != null) {
             MyFilesScreen(
                 docs,

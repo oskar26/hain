@@ -20,10 +20,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -105,7 +103,6 @@ internal fun ChatListDrawer(
     glass: HazeState? = null,
 ) {
     val colors = LocalHainColors.current
-    val spacing = LocalHainSpacing.current
     val reduce = LocalReduceMotion.current
     // scrim fades, the panel glides on the calm drawer spring; both snap with reduced motion (T-053)
     AnimatedVisibility(
@@ -126,52 +123,23 @@ internal fun ChatListDrawer(
         exit = slideOutHorizontally(motionSpec(HainMotionMoment.DRAWER, reduce)) { -it },
     ) {
         // T-011: the drawer is a pane of glass lit softly in mint from the top, rounded on the open side
-        Column(
+        DrawerContent(
+            hasChats,
+            groups,
+            searchQuery,
+            currentChatId,
+            actions,
             Modifier
                 .fillMaxHeight()
                 .width(DRAWER_WIDTH.dp)
-                .drawerSurface(glass)
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(spacing.md),
-        ) {
-            Row(
-                Modifier.padding(horizontal = spacing.xs, vertical = spacing.sm),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                LivePim(PimState.HAPPY, 32.dp)
-                Spacer(Modifier.width(spacing.sm))
-                BasicText(
-                    stringResource(R.string.chat_title),
-                    style = LocalHainTypography.current.title.copy(color = colors.text),
-                )
-            }
-            SearchField(searchQuery, actions.onSearch)
-            Spacer(Modifier.height(spacing.md))
-            HainButton(
-                stringResource(R.string.chat_new),
-                actions.onNewChat,
-                Modifier.fillMaxWidth(),
-                style = HainButtonStyle.SECONDARY,
-            )
-            Spacer(Modifier.height(spacing.md))
-            DrawerList(hasChats, groups, searchQuery, currentChatId, actions, Modifier.weight(1f))
-            actions.onNews?.let { openNews ->
-                HainMenuRow(HainIcons.news, stringResource(R.string.chat_news), openNews, Modifier.fillMaxWidth())
-            }
-            HainMenuRow(
-                HainIcons.settings,
-                stringResource(R.string.chat_settings),
-                actions.onSettings,
-                Modifier.fillMaxWidth(),
-            )
-        }
+                .drawerSurface(glass),
+        )
     }
 }
 
 @Suppress("LongParameterList")
 @Composable
-private fun DrawerList(
+internal fun DrawerList(
     hasChats: Boolean,
     groups: List<Pair<ChatGroup, List<Chat>>>,
     searchQuery: String,
@@ -276,7 +244,7 @@ private fun ChatGroup.label(): Int =
     }
 
 @Composable
-private fun SearchField(
+internal fun SearchField(
     query: String,
     onChange: (String) -> Unit,
 ) {
