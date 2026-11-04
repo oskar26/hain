@@ -19,7 +19,8 @@ import kotlinx.coroutines.launch
 /**
  * Häppchen 9: attaching files in the chat. Reads a picked file into "Meine Dateien" with a progress
  * line, asks "Texterkennung laden?" before the pack is downloaded, and hands the finished document
- * to the message box. One file at a time.
+ * to the message box. One file at a time. In a private chat the file is only kept in memory for
+ * that chat and never lands in "Meine Dateien".
  */
 class ChatDocs(
     private val library: DocLibrary,
@@ -53,15 +54,21 @@ class ChatDocs(
     val packMegabytes: String get() = "%.0f".format(library.pack.totalBytes / BYTES_PER_MB)
 
     private var onDone: (DocAttachment) -> Unit = {}
+    private var ephemeral = false
     private var job: Job? = null
 
-    /** Reads [uri]; [done] gets the document for the message box. */
+    /**
+     * Reads [uri]; [done] gets the document for the message box. [privateChat]: keep it only for
+     * this chat (in memory), not in "Meine Dateien".
+     */
     fun open(
         uri: Uri,
+        privateChat: Boolean = false,
         done: (DocAttachment) -> Unit,
     ) {
         if (mutable.value.busy) return
         onDone = done
+        ephemeral = privateChat
         run(uri, withoutOcr = false)
     }
 
@@ -94,6 +101,9 @@ class ChatDocs(
 
     fun removePack() = library.removeOcr()
 
+    /** The private chat ended: its files are forgotten. */
+    fun forgetPrivate() = library.forgetEphemeral()
+
     /** Loads the pack from "Meine Dateien" without a file waiting. */
     fun loadPack() {
         if (mutable.value.busy) return
@@ -117,7 +127,7 @@ class ChatDocs(
                 mutable.update { it.copy(step = ImportStep.Reading(1, 1), error = null) }
                 val outcome =
                     try {
-                        library.import(uri, withoutOcr) { step -> mutable.update { it.copy(step = step) } }
+                        library.import(uri, withoutOcr, ephemeral) { step -> mutable.update { it.copy(step = step) } }
                     } finally {
                         mutable.update { it.copy(step = null) }
                     }

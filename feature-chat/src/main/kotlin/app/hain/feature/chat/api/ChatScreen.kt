@@ -143,8 +143,10 @@ fun ChatScreen(
     var showFiles by rememberSaveable { mutableStateOf(false) }
     val picker =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri != null) docs?.open(uri) { viewModel.attach(it) }
+            if (uri != null) docs?.open(uri, privateChat = state.privateChat) { viewModel.attach(it) }
         }
+    // T-056: files of a private chat live only as long as the chat
+    LaunchedEffect(state.privateChat) { if (!state.privateChat) docs?.forgetPrivate() }
     val colors = LocalHainColors.current
     val haptics = rememberHainHaptics()
     // T-054: export of one chat; T-056: private chats are never exported

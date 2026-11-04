@@ -15,6 +15,7 @@ import app.hain.docs.internal.chunk.Chunker
 import app.hain.docs.internal.db.DocChunkEntity
 import app.hain.docs.internal.db.DocsDatabase
 import app.hain.docs.internal.db.DocumentEntity
+import app.hain.docs.internal.ephemeral.EphemeralDocs
 import app.hain.docs.internal.pdf.LockedPdfException
 import app.hain.docs.internal.pdf.PdfPages
 import app.hain.docs.internal.pdf.PdfTextExtractor
@@ -56,6 +57,7 @@ sealed interface ImportOutcome {
  * `hain_docs.db`, with the text recognition pack for scans and photos, and gives the chat what it
  * needs: whole small documents for the prompt, the best parts of long ones for `search_document`.
  * The file itself is never kept; a copy in the cache is deleted right after reading.
+ * Files read for a private chat (`ephemeral`) stay only in memory and never go into the database.
  */
 @Suppress("TooManyFunctions")
 class DocLibrary(
@@ -67,6 +69,7 @@ class DocLibrary(
     private val db by lazy { DocsDatabase.open(app, keys).docs() }
     val pack = OcrPack(File(app.filesDir, OcrPack.DIR), gate)
     private val packReady = MutableStateFlow(pack.installed())
+    private val privateDocs = EphemeralDocs()
 
     /** `true` when the text recognition pack is on the phone. */
     val ocrInstalled: StateFlow<Boolean> = packReady.asStateFlow()
@@ -78,12 +81,14 @@ class DocLibrary(
 
     /**
      * Reads [uri]. Without the pack, picture pages give [ImportOutcome.NeedsOcr] unless [withoutOcr]
-     * (then a PDF keeps only its text pages). [onStep] reports progress.
+     * (then a PDF keeps only its text pages). [onStep] reports progress. With [ephemeral] (a private
+     * chat) the text is only kept in memory until [forgetEphemeral], never in "Meine Dateien".
      */
     @Suppress("TooGenericExceptionCaught", "SwallowedException")
     suspend fun import(
         uri: Uri,
         withoutOcr: Boolean = false,
+        ephemeral: Boolean = false,
         onStep: (ImportStep) -> Unit = {},
     ): ImportOutcome =
         withContext(Dispatchers.IO) {
@@ -96,10 +101,11 @@ class DocLibrary(
                     file.outputStream().use { input.copyTo(it) }
                 } ?: return@withContext ImportOutcome.Failed(ImportError.UNREADABLE)
                 if (file.length() > MAX_BYTES) return@withContext ImportOutcome.Failed(ImportError.TOO_BIG)
+                val target = Target(name, mime, ephemeral)
                 when (kindOf(name, mime, file)) {
-                    DocKind.PDF -> readPdf(file, name, mime, withoutOcr, onStep)
-                    DocKind.IMAGE -> readImage(file, name, mime, onStep)
-                    DocKind.TEXT -> readText(file, name, mime, onStep)
+                    DocKind.PDF -> readPdf(file, target, withoutOcr, onStep)
+                    DocKind.IMAGE -> readImage(file, target, onStep)
+                    DocKind.TEXT -> readText(file, target, onStep)
                     null -> ImportOutcome.Failed(ImportError.UNSUPPORTED)
                 }
             } catch (e: LockedPdfException) {
@@ -129,14 +135,28 @@ class DocLibrary(
         packReady.value = pack.installed()
     }
 
-    suspend fun delete(id: Long) = withContext(Dispatchers.IO) { db.delete(id) }
+    suspend fun delete(id: Long) {
+        if (EphemeralDocs.isEphemeral(id)) {
+            privateDocs.remove(id)
+        } else {
+            withContext(Dispatchers.IO) { db.delete(id) }
+        }
+    }
+
+    /** Forgets every file of a private chat (the chat ended). */
+    fun forgetEphemeral() = privateDocs.clear()
 
     suspend fun info(ids: List<Long>): List<DocInfo> =
-        withContext(Dispatchers.IO) { if (ids.isEmpty()) emptyList() else db.byIds(ids).map { it.toInfo() } }
+        withContext(Dispatchers.IO) {
+            val (temp, saved) = ids.partition { EphemeralDocs.isEphemeral(it) }
+            val fromDb = if (saved.isEmpty()) emptyList() else db.byIds(saved).map { it.toInfo() }
+            fromDb + privateDocs.info(temp)
+        }
 
     /** The pages of a document again, from its parts. */
     suspend fun pages(id: Long): List<DocPage> =
         withContext(Dispatchers.IO) {
+            if (EphemeralDocs.isEphemeral(id)) return@withContext privateDocs.pages(id)
             db
                 .chunks(listOf(id))
                 .groupBy { it.page }
@@ -161,15 +181,21 @@ class DocLibrary(
 
     private suspend fun searchChunks(ids: List<Long>): List<SearchChunk> =
         withContext(Dispatchers.IO) {
-            val names = db.byIds(ids).associate { it.id to it.name }
-            db.chunks(ids).map { SearchChunk(names[it.documentId].orEmpty(), it.page, it.text) }
+            val (temp, saved) = ids.partition { EphemeralDocs.isEphemeral(it) }
+            val names = if (saved.isEmpty()) emptyMap() else db.byIds(saved).associate { it.id to it.name }
+            val fromDb =
+                if (saved.isEmpty()) {
+                    emptyList()
+                } else {
+                    db.chunks(saved).map { SearchChunk(names[it.documentId].orEmpty(), it.page, it.text) }
+                }
+            fromDb + privateDocs.chunks(temp)
         }
 
     @Suppress("LongMethod", "ReturnCount")
     private suspend fun readPdf(
         file: File,
-        name: String,
-        mime: String?,
+        target: Target,
         withoutOcr: Boolean,
         onStep: (ImportStep) -> Unit,
     ): ImportOutcome {
@@ -209,14 +235,13 @@ class DocLibrary(
         if (missing == pages.size) {
             return ImportOutcome.Failed(if (packReady.value) ImportError.EMPTY else ImportError.NO_OCR)
         }
-        return save(name, DocKind.PDF, mime, pages, ocrPages, missing, thumbnail, onStep)
+        return save(target, DocKind.PDF, pages, ocrPages, missing, thumbnail, onStep)
     }
 
     @Suppress("ReturnCount")
     private suspend fun readImage(
         file: File,
-        name: String,
-        mime: String?,
+        target: Target,
         onStep: (ImportStep) -> Unit,
     ): ImportOutcome {
         if (!packReady.value) return ImportOutcome.NeedsOcr(scanPages = 1, textPages = 0)
@@ -231,27 +256,25 @@ class DocLibrary(
             }
         if (result.text.isBlank()) return ImportOutcome.Failed(ImportError.EMPTY)
         val page = DocPage(1, fixer().fix(result.text), ocr = true, confidence = result.confidence)
-        return save(name, DocKind.IMAGE, mime, listOf(page), 1, 0, thumbnail, onStep)
+        return save(target, DocKind.IMAGE, listOf(page), 1, 0, thumbnail, onStep)
     }
 
     private suspend fun readText(
         file: File,
-        name: String,
-        mime: String?,
+        target: Target,
         onStep: (ImportStep) -> Unit,
     ): ImportOutcome {
         onStep(ImportStep.Reading(1, 1))
         val parts = TextFiles.parts(TextFiles.decode(file.readBytes()))
         if (parts.isEmpty()) return ImportOutcome.Failed(ImportError.EMPTY)
         val pages = parts.mapIndexed { i, t -> DocPage(i + 1, t) }
-        return save(name, DocKind.TEXT, mime, pages, 0, 0, null, onStep)
+        return save(target, DocKind.TEXT, pages, 0, 0, null, onStep)
     }
 
     @Suppress("LongParameterList")
     private suspend fun save(
-        name: String,
+        target: Target,
         kind: DocKind,
-        mime: String?,
         pages: List<DocPage>,
         ocrPages: Int,
         missing: Int,
@@ -259,13 +282,12 @@ class DocLibrary(
         onStep: (ImportStep) -> Unit,
     ): ImportOutcome {
         onStep(ImportStep.Saving)
-        val chunks = Chunker.chunk(pages)
         val chars = pages.sumOf { it.text.length }
         val entity =
             DocumentEntity(
-                name = name,
+                name = target.name,
                 kind = kind.name.lowercase(),
-                mime = mime,
+                mime = target.mime,
                 pages = pages.size,
                 chars = chars,
                 addedAt = System.currentTimeMillis(),
@@ -273,10 +295,18 @@ class DocLibrary(
                 missingPages = missing,
                 thumbnail = thumbnail,
             )
-        val rows = chunks.map { DocChunkEntity(0, 0, it.page, it.index, it.text, it.ocr, it.confidence) }
+        if (target.ephemeral) return ImportOutcome.Done(privateDocs.add(entity.toInfo(), pages))
+        val rows = Chunker.chunk(pages).map { DocChunkEntity(0, 0, it.page, it.index, it.text, it.ocr, it.confidence) }
         val id = db.add(entity, rows)
         return ImportOutcome.Done(entity.copy(id = id).toInfo())
     }
+
+    /** Where a read file goes: its name and type, and whether it is only kept for a private chat. */
+    private data class Target(
+        val name: String,
+        val mime: String?,
+        val ephemeral: Boolean,
+    )
 
     private fun fixer(): GermanOcrFixer = GermanOcrFixer(app.assets.open(WordList.ASSET).use { WordList.read(it) })
 
