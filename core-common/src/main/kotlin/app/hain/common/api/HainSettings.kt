@@ -57,7 +57,11 @@ data class DevSettings(
 ) {
     /** The values of developer mode back to Hain's defaults; mode and own model stay. */
     fun resetTuning(): DevSettings =
-        DevSettings(enabled = enabled, customModelPath = customModelPath, customModelName = customModelName)
+        DevSettings(
+            enabled = enabled,
+            customModelPath = customModelPath,
+            customModelName = customModelName,
+        )
 
     companion object {
         const val DEFAULT_CONTEXT = 8192

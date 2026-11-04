@@ -588,8 +588,10 @@ class ChatEngine(
         )
     }
 
-    private fun schemas(): List<ToolSchema> =
-        if (ownModel()) emptyList() else tools?.schemas(toolContext().offline).orEmpty()
+    private fun schemas(): List<ToolSchema> {
+        if (ownModel()) return emptyList()
+        return tools?.schemas(toolContext().offline).orEmpty()
+    }
 
     /**
      * Short chat title (2d-2): asks the brain right after the history, thinking off, so the chat is
