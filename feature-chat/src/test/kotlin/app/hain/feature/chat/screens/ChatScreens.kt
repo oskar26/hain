@@ -193,13 +193,14 @@ internal fun Frame(
 internal fun ChatFrame(
     state: ChatUiState,
     mode: AnswerMode = AnswerMode.AUTO,
+    texts: ShotTexts = ShotTexts.DE,
 ) {
     Column(Modifier.fillMaxSize()) {
         TopBar(
             title = "Hain",
-            subtitle = "Auf diesem Handy",
-            leading = { HainIconButton(HainIcons.menu, "Menü", {}) },
-            trailing = { HainIconButton(HainIcons.plus, "Neuer Chat", {}) },
+            subtitle = texts.subtitle,
+            leading = { HainIconButton(HainIcons.menu, texts.menu, {}) },
+            trailing = { HainIconButton(HainIcons.plus, texts.newChat, {}) },
         )
         Box(Modifier.weight(1f)) {
             if (state.messages.isEmpty()) {
@@ -211,12 +212,12 @@ internal fun ChatFrame(
         Composer(
             text = state.input,
             onTextChange = {},
-            placeholder = "Nachricht an Hain",
+            placeholder = texts.placeholder,
             isGenerating = false,
             onSend = {},
             onStop = {},
-            sendLabel = "Senden",
-            stopLabel = "Stopp",
+            sendLabel = texts.send,
+            stopLabel = texts.stop,
             modifier = Modifier.padding(12.dp),
             leading = { ThinkingPicker(mode, {}) },
         )
@@ -224,7 +225,10 @@ internal fun ChatFrame(
 }
 
 @Composable
-internal fun Drawer(longTitles: Boolean = false) {
+internal fun Drawer(
+    longTitles: Boolean = false,
+    texts: ShotTexts = ShotTexts.DE,
+) {
     val today =
         if (longTitles) {
             listOf(
@@ -233,10 +237,7 @@ internal fun Drawer(longTitles: Boolean = false) {
                 Chat(3, "Kurz", emptyList(), 0, pinned = true),
             )
         } else {
-            listOf(
-                Chat(1, "Wetter in Köln am Wochenende", emptyList(), 0),
-                Chat(2, "Erklär mir Photosynthese", emptyList(), 0),
-            )
+            texts.drawerToday.mapIndexed { i, title -> Chat(i + 1L, title, emptyList(), 0) }
         }
     ChatListDrawer(
         open = true,
@@ -244,7 +245,7 @@ internal fun Drawer(longTitles: Boolean = false) {
         groups =
             listOf(
                 ChatGroup.TODAY to today,
-                ChatGroup.YESTERDAY to listOf(Chat(9, "Geburtstagsgedicht für Oma", emptyList(), 0)),
+                ChatGroup.YESTERDAY to listOf(Chat(9, texts.drawerYesterday, emptyList(), 0)),
             ),
         searchQuery = "",
         currentChatId = 2,
@@ -252,29 +253,98 @@ internal fun Drawer(longTitles: Boolean = false) {
     )
 }
 
-internal fun answerState(): ChatUiState =
+internal fun answerState(texts: ShotTexts = ShotTexts.DE): ChatUiState =
     ChatUiState(
         messages =
             listOf(
-                UiMessage(1, true, "Wie wird das Wetter morgen in Köln, und was ist der Kölner Dom?"),
+                UiMessage(1, true, texts.question),
                 UiMessage(
                     2,
                     false,
-                    "Morgen wird es in **Köln** mild:\n\n- 14 °C am Nachmittag\n- leichter Wind aus Südwest\n- " +
-                        "kaum Regen\n\nDer Kölner Dom ist eine gotische Kathedrale und seit 1996 Welterbe.",
-                    steps =
-                        listOf(
-                            ToolStep("weather", "Köln, morgen", StepState.DONE, online = true),
-                            ToolStep("wikipedia", "Kölner Dom", StepState.DONE, online = true),
-                        ),
-                    sources =
-                        listOf(
-                            SourceRef("Kölner Dom – Wikipedia", "https://de.wikipedia.org/wiki/K%C3%B6lner_Dom"),
-                            SourceRef("Open-Meteo", "https://open-meteo.com"),
-                        ),
+                    texts.answer,
+                    steps = texts.steps.map { (tool, label) -> ToolStep(tool, label, StepState.DONE, online = true) },
+                    sources = texts.sources.map { (title, url) -> SourceRef(title, url) },
                 ),
             ),
     )
+
+/**
+ * The sample texts in the screenshots: German for docs/design/screens and the German website,
+ * English for the English website (T-107). Labels the app draws itself come from its resources.
+ */
+data class ShotTexts(
+    val subtitle: String,
+    val menu: String,
+    val newChat: String,
+    val placeholder: String,
+    val send: String,
+    val stop: String,
+    val thinkingButton: String,
+    val drawerToday: List<String>,
+    val drawerYesterday: String,
+    val question: String,
+    val answer: String,
+    val steps: List<Pair<String, String>>,
+    val sources: List<Pair<String, String>>,
+    val compare: String,
+    val longMarkdown: String,
+    val composerLine: (Int) -> String,
+) {
+    companion object {
+        val DE =
+            ShotTexts(
+                subtitle = "Auf diesem Handy",
+                menu = "Menü",
+                newChat = "Neuer Chat",
+                placeholder = "Nachricht an Hain",
+                send = "Senden",
+                stop = "Stopp",
+                thinkingButton = "Denk-Stufe",
+                drawerToday = listOf("Wetter in Köln am Wochenende", "Erklär mir Photosynthese"),
+                drawerYesterday = "Geburtstagsgedicht für Oma",
+                question = "Wie wird das Wetter morgen in Köln, und was ist der Kölner Dom?",
+                answer =
+                    "Morgen wird es in **Köln** mild:\n\n- 14 °C am Nachmittag\n- leichter Wind aus Südwest\n- " +
+                        "kaum Regen\n\nDer Kölner Dom ist eine gotische Kathedrale und seit 1996 Welterbe.",
+                steps = listOf("weather" to "Köln, morgen", "wikipedia" to "Kölner Dom"),
+                sources =
+                    listOf(
+                        "Kölner Dom – Wikipedia" to "https://de.wikipedia.org/wiki/K%C3%B6lner_Dom",
+                        "Open-Meteo" to "https://open-meteo.com",
+                    ),
+                compare = "Vergleich bitte Fahrrad, Bus und Auto",
+                longMarkdown = LONG_MD,
+                composerLine = { "Zeile $it: noch ein Gedanke für die Frage" },
+            )
+
+        val EN =
+            ShotTexts(
+                subtitle = "On this phone",
+                menu = "Open chats",
+                newChat = "New chat",
+                placeholder = "Message Hain",
+                send = "Send",
+                stop = "Stop",
+                thinkingButton = "Thinking",
+                drawerToday = listOf("Weekend weather in Paris", "Explain photosynthesis"),
+                drawerYesterday = "Birthday poem for Grandma",
+                question = "What's the weather in Paris tomorrow, and what is the Eiffel Tower?",
+                answer =
+                    "Tomorrow will be mild in **Paris**:\n\n- 15 °C in the afternoon\n- a light breeze from the " +
+                        "southwest\n- hardly any rain\n\nThe Eiffel Tower is a wrought-iron tower built for the " +
+                        "1889 World's Fair.",
+                steps = listOf("weather" to "Paris, tomorrow", "wikipedia" to "Eiffel Tower"),
+                sources =
+                    listOf(
+                        "Eiffel Tower – Wikipedia" to "https://en.wikipedia.org/wiki/Eiffel_Tower",
+                        "Open-Meteo" to "https://open-meteo.com",
+                    ),
+                compare = "Please compare bike, bus and car",
+                longMarkdown = LONG_MD_EN,
+                composerLine = { "Line $it: one more thought for the question" },
+            )
+    }
+}
 
 private const val LONG_TITLE = "Wie plane ich eine plastikfreie Woche mit Kindern, Hund und wenig Geld im Winter?"
 private const val NO_SPACE_TITLE = "Ein_sehr_langer_Titel_ohne_Leerzeichen_der_nicht_umbrechen_kann"
@@ -296,4 +366,24 @@ internal val LONG_MD =
         "1. Erster Punkt mit einem langen Satz, der über mehrere Zeilen umbrechen muss, ohne abgeschnitten zu werden.",
         "2. Zweiter Punkt",
         "3. Dritter Punkt",
+    ).joinToString("\n")
+
+/** [LONG_MD] in English, for the English website (T-107). */
+internal val LONG_MD_EN =
+    listOf(
+        "## Comparison",
+        "",
+        "| Transport | CO₂ per km | Cost per month | Time to work | Note |",
+        "|---|---|---|---|---|",
+        "| Bike | 0 g | €10 | 25 min | healthy and quiet |",
+        "| Bus | 80 g | €49 | 35 min | monthly pass |",
+        "| Car | 150 g | €300 | 20 min | finding a parking spot |",
+        "",
+        "```kotlin",
+        "val aVeryLongLineOfCode = listOf(\"Bike\", \"Bus\", \"Car\").joinToString(separator = \" · \")",
+        "```",
+        "",
+        "1. First point with a long sentence that has to wrap over several lines without being cut off.",
+        "2. Second point",
+        "3. Third point",
     ).joinToString("\n")

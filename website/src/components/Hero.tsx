@@ -1,6 +1,6 @@
 import type React from 'react'
 import { Download, Menu, X, ArrowDown, Languages, Check } from 'lucide-react'
-import { COPY, LINKS, SHOT_SIZE, type Lang } from '../content'
+import { COPY, LINKS, SHOT_SIZE, SHOT_SIZE_EN, type Lang } from '../content'
 import { AppIcon, BASE, Container, GitHubIcon } from './ui'
 
 export function Nav({ lang }: { lang: Lang }) {
@@ -106,18 +106,18 @@ export function Hero({ lang }: { lang: Lang }) {
           </ul>
         </div>
         <div className="fade-up relative mx-auto flex w-full max-w-[460px] items-start justify-center gap-4" style={{ '--d': '0.25s' } as React.CSSProperties}>
-          <Shot id="chat_empty" alt={t.pimAlt} className="w-[58%]" eager />
-          <Shot id="chat_composer_picker" alt="" className="mt-14 hidden w-[42%] sm:block" eager />
+          <Shot id="chat_empty" lang={lang} alt={t.pimAlt} className="w-[58%]" eager />
+          <Shot id="chat_composer_picker" lang={lang} alt="" className="mt-14 hidden w-[42%] sm:block" eager />
         </div>
       </Container>
     </section>
   )
 }
 
-/** One app screenshot, light or dark to match the visitor. */
-export function Shot({ id, alt, className = '', eager = false }: { id: string; alt: string; className?: string; eager?: boolean }) {
-  const src = (m: string) => `${BASE}screenshots/${id}-${m}.webp`
-  const [w, h] = SHOT_SIZE[id] ?? [720, 1548]
+/** One app screenshot, light or dark to match the visitor, with the app in the page's language (T-107). */
+export function Shot({ id, alt, lang, className = '', eager = false }: { id: string; alt: string; lang: Lang; className?: string; eager?: boolean }) {
+  const src = (m: string) => `${BASE}screenshots/${id}-${m}${lang === 'en' ? '-en' : ''}.webp`
+  const [w, h] = (lang === 'en' ? SHOT_SIZE_EN[id] : undefined) ?? SHOT_SIZE[id] ?? [720, 1548]
   return (
     <div className={`device self-start ${className}`}>
       <picture>

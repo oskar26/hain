@@ -21,13 +21,40 @@ import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
-/** Welcome tour in the Lichtung style (docs/design/STYLE_OPTIONS.md), light and dark; CI workflow screens.yml only. */
+/**
+ * Welcome tour in the Lichtung style (docs/design/STYLE_OPTIONS.md), light and dark, German; CI workflow
+ * screens.yml only.
+ */
+@Config(sdk = [35], qualifiers = "de-w392dp-h850dp-xxhdpi")
+class OnboardingStyleScreens(
+    dark: Boolean,
+) : OnboardingStyleShots(dark, suffix = "") {
+    companion object {
+        @JvmStatic
+        @ParameterizedRobolectricTestRunner.Parameters(name = "dark={0}")
+        fun params(): List<Array<Any>> = listOf(false, true).map { arrayOf<Any>(it) }
+    }
+}
+
+/** The same screens in English for the English website (T-107), file names end in "_en". */
+@Config(sdk = [35], qualifiers = "en-w392dp-h850dp-xxhdpi")
+class OnboardingStyleScreensEn(
+    dark: Boolean,
+) : OnboardingStyleShots(dark, suffix = "_en") {
+    companion object {
+        @JvmStatic
+        @ParameterizedRobolectricTestRunner.Parameters(name = "dark={0}")
+        fun params(): List<Array<Any>> = listOf(false, true).map { arrayOf<Any>(it) }
+    }
+}
+
+/** The screenshots themselves; the subclasses pick the language. */
 @OptIn(ExperimentalRoborazziApi::class)
 @RunWith(ParameterizedRobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [35], qualifiers = "de-w392dp-h850dp-xxhdpi")
-class OnboardingStyleScreens(
+abstract class OnboardingStyleShots(
     private val dark: Boolean,
+    private val suffix: String,
 ) {
     @get:Rule
     val compose = createComposeRule()
@@ -47,19 +74,13 @@ class OnboardingStyleScreens(
     @Test
     fun welcome() {
         render { WelcomeTour(onFinish = {}) }
-        captureScreenRoboImage("$OUT/styles/${name("onboarding")}.png")
+        captureScreenRoboImage("$OUT/styles/${name("onboarding")}$suffix.png")
     }
 
     @Test
     fun success() {
         render { SuccessScreen(onDone = {}) }
-        captureScreenRoboImage("$OUT/styles/${name("onboarding_success")}.png")
-    }
-
-    companion object {
-        @JvmStatic
-        @ParameterizedRobolectricTestRunner.Parameters(name = "dark={0}")
-        fun params(): List<Array<Any>> = listOf(false, true).map { arrayOf<Any>(it) }
+        captureScreenRoboImage("$OUT/styles/${name("onboarding_success")}$suffix.png")
     }
 }
 

@@ -180,7 +180,7 @@ export function Screens({ lang }: { lang: Lang }) {
         {SCREENSHOTS.map((id, i) => (
           <Reveal key={id} delay={(i % 3) * 0.06} className="snap-center">
             <figure className="w-[210px] shrink-0 sm:w-[230px]">
-              <Shot id={id} alt={t.items[i]} eager />
+              <Shot id={id} lang={lang} alt={t.items[i]} eager />
               <figcaption className="mt-3 text-center text-[15px] text-muted">{t.items[i]}</figcaption>
             </figure>
           </Reveal>
