@@ -1,5 +1,6 @@
 package app.hain
 
+import android.Manifest
 import android.app.LocaleManager
 import android.net.Uri
 import android.os.Build
@@ -10,21 +11,19 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -126,6 +125,15 @@ class MainActivity : FragmentActivity() {
             onNetworkLogDetail = { write { repo.setNetworkLogDetail(it) } },
             onClearNetworkLog = networkGate::clearLog,
             onSearxUrl = { write { repo.setSearxUrl(it) } },
+            onConfirmActions = { write { repo.setConfirmActions(it) } },
+            onWebSearch = { write { repo.setWebSearch(it) } },
+            onWeatherLocation = { on ->
+                if (on && !WeatherLocation.allowed(this)) {
+                    locationPermission.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                } else {
+                    write { repo.setWeatherLocation(on) }
+                }
+            },
             onHaptics = { write { repo.setHaptics(it) } },
             onAppIcon = { write { repo.setAppIcon(it) } },
             onDev = { write { repo.setDev(it) } },
@@ -199,6 +207,12 @@ class MainActivity : FragmentActivity() {
         }
     }
 
+    /** 3b-2: Android asks for the rough location once; only a yes switches "Standort fürs Wetter" on. */
+    private val locationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            lifecycleScope.launch { settingsRepository.setWeatherLocation(granted) }
+        }
+
     /** T-215: build facts for "Über Hain". */
     private val appInfo =
         AppInfo(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, BuildConfig.GIT_SHA, BuildConfig.BUILD_DATE)
@@ -249,6 +263,8 @@ class MainActivity : FragmentActivity() {
                             ZonedDateTime.now(),
                             cfg.offlineMode,
                             searxUrl = SearxAddress.normalize(cfg.searxUrl),
+                            webSearch = cfg.webSearch,
+                            here = if (cfg.weatherLocation) WeatherLocation.last(this) else null,
                         )
                     },
                     tuning = { settings().dev },
@@ -338,133 +354,132 @@ class MainActivity : FragmentActivity() {
                     LocalHapticLevel provides HapticLevel.entries[settings.haptics.ordinal],
                     LocalExternalLaunch provides appLock::expectReturn,
                 ) {
+                    // T-056: while locked only the lock screen is there (no chat, menu or popup underneath)
                     val locked by appLock.locked.collectAsStateWithLifecycle()
-                    Box(Modifier.fillMaxSize()) {
-                        HainMenuBackdrop {
-                            var installed by remember { mutableStateOf(models.isInstalled(brain)) }
-                            var skipped by remember { mutableStateOf(startPrefs.getBoolean(KEY_SKIPPED, false)) }
-                            if (!installed && !skipped) {
-                                OnboardingScreen(
-                                    models = models,
-                                    onDone = { installed = models.isInstalled(brain) },
-                                    onLanguage = { tag -> pickLanguage(tag) },
-                                    iconFlat = settings.appIcon == AppIcon.FLAT,
-                                    onIconFlat = { flat ->
-                                        lifecycleScope.launch {
-                                            settingsRepository.setAppIcon(if (flat) AppIcon.FLAT else AppIcon.THREE_D)
-                                        }
-                                    },
-                                    onSkip = {
-                                        startPrefs.edit().putBoolean(KEY_SKIPPED, true).apply()
-                                        skipped = true
-                                    },
-                                )
-                            } else {
-                                val chatViewModel = viewModel { chatViewModel(prompts) { current } }
-                                val chatState by chatViewModel.state.collectAsStateWithLifecycle()
-                                var updateHidden by rememberSaveable { mutableStateOf(false) }
-                                val dev = settings.dev
-                                ChatScreen(
-                                    viewModel = chatViewModel,
-                                    onOpenSettings = { showSettings = true },
-                                    onGetBrain = { showPacks = true },
-                                    answerMode = settings.answerMode,
-                                    onAnswerMode = { mode ->
-                                        lifecycleScope.launch { settingsRepository.setAnswerMode(mode) }
-                                    },
-                                    onOpenGame = { showGame = true },
-                                    extras =
-                                        ChatExtras(
-                                            showStats = dev.enabled && dev.showStats,
-                                            rawThinking = dev.enabled && dev.showRawThinking,
-                                            debugInfo = { stats ->
-                                                val path = ownModelPath() ?: models.mainFile(brain).absolutePath
-                                                val model = File(path).name
-                                                DevTuning.debugLine(model, current.dev, stats)
-                                            },
-                                        ),
-                                    banner = {
-                                        val status = updateStatus
-                                        if (status is UpdateStatus.Newer && !updateHidden) {
-                                            val uri = LocalUriHandler.current
-                                            UpdateBanner(status.versionName, { uri.openUri(status.page) }, {
-                                                updateHidden =
-                                                    true
-                                            })
-                                        } else if (UpdateRules.shouldAsk(settings, chatState.chats.size)) {
-                                            UpdateAskCard(
-                                                onYes = {
-                                                    lifecycleScope.launch {
-                                                        settingsRepository.setUpdateCheck(
-                                                            UpdateCheck.DAILY,
-                                                        )
-                                                    }
-                                                    checkForUpdate()
-                                                },
-                                                onNo = {
-                                                    lifecycleScope.launch { settingsRepository.dismissUpdateQuestion() }
-                                                },
-                                            )
-                                        }
-                                    },
-                                )
-                                // T-098: the 2048 easter egg opens right after Pim's burst
-                                AnimatedVisibility(
-                                    visible = showGame,
-                                    enter =
-                                        fadeIn(hainTween(HainMotion.PAGE_MS)) +
-                                            scaleIn(hainTween(HainMotion.PAGE_MS), GAME_FROM),
-                                    exit = fadeOut(hainTween(HainMotion.FAST_MS)),
-                                ) {
-                                    Game2048Screen(
-                                        best = settings.game2048Best,
-                                        onScore = { score ->
-                                            lifecycleScope.launch { settingsRepository.recordGame2048(score) }
-                                        },
-                                        onClose = { showGame = false },
-                                    )
-                                }
-                                AnimatedVisibility(
-                                    visible = showSettings,
-                                    enter =
-                                        fadeIn(hainTween(HainMotion.PAGE_MS)) +
-                                            slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
-                                    exit = fadeOut(hainTween(HainMotion.FAST_MS)),
-                                ) {
-                                    val log by networkGate.log.collectAsStateWithLifecycle()
-                                    SettingsScreen(
-                                        settings,
-                                        settingsActions({ showSettings = false }, { showPacks = true }),
-                                        networkLog = log,
-                                        extras =
-                                            SettingsExtras(
-                                                appInfo,
-                                                updateStatus,
-                                                devModels,
-                                                lockAvailable = appLock.available(),
-                                            ),
-                                    )
-                                }
-                                AnimatedVisibility(
-                                    visible = showPacks,
-                                    enter =
-                                        fadeIn(hainTween(HainMotion.PAGE_MS)) +
-                                            slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
-                                    exit = fadeOut(hainTween(HainMotion.FAST_MS)),
-                                ) {
-                                    PacksScreen(models, deviceRamGb(), { showPacks = false })
-                                }
-                            }
-                        }
-                        // T-056: covers everything while Hain is locked
-                        if (locked) {
-                            LockScreen(
-                                onUnlock = {
-                                    val title = getString(R.string.lock_prompt_title)
-                                    appLock.unlock(title, getString(R.string.lock_prompt_subtitle))
+                    if (locked) {
+                        LockScreen(
+                            onUnlock = {
+                                val title = getString(R.string.lock_prompt_title)
+                                appLock.unlock(title, getString(R.string.lock_prompt_subtitle))
+                            },
+                            onLeave = { moveTaskToBack(true) },
+                        )
+                        return@CompositionLocalProvider
+                    }
+                    HainMenuBackdrop {
+                        var installed by remember { mutableStateOf(models.isInstalled(brain)) }
+                        var skipped by remember { mutableStateOf(startPrefs.getBoolean(KEY_SKIPPED, false)) }
+                        if (!installed && !skipped) {
+                            OnboardingScreen(
+                                models = models,
+                                onDone = { installed = models.isInstalled(brain) },
+                                onLanguage = { tag -> pickLanguage(tag) },
+                                iconFlat = settings.appIcon == AppIcon.FLAT,
+                                onIconFlat = { flat ->
+                                    lifecycleScope.launch {
+                                        settingsRepository.setAppIcon(if (flat) AppIcon.FLAT else AppIcon.THREE_D)
+                                    }
                                 },
-                                onLeave = { moveTaskToBack(true) },
+                                onSkip = {
+                                    startPrefs.edit().putBoolean(KEY_SKIPPED, true).apply()
+                                    skipped = true
+                                },
                             )
+                        } else {
+                            val chatViewModel = viewModel { chatViewModel(prompts) { current } }
+                            val chatState by chatViewModel.state.collectAsStateWithLifecycle()
+                            var updateHidden by rememberSaveable { mutableStateOf(false) }
+                            val dev = settings.dev
+                            ChatScreen(
+                                viewModel = chatViewModel,
+                                onOpenSettings = { showSettings = true },
+                                onGetBrain = { showPacks = true },
+                                answerMode = settings.answerMode,
+                                onAnswerMode = { mode ->
+                                    lifecycleScope.launch { settingsRepository.setAnswerMode(mode) }
+                                },
+                                onOpenGame = { showGame = true },
+                                extras =
+                                    ChatExtras(
+                                        showStats = dev.enabled && dev.showStats,
+                                        rawThinking = dev.enabled && dev.showRawThinking,
+                                        confirmActions = settings.confirmActions,
+                                        debugInfo = { stats ->
+                                            val model = File(ownModelPath() ?: models.mainFile(brain).absolutePath).name
+                                            DevTuning.debugLine(model, current.dev, stats)
+                                        },
+                                    ),
+                                banner = {
+                                    val status = updateStatus
+                                    if (status is UpdateStatus.Newer && !updateHidden) {
+                                        val uri = LocalUriHandler.current
+                                        UpdateBanner(status.versionName, { uri.openUri(status.page) }, {
+                                            updateHidden =
+                                                true
+                                        })
+                                    } else if (UpdateRules.shouldAsk(settings, chatState.chats.size)) {
+                                        UpdateAskCard(
+                                            onYes = {
+                                                lifecycleScope.launch {
+                                                    settingsRepository.setUpdateCheck(
+                                                        UpdateCheck.DAILY,
+                                                    )
+                                                }
+                                                checkForUpdate()
+                                            },
+                                            onNo = {
+                                                lifecycleScope.launch { settingsRepository.dismissUpdateQuestion() }
+                                            },
+                                        )
+                                    }
+                                },
+                            )
+                            // T-098: the 2048 easter egg opens right after Pim's burst
+                            AnimatedVisibility(
+                                visible = showGame,
+                                enter =
+                                    fadeIn(hainTween(HainMotion.PAGE_MS)) +
+                                        scaleIn(hainTween(HainMotion.PAGE_MS), GAME_FROM),
+                                exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+                            ) {
+                                Game2048Screen(
+                                    best = settings.game2048Best,
+                                    onScore = { score ->
+                                        lifecycleScope.launch { settingsRepository.recordGame2048(score) }
+                                    },
+                                    onClose = { showGame = false },
+                                )
+                            }
+                            AnimatedVisibility(
+                                visible = showSettings,
+                                enter =
+                                    fadeIn(hainTween(HainMotion.PAGE_MS)) +
+                                        slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
+                                exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+                            ) {
+                                val log by networkGate.log.collectAsStateWithLifecycle()
+                                SettingsScreen(
+                                    settings,
+                                    settingsActions({ showSettings = false }, { showPacks = true }),
+                                    networkLog = log,
+                                    extras =
+                                        SettingsExtras(
+                                            appInfo,
+                                            updateStatus,
+                                            devModels,
+                                            lockAvailable = appLock.available(),
+                                        ),
+                                )
+                            }
+                            AnimatedVisibility(
+                                visible = showPacks,
+                                enter =
+                                    fadeIn(hainTween(HainMotion.PAGE_MS)) +
+                                        slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
+                                exit = fadeOut(hainTween(HainMotion.FAST_MS)),
+                            ) {
+                                PacksScreen(models, deviceRamGb(), { showPacks = false })
+                            }
                         }
                     }
                 }

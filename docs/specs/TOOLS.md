@@ -15,7 +15,7 @@ enum class Purpose { SEARCH, NEWS, WEATHER, WIKI, GEO, PAGE_READ, MODEL_DOWNLOAD
 - Single `OkHttpClient`: timeouts 10 s, `User-Agent: Hain/<ver>` for APIs (Wikipedia, Nominatim, news require it), browser UA only for DuckDuckGo html.
 - Cache: OkHttp disk cache 20 MB.
 
-**Stand Werkzeuge I (03.11.2026):** `NetworkGate` (API in `core-common/.../api/net`) is implemented as `HttpNetworkGate` in `core-tools` on plain `HttpURLConnection` (no new library; OkHttp + disk cache come with 3b if needed). Only https. The log is kept **in memory** (7 days / 500 entries, lost on app restart); the Room table `network_log` and routing the model download through the gate are part of 3b. Per-purpose switches: only the global `offline_mode` for now.
+**Stand Werkzeuge I (03.11.2026):** `NetworkGate` (API in `core-common/.../api/net`) is implemented as `HttpNetworkGate` in `core-tools` on plain `HttpURLConnection` (no new library; OkHttp + disk cache come with 3b if needed). Only https. The log is kept **in memory** (7 days / 500 entries, lost on app restart); the Room table `network_log` and routing the model download through the gate are part of 3b. Per-purpose switches: only the global `offline_mode` for now. **0.1.4:** `web_search` on / ask / off (web_search + read_page; "ask" = the tool answers `ask_first`, Pim asks, and only the user's yes in the next message lets it run – `SearchConsent`); the brain download goes through `NetworkGate.stream` (logged as MODEL_DOWNLOAD, orange dot). `weather` without `place` uses the last known location when `weather_location` is on (rounded to 2 decimals, no geocoding call). Weather and Wikipedia results also come back as `ToolResult.card` (`InfoCard`) → WeatherCard / WikiCard in `core-cards`.
 
 ## 2. Tool list (v1) — schemas exactly as sent to the model
 
@@ -37,7 +37,7 @@ Descriptions short (small model). English, the model answers in user language an
 | `recall` | `query` | MemoryStore search | – |
 | `search_documents` | `query` | DocStore (DOCS_OCR.md) | SourcesCard |
 
-Intent tools **never fire directly**: they return a ConfirmCard; the user taps "Stellen / Set". (Setting `confirm_actions` default true; if false, fire immediately after card shows 3 s undo.) As built in 4b: see §3c (`days` for repeating alarms and `confirm_actions` → 4c).
+Intent tools **never fire directly**: they return a ConfirmCard; the user taps "Stellen / Set". (Setting `confirm_actions` default true; if false, fire immediately after card shows 3 s undo.) As built in 4b: see §3c. **0.1.4 (3b-2 + 4b-2):** `set_alarm` takes `days` ("Mo-Fr", "täglich", "montags und donnerstags", "Mon,Wed", ISO 1–7) → `AlarmClock.EXTRA_DAYS` (Calendar numbers, Sunday = 1); `confirm_actions` false = the card counts down 3 s with "Rückgängig", then starts (only for an answer written just now); after a prepared action the answer's "eingestellt / is set" becomes "vorbereitet / prepared" (`ActionWording`).
 
 ## 3. SearchRouter (ADR-07)
 

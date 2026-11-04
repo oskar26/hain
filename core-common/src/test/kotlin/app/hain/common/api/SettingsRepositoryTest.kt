@@ -49,6 +49,17 @@ class SettingsRepositoryTest {
         }
 
     @Test
+    fun phoneActionsAskFirstByDefault() =
+        runTest(UnconfinedTestDispatcher()) {
+            val r = repo()
+            assertEquals(true, r.settings.first().confirmActions)
+            r.setConfirmActions(false)
+            assertEquals(false, r.settings.first().confirmActions)
+            r.reset()
+            assertEquals(true, r.settings.first().confirmActions)
+        }
+
+    @Test
     fun appIconDefaultsTo3dAndIsKeptOnReset() =
         runTest(UnconfinedTestDispatcher()) {
             val r = repo()

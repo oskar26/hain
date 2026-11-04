@@ -17,6 +17,7 @@ import app.hain.common.api.HainSettings
 import app.hain.common.api.HapticStrength
 import app.hain.common.api.SearxAddress
 import app.hain.common.api.ThemeChoice
+import app.hain.common.api.WebSearch
 import app.hain.common.api.net.NetworkLogEntry
 import app.hain.feature.settings.R
 import app.hain.ui.components.AppIconPicker
@@ -130,7 +131,29 @@ internal fun SettingsPageContent(
                 settings.offlineMode,
                 actions.onOfflineMode,
             )
+            Choice(
+                R.string.settings_web_search,
+                settings.webSearch,
+                listOf(
+                    WebSearch.ON to R.string.settings_web_search_on,
+                    WebSearch.ASK to R.string.settings_web_search_ask,
+                    WebSearch.OFF to R.string.settings_web_search_off,
+                ),
+                actions.onWebSearch,
+            )
             SearxSetting(settings.searxUrl, actions.onSearxUrl)
+            Toggle(
+                R.string.settings_weather_location,
+                R.string.settings_weather_location_hint,
+                settings.weatherLocation,
+                actions.onWeatherLocation,
+            )
+            Toggle(
+                R.string.settings_confirm_actions,
+                R.string.settings_confirm_actions_hint,
+                settings.confirmActions,
+                actions.onConfirmActions,
+            )
             AppLockSection(settings, actions, extras.lockAvailable)
             ExportAllSection(actions)
             NetworkLogSection(networkLog, settings.networkLogDetail, actions)

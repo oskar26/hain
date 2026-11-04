@@ -1,5 +1,6 @@
 package app.hain.tools.api
 
+import app.hain.common.api.WebSearch
 import app.hain.llm.api.ToolSchema
 import java.time.ZonedDateTime
 
@@ -14,6 +15,12 @@ data class ToolContext(
     val searxUrl: String? = null,
     /** Search hits a web search keeps, one per site (4c: up to 8). */
     val hits: Int = MAX_HITS,
+    /** Web search on, ask first or off (3b-2, setting `web_search`). */
+    val webSearch: WebSearch = WebSearch.ON,
+    /** With [WebSearch.ASK]: the user just said yes to Pim's question whether he may search. */
+    val searchApproved: Boolean = false,
+    /** The phone's last known location, only when the user allowed it for the weather (3b-2). */
+    val here: GeoPoint? = null,
 ) {
     companion object {
         const val DEFAULT_PAGES = 3
@@ -21,6 +28,12 @@ data class ToolContext(
         const val MAX_HITS = 8
     }
 }
+
+/** A spot on earth (3b-2: the phone's last known location for the weather). */
+data class GeoPoint(
+    val lat: Double,
+    val lon: Double,
+)
 
 /** One search hit: a page the brain may want, with the search engine's short text about it. */
 data class ToolHit(
@@ -56,7 +69,23 @@ data class ToolResult(
     val action: PhoneAction? = null,
     val via: String? = null,
     val hits: List<ToolHit> = emptyList(),
+    /** A card for under the answer (3b-2): weather or Wikipedia, shown as it was found. */
+    val card: InfoCard? = null,
 )
+
+/**
+ * What a tool found, for a card under the answer (3b-2): [kind] says which card, [data] is the
+ * compact JSON the tool also gave the brain (weather: place/now/days, Wikipedia: title/extract/url).
+ */
+data class InfoCard(
+    val kind: String,
+    val data: String,
+) {
+    companion object {
+        const val WEATHER = "weather"
+        const val WIKI = "wikipedia"
+    }
+}
 
 /** One tool the brain may call. [online] tools go through the NetworkGate. */
 interface Tool {
