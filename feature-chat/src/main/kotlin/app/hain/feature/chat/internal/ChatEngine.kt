@@ -20,6 +20,7 @@ import app.hain.llm.internal.LfmPromptBuilder
 import app.hain.llm.internal.StreamSplitter
 import app.hain.llm.internal.ThinkingPolicy
 import app.hain.tools.api.HainTools
+import app.hain.tools.api.InfoCard
 import app.hain.tools.api.ResearchBudget
 import app.hain.tools.api.ResearchNotes
 import app.hain.tools.api.ToolCallFixer
@@ -74,6 +75,8 @@ sealed interface TurnUpdate {
         val actions: List<ActionCard> = emptyList(),
         /** Speed of the last generation (developer mode, T-211). */
         val stats: GenerationStats? = null,
+        /** Weather and Wikipedia cards for under the answer (3b-2). */
+        val cards: List<InfoCard> = emptyList(),
     ) : TurnUpdate
 }
 
@@ -161,7 +164,11 @@ class ChatEngine(
         flow {
             val lastUser = history.lastOrNull()?.content.orEmpty()
             val budget = ResearchBudget.of(mode)
-            val ctx = toolContext().copy(pagesToRead = budget.pagesPerSearch)
+            val ctx =
+                toolContext().copy(
+                    pagesToRead = budget.pagesPerSearch,
+                    searchApproved = SearchConsent.approved(history),
+                )
             val quick = quickAnswer(history, ctx)
             if (quick != null) {
                 emit(quick)
@@ -170,7 +177,7 @@ class ChatEngine(
             val dev = tuning()
             val thinking = DevTuning.thinking(dev, ThinkingPolicy.decide(lastUser, mode))
             val system = DevTuning.systemPrompt(dev, systemPrompt(promptAnchor()))
-            val schemas = if (ownModel()) emptyList() else tools?.schemas(ctx.offline).orEmpty()
+            val schemas = if (ownModel()) emptyList() else tools?.schemas(ctx.offline, ctx.webSearch).orEmpty()
             val researchHint = if (schemas.isNotEmpty() && !ctx.offline) researchHint(mode, ctx.lang) else null
             val online = schemas.any { tools?.isOnline(it.name) == true }
             val followUp =
@@ -223,6 +230,7 @@ class ChatEngine(
                                 turn.trace.toList(),
                                 turn.actions.toList(),
                                 result.stats,
+                                cards = turn.cards.toList(),
                             ),
                         )
                         return@flow
@@ -255,6 +263,7 @@ class ChatEngine(
         val sources = mutableListOf<SourceRef>()
         val trace = mutableListOf<ToolTrace>()
         val actions = mutableListOf<ActionCard>()
+        val cards = mutableListOf<InfoCard>()
         val notes = ResearchNotes()
         val readUrls = mutableSetOf<String>()
         val readSites = mutableSetOf<String>()
@@ -381,6 +390,8 @@ class ChatEngine(
                 )
             // a phone action is only prepared here; the card under the answer asks before anything happens
             result.action?.let { turn.actions += ActionCard(it) }
+            // 3b-2: weather and Wikipedia as a card under the answer, one per place or article
+            result.card?.let { card -> if (turn.cards.none { it == card }) turn.cards += card }
         }
         val pages = readPages(router, planned.map { it.call }, results, ctx, turn, thinking)
         results.forEachIndexed { i, result ->
@@ -592,11 +603,17 @@ class ChatEngine(
         return RoundResult(output, reason, thoughtFor, stats)
     }
 
-    /** The live text without fake citations (T-220): only markers for sources of this turn. */
+    /**
+     * The live text without fake citations (T-220): only markers for sources of this turn. With a
+     * prepared phone action, "eingestellt" becomes "vorbereitet" (4b-2): nothing is done before the tap.
+     */
     private fun cleaned(
         text: CharSequence,
         turn: Turn,
-    ): String = CitationCleaner.clean(text.toString(), turn.sources.size)
+    ): String {
+        val clean = CitationCleaner.clean(text.toString(), turn.sources.size)
+        return if (turn.actions.isEmpty()) clean else ActionWording.clean(clean)
+    }
 
     /** "12*7" → answered by the calculator right away (TOOLS.md §5). */
     @Suppress("ReturnCount")
@@ -620,7 +637,8 @@ class ChatEngine(
 
     private fun schemas(): List<ToolSchema> {
         if (ownModel()) return emptyList()
-        return tools?.schemas(toolContext().offline).orEmpty()
+        val ctx = toolContext()
+        return tools?.schemas(ctx.offline, ctx.webSearch).orEmpty()
     }
 
     /**

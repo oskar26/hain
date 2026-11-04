@@ -4,6 +4,7 @@ import app.hain.common.api.net.GateRequest
 import app.hain.common.api.net.NetworkGate
 import app.hain.common.api.net.Purpose
 import app.hain.tools.api.Args
+import app.hain.tools.api.InfoCard
 import app.hain.tools.api.Tool
 import app.hain.tools.api.ToolContext
 import app.hain.tools.api.ToolResult
@@ -36,23 +37,30 @@ class WeatherTool(
     override val online = true
     override val schema = ToolSpecs.of("weather").schema
 
+    @Suppress("ReturnCount") // no place found, no place allowed
     override suspend fun run(
         args: Map<String, Any?>,
         ctx: ToolContext,
     ): ToolResult {
-        val place = Args.required(args, "place")
+        val place = Args.string(args, "place")?.takeUnless { HERE.matches(it.trim()) }
         val days = (Args.int(args, "days") ?: DEFAULT_DAYS).coerceIn(1, MAX_DAYS)
         val lang = if (ctx.lang == "de") "de" else "en"
-        val geo = get(geocodeUrl(place, lang), Purpose.GEO)
         val hit =
-            WeatherParser.firstPlace(geo)
-                ?: return ToolRouter.failure("not_found", "No place called '$place' was found. Ask for another name.")
+            if (place != null) {
+                WeatherParser.firstPlace(get(geocodeUrl(place, lang), Purpose.GEO))
+                    ?: return ToolRouter.failure("not_found", "No place called '$place' was found. Ask again.")
+            } else {
+                // 3b-2: no place = where the phone is, only when the user allowed it; ~1 km is enough
+                val here = ctx.here ?: return ToolRouter.failure("no_place", NO_PLACE_HINT)
+                GeoPlace(if (lang == "de") HERE_DE else HERE_EN, rounded(here.lat), rounded(here.lon))
+            }
         val forecast = get(forecastUrl(hit.lat, hit.lon, days), Purpose.WEATHER)
         val json = WeatherParser.forModel(hit.name, forecast, lang, ctx.now.toLocalDate())
         return ToolResult(
             forModel = json,
             label = hit.name,
             sources = listOf(ToolSource("Open-Meteo", SOURCE_URL)),
+            card = InfoCard(InfoCard.WEATHER, json),
         )
     }
 
@@ -71,6 +79,17 @@ class WeatherTool(
         /** Today, tomorrow and the day after: the brain rarely asks for days by itself. */
         private const val DEFAULT_DAYS = 3
         private const val SOURCE_URL = "https://open-meteo.com/"
+        private const val HERE_DE = "Dein Standort"
+        private const val HERE_EN = "Your location"
+        private const val NO_PLACE_HINT =
+            "No place given and no location allowed. Ask the user for the place; they can also allow " +
+                "their location for the weather in the settings (Privacy)."
+        private val HERE =
+            Regex("""(?i)hier|here|standort|mein standort|my location|current location|aktueller standort""")
+        private const val ROUND = 100.0
+
+        /** Two decimals (about 1 km): enough for a forecast, less exact than the phone knows. */
+        fun rounded(value: Double): Double = Math.round(value * ROUND) / ROUND
 
         fun geocodeUrl(
             place: String,

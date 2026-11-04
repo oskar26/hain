@@ -24,7 +24,8 @@ class ToolSpecsTest {
         ToolSpecs.all.values.forEach { s ->
             assertTrue(s.name, s.description.length <= 120)
             assertTrue(s.name, s.params.all { it.description.length <= 100 })
-            assertTrue(s.name, s.required.isNotEmpty())
+            // 3b-2: weather without a place = where the phone is (only with permission)
+            assertTrue(s.name, s.name == "weather" || s.required.isNotEmpty())
         }
     }
 

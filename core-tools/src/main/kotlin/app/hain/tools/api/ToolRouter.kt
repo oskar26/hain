@@ -1,10 +1,13 @@
 package app.hain.tools.api
 
+import app.hain.common.api.WebSearch
 import app.hain.common.api.net.OfflineException
 import app.hain.llm.api.ToolCall
 import app.hain.llm.api.ToolSchema
 import app.hain.tools.internal.search.PageReader
 import app.hain.tools.internal.search.ReadPage
+import app.hain.tools.internal.search.ReadPageTool
+import app.hain.tools.internal.search.SearchTool
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
@@ -52,8 +55,18 @@ class ToolRouter(
         ctx: ToolContext,
     ): ToolCallFixer.Fixed = fixer.fix(call, ctx.now)
 
-    /** Schemas for the prompt; online tools are left out while offline (shorter prompt, no dead ends). */
-    fun schemas(offline: Boolean): List<ToolSchema> = tools.filter { !offline || !it.online }.map { it.schema }
+    /**
+     * Schemas for the prompt; online tools are left out while offline (shorter prompt, no dead ends),
+     * the web search and read_page also when the setting `web_search` is off (3b-2).
+     */
+    fun schemas(
+        offline: Boolean,
+        webSearch: WebSearch = WebSearch.ON,
+    ): List<ToolSchema> =
+        tools
+            .filter { !offline || !it.online }
+            .filter { webSearch != WebSearch.OFF || it.schema.name !in SEARCH_TOOLS }
+            .map { it.schema }
 
     fun isOnline(name: String): Boolean = byName[name]?.online == true
 
@@ -99,6 +112,7 @@ class ToolRouter(
                     "There is no tool called ${call.name}. Use one of: ${byName.keys.joinToString()}.",
                 )
         if (tool.online && ctx.offline) return failure("offline", OFFLINE_HINT)
+        searchSwitch(call.name, ctx)?.let { return it }
         return try {
             withTimeout(timeoutMs) { attempt(tool, call, ctx) }
         } catch (e: TimeoutCancellationException) {
@@ -115,6 +129,18 @@ class ToolRouter(
             failure("failed", "The tool did not work. Say so plainly.")
         }
     }
+
+    /** 3b-2: the web search follows its own switch; a Wikipedia fallback to the web as well. */
+    private fun searchSwitch(
+        name: String,
+        ctx: ToolContext,
+    ): ToolResult? =
+        when {
+            name !in SEARCH_TOOLS -> null
+            ctx.webSearch == WebSearch.OFF -> failure(SEARCH_OFF, SEARCH_OFF_HINT)
+            ctx.webSearch == WebSearch.ASK && !ctx.searchApproved -> failure(ASK_FIRST, ASK_FIRST_HINT)
+            else -> null
+        }
 
     /**
      * One run of [tool]; an online tool whose service could not be reached gets one more try after
@@ -189,6 +215,16 @@ class ToolRouter(
         /** Characters per page the brain gets after a search (3 pages ≈ 1000 tokens). */
         const val PAGE_CHARS = 1200
         private const val OFFLINE_HINT = "Offline mode is on. Tell the user and offer to answer from memory."
+
+        /** Tools that search or read the open web; they follow the setting `web_search` (3b-2). */
+        val SEARCH_TOOLS = setOf(SearchTool.NAME, ReadPageTool.NAME)
+        const val SEARCH_OFF = "search_off"
+        const val ASK_FIRST = "ask_first"
+        private const val SEARCH_OFF_HINT =
+            "Web search is switched off in the settings. Answer from what you know and say so in one sentence."
+        private const val ASK_FIRST_HINT =
+            "The user wants to be asked before you search the web. Ask in one short question whether you may " +
+                "search for this now. Do not answer the question yet."
 
         /** Errors after which a fallback may help: nothing found, nothing readable, slow or broken. */
         val RECOVERABLE = setOf("not_found", "empty", "disambiguation", "timeout", "network", "failed")

@@ -109,4 +109,51 @@ class HttpNetworkGateTest {
             g.clearLog()
             assertTrue(g.log.value.isEmpty())
         }
+
+    @Test
+    fun brainDownloadStreamsThroughTheGate() =
+        runTest {
+            val g = gate(offline = true)
+            var activeDuring = 0
+            val url = "https://huggingface.co/LiquidAI/x.gguf"
+            val request = GateRequest(url, Purpose.MODEL_DOWNLOAD, userStarted = true)
+            val bytes =
+                g.stream(request) {
+                    activeDuring = g.active.value
+                    1_049_615_680L
+                }
+            assertEquals(1_049_615_680L, bytes)
+            assertEquals(1, activeDuring)
+            assertEquals(0, g.active.value)
+            val entry = g.log.value.single()
+            assertEquals("huggingface.co", entry.host)
+            assertEquals(Purpose.MODEL_DOWNLOAD, entry.purpose)
+            assertEquals(1_049_615_680L, entry.bytes)
+            // nothing went through fetch's transport: the caller streams by itself
+            assertTrue(sent.isEmpty())
+        }
+
+    @Test
+    fun streamKeepsOfflineModeAndLogsFailures() =
+        runTest {
+            val g = gate(offline = true)
+            val blocked =
+                runCatching { g.stream(GateRequest("https://huggingface.co/x.gguf", Purpose.MODEL_DOWNLOAD)) { 1L } }
+            // offline mode lets only a download the user started pass
+            assertTrue(blocked.exceptionOrNull() is OfflineException)
+            assertTrue(g.log.value.isEmpty())
+            val online = gate()
+            val cut =
+                runCatching {
+                    online.stream(GateRequest("https://huggingface.co/x.gguf", Purpose.MODEL_DOWNLOAD)) {
+                        throw IOException("cut")
+                    }
+                }
+            assertTrue(cut.exceptionOrNull() is IOException)
+            assertNull(
+                online.log.value
+                    .single()
+                    .code,
+            )
+        }
 }

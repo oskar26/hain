@@ -15,6 +15,9 @@ enum class AnswerLanguage { AUTO, DE, EN }
 /** Style of the answers (SETTINGS.md `answer_mode`). */
 enum class AnswerMode { AUTO, FAST, THOROUGH }
 
+/** Web search (SETTINGS.md `web_search`, 3b-2): on, ask first in the chat, or off. */
+enum class WebSearch { ON, ASK, OFF }
+
 /** Update check (SETTINGS.md `update_check`, T-212): off (default) or once a day when Hain starts. */
 enum class UpdateCheck { OFF, DAILY }
 
@@ -83,8 +86,17 @@ data class HainSettings(
     val offlineMode: Boolean = false,
     /** Network log keeps full addresses, not just the host (SETTINGS.md `network_log_detail`). */
     val networkLogDetail: Boolean = false,
+    /** Web search on, ask first, or off (SETTINGS.md `web_search`, 3b-2). Wikipedia and weather stay. */
+    val webSearch: WebSearch = WebSearch.ON,
+    /** Weather without a place uses the phone's last known location (3b-2, `weather_location`); asks first. */
+    val weatherLocation: Boolean = false,
     /** Own SearXNG address, asked first by the web search (SETTINGS.md `searxng_url`); empty = none. */
     val searxUrl: String = "",
+    /**
+     * Phone actions wait for a tap on their card (SETTINGS.md `confirm_actions`, 4b-2). Off: the card
+     * counts down 3 s with "Rückgängig", then the phone's app opens by itself.
+     */
+    val confirmActions: Boolean = true,
     /** Haptics, Settings → Look → "Vibration" (SETTINGS.md `haptics`). */
     val haptics: HapticStrength = HapticStrength.SUBTLE,
     /** Launcher icon, Settings → Look → "App icon" and onboarding (T-103). */

@@ -29,6 +29,9 @@ class SettingsRepository(
                 offlineMode = p[OFFLINE_MODE] ?: false,
                 networkLogDetail = p[NETWORK_LOG_DETAIL] ?: false,
                 searxUrl = p[SEARXNG_URL].orEmpty(),
+                confirmActions = p[CONFIRM_ACTIONS] ?: true,
+                webSearch = p[WEB_SEARCH].toEnum(WebSearch.ON),
+                weatherLocation = p[WEATHER_LOCATION] ?: false,
                 haptics = p[HAPTICS].toEnum(HapticStrength.SUBTLE),
                 appIcon = p[APP_ICON].toEnum(AppIcon.THREE_D),
                 game2048Best = p[GAME_2048_BEST] ?: 0,
@@ -117,6 +120,12 @@ class SettingsRepository(
 
     suspend fun setSearxUrl(value: String) = store.edit { it[SEARXNG_URL] = value.trim() }
 
+    suspend fun setConfirmActions(value: Boolean) = store.edit { it[CONFIRM_ACTIONS] = value }
+
+    suspend fun setWebSearch(value: WebSearch) = store.edit { it[WEB_SEARCH] = value.name }
+
+    suspend fun setWeatherLocation(value: Boolean) = store.edit { it[WEATHER_LOCATION] = value }
+
     suspend fun setHaptics(value: HapticStrength) = store.edit { it[HAPTICS] = value.name }
 
     suspend fun setAppIcon(value: AppIcon) = store.edit { it[APP_ICON] = value.name }
@@ -154,6 +163,9 @@ class SettingsRepository(
         val OFFLINE_MODE = booleanPreferencesKey("offline_mode")
         val NETWORK_LOG_DETAIL = booleanPreferencesKey("network_log_detail")
         val SEARXNG_URL = stringPreferencesKey("searxng_url")
+        val CONFIRM_ACTIONS = booleanPreferencesKey("confirm_actions")
+        val WEB_SEARCH = stringPreferencesKey("web_search")
+        val WEATHER_LOCATION = booleanPreferencesKey("weather_location")
         val HAPTICS = stringPreferencesKey("haptics")
         val GAME_2048_BEST = intPreferencesKey("game_2048_best")
         val APP_ICON = stringPreferencesKey("app_icon")

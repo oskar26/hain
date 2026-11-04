@@ -13,6 +13,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.DayOfWeek
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -41,6 +42,25 @@ class PhoneToolsTest {
             assertEquals(PhoneAction.Alarm(6, 30), r.action)
             assertEquals("06:30", r.label)
             assertTrue(r.forModel.contains("waiting_for_tap"))
+        }
+
+    @Test
+    fun repeatingAlarm() =
+        runTest {
+            val r = router.run(ToolCall("1", "set_alarm", mapOf("time" to "6:30", "days" to "Mo-Fr")), ctx)
+            assertNull(r.error)
+            assertEquals(PhoneAction.Alarm(6, 30, days = listOf(1, 2, 3, 4, 5)), r.action)
+            assertEquals("06:30 · Mo–Fr", r.label)
+            assertTrue(r.forModel.contains("MON,TUE,WED,THU,FRI"))
+            // Calendar numbers for AlarmClock.EXTRA_DAYS: Sunday = 1, Monday = 2
+            assertEquals(listOf(2, 3, 4, 5, 6), (r.action as PhoneAction.Alarm).calendarDays)
+            assertEquals(listOf(1), PhoneAction.Alarm(7, 0, days = listOf(7)).calendarDays)
+            val weekend = router.run(ToolCall("2", "set_alarm", mapOf("time" to "9:00", "days" to "weekend")), ctx)
+            assertEquals("09:00 · Sa, So", weekend.label)
+            assertEquals("Mon, Wed", SetAlarmTool.daysLabel(listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY), "en"))
+            assertEquals("täglich", SetAlarmTool.daysLabel(DayOfWeek.entries.toList(), "de"))
+            val bad = router.run(ToolCall("3", "set_alarm", mapOf("time" to "6:30", "days" to "manchmal")), ctx)
+            assertEquals("bad_arguments", bad.error)
         }
 
     @Test
@@ -111,6 +131,7 @@ class PhoneToolsTest {
         val all =
             listOf(
                 PhoneAction.Alarm(6, 30, "Joggen"),
+                PhoneAction.Alarm(7, 15, null, listOf(1, 2, 3, 4, 5)),
                 PhoneAction.Timer(600),
                 PhoneAction.CalendarEvent("Zahnarzt", millis(4, 15), millis(4, 16), "Ringstraße 1"),
                 PhoneAction.Navigate("Kölner Dom", null),

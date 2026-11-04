@@ -82,12 +82,11 @@ class ToolCallFixerTest {
 
     @Test
     fun missingRequiredValueAsksTheUser() {
-        val weather = fix("weather", "days" to 2)
-        assertNotNull(weather.problem)
-        assertEquals(true, weather.problem!!.contains("Ask the user which city"))
         assertNotNull(fix("set_alarm").problem)
-        assertNotNull(fix("weather", "place" to "  ").problem)
+        assertNotNull(fix("wikipedia").problem)
         assertNull(fix("weather", "place" to "Köln").problem)
+        // 3b-2: weather without a place is allowed; the tool uses the location or asks for the city
+        assertNull(fix("weather", "days" to 2).problem)
     }
 
     @Test
