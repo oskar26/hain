@@ -40,8 +40,8 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-050 | ChatEngine turn loop | feature | M | E | T-032,T-042,T-044,T-045,T-020 | review (no tools yet) |
 | T-051 | ChatViewModel + UI state | feature | S | E | T-050 | review |
 | T-052 | Chat screen | ui | M | E | T-051,T-011,T-012,T-013 | review |
-| T-057 | Branches, message queue, stopped/error states | feature | M | E | T-051 | review (subset 2d-2: stop at once, edit own message, ask again on any answer; redesign 03.11.: Gemini-style actions — tap own message → edit/copy, answer row copy/share/thumbs/again; branches/queue/follow-up suggestions open) |
-| T-058 | ChatViewport + scroll-to-bottom pill | ui | S | E | T-052 | todo |
+| T-057 | Branches, message queue, stopped/error states | feature | M | E | T-051 | review (subset 2d-2: stop at once, edit own message, ask again on any answer; redesign 03.11.: Gemini-style actions; 8b 04.11.: versions via parent_id/selected_at + "‹ 2/3 ›", waiting messages while Pim answers, DB v4; follow-up suggestions open) |
+| T-058 | ChatViewport + scroll-to-bottom pill | ui | S | E | T-052 | review (8b: follow only at the bottom, frosted pill with "Neue Antwort", animateItem; shared element composer→bubble not done) |
 | T-059 | ToolTimeline + SourceChips | ui | S | E | T-052,T-062 | review |
 | T-053 | Drawer: chat list, search, rename, delete, pin | ui | M | E | T-052,T-015 | review (redesign 03.11.: glass context menu with scale+fade, marked row, spring drawer + list motion) |
 | T-054 | Export & share chat | feature | S | E | T-053 | todo |
@@ -92,7 +92,7 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-143 | Pocket TTS on Android (ONNX, all language packs) | native | M | F | T-082 | todo |
 | T-142 | Voice mode screen | ui | M | F | T-140,T-141,T-016 | todo |
 | T-143 | Default assistant + screen context | feature | M | F | T-052 | todo |
-| T-144 | Widget + quick settings tile + share target | feature | S | F | T-052 | todo |
+| T-144 | Widget + quick settings tile + share target | feature | S | F | T-052 | review (8b: share text/links → new chat, Glance widget "Frag Pim", tile "Neuer Chat"; images/PDF share + tile→voice open) |
 | T-100 | Settings DataStore + screens | feature | M | B | T-015 | review (level 1 as icon tiles + sub pages, reduce-motion switch) |
 | T-101 | View/edit system prompt, custom instructions | ui | S | B | T-100,T-045 | review (custom instructions only) |
 | T-160 | Image edit kit | feature | M | D | T-082 | todo |

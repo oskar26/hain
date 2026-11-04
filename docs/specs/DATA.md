@@ -8,7 +8,7 @@ SQLite build: SQLCipher for Android (`net.zetetic:sqlcipher-android`), decided i
 | table | columns |
 |---|---|
 | `chat` | id PK, title, created_at, updated_at, model_id, pinned bool, private bool, archived bool |
-| `message` | id PK, chat_id FK, role (system/user/assistant/tool), content TEXT, reasoning TEXT?, tool_calls_json TEXT?, tool_call_id TEXT?, cards_json TEXT?, sources_json TEXT?, attachments_json TEXT?, created_at, tokens INT?, parent_id (for edit/regenerate branches), thinking_ms INT?, status (ok/stopped/failed) |
+| `message` | id PK, chat_id FK, role (system/user/assistant/tool), content TEXT, reasoning TEXT?, tool_calls_json TEXT?, tool_call_id TEXT?, cards_json TEXT?, sources_json TEXT?, attachments_json TEXT?, created_at, tokens INT?, parent_id (for edit/regenerate branches; 0 = first message), thinking_ms INT?, status (ok/stopped/failed), selected_at INT? (T-057: when this version was picked among its siblings; newest pick is shown) |
 | `message_fts` | FTS4(content, content='message'), unicode61 — Room keeps it in sync |
 | `chat_summary` | chat_id PK, summary, updated_at |
 | `memory_profile` | id=1, text, updated_at |
@@ -26,6 +26,11 @@ SQLite build: SQLCipher for Android (`net.zetetic:sqlcipher-android`), decided i
 | `installed_model` | id, file_path, sha256, size, installed_at, version |
 
 Migrations: every schema change = new Room version + migration test (`MigrationTestHelper`).
+
+Versions: 1 → 2 network log · 3 memory (Häppchen 7, PR #38) · **4 branches (T-057)**: adds `message.selected_at`
+and fills empty `parent_id` with the message before it by id (per chat), so old chats stay one line. On the 8b
+branch `MIGRATION_2_3` is a no-op placeholder; when #38 is merged its `MIGRATION_2_3` replaces it (same name on
+purpose). Test: `BranchMigrationTest` (v2 file from `schemas/…/2.json` → v4).
 
 ## Settings
 

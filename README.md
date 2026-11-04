@@ -89,6 +89,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🔄 Update check | Optional: once a day at start Hain asks GitHub if a newer version is out (stable or nightly) and shows a calm hint that opens the release page. Off until you say yes, nothing is installed by itself, the request shows in the network log | ✅ |
 | 🛠️ Developer mode | Hidden: tap the version in "About Hain" 7 times. Own GGUF model from Hugging Face (size, RAM hint, download with progress), sampling, context size, thinking, own system prompt, tokens per second under answers | ✅ |
 | ✏️ Chat extras | Automatic chat titles; tap your own message to edit or copy it. Chat list: small glass menu at each chat (pin, rename, delete), smooth drawer | ✅ |
+| 🌿 Versions & next question | Edit a message or ask again and the old version stays – switch with "‹ 2/3 ›" under the message. Send your next question while Pim still answers: it waits ("wartet", ✕ takes it back) and goes out afterwards. A frosted "↓" brings you back down ("Neue Antwort" when something new came in); the chat only follows new text while you are at the bottom | ✅ |
 | 📤 Export | Export a chat as Markdown or PDF | 🗓️ |
 | 🧭 Settings, part 2 | Glass tiles with their own colour and 3D icon, sub pages, own "reduce motion" switch, glossy 3D Pim, new first start. Language step at first start is in. Still open: brain picker in the top bar | 🚧 |
 | 🔧 Tools | Calculator and units, weather (Open-Meteo), Wikipedia (German/English), web search without API key that reads several pages (or your own SearXNG), reading a link, alarm, timer, calendar entry and route with a confirm card – Pim shows each step and its sources under the answer. Still open: weather card, repeating alarms | 🚧 |
@@ -100,7 +101,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🔒 Private chats | Chats that are never saved, app lock with fingerprint | 🗓️ |
 | 📄 Documents | Ask your PDFs and photos of text (PP-OCRv5), answers with sources | 🗓️ |
 | 🎙️ Voice | Dictation (Moonshine), read aloud, Pim's own voice | 🗓️ |
-| 📲 On the phone | Share menu target, widget, quick tile, default assistant | 🗓️ |
+| 📲 On the phone | Share text or links from any app into Hain (new chat, text in the box, nothing sent by itself), home screen widget "Ask Pim" (ask, new chat, last chat), quick settings tile "New chat". Still open: sharing pictures/PDFs, default assistant | 🚧 |
 | 🌳 Mini-apps | Many key-free integrations (e.g. KVB / Transitous), shown as trees in Pim's forest | 🗓️ later |
 | 🖼️ Images | Erase objects, remove background, upscale; optional image generation pack | 🗓️ later |
 
@@ -108,6 +109,12 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Version 0.1.8: versions, waiting messages, sharing, widget.**
+  - **Old versions stay.** When you edit one of your messages or tap "ask again", the old version is no longer thrown away. Under the message you see **‹ 2/3 ›** – tap the arrows to switch between the versions, together with everything that came after them. Your choice is saved.
+  - **Send while Pim answers.** You can type and send your next question while Pim is still writing. It waits above the message box ("wartet"), the ✕ takes it back, and it goes out on its own as soon as the answer is done. Stop ends only the current answer.
+  - **Calmer scrolling.** The chat only follows new text while you are at the bottom. Scroll up to read and it stays where you are; a small frosted **↓** brings you back, and says **"Neue Antwort"** when something new came in.
+  - **Share into Hain.** In any app tap **Share → Frag Pim**: a new chat opens with the text or link in the message box (a shared link keeps its page title). Nothing is sent until you tap send.
+  - **Widget and quick tile.** Add the **"Frag Pim"** widget to your home screen: the field opens a new chat with the keyboard, **+** starts a new chat, below it your last chat. In the quick settings you can add the tile **"Neuer Chat"**.
 - **Version 0.1.3.1.** Hain now shows its version in **Settings → About Hain** (with build number and commit). How the numbers work is in [docs/workflow/VERSIONING.md](docs/workflow/VERSIONING.md).
 - **Frosted glass menus.** The ⋯ menu, the long-press menu in the side panel and the thinking picker are now real frosted glass: the chat behind them shows through, softly blurred, with a thin light edge and a soft shadow. The rest of the screen only dims a little. On phones older than Android 12 the menus are a solid card.
 - **More Pim in the chat.** Pim is bigger while he thinks, sits small next to the newest answer, peeks in while he looks something up, is happy for a moment when the answer is done and gets a fright on an error. On the empty chat he is a bit bigger too. "Reduce motion" keeps him still.
