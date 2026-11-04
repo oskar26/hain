@@ -66,7 +66,8 @@ private fun prepared(
 
 private const val TAP_HINT =
     "Nothing is done yet, so never say it is set or added. A card under your answer shows it. " +
-        "In one short sentence say what you prepared and that a tap on the card's button does it."
+        "In one short sentence say what you prepared (German: vorbereitet) and that a tap on the card's " +
+        "button does it, e.g. 'Vorbereitet – tipp auf Stellen.'"
 
 /** `set_alarm`: AlarmClock.ACTION_SET_ALARM after the tap. */
 class SetAlarmTool : Tool {

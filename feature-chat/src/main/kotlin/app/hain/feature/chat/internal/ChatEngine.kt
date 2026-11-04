@@ -572,11 +572,17 @@ class ChatEngine(
         return RoundResult(output, reason, thoughtFor, stats)
     }
 
-    /** The live text without fake citations (T-220): only markers for sources of this turn. */
+    /**
+     * The live text without fake citations (T-220): only markers for sources of this turn. With a
+     * prepared phone action, "eingestellt" becomes "vorbereitet" (4b-2): nothing is done before the tap.
+     */
     private fun cleaned(
         text: CharSequence,
         turn: Turn,
-    ): String = CitationCleaner.clean(text.toString(), turn.sources.size)
+    ): String {
+        val clean = CitationCleaner.clean(text.toString(), turn.sources.size)
+        return if (turn.actions.isEmpty()) clean else ActionWording.clean(clean)
+    }
 
     /** "12*7" → answered by the calculator right away (TOOLS.md §5). */
     @Suppress("ReturnCount")
