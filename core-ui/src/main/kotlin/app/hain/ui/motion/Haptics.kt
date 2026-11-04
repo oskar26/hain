@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalView
  * How strong Hain's haptics are (T-096, Settings → Look → "Vibration", docs/design/HAPTICS.md).
  * [scale] multiplies the strength of every primitive. Default [SUBTLE].
  */
+@Suppress("MagicNumber") // the four strengths are the data
 enum class HapticLevel(
     val scale: Float,
 ) {
@@ -90,6 +91,7 @@ internal const val P_LOW_TICK = 8
  * The pattern of a moment at full strength (pure, unit-tested). Short and crisp, never a buzz:
  * only Composition primitives, scaled by the level later.
  */
+@Suppress("MagicNumber") // the pattern table is the data (docs/design/HAPTICS.md)
 fun HainHaptic.pattern(): List<HapticStep> =
     when (this) {
         HainHaptic.SEND -> listOf(HapticStep(P_CLICK, 0.7f))
@@ -141,6 +143,7 @@ fun scaled(
  * all of them, else the matching HapticFeedbackConstants. Never `vibrate(long)`, never a buzz.
  * Respects the level setting and the system's "touch feedback" switch.
  */
+@Suppress("TooManyFunctions") // one short, named call per haptic moment
 class HainHaptics(
     private val view: View,
     private val level: HapticLevel = HapticLevel.SUBTLE,
@@ -202,6 +205,7 @@ class HainHaptics(
             Settings.System.getInt(view.context.contentResolver, Settings.System.HAPTIC_FEEDBACK_ENABLED, 1) != 0
         }.getOrDefault(true)
 
+    @Suppress("SpreadOperator") // 1–2 primitives, no real copy cost
     @RequiresApi(Build.VERSION_CODES.S)
     private fun supportsAll(
         v: Vibrator,

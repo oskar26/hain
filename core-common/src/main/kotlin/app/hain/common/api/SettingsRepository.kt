@@ -55,7 +55,9 @@ class SettingsRepository(
     suspend fun setHaptics(value: HapticStrength) = store.edit { it[HAPTICS] = value.name }
 
     /** Keeps the higher of the stored and the new 2048 score. */
-    suspend fun recordGame2048(score: Int) = store.edit { if (score > (it[GAME_2048_BEST] ?: 0)) it[GAME_2048_BEST] = score }
+    suspend fun recordGame2048(score: Int) {
+        store.edit { if (score > (it[GAME_2048_BEST] ?: 0)) it[GAME_2048_BEST] = score }
+    }
 
     /** Back to the defaults; the 2048 best score stays. */
     suspend fun reset() =

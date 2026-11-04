@@ -324,7 +324,7 @@ private fun TileView(
                         (
                             if (digits <= 2) {
                                 BIG_SP
-                            } else if (digits == 3) {
+                            } else if (digits == THREE_DIGITS) {
                                 MID_SP
                             } else {
                                 SMALL_SP
@@ -406,6 +406,7 @@ private const val SLIDE_MS = 110
 private const val POP_MS = 90
 private const val GROW_MS = 140
 private const val POP = 1.14f
+private const val THREE_DIGITS = 3
 private const val BIG_SP = 30
 private const val MID_SP = 26
 private const val SMALL_SP = 20

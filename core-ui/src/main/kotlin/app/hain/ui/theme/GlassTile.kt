@@ -15,7 +15,8 @@ import androidx.compose.ui.unit.dp
 /**
  * Every "object" of the app (settings groups, tool and answer cards, packs, menus) sits on one of
  * these. Since Lichtung (docs/design/STYLE_OPTIONS.md) there is no coloured glass any more:
- * [hue] and [floorGlow] stay for the call sites, but every tile is a calm [calmTile]. The chat text itself never sits on one.
+ * [hue] and [floorGlow] stay for the call sites, but every tile is a calm [calmTile].
+ * The chat text itself never sits on one.
  */
 @Suppress("UnusedParameter", "UNUSED_PARAMETER") // hue/elevation/floorGlow: kept so call sites stay stable
 @Composable

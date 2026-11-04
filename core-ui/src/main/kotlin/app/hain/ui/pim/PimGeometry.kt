@@ -316,7 +316,7 @@ private fun DrawScope.drawMouth(
                 Path().apply {
                     moveTo(c.x - SMILE_HALF_W, c.y)
                     cubicTo(c.x - 2f, c.y - 2f, c.x - 1f, c.y + 2f, c.x + 1f, c.y)
-                    cubicTo(c.x + 2f, c.y - 2f, c.x + 3f, c.y + 1f, c.x + SMILE_HALF_W, c.y)
+                    cubicTo(c.x + 2f, c.y - 2f, c.x + WOBBLE_END, c.y + 1f, c.x + SMILE_HALF_W, c.y)
                 }
             drawPath(p, colors.eye, style = Stroke(width = PimGeometry.STROKE_W * 0.8f, cap = StrokeCap.Round))
         }
@@ -421,3 +421,5 @@ private const val O_H = 6f
 private const val O_MIN = 0.4f
 private const val YAWN_W = 8f
 private const val YAWN_H = 11f
+
+private const val WOBBLE_END = 3f

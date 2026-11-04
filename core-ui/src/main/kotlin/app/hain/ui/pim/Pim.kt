@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions") // Pim drawing: one small function per body part
+
 package app.hain.ui.pim
 
 import android.content.res.Configuration

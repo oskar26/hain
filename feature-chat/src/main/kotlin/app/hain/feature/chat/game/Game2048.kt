@@ -46,6 +46,8 @@ object Game2048 {
     const val SIZE = 4
     const val GOAL = 2048
     private const val FOUR_CHANCE = 0.1f
+    private const val TWO = 2
+    private const val FOUR = 4
 
     fun empty(): Board = Board(emptyList())
 
@@ -60,7 +62,7 @@ object Game2048 {
         val free = cells.filter { (r, c) -> board.at(r, c) == null }
         if (free.isEmpty()) return board
         val (r, c) = free[random.nextInt(free.size)]
-        val value = if (random.nextFloat() < FOUR_CHANCE) 4 else 2
+        val value = if (random.nextFloat() < FOUR_CHANCE) FOUR else TWO
         return board.copy(
             tiles = board.tiles + Tile(board.nextId, value, r, c, fresh = true),
             nextId = board.nextId + 1,

@@ -298,7 +298,8 @@ internal fun MessageList(
         val done = wasGenerating && !state.isGenerating
         wasGenerating = state.isGenerating
         val answer = state.messages.lastOrNull()
-        if (done && answer != null && !answer.isUser && state.error == null && !answer.stopped) {
+        val finished = answer != null && !answer.isUser && !answer.stopped
+        if (done && finished && state.error == null) {
             cheerId = answer.id
             delay(CHEER_MS)
             cheerId = null

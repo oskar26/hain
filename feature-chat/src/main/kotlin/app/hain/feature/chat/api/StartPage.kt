@@ -1,3 +1,5 @@
+@file:Suppress("MatchingDeclarationName") // the start page: Greeting + its Suggestion model
+
 package app.hain.feature.chat.api
 
 import androidx.compose.animation.AnimatedContent

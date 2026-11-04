@@ -401,7 +401,7 @@ internal fun bump(t: Float): Float = sin(t.coerceIn(0f, 1f) * PI.toFloat())
 /** Smooth ease in-out. */
 internal fun ease(t: Float): Float {
     val x = t.coerceIn(0f, 1f)
-    return x * x * (3f - 2f * x)
+    return x * x * (SMOOTH_A - 2f * x)
 }
 
 /** Rises fast, stays, falls (yawn). */
@@ -519,3 +519,5 @@ private const val ZZ_RISE = 6f
 private const val PLATEAU_IN = 0.25f
 private const val PLATEAU_OUT = 0.7f
 private const val DAMP = 5f
+
+private const val SMOOTH_A = 3f

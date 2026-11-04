@@ -132,13 +132,12 @@ fun HeroPim(
                         if (!PimEgg.shouldBurst(held)) delay(PimEgg.HOLD_MS - held)
                         if (mood == HeroMood.CHARGING) startBurst()
                     }
-                while (true) {
-                    val event = awaitPointerEvent()
-                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                    if (!change.pressed) break
+                var change = awaitPointerEvent().changes.firstOrNull { it.id == down.id }
+                while (change != null && change.pressed) {
                     tracker.addPosition(change.uptimeMillis, change.position)
                     val far = (change.position - down.position).getDistance() > viewConfiguration.touchSlop
-                    if (!moved && far && mood != HeroMood.CHARGING && !reduce) {
+                    val canDrag = !reduce && mood != HeroMood.CHARGING
+                    if (!moved && far && canDrag) {
                         moved = true
                         charging.cancel()
                         mood = HeroMood.DRAGGED
@@ -148,8 +147,10 @@ fun HeroPim(
                         change.consume()
                         val v = tracker.calculateVelocity()
                         dragVelocity = Offset(v.x, v.y)
-                        scope.launch { drag.snapTo(drag.value + change.positionChange()) }
+                        val delta = change.positionChange()
+                        scope.launch { drag.snapTo(drag.value + delta) }
                     }
+                    change = awaitPointerEvent().changes.firstOrNull { it.id == down.id }
                 }
                 charging.cancel()
                 when {
@@ -220,7 +221,7 @@ fun HeroPim(
                             translationX = (sin(t * SHAKE_A) + SHAKE_MIX * sin(t * SHAKE_B)) * shake
                             translationY = sin(t * SHAKE_C) * shake * SHAKE_MIX
                             rotationZ = sin(t * SHAKE_B) * TREMBLE_DEG * c * c
-                            transformOrigin = TransformOrigin(0.5f, GROW_FROM)
+                            transformOrigin = TransformOrigin(GROW_X, GROW_FROM)
                         }.then(gestures),
                 overlay = { base ->
                     val velocity = if (mood == HeroMood.DRAGGED) dragVelocity else drag.velocity
@@ -377,6 +378,7 @@ private val BURST_COLORS =
 private const val BURST_MS = 900
 private const val BURST_SPREAD = 4
 private const val RETURN_DELAY_MS = 600L
+private const val GROW_X = 0.5f
 private const val GROW_FROM = 0.5f
 private const val RELEASE_DAMPING = 0.55f
 private const val TENSE = 0.035f
