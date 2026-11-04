@@ -38,6 +38,8 @@ sqlcipher = "4.10.0"
 androidxSqlite = "2.5.2"
 robolectric = "4.16"
 androidxTestCore = "1.7.0"
+biometric = "1.1.0"
+fragment = "1.8.9"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
@@ -89,6 +91,10 @@ androidx-sqlite = { module = "androidx.sqlite:sqlite", version.ref = "androidxSq
 androidx-sqlite-bundled-jvm = { module = "androidx.sqlite:sqlite-bundled-jvm", version.ref = "androidxSqlite" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
+
+# App lock (T-056) — Apache-2.0, see LICENSES.md
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
+androidx-fragment = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

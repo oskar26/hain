@@ -176,4 +176,18 @@
         <item quantity="one">Noch 1×…</item>
         <item quantity="other">Noch %d×…</item>
     </plurals>
+    <!-- T-056 app lock, T-054 export all -->
+    <string name="settings_lock_title">App-Sperre</string>
+    <string name="settings_lock">Mit Fingerabdruck oder PIN sperren</string>
+    <string name="settings_lock_hint">Hain fragt nach deinem Fingerabdruck oder der PIN deines Handys, wenn du zurückkommst.</string>
+    <string name="settings_lock_unavailable">Für die App-Sperre richte zuerst eine Bildschirmsperre (PIN, Muster oder Fingerabdruck) in den Einstellungen deines Handys ein.</string>
+    <string name="settings_lock_delay">Wieder sperren nach</string>
+    <string name="settings_lock_now">Sofort</string>
+    <string name="settings_lock_1min">1 Min.</string>
+    <string name="settings_lock_5min">5 Min.</string>
+    <string name="settings_screenshots">Bildschirmfotos verhindern</string>
+    <string name="settings_screenshots_hint">Keine Bildschirmfotos oder Aufnahmen von Hain, und eine leere Vorschau bei den letzten Apps.</string>
+    <string name="settings_export_title">Export</string>
+    <string name="settings_export_all">Alle Chats exportieren</string>
+    <string name="settings_export_all_hint">Eine ZIP-Datei mit jedem Chat als Markdown-Datei. Du wählst, wo sie gespeichert wird.</string>
 </resources>

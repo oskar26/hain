@@ -41,7 +41,7 @@ Relevant: - mag keine Pilze (2026-10-07) - spielt Gitarre (2026-10-20)
 
 ## 4. Privacy
 
-- Memory off → nothing read or written. Private chat → nothing written, nothing read except L0 if setting allows.
+- Memory off → nothing read or written. Private chat → nothing written, nothing read except L0 if setting allows. T-056: a private chat lives only in `ChatStore` memory (`Chat.isPrivate`, `ChatStore.isPrivate(id)`), is never in the DB or the FTS index; the memory pipeline must skip every chat with `isPrivate = true`.
 - Delete fact → removed from fact table, vec table, FTS and any topic note containing it (LLM rewrite of that note, or remove the line).
 - Export: JSON (all layers) via SAF. Import validates schema.
 

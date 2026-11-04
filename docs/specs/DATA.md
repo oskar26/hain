@@ -7,7 +7,7 @@ SQLite build: SQLCipher for Android (`net.zetetic:sqlcipher-android`), decided i
 
 | table | columns |
 |---|---|
-| `chat` | id PK, title, created_at, updated_at, model_id, pinned bool, private bool, archived bool |
+| `chat` | id PK, title, created_at, updated_at, model_id, pinned bool, private bool, archived bool (T-056: private chats are never written, so `private` stays false in the DB; no schema change) |
 | `message` | id PK, chat_id FK, role (system/user/assistant/tool), content TEXT, reasoning TEXT?, tool_calls_json TEXT?, tool_call_id TEXT?, cards_json TEXT?, sources_json TEXT?, attachments_json TEXT?, created_at, tokens INT?, parent_id (for edit/regenerate branches), thinking_ms INT?, status (ok/stopped/failed) |
 | `message_fts` | FTS4(content, content='message'), unicode61 — Room keeps it in sync |
 | `chat_summary` | chat_id PK, summary, updated_at |

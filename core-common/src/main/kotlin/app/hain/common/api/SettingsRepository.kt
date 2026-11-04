@@ -37,6 +37,9 @@ class SettingsRepository(
                 updateAsked = p[UPDATE_ASKED] ?: false,
                 lastUpdateCheck = p[LAST_UPDATE_CHECK] ?: 0L,
                 dev = devOf(p),
+                appLock = p[APP_LOCK] ?: false,
+                lockDelay = p[APP_LOCK_DELAY].toEnum(LockDelay.IMMEDIATE),
+                blockScreenshots = p[BLOCK_SCREENSHOTS] ?: false,
             )
         }
 
@@ -121,6 +124,12 @@ class SettingsRepository(
 
     suspend fun setAppIcon(value: AppIcon) = store.edit { it[APP_ICON] = value.name }
 
+    suspend fun setAppLock(value: Boolean) = store.edit { it[APP_LOCK] = value }
+
+    suspend fun setLockDelay(value: LockDelay) = store.edit { it[APP_LOCK_DELAY] = value.name }
+
+    suspend fun setBlockScreenshots(value: Boolean) = store.edit { it[BLOCK_SCREENSHOTS] = value }
+
     /** Keeps the higher of the stored and the new 2048 score. */
     suspend fun recordGame2048(score: Int) {
         store.edit { if (score > (it[GAME_2048_BEST] ?: 0)) it[GAME_2048_BEST] = score }
@@ -129,13 +138,20 @@ class SettingsRepository(
     /**
      * Back to the defaults; developer mode, the update choice, the 2048 best score and the launcher
      * icon stay (changing the icon
-     * on the home screen should only ever happen when you pick it yourself).
+     * on the home screen should only ever happen when you pick it yourself). The app lock and the
+     * screenshot block stay too (T-056): a reset must never open a locked Hain.
      */
     suspend fun reset() =
         store.edit {
             val best = it[GAME_2048_BEST]
             val icon = it[APP_ICON]
-            val kept = it.asMap().filterKeys { key -> key.name.startsWith("dev_") || key.name.startsWith("update_") }
+            val kept =
+                it.asMap().filterKeys { key ->
+                    key.name.startsWith("dev_") ||
+                        key.name.startsWith("update_") ||
+                        key.name.startsWith("app_lock") ||
+                        key == BLOCK_SCREENSHOTS
+                }
             it.clear()
             if (best != null) it[GAME_2048_BEST] = best
             if (icon != null) it[APP_ICON] = icon
@@ -161,6 +177,9 @@ class SettingsRepository(
         val UPDATE_CHANNEL = stringPreferencesKey("update_channel")
         val UPDATE_ASKED = booleanPreferencesKey("update_asked")
         val LAST_UPDATE_CHECK = longPreferencesKey("update_last_check")
+        val APP_LOCK = booleanPreferencesKey("app_lock")
+        val APP_LOCK_DELAY = stringPreferencesKey("app_lock_delay")
+        val BLOCK_SCREENSHOTS = booleanPreferencesKey("block_screenshots")
         val DEV_ENABLED = booleanPreferencesKey("dev_enabled")
         val DEV_TEMPERATURE = floatPreferencesKey("dev_temperature")
         val DEV_TOP_K = intPreferencesKey("dev_top_k")

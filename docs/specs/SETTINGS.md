@@ -51,7 +51,9 @@ Level 1 = visible directly; level 2 = under "Erweitert / Advanced".
 | Phone | confirm_actions | bool | true | 1 |
 | | screen_context | bool | false | 1 |
 | Storage | downloads_wifi_only | bool | true | 1 |
-| Privacy | app_lock | bool | false | 1 |
+| Privacy | app_lock | bool (T-056: BiometricPrompt, BIOMETRIC_WEAK or DEVICE_CREDENTIAL; switching on asks once; mirrored in SharedPreferences `hain_start` so a cold start is locked before DataStore is read) | false | 1 |
+| | app_lock_delay | IMMEDIATE/ONE_MINUTE/FIVE_MINUTES (time in the background before it locks again; file picker / share sheet opened from Hain do not lock unless away > 5 min) | IMMEDIATE | 1 |
+| | block_screenshots | bool (FLAG_SECURE; recents preview blank, also with app_lock on Android 13+) | false | 1 |
 | | private_by_default | bool | false | 1 |
 | | auto_delete_days | 0(off)/7/30/90 | 0 | 1 |
 | Energy | battery_saver_threshold | 0/15/30 % | 15 | 2 |

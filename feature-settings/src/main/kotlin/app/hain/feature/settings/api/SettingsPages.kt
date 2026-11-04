@@ -131,6 +131,8 @@ internal fun SettingsPageContent(
                 actions.onOfflineMode,
             )
             SearxSetting(settings.searxUrl, actions.onSearxUrl)
+            AppLockSection(settings, actions, extras.lockAvailable)
+            ExportAllSection(actions)
             NetworkLogSection(networkLog, settings.networkLogDetail, actions)
         }
         SettingsPage.ABOUT -> AboutPage(settings, actions, extras.appInfo, extras.updateStatus)
