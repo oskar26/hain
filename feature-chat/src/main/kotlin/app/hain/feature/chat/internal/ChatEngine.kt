@@ -20,6 +20,7 @@ import app.hain.llm.internal.LfmPromptBuilder
 import app.hain.llm.internal.StreamSplitter
 import app.hain.llm.internal.ThinkingPolicy
 import app.hain.tools.api.HainTools
+import app.hain.tools.api.InfoCard
 import app.hain.tools.api.ResearchBudget
 import app.hain.tools.api.ResearchNotes
 import app.hain.tools.api.ToolContext
@@ -73,6 +74,8 @@ sealed interface TurnUpdate {
         val actions: List<ActionCard> = emptyList(),
         /** Speed of the last generation (developer mode, T-211). */
         val stats: GenerationStats? = null,
+        /** Weather and Wikipedia cards for under the answer (3b-2). */
+        val cards: List<InfoCard> = emptyList(),
     ) : TurnUpdate
 }
 
@@ -212,6 +215,7 @@ class ChatEngine(
                                 turn.trace.toList(),
                                 turn.actions.toList(),
                                 result.stats,
+                                cards = turn.cards.toList(),
                             ),
                         )
                         return@flow
@@ -244,6 +248,7 @@ class ChatEngine(
         val sources = mutableListOf<SourceRef>()
         val trace = mutableListOf<ToolTrace>()
         val actions = mutableListOf<ActionCard>()
+        val cards = mutableListOf<InfoCard>()
         val notes = ResearchNotes()
         val readUrls = mutableSetOf<String>()
         val readSites = mutableSetOf<String>()
@@ -361,6 +366,8 @@ class ChatEngine(
                 )
             // a phone action is only prepared here; the card under the answer asks before anything happens
             result.action?.let { turn.actions += ActionCard(it) }
+            // 3b-2: weather and Wikipedia as a card under the answer, one per place or article
+            result.card?.let { card -> if (turn.cards.none { it == card }) turn.cards += card }
         }
         val pages = readPages(router, planned.map { it.call }, results, ctx, turn, thinking)
         results.forEachIndexed { i, result ->

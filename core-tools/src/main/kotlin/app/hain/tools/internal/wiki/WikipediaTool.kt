@@ -5,6 +5,7 @@ import app.hain.common.api.net.NetworkGate
 import app.hain.common.api.net.Purpose
 import app.hain.llm.api.ToolSchema
 import app.hain.tools.api.Args
+import app.hain.tools.api.InfoCard
 import app.hain.tools.api.Tool
 import app.hain.tools.api.ToolContext
 import app.hain.tools.api.ToolResult
@@ -74,6 +75,7 @@ class WikipediaTool(
             forModel = json.toString(),
             label = summary.title,
             sources = listOf(ToolSource("Wikipedia: ${summary.title}", summary.url)),
+            card = InfoCard(InfoCard.WIKI, json.toString()),
         )
     }
 

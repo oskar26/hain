@@ -5,6 +5,7 @@ import app.hain.common.api.net.NetworkGate
 import app.hain.common.api.net.Purpose
 import app.hain.llm.api.ToolSchema
 import app.hain.tools.api.Args
+import app.hain.tools.api.InfoCard
 import app.hain.tools.api.Tool
 import app.hain.tools.api.ToolContext
 import app.hain.tools.api.ToolResult
@@ -72,6 +73,7 @@ class WeatherTool(
             forModel = json,
             label = hit.name,
             sources = listOf(ToolSource("Open-Meteo", SOURCE_URL)),
+            card = InfoCard(InfoCard.WEATHER, json),
         )
     }
 

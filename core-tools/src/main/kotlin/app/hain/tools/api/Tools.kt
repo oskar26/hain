@@ -56,7 +56,23 @@ data class ToolResult(
     val action: PhoneAction? = null,
     val via: String? = null,
     val hits: List<ToolHit> = emptyList(),
+    /** A card for under the answer (3b-2): weather or Wikipedia, shown as it was found. */
+    val card: InfoCard? = null,
 )
+
+/**
+ * What a tool found, for a card under the answer (3b-2): [kind] says which card, [data] is the
+ * compact JSON the tool also gave the brain (weather: place/now/days, Wikipedia: title/extract/url).
+ */
+data class InfoCard(
+    val kind: String,
+    val data: String,
+) {
+    companion object {
+        const val WEATHER = "weather"
+        const val WIKI = "wikipedia"
+    }
+}
 
 /** One tool the brain may call. [online] tools go through the NetworkGate. */
 interface Tool {

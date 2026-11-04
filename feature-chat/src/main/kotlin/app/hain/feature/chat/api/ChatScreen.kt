@@ -493,6 +493,8 @@ private fun Answer(
                 message.actions.forEachIndexed { index, card ->
                     ConfirmCard(card, { onAction(index, it) }, autoStart = autoStart)
                 }
+                // 3b-2: what the weather or Wikipedia tool found, as a card
+                message.cards.take(MAX_INFO_CARDS).forEach { InfoCardView(it) }
                 SourceChips(message.sources)
             }
             if (message.stopped) {
@@ -743,3 +745,5 @@ private const val AVATAR_PIM = 24
 private const val PEEK_SHIFT = 0.6f
 private const val PEEK_TILT = -8f
 private const val MS_PER_S = 1000f
+
+private const val MAX_INFO_CARDS = 3
