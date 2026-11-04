@@ -7,8 +7,8 @@ import app.hain.common.api.HainSettings
 import app.hain.common.api.SettingsRepository
 import app.hain.common.api.net.NetworkGate
 import app.hain.data.HainDatabase
-import app.hain.data.RoomNetworkLogStore
 import app.hain.data.KeystoreKeyProvider
+import app.hain.data.RoomNetworkLogStore
 import app.hain.feature.chat.internal.ChatStore
 import app.hain.feature.chat.internal.RoomChatPersistence
 import app.hain.llm.api.LlmEngine
