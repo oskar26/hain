@@ -273,4 +273,33 @@
     <!-- T-058 Scroll-Pille -->
     <string name="chat_new_answer">Neue Antwort</string>
     <string name="chat_scroll_down_new">Neue Antwort, nach unten springen</string>
+    <!-- Häppchen 10: dictation (T-140) and read aloud (T-141) -->
+    <string name="chat_mic">Diktieren</string>
+    <string name="chat_mic_hint">Diktieren: tippen zum Starten, nochmal tippen zum Stoppen, oder gedrückt halten</string>
+    <string name="chat_mic_stop">Diktat beenden</string>
+    <string name="chat_dictation_cancel">Diktat abbrechen</string>
+    <string name="chat_dictation_done">Fertig</string>
+    <string name="chat_dictation_listening">Pim hört zu</string>
+    <string name="chat_dictation_writing">Pim schreibt mit…</string>
+    <string name="chat_dictation_no_speech">Ich habe nichts gehört. Versuch es nochmal etwas lauter.</string>
+    <string name="chat_dictation_no_mic">Das Mikro ist gerade nicht frei.</string>
+    <string name="chat_dictation_engine">Das Diktat hat nicht geklappt. Wenn das öfter passiert, lade das Sprachpaket neu.</string>
+    <string name="chat_mic_permission">Zum Diktieren braucht Pim dein Mikro. Pim hört nur zu, solange du willst – die Aufnahme bleibt auf deinem Handy und ist danach gleich weg.</string>
+    <string name="chat_mic_allow">Erlauben</string>
+    <string name="chat_mic_denied">Das Mikro ist für Hain aus. Du kannst es in den Einstellungen deines Handys erlauben.</string>
+    <string name="chat_mic_open_settings">Einstellungen</string>
+    <string name="chat_voice_pack">Für das Diktat lädt Pim einmal das Sprachpaket %1$s (%2$s). Danach klappt es ohne Internet.</string>
+    <string name="chat_voice_pack_get">Laden</string>
+    <string name="chat_voice_pack_loading">Sprachpaket wird geladen… %1$d %%</string>
+    <string name="chat_voice_pack_ready">Das Diktat ist bereit. Tipp aufs Mikro.</string>
+    <string name="chat_voice_pack_failed">Laden hat nicht geklappt.</string>
+    <string name="chat_voice_pack_retry">Nochmal</string>
+    <string name="chat_voice_close">Schließen</string>
+    <string name="chat_voice_lang_de">Deutsch</string>
+    <string name="chat_voice_lang_en">Englisch</string>
+    <string name="chat_read_aloud">Vorlesen</string>
+    <string name="chat_read_stop">Vorlesen stoppen</string>
+    <string name="chat_read_failed">Dein Handy hat keine Stimme für diese Sprache. Du kannst eine in den Android-Einstellungen unter Sprachausgabe laden.</string>
+    <string name="chat_read_code">Codeblock übersprungen</string>
+    <string name="chat_read_formula">Formel übersprungen</string>
 </resources>

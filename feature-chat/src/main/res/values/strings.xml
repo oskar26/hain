@@ -273,4 +273,33 @@
     <!-- T-058 scroll pill -->
     <string name="chat_new_answer">New answer</string>
     <string name="chat_scroll_down_new">New answer, jump down</string>
+    <!-- Häppchen 10: dictation (T-140) and read aloud (T-141) -->
+    <string name="chat_mic">Dictate</string>
+    <string name="chat_mic_hint">Dictate: tap to start and tap again to stop, or press and hold</string>
+    <string name="chat_mic_stop">Finish dictation</string>
+    <string name="chat_dictation_cancel">Cancel dictation</string>
+    <string name="chat_dictation_done">Done</string>
+    <string name="chat_dictation_listening">Pim is listening</string>
+    <string name="chat_dictation_writing">Pim is writing it down…</string>
+    <string name="chat_dictation_no_speech">I didn\'t hear anything. Try again a bit louder.</string>
+    <string name="chat_dictation_no_mic">The mic isn\'t free right now.</string>
+    <string name="chat_dictation_engine">Dictation didn\'t work. If this keeps happening, download the speech pack again.</string>
+    <string name="chat_mic_permission">To dictate, Pim needs your mic. Pim only listens while you want – the recording stays on your phone and is gone right after.</string>
+    <string name="chat_mic_allow">Allow</string>
+    <string name="chat_mic_denied">The mic is off for Hain. You can allow it in your phone\'s settings.</string>
+    <string name="chat_mic_open_settings">Settings</string>
+    <string name="chat_voice_pack">For dictation Pim downloads the %1$s speech pack once (%2$s). After that it works without internet.</string>
+    <string name="chat_voice_pack_get">Download</string>
+    <string name="chat_voice_pack_loading">Downloading speech pack… %1$d %%</string>
+    <string name="chat_voice_pack_ready">Dictation is ready. Tap the mic.</string>
+    <string name="chat_voice_pack_failed">The download didn\'t work.</string>
+    <string name="chat_voice_pack_retry">Try again</string>
+    <string name="chat_voice_close">Close</string>
+    <string name="chat_voice_lang_de">German</string>
+    <string name="chat_voice_lang_en">English</string>
+    <string name="chat_read_aloud">Read aloud</string>
+    <string name="chat_read_stop">Stop reading</string>
+    <string name="chat_read_failed">Your phone has no voice for this language. You can add one in Android settings under text-to-speech.</string>
+    <string name="chat_read_code">Code block skipped</string>
+    <string name="chat_read_formula">Formula skipped</string>
 </resources>

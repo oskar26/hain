@@ -101,7 +101,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🧠 Memory | "Remember that …" / "Merk dir, dass …" and "Forget that …", Pim can also keep something itself (`remember` tool); fitting memories go into the answer. Settings → Memory: search, edit, delete, undo, suggestions for private things, on/off, export/import as a file, delete all. Everything stays encrypted on the phone. Still open: finding by meaning (embedder), automatic memories from chats, topics | 🚧 |
 | 🔒 Private chats | Private chat (eye button at the top): never saved, never searched, deleted when you leave it, tools still work. App lock with fingerprint or the phone's PIN (right away / 1 min / 5 min), block screenshots | ✅ |
 | 📄 Documents | Ask your PDFs and photos of text (PP-OCRv5), answers with sources | 🗓️ |
-| 🎙️ Voice | Dictation (Moonshine), read aloud, Pim's own voice | 🗓️ |
+| 🎙️ Voice | Dictation with the mic in the message box (Moonshine Small, German + English, on your phone, speech pack loads on first use), read aloud under every answer (phone voice in Pim's pitch). Still open: Pim's own voice (Pocket TTS), voice mode | 🚧 |
 | 📲 On the phone | Share text or links from any app into Hain (new chat, text in the box, nothing sent by itself), home screen widget "Ask Pim" (ask, new chat, last chat), quick settings tile "New chat". Still open: sharing pictures/PDFs, default assistant | 🚧 |
 | 🌳 Mini-apps | Many key-free integrations (e.g. KVB / Transitous), shown as trees in Pim's forest | 🗓️ later |
 | 🖼️ Images | Erase objects, remove background, upscale; optional image generation pack | 🗓️ later |
@@ -125,6 +125,8 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
   - **Calmer scrolling.** The chat only follows new text while you are at the bottom. Scroll up to read and it stays where you are; a small frosted **↓** brings you back, and says **"Neue Antwort"** when something new came in.
   - **Share into Hain.** In any app tap **Share → Frag Pim**: a new chat opens with the text or link in the message box (a shared link keeps its page title). Nothing is sent until you tap send.
   - **Widget and quick tile.** Add the **"Frag Pim"** widget to your home screen: the field opens a new chat with the keyboard, **+** starts a new chat, below it your last chat. In the quick settings you can add the tile **"Neuer Chat"**.
+- **Version 0.1.10: Pim listens and talks.** Tap the **mic** next to send and speak – tap again (or tap **Fertig**) when you are done; or **hold** the mic while you speak and let go. Slide off the button or tap ✕ to throw it away. Green bars show that Pim hears you, then “Pim schreibt mit…”, and the text lands in the message box, where you can still change it before sending. It works in German and English (the language of your answers) and **completely on your phone**: the first time, Pim asks for the mic (only then) and loads a speech pack once (German 166 MB, English 209 MB, also in Settings → Knowledge packs). The recording is never stored and never leaves the phone.
+- **Read aloud.** Under every answer there is now a speaker: Pim reads the answer sentence by sentence, without the Markdown signs (code blocks are skipped, links are read as their domain). Tap again to stop. For now this is your phone's own voice, a bit higher and faster like Pim; Pim's own voice comes later.
 - **Version 0.1.4 – tools, the rest.**
   - **Repeating alarms.** "Weck mich jeden Werktag um 6:30", "täglich um 7", "montags und donnerstags um 8": the card shows the days (Mo–Fr, Jeden Tag …) and your clock app gets a repeating alarm.
   - **Pim says what really happened.** After an alarm, timer, event or route Pim now says "vorbereitet – tipp auf Stellen" instead of "eingestellt", because nothing happens before your tap. The card says it too.
@@ -218,7 +220,7 @@ Hain speaks of "knowledge packs" instead of "models". Only the brain is needed; 
 | Brain (base) | LFM3-1.7B QAD Q4_0 | 1.0 GB | chat, tools, memory |
 | Remember & files | LFM2.5-Embedding-350M | ~0.2 GB | search in memory, chats, files |
 | Reading text | PaddleOCR PP-OCRv5 mobile (Latin) | 12 MB | PDFs and photos, without Google |
-| Dictation | Moonshine Small | ~0.12–0.25 GB | microphone, DE + EN |
+| Dictation | Moonshine Streaming Small (ONNX int8) | 166 MB (DE) / 209 MB (EN) | microphone, DE + EN, loads on first use |
 | See + talk (optional) | LFM3-Omni-2B | 1.65 GB | photos, voice mode |
 | Image generation (optional) | SD 1.5 + DMD2 | 1.1 GB | only phones with 8 GB RAM+ |
 
@@ -339,7 +341,7 @@ Architecture: [docs/specs/ARCHITECTURE.md](docs/specs/ARCHITECTURE.md) · Design
 
 ## Auf Deutsch
 
-Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Gerät läuft: chatten, rechnen, Wetter und Wikipedia nachschauen, im Web suchen, Nachrichten aus einem festen Mix (inkl. junge Welt) oder eigenen Feeds lesen und von Pim zusammenfassen lassen, Wecker, Timer, Termine und Routen vorbereiten (du bestätigst jedes Mal mit einem Tipp), und bald auch Fotos und PDFs verstehen, sprechen und sich Dinge merken. Keine Cloud, kein Konto, keine API-Schlüssel. Ins Internet geht Hain nur, wenn du etwas brauchst, und zeigt dir genau, wohin die Anfrage geht. Das ganze Konzept steht in [docs/concept/KONZEPT.md](docs/concept/KONZEPT.md).
+Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Gerät läuft: chatten, rechnen, Wetter und Wikipedia nachschauen, im Web suchen, Nachrichten aus einem festen Mix (inkl. junge Welt) oder eigenen Feeds lesen und von Pim zusammenfassen lassen, Wecker, Timer, Termine und Routen vorbereiten (du bestätigst jedes Mal mit einem Tipp), sich Dinge merken („Merk dir …“), Listen und Checklisten als Karten zeigen, private Chats führen, Chats exportieren, Nachrichten diktieren (Mikro neben Senden, Deutsch und Englisch, alles auf dem Handy) und Antworten vorlesen, und bald auch Fotos und PDFs verstehen. Keine Cloud, kein Konto, keine API-Schlüssel. Ins Internet geht Hain nur, wenn du etwas brauchst, und zeigt dir genau, wohin die Anfrage geht. Das ganze Konzept steht in [docs/concept/KONZEPT.md](docs/concept/KONZEPT.md).
 
 **Installieren:** Auf dem Handy die [Nightly-Seite](https://github.com/oskar26/hain/releases/tag/nightly) öffnen, `hain-debug.apk` laden, beim Öffnen „Unbekannte Apps installieren“ für den Browser erlauben, installieren. Beim ersten Start lädt Pim das Gehirn (ca. 1 GB, am besten im WLAN) – das kannst du auch überspringen und später im Chat nachholen. Updates einfach drüber installieren, Chats und Gehirn bleiben erhalten.
 

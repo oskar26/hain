@@ -52,6 +52,7 @@ import app.hain.entry.WidgetData
 import app.hain.entry.applyTo
 import app.hain.feature.chat.api.ChatExtras
 import app.hain.feature.chat.api.ChatScreen
+import app.hain.feature.chat.api.ChatVoice
 import app.hain.feature.chat.export.ChatZip
 import app.hain.feature.chat.export.exportLabels
 import app.hain.feature.chat.export.fileDate
@@ -288,6 +289,11 @@ class MainActivity : FragmentActivity() {
     /** T-211: own models from Hugging Face for developer mode. */
     private val devModels by lazy { DevModels(models, networkGate, deviceRamGb()) }
 
+    /** Häppchen 10: dictation (Moonshine pack) and read aloud for the chat, in the answer language. */
+    private val chatVoice by lazy {
+        ChatVoice.create(applicationContext, models, networkGate) { toolLanguage(current) }
+    }
+
     private fun chatViewModel(
         prompts: SystemPromptSource,
         settings: () -> HainSettings,
@@ -492,6 +498,7 @@ class MainActivity : FragmentActivity() {
                                 onOpenNews = { showNews = true },
                                 brainPicker = brainPicker,
                                 focusTick = composerFocus,
+                                voice = chatVoice,
                                 extras =
                                     ChatExtras(
                                         showStats = dev.enabled && dev.showStats,

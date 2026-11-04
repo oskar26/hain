@@ -57,6 +57,8 @@ fun Composer(
     queueLabel: String = sendLabel,
     /** T-144: lets the screen open the keyboard (widget "Frag Pim"). */
     focusRequester: FocusRequester? = null,
+    // Häppchen 10: the mic sits right next to send
+    trailing: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
@@ -98,6 +100,7 @@ fun Composer(
         ) {
             leading()
             Spacer(Modifier.weight(1f))
+            trailing()
             AnimatedContent(targetState = isGenerating, label = "send-stop") { generating ->
                 if (generating) {
                     Row(verticalAlignment = Alignment.CenterVertically) {

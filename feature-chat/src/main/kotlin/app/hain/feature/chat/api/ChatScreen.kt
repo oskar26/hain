@@ -118,8 +118,11 @@ fun ChatScreen(
     brainPicker: BrainPickerState? = null,
     /** Counts up when the message box should get the keyboard (widget "Frag Pim", T-144). */
     focusTick: Int = 0,
+    voice: ChatVoice? = null,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    // Häppchen 10: dictation in the message box, read aloud under the answers (null = no voice)
+    val voiceUi = voice?.let { rememberVoiceUi(it) }
     val composerFocus = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
     LaunchedEffect(focusTick) {
@@ -211,7 +214,7 @@ fun ChatScreen(
                         val ratings by viewModel.ratings.collectAsStateWithLifecycle()
                         // T-131: checklist ticks are saved, card buttons can ask the next question
                         val cards = remember(viewModel) { CardHandler(viewModel::updateCards, viewModel::ask) }
-                        CompositionLocalProvider(LocalCardHandler provides cards) {
+                        CompositionLocalProvider(LocalCardHandler provides cards, LocalChatVoice provides voice) {
                             MessageList(
                                 state,
                                 ratings = ratings,
@@ -231,6 +234,7 @@ fun ChatScreen(
             // T-057: messages sent while Pim answers wait here ("wartet", ✕ takes one back)
             if (state.queue.isNotEmpty()) QueuedMessages(state.queue, viewModel::cancelQueued)
             if (state.editingId != null) EditBar(onCancel = viewModel::cancelEdit)
+            voiceUi?.let { VoicePanel(it, state.input, viewModel::onInputChange) }
             Composer(
                 text = state.input,
                 onTextChange = viewModel::onInputChange,
@@ -251,6 +255,7 @@ fun ChatScreen(
                 modifier = Modifier.padding(LocalHainSpacing.current.md),
                 // T-084: the thinking level lives inside the message box (brain + popover)
                 leading = { ThinkingPicker(answerMode, onAnswerMode) },
+                trailing = { voiceUi?.let { MicButton(it, enabled = !state.isGenerating) } },
             )
         }
         ChatListDrawer(
@@ -651,8 +656,8 @@ private fun AnswerStats(
 }
 
 /**
- * The quiet row under a finished answer (T-057): copy, share, thumbs, ask again — evenly spaced,
- * grey. "Read aloud" joins here once Hain can speak (Häppchen 10).
+ * The quiet row under a finished answer (T-057): copy, share, read aloud (Häppchen 10, when the app
+ * gave the chat a voice), thumbs, ask again — evenly spaced, grey.
  */
 @Composable
 private fun AnswerActions(
@@ -674,6 +679,7 @@ private fun AnswerActions(
         external()
         context.startActivity(Intent.createChooser(send, shareLabel))
     })
+    ReadAloudAction(text)
     MessageAction(
         MessageActionKind.THUMB_UP,
         stringResource(R.string.chat_good_answer),

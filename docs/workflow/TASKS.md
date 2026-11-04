@@ -104,8 +104,8 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-123 | Chunking + doc search tool + attach in chat | feature | M | D | T-121,T-122,T-062 | todo |
 | T-130 | Card parser | feature | S | E | T-002 | done |
 | T-131 | Card renderer + GBNF | ui | M | E | T-130,T-014 | done |
-| T-140 | STT Moonshine + mic button | feature | M | F | T-082 | todo |
-| T-141 | TTS Piper + read aloud | feature | M | F | T-082 | todo |
+| T-140 | STT Moonshine + mic button | feature | M | F | T-082 | review (Hark, hark/day-10) |
+| T-141 | TTS (system voice, Pim pitch) + read aloud | feature | M | F | T-082 | review (Hark, hark/day-10) |
 | T-143 | Pocket TTS on Android (ONNX, all language packs) | native | M | F | T-082 | todo |
 | T-142 | Voice mode screen | ui | M | F | T-140,T-141,T-016 | todo |
 | T-143 | Default assistant + screen context | feature | M | F | T-052 | todo |
@@ -989,12 +989,27 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - accept:
   - device test
 - check: `device`
+- done (Häppchen 10, 04.11.): instead of sherpa-onnx (no Maven AAR) Moonshine Streaming Small runs directly on ONNX
+  Runtime 1.28.0 (`MoonshineStt`: frontend → encoder → adapter → cross K/V → decoder with self K/V, greedy;
+  `MoonshineTokenizer` decodes ▁ + byte fallback). Packs `moonshine-small-de` / `-en` in catalog.json (7 files each,
+  pinned commit + SHA-256, own folder, chain download in `DefaultModelRepository`, HEAD preflight through the
+  NetworkGate). `DictationController` (mic → level → resample 16 kHz → silence trim → text, max 60 s, engine kept
+  90 s). Mic in the composer (tap/tap, hold/let go, slide off = cancel, TalkBack click), recording bar (✕, level
+  bars, clock, Fertig), RECORD_AUDIO asked on first tap after a card. Whole utterance after stop instead of live
+  partials; Silero VAD not used (energy trim). Host check: Kotlin pipeline on JVM ORT = reference text DE+EN.
+  Device test open.
 
 ### T-141 · TTS Piper + read aloud
 
 - type: `feature` · size: `M` · lane: `F` · depends: T-082
 - read: VOICE.md
 - files: core-voice/.../tts/*.kt
+- done (Häppchen 10, 04.11.): `SpeechText` (Markdown → sentences, unit-tested), `ReadAloudController` (2 sentences
+  ahead, stop, one answer at a time) behind `SpeechSynth`; engine = Android system TTS (`SystemSpeech`, pitch 1.1225 +
+  rate 1.15, started lazily), "Vorlesen" in the answer row. Pocket TTS (Pim's own voice) stays T-143: public ONNX
+  exports are English-only with voice `alba` baked in (soniqo/Pocket-TTS-100M-ONNX-INT8, exporter
+  csukuangfj/pocket-tts-onnx-export) or need Arm's closed engine (Arm/pocket-tts-de-mix-precision); anna + DE needs an
+  own export. Open from the card: Pim/Neutral setting, amplitude envelope, DeviceCheck RTF fallback, language packs.
 - do:
   1. Text prep (unit-tested), sentence pipelining, speed. Pim voice per VOICE.md: Pocket TTS voice anna +2 st, speed 1.15 in every language, English pack always installed, setup language picker downloads the chosen pack, system TTS fallback by DeviceCheck RTF, pitch via AudioTrack PlaybackParams, setting Pim/Neutral, amplitude envelope flow for Pim speaking motion; compare with assets/voice/samples.
 - accept:
