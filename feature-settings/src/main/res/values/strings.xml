@@ -64,6 +64,7 @@
     <string name="settings_log_other">Other</string>
     <string name="settings_log_place">Place search</string>
     <string name="settings_log_download">Download</string>
+    <string name="settings_log_news">News</string>
     <string name="settings_log_empty">Nothing yet. Hain has not been online.</string>
     <string name="settings_log_detail">Show full addresses</string>
     <string name="settings_log_detail_hint">Keeps what was looked up, too. Off by default.</string>
