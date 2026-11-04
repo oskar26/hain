@@ -213,11 +213,11 @@ private fun Hub(
     tile(SettingsPage.ANSWERS)
     tile(SettingsPage.YOU)
     // T-115: what Pim keeps about you, on its own page
-    Tile(Hain3D.BULB, GlowHue.LILAC, R.string.settings_memory, R.string.settings_memory_hint, actions.onOpenMemory)
+    Tile(Hain3D.BULB, GlowHue.LILAC, R.string.settings_memory, R.string.settings_memory_hint) { actions.onOpenMemory() }
     // T-234: "Modelle & Pakete" (knowledge, brains, multimedia, voice, extras), each with its own page
-    Tile(Hain3D.PARCEL, GlowHue.SUN, R.string.settings_packs, R.string.settings_packs_hint, actions.onOpenPacks)
+    Tile(Hain3D.PARCEL, GlowHue.SUN, R.string.settings_packs, R.string.settings_packs_hint) { actions.onOpenPacks() }
     actions.onOpenNews?.let { news ->
-        Tile(Hain3D.NEWS, GlowHue.PEACH, R.string.settings_news, R.string.settings_news_hint, news)
+        Tile(Hain3D.NEWS, GlowHue.PEACH, R.string.settings_news, R.string.settings_news_hint, onClick = news)
     }
     tile(SettingsPage.PRIVACY)
     tile(SettingsPage.ABOUT)
