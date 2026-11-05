@@ -20,21 +20,22 @@ class CatalogParserTest {
 
     @Test
     fun bundledCatalogHasTheStrongBrainAsOptionalPack() {
-        // T-240: Underdog Poodle 4B Q4_K_M, pinned revision, not the default (LFM3 stays standard)
+        // T-240: Jan-v3.5-4B Q4_K_M (ADR-24), pinned revision, not the default (LFM3 stays standard)
         val models = CatalogParser.parse(File("src/main/assets/catalog.json").readText())
         val strong = models.single { it.kind == "brain" && it.isStrong }
-        assertEquals("Underdog-Poodle-4B.Q4_K_M.gguf", strong.files.single().fileName)
-        assertEquals(2_783_447_424L, strong.totalSize)
-        assertEquals("6068fc8fe09a94a8f53a815d06365c857847ec4966307acd7c6b0e4f625da686", strong.files.single().sha256)
+        assertEquals("Jan-v3.5-4B-Q4_K_M.gguf", strong.files.single().fileName)
+        assertEquals(2_716_066_656L, strong.totalSize)
+        assertEquals("2f5305d93100ad9105eeb47c45ef1af99ba6d568c734fc267b0628b3be41c07a", strong.files.single().sha256)
         assertTrue(
             strong.files
                 .single()
                 .url
-                .contains("/resolve/86a171fc122c3989f57826cfd8eb589d3b879b81/"),
+                .contains("/resolve/2b0fcab0066198e78f7c004a0815179fbce13985/"),
         )
         assertEquals(8, strong.minRamGb)
         assertEquals(12, strong.recommendRamGb)
         assertTrue(!strong.isDefault)
+        assertEquals("Apache-2.0", strong.licence)
         assertEquals(ModelInfo.TIER_STANDARD, models.single { it.kind == "brain" && it.isDefault }.tier)
     }
 

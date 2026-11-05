@@ -30,7 +30,7 @@ data class ModelInfo(
 ) {
     val totalSize: Long get() = files.sumOf { it.size }
 
-    /** T-240: the optional "Großes Gehirn" for strong phones (Underdog Poodle 4B). */
+    /** T-240: the optional "Großes Gehirn" for strong phones (Jan-v3.5-4B, ADR-24). */
     val isStrong: Boolean get() = tier == TIER_STRONG
 
     /** Packs of several files (dictation: graphs + tokenizer) live in their own folder (T-140). */
