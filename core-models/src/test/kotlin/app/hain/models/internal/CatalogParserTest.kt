@@ -19,6 +19,26 @@ class CatalogParserTest {
     }
 
     @Test
+    fun bundledCatalogHasTheStrongBrainAsOptionalPack() {
+        // T-240: Underdog Poodle 4B Q4_K_M, pinned revision, not the default (LFM3 stays standard)
+        val models = CatalogParser.parse(File("src/main/assets/catalog.json").readText())
+        val strong = models.single { it.kind == "brain" && it.isStrong }
+        assertEquals("Underdog-Poodle-4B.Q4_K_M.gguf", strong.files.single().fileName)
+        assertEquals(2_783_447_424L, strong.totalSize)
+        assertEquals("6068fc8fe09a94a8f53a815d06365c857847ec4966307acd7c6b0e4f625da686", strong.files.single().sha256)
+        assertTrue(
+            strong.files
+                .single()
+                .url
+                .contains("/resolve/86a171fc122c3989f57826cfd8eb589d3b879b81/"),
+        )
+        assertEquals(8, strong.minRamGb)
+        assertEquals(12, strong.recommendRamGb)
+        assertTrue(!strong.isDefault)
+        assertEquals(ModelInfo.TIER_STANDARD, models.single { it.kind == "brain" && it.isDefault }.tier)
+    }
+
+    @Test
     fun bundledCatalogHasTheEmbedderPack() {
         val models = CatalogParser.parse(File("src/main/assets/catalog.json").readText())
         val embed = models.single { it.kind == ModelInfo.KIND_EMBED }

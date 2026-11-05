@@ -28,6 +28,28 @@
       "default": true
     },
     {
+      "id": "underdog-poodle-4b-q4_k_m",
+      "name": "Underdog Poodle 4B",
+      "kind": "brain",
+      "tier": "strong",
+      "lang": [
+        "de",
+        "en"
+      ],
+      "files": [
+        {
+          "url": "https://huggingface.co/mradermacher/Underdog-Poodle-4B-GGUF/resolve/86a171fc122c3989f57826cfd8eb589d3b879b81/Underdog-Poodle-4B.Q4_K_M.gguf",
+          "sha256": "6068fc8fe09a94a8f53a815d06365c857847ec4966307acd7c6b0e4f625da686",
+          "size": 2783447424
+        }
+      ],
+      "min_ram_gb": 8,
+      "recommend_ram_gb": 12,
+      "licence": "Apache-2.0 (release of 24.10.2026, based on Qwen3.5-4B)",
+      "licence_url": "https://huggingface.co/ConwayResearch/Underdog-Poodle-4B/blob/163db2fcddadb699e20871368b0ad33d28d4956f/README.md",
+      "default": false
+    },
+    {
       "id": "moonshine-small-de",
       "name": "Moonshine Small (Deutsch)",
       "kind": "stt",

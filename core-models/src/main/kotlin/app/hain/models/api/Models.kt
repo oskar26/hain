@@ -23,8 +23,15 @@ data class ModelInfo(
     val isDefault: Boolean,
     /** Languages of the model (catalog `lang`); a dictation pack has exactly one (T-140). */
     val lang: List<String> = emptyList(),
+    /** T-240: brain tier (catalog `tier`): [TIER_STANDARD] for every phone, [TIER_STRONG] = "Großes Gehirn". */
+    val tier: String = TIER_STANDARD,
+    /** T-240: memory in GB from which this pack is recommended (catalog `recommend_ram_gb`), else [minRamGb]. */
+    val recommendRamGb: Int = minRamGb,
 ) {
     val totalSize: Long get() = files.sumOf { it.size }
+
+    /** T-240: the optional "Großes Gehirn" for strong phones (Underdog Poodle 4B). */
+    val isStrong: Boolean get() = tier == TIER_STRONG
 
     /** Packs of several files (dictation: graphs + tokenizer) live in their own folder (T-140). */
     val isMultiFile: Boolean get() = files.size > 1
@@ -35,6 +42,12 @@ data class ModelInfo(
 
         /** The pack "Suche nach Bedeutung" for the memory (T-110, MEMORY.md §3). */
         const val KIND_EMBED = "embed"
+
+        /** T-240: brain for every phone (LFM3 1.7B). */
+        const val TIER_STANDARD = "standard"
+
+        /** T-240: optional bigger brain, offered only on phones with enough memory. */
+        const val TIER_STRONG = "strong"
 
         /** T-237: a knowledge pack (offline Wikipedia, Kiwix ZIM) for the `wikipedia` tool. */
         const val KIND_KNOWLEDGE = "knowledge"

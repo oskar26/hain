@@ -54,6 +54,7 @@
     <string name="packs_wiki_top_desc">The intros of the most read articles. Small, good to start with.</string>
     <string name="packs_wiki_big_desc">The intro of almost every article. Big – best over Wi-Fi.</string>
     <string name="packs_brain_desc">Pim\'s brain: answers, thinks and uses tools.</string>
+    <string name="packs_brain_strong_desc">Big brain for strong phones: picks tools more carefully and writes better German, but answers more slowly. Optional, the standard brain stays.</string>
     <string name="packs_stt_desc">Dictation in this language, runs on your phone.</string>
     <string name="packs_ocr_title">Text recognition</string>
     <string name="packs_ocr_desc">Reads text in photos and scanned PDFs (PP-OCRv5). Small, runs on your phone.</string>
