@@ -85,7 +85,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🌱 First start | Playful welcome tour with Pim, brain download (LFM3-1.7B, 1.0 GB) with resume and checksum, celebration screen; the download can wait or run in the background | ✅ |
 | 🗂️ Saved chats | Stored encrypted on the phone; search, rename, pin, delete, grouped by day | ✅ |
 | ⚙️ Settings | Theme, app icon (3D or flat), easy-to-read font, answer mode (fast / auto / thorough), answer language, "about me" and answer style. Thinking level also right in the message box (brain button) | ✅ |
-| 🧠 Choose the brain | Tap "Hain · On this phone" at the top: a small frosted menu lists the brains on your phone with a plain name ("Quick brain"), model and size, marks the one recommended for your phone and loads your pick in the background with progress. Brains not on your phone lead to Knowledge packs | ✅ |
+| 🧠 Choose the brain | Tap "Hain · On this phone" at the top: a small frosted menu lists the brains on your phone with a plain name ("Quick brain"), model and size, marks the one recommended for your phone and loads your pick in the background with progress. Brains not on your phone lead to Knowledge packs. On phones with 8 GB of memory or more there is also the optional **Big brain · for strong phones** (Jan-v3.5-4B, 2.7 GB): better at picking tools, about three times slower; LFM3 stays the standard | ✅ |
 | 📦 Models & packs | Settings → Models & packs, sorted into Knowledge, Brains, Multimedia, Voice and Extras: see, download and remove packs, with hints on what fits your phone. **Wikipedia offline** (German ~136 MB or all articles ~4.7 GB, English ~297 MB or 1 million articles ~3 GB): with a pack the Wikipedia tool answers without internet | ✅ |
 | 🎨 Look | One calm design "Lichtung": lots of white, fine hairlines, Hain green only as an accent, radii 12–16 dp, quiet line icons; light font (Hanken Grotesk), dark mode; "Reduce motion" stops all movement | ✅ |
 | 📱 Tablets | From 840 dp width (tablet in landscape, open foldable, big split screen) the chat list stays open on the left, and settings show the list and the open page side by side. Phones stay as they are | ✅ |
@@ -117,6 +117,10 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Version 0.1.10.4 – a big brain for strong phones.**
+  - **Big brain · for strong phones.** Phones with 8 GB of memory or more can load a second, bigger brain: **Jan-v3.5-4B** (2.7 GB, Apache-2.0). It picks the right tool and fills it in more reliably, but answers about three times slower than the standard brain. You find it in the brain menu at the top ("Hain · On this phone") and under **Models & packs → Brains**; from 12 GB it is marked "Recommended for your phone". Loading and switching is always your choice – **LFM3 stays the standard brain** for everyone, nothing changes by itself.
+  - **Answer modes stay.** Auto, Fast and Thorough still decide how long Pim thinks and searches. The big brain never shows a thinking block; "Thorough" still gives it the bigger search budget.
+  - **Faster start for every brain.** The fixed part of Pim's instructions (tools and rules) is kept on your phone after the first read and loaded next time instead of being read again, so the first answer after opening Hain comes sooner.
 - **Version 0.1.10.3 – News becomes a real news reader.** Open the side panel → **News**:
   - **Pictures and a calm layout.** A frosted top bar, the mode chips in one line, a big **top story** with its picture, then cards with source, time, headline, teaser and a picture on the right. **Pull the list down** to refresh. Now 19 sources (new: ZDFheute, DW Deutsch, DER SPIEGEL, Süddeutsche, NPR); each feed loads on its own, so a slow one never blocks the rest, and the sources take turns instead of one site filling the screen.
   - **Read right in Hain.** A tap opens the article in a clean **reading view**: picture, source, time, headline, author, then the text with its pictures and charts. **Aa** changes text size, serif or sans, line spacing and colours (like the app, light, dark, sepia). **Open website** and **Share** stay at the top.
@@ -246,6 +250,7 @@ Hain speaks of "knowledge packs" instead of "models". Only the brain is needed; 
 | Pack | Model | Size | Purpose |
 |---|---|---|---|
 | Brain (base) | LFM3-1.7B QAD Q4_0 | 1.0 GB | chat, tools, memory |
+| Big brain (optional) | Jan-v3.5-4B Q4_K_M | 2.7 GB | stronger tool use; offered from 8 GB RAM, recommended from 12 GB |
 | Remember & files | LFM2.5-Embedding-350M | ~0.2 GB | search in memory, chats, files |
 | Reading text | PaddleOCR PP-OCRv5 mobile (detection + Latin + line orientation, ONNX) | 14 MB | scanned PDFs and photos, without Google (asked when first needed) |
 | Dictation | Moonshine Streaming Small (ONNX int8) | 166 MB (DE) / 209 MB (EN) | microphone, DE + EN, loads on first use |
@@ -369,7 +374,7 @@ Architecture: [docs/specs/ARCHITECTURE.md](docs/specs/ARCHITECTURE.md) · Design
 
 ## Auf Deutsch
 
-Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Gerät läuft: chatten, rechnen, Wetter und Wikipedia nachschauen, im Web suchen, Nachrichten aus einem festen Mix (inkl. junge Welt) oder eigenen Feeds mit Bildern direkt in der App lesen, mit täglichem Briefing und Fragen an Pim zum Artikel, Wecker, Timer, Termine und Routen vorbereiten (du bestätigst jedes Mal mit einem Tipp), sich Dinge merken („Merk dir …“), Listen und Checklisten als Karten zeigen, private Chats führen, Chats exportieren, Nachrichten diktieren (Mikro neben Senden, Deutsch und Englisch, alles auf dem Handy), Antworten vorlesen und deine PDFs, Fotos von Seiten und Textdateien verstehen (Büroklammer, Texterkennung auf dem Handy). Wikipedia gibt es auch als Paket fürs Handy (ohne Internet), und auf Tablets bleibt die Chat-Liste links offen. Keine Cloud, kein Konto, keine API-Schlüssel. Ins Internet geht Hain nur, wenn du etwas brauchst, und zeigt dir genau, wohin die Anfrage geht. Das ganze Konzept steht in [docs/concept/KONZEPT.md](docs/concept/KONZEPT.md).
+Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Gerät läuft: chatten, rechnen, Wetter und Wikipedia nachschauen, im Web suchen, Nachrichten aus einem festen Mix (inkl. junge Welt) oder eigenen Feeds mit Bildern direkt in der App lesen, mit täglichem Briefing und Fragen an Pim zum Artikel, Wecker, Timer, Termine und Routen vorbereiten (du bestätigst jedes Mal mit einem Tipp), sich Dinge merken („Merk dir …“), Listen und Checklisten als Karten zeigen, private Chats führen, Chats exportieren, Nachrichten diktieren (Mikro neben Senden, Deutsch und Englisch, alles auf dem Handy), Antworten vorlesen und deine PDFs, Fotos von Seiten und Textdateien verstehen (Büroklammer, Texterkennung auf dem Handy). Wikipedia gibt es auch als Paket fürs Handy (ohne Internet), und auf Tablets bleibt die Chat-Liste links offen. Auf starken Handys (ab 8 GB Arbeitsspeicher) kannst du zusätzlich das freiwillige „Große Gehirn“ laden (Jan-v3.5-4B): wählt Werkzeuge zuverlässiger, antwortet aber langsamer; LFM3 bleibt das Standard-Gehirn. Keine Cloud, kein Konto, keine API-Schlüssel. Ins Internet geht Hain nur, wenn du etwas brauchst, und zeigt dir genau, wohin die Anfrage geht. Das ganze Konzept steht in [docs/concept/KONZEPT.md](docs/concept/KONZEPT.md).
 
 **Installieren:** Auf dem Handy die [Nightly-Seite](https://github.com/oskar26/hain/releases/tag/nightly) öffnen, `hain-debug.apk` laden, beim Öffnen „Unbekannte Apps installieren“ für den Browser erlauben, installieren. Beim ersten Start lädt Pim das Gehirn (ca. 1 GB, am besten im WLAN) – das kannst du auch überspringen und später im Chat nachholen. Updates einfach drüber installieren, Chats und Gehirn bleiben erhalten.
 
@@ -377,7 +382,7 @@ Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Ger
 
 ## Licence
 
-[GPL-3.0](LICENSE). Model weights are not bundled and keep their own licences (e.g. LFM Open License v1.0).
+[GPL-3.0](LICENSE). Model weights are not bundled and keep their own licences (e.g. LFM Open License v1.0 for LFM3, Apache-2.0 for the optional Jan-v3.5-4B).
 
 ## Name & Pim / Trademarks
 

@@ -88,7 +88,7 @@ hain/
 │   ├── decisions/ADR.md     architecture decisions (why), do not change
 │   ├── concept/             product concept (German) + research reports + PDF
 │   └── design/              5 UI mockups (style direction only)
-├── prompts/                 system prompts + official LFM3 chat templates
+├── prompts/                 system prompts + official chat templates (LFM3, Jan-v3.5-4B)
 ├── assets/mascot/           Pim artwork
 └── (code, created by tasks)  app/, core-*/, feature-*/, third_party/llama.cpp
 ```
@@ -98,7 +98,7 @@ hain/
 | Area | Version 1 |
 |---|---|
 | Chat | streaming, markdown, code, tables, LaTeX, edit/regenerate/stop, chat list, search, export, share |
-| Models | LFM3-1.7B Q4 (default brain), switchable; optional LFM3-Omni-2B (see + speak) |
+| Models | LFM3-1.7B Q4 (default brain), switchable; optional "Big brain" Jan-v3.5-4B Q4_K_M for phones with 8 GB+ (ADR-24, Qwen3 format via `BrainFormat`); optional LFM3-Omni-2B (see + speak) |
 | Tools | web search (no API key), news (3 modes), weather, wikipedia, calculator/units, alarm/timer/calendar/maps intents |
 | Documents | PDF text layer → PP-OCRv5 Latin → German fix → optional PaddleOCR-VL |
 | Voice | Moonshine Small (dictation), Piper thorsten (DE) / cori (EN), Kokoro optional |

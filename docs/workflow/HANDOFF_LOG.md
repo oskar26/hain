@@ -632,3 +632,21 @@ Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen 
 - `hain.versionName=0.1.10.3`.
 - 05.11. main (mit #52, 0.1.10.2) in `hark/news-reader` gemergt: Konflikte in README, STATUS, HANDOFF_LOG, website/content.ts (Screenshots + Galerie beider Stände), gradle.properties (bleibt 0.1.10.3), NewsScreen.kt (T-238 `TextAction` 48 dp jetzt in `NewsCards.kt`, mind. 48 × 48 dp). NewsTool (Top-Schlagzeilen ohne Thema), Einstellungseintrag „Nachrichten“, MainActivity (Wikipedia-Pakete + News-Reader) automatisch zusammengeführt.
 - 05.11. CI: `8879379` (T-075 `TextAction` mit `onClick =`) kompiliert; danach rot in `NewsViewModelTest` (Leseansicht entfernt doppelte Absätze → Testseiten mit gleichen Absätzen zu kurz) → `a449a0a`/`b19d4b9` Tests mit verschiedenen Absätzen. Robolectric-Download-Flake (core-data/core-docs, IOException) einmalig, beim nächsten Lauf weg. CI @`b19d4b9`: assemble · test · lint · strings, debug APK (0.1.10.3, versionCode 197, `unzip -t` + apksigner ok) und Screens grün. Screens `news_*` in docs/design/screens/ + Website-WebPs (news, news_reader, DE/EN, hell/dunkel) aus dem Screens-Artifact.
+
+## 2026-11-05 · 0.1.10.4 – Großes Gehirn (Jan-v3.5-4B) · review · harness: Hark · model: Hark · branch `hark/brain-poodle` (PR #54)
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-240 | review | `BrainChoiceTest` (Stufe angeboten/empfohlen/verborgen), `CatalogParserTest` (Jan-Eintrag, Rev., sha256, Lizenz) | – | Tempo auf 8-/12-GB-Gerät |
+| T-241 | review | `QwenPromptBuilderTest` (Goldens Q-01…Q-06 aus dem Jinja der Jan-GGUF + Regeln), `StreamSplitterTest` (JSON-Call), `DevTuningTest` | `NewsBrain.kt`, `MemoryExtraction.kt` (Format des geladenen Gehirns) | Antwortqualität im echten Chat |
+| T-242 | review | CI (nativer Build) | `hain_session.h`, `hain_llm.cpp` | Snapshot-Größe/Ladezeit auf dem Gerät |
+| T-243 | review | Host-Test: 6/6 Werkzeug, 6/6 Argumente, 0/4 unnötig, kalt 83 s, Snapshot 2,9 s + Rest, Spitze 5,79 GB (Sandbox) | `docs/research/jan-host-test.md` | Gerätemessung |
+| T-244 | review | `tools/check_strings.py`, ktlint/detekt lokal | – | – |
+
+- Entscheidung Oskar 05.11. 08:02: Jan statt Poodle (Poodle-Basismodell seit 05.11. 05:45 MEZ CC BY-NC 4.0). Katalog, Format, Goldens, Doku umgestellt; ADR-24 nennt den Lizenzwechsel als Grund.
+- Jan = Qwen3-Architektur mit Qwen3-Template (JSON-Tool-Calls, kein Denken) – anders als Poodle (Qwen3.5, XML-Calls). `QwenPromptBuilder` neu gebaut; Werkzeug-Block bewusst vor dem System-Text (fester Teil ~1.580 Token bleibt speicherbar), im Host-Test beide Reihenfolgen geprüft.
+- RAM-Schwellen (8/12 GB) geprüft und belassen: Jan-Spitze 5,36 GB (ctx 4096) bzw. 5,8 GB (ctx 8192) ≈ 0,3 GB unter Poodle.
+- Der unfertige Doku-Stand aus dem ersten Lauf (nicht committet) war beim Start nicht mehr da; Doku neu für Jan geschrieben.
+- main (#53 News-Reader) ohne Konflikte hineingemergt. Gradle lokal nicht gestartet (paralleler Lauf), CI ist das Gate.
+- `hain.versionName=0.1.10.4`.
+
