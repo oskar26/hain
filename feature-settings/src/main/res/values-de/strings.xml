@@ -51,13 +51,13 @@
     <string name="packs_wiki_de_all">Wikipedia Deutsch · alle Artikel</string>
     <string name="packs_wiki_en_top">Wikipedia Englisch · meistgelesen</string>
     <string name="packs_wiki_en_1m">Wikipedia Englisch · 1 Million Artikel</string>
-    <string name="packs_wiki_top_desc">Die Einleitungen der meistgelesenen Artikel. Klein, gut zum Anfangen.</string>
-    <string name="packs_wiki_big_desc">Die Einleitung fast jedes Artikels. Groß – am besten im WLAN laden.</string>
-    <string name="packs_brain_desc">Pims Gehirn: antwortet, denkt nach und nutzt Werkzeuge.</string>
-    <string name="packs_brain_strong_desc">Großes Gehirn für starke Handys: wählt Werkzeuge genauer und schreibt besseres Deutsch, antwortet aber langsamer. Freiwillig, das Standard-Gehirn bleibt.</string>
-    <string name="packs_stt_desc">Diktieren in dieser Sprache, läuft auf deinem Handy.</string>
+    <string name="packs_wiki_top_desc">Die Einleitungen der meistgelesenen Artikel, offline. Klein und gut zum Anfangen; ohne Paket fragt Pim Wikipedia online.</string>
+    <string name="packs_wiki_big_desc">Die Einleitung fast jedes Artikels. Groß – nur sinnvoll, wenn du oft offline bist; am besten im WLAN laden.</string>
+    <string name="packs_brain_desc">Das Standard-Gehirn (LFM3-Omni 2B): schnell, gutes Deutsch, nutzt Werkzeuge. Für fast jedes Handy die beste Wahl.</string>
+    <string name="packs_brain_strong_desc">Großes Gehirn (Jan 4B) für Handys ab 8 GB RAM: wählt Werkzeuge genauer und schreibt besseres Deutsch, antwortet aber deutlich langsamer und braucht viel Platz. Lohnt sich, wenn dir Qualität wichtiger ist als Tempo.</string>
+    <string name="packs_stt_desc">Diktieren mit Moonshine, komplett offline. Lohnt sich, wenn du oft sprichst statt tippst; sonst reicht die Spracheingabe deiner Tastatur.</string>
     <string name="packs_ocr_title">Texterkennung</string>
-    <string name="packs_ocr_desc">Liest Text in Fotos und gescannten PDFs (PP-OCRv5). Klein, läuft auf deinem Handy.</string>
+    <string name="packs_ocr_desc">Liest Text in Fotos und gescannten PDFs (PP-OCRv5), offline. Lohnt sich, wenn du oft Arbeitsblätter, Briefe oder Schilder fotografierst; PDFs mit echtem Text gehen auch ohne.</string>
     <string name="packs_failed">Hat nicht geklappt. Versuch es noch mal.</string>
     <string name="settings_news">Nachrichten</string>
     <string name="settings_news_hint">Deine Quellen und wie Nachrichten erscheinen.</string>
@@ -240,4 +240,5 @@
     <string name="settings_export_all">Alle Chats exportieren</string>
     <string name="settings_export_all_hint">Eine ZIP-Datei mit jedem Chat als Markdown-Datei. Du wählst, wo sie gespeichert wird.</string>
     <string name="packs_embed_desc">Suche nach Bedeutung: Pim findet deine Erinnerungen auch, wenn du andere Worte benutzt. Klein, läuft offline, und alles bleibt auf dem Handy.</string>
+    <string name="packs_brain_legacy_desc">Das bisherige Gehirn (LFM3 1,7B). Das Standard-Gehirn antwortet meist besser; behalte es nur, wenn dir seine Antworten lieber sind. Löschen gibt Platz frei.</string>
 </resources>
