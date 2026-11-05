@@ -146,4 +146,20 @@ class StreamSplitterTest {
         val run = runChunks(output, true, listOf(output))
         assertEquals(listOf<String?>(null), run.deltas.filterIsInstance<UiDelta.ToolCallStarted>().map { it.name })
     }
+
+    @Test
+    fun jsonToolCallOfTheBigBrainAnnouncesItsName() {
+        // T-241: Jan-v3.5-4B (Qwen3 format) writes the call as JSON inside <tool_call>
+        val output =
+            "Ich schaue nach.\n<tool_call>\n{\"name\": \"weather\", \"arguments\": {\"city\": \"Köln\"}}\n</tool_call>"
+        val run = runChunks(output, false, charByChar(output))
+        assertEquals(listOf<String?>("weather"), run.deltas.filterIsInstance<UiDelta.ToolCallStarted>().map { it.name })
+        assertEquals(
+            mapOf("city" to "Köln"),
+            run.parsed.toolCalls
+                .single()
+                .arguments,
+        )
+        assertEquals("Ich schaue nach.", run.parsed.text)
+    }
 }

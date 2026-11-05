@@ -131,6 +131,9 @@ interface LlmEngine {
     /** Stops the running generation (or prefill) as soon as possible, even inside a long prompt. */
     fun cancel()
 
+    /** T-241: chat format of the loaded brain (template, sampling, thinking); [BrainFormat.LFM] when none is loaded. */
+    val format: BrainFormat get() = BrainFormat.LFM
+
     /** Chat template stored in the loaded GGUF (`tokenizer.chat_template`), or `null` (T-211). */
     fun chatTemplate(): String? = null
 

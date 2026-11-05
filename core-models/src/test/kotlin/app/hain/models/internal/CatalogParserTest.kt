@@ -19,6 +19,27 @@ class CatalogParserTest {
     }
 
     @Test
+    fun bundledCatalogHasTheStrongBrainAsOptionalPack() {
+        // T-240: Jan-v3.5-4B Q4_K_M (ADR-24), pinned revision, not the default (LFM3 stays standard)
+        val models = CatalogParser.parse(File("src/main/assets/catalog.json").readText())
+        val strong = models.single { it.kind == "brain" && it.isStrong }
+        assertEquals("Jan-v3.5-4B-Q4_K_M.gguf", strong.files.single().fileName)
+        assertEquals(2_716_066_656L, strong.totalSize)
+        assertEquals("2f5305d93100ad9105eeb47c45ef1af99ba6d568c734fc267b0628b3be41c07a", strong.files.single().sha256)
+        assertTrue(
+            strong.files
+                .single()
+                .url
+                .contains("/resolve/2b0fcab0066198e78f7c004a0815179fbce13985/"),
+        )
+        assertEquals(8, strong.minRamGb)
+        assertEquals(12, strong.recommendRamGb)
+        assertTrue(!strong.isDefault)
+        assertEquals("Apache-2.0", strong.licence)
+        assertEquals(ModelInfo.TIER_STANDARD, models.single { it.kind == "brain" && it.isDefault }.tier)
+    }
+
+    @Test
     fun bundledCatalogHasTheEmbedderPack() {
         val models = CatalogParser.parse(File("src/main/assets/catalog.json").readText())
         val embed = models.single { it.kind == ModelInfo.KIND_EMBED }

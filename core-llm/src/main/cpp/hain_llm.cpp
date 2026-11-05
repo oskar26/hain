@@ -2,6 +2,7 @@
 // hain_session.h so it can be tested on a computer without Android.
 #include <jni.h>
 
+#include <algorithm>
 #include <atomic>
 #include <cstring>
 #include <mutex>
@@ -143,17 +144,34 @@ Java_app_hain_llm_internal_NativeLlm_nativeKvReuse(JNIEnv *, jobject, jlong hand
     if (s != nullptr) s->kvReuse = enabled;
 }
 
-// [loadMs, promptTokens, reusedTokens, prefillMs, genTokens, genMs] of the last calls.
+// [loadMs, promptTokens, reusedTokens, prefillMs, genTokens, genMs, restoredMs] of the last calls;
+// restoredMs (T-242) is the time a snapshot from disk took, -1 when none was loaded.
 JNIEXPORT jfloatArray JNICALL
 Java_app_hain_llm_internal_NativeLlm_nativeStats(JNIEnv *env, jobject, jlong handle) {
     Session *s = session(handle);
-    jfloatArray out = env->NewFloatArray(6);
+    jfloatArray out = env->NewFloatArray(7);
     if (s == nullptr) return out;
     const auto &st = s->stats;
-    float v[6] = {(float) st.loadMs,    (float) st.promptTokens, (float) st.reusedTokens,
-                  (float) st.prefillMs, (float) st.genTokens,    (float) st.genMs};
-    env->SetFloatArrayRegion(out, 0, 6, v);
+    float v[7] = {(float) st.loadMs,    (float) st.promptTokens, (float) st.reusedTokens,
+                  (float) st.prefillMs, (float) st.genTokens,    (float) st.genMs,
+                  (float) s->restoredMs};
+    env->SetFloatArrayRegion(out, 0, 7, v);
     return out;
+}
+
+// T-242: folder for memory snapshots of the system prompt (created by the caller); null = off.
+JNIEXPORT void JNICALL
+Java_app_hain_llm_internal_NativeLlm_nativeSetStateDir(JNIEnv *env, jobject, jlong handle, jstring dir) {
+    Session *s = session(handle);
+    if (s == nullptr) return;
+    if (dir == nullptr) {
+        s->stateDir.clear();
+        return;
+    }
+    const char *cdir = env->GetStringUTFChars(dir, nullptr);
+    s->stateDir = cdir;
+    env->ReleaseStringUTFChars(dir, cdir);
+    s->modelKey = hain::modelKeyOf(s->model, llama_n_ctx(s->ctx));
 }
 
 // Reads a prompt prefix (e.g. the system prompt) into memory ahead of the first message.
@@ -202,6 +220,22 @@ Java_app_hain_llm_internal_NativeLlm_nativeGenerate(JNIEnv *env, jobject, jlong 
     };
     return hain::generate(s, bytesOf(env, promptUtf8), intsOf(env, cutBytes), p.data(), (int) nParams,
                           cgrammar.empty() ? nullptr : cgrammar.c_str(), ccard.empty() ? nullptr : ccard.c_str(), emit);
+}
+
+// T-241: one GGUF metadata value (e.g. general.architecture) as UTF-8 bytes, or null.
+JNIEXPORT jbyteArray JNICALL
+Java_app_hain_llm_internal_NativeLlm_nativeMeta(JNIEnv *env, jobject, jlong handle, jstring key) {
+    Session *s = session(handle);
+    if (s == nullptr) return nullptr;
+    const char *ckey = env->GetStringUTFChars(key, nullptr);
+    char buf[256];
+    int32_t n = llama_model_meta_val_str(s->model, ckey, buf, sizeof(buf));
+    env->ReleaseStringUTFChars(key, ckey);
+    if (n < 0) return nullptr;
+    const auto len = (jsize) std::min<int32_t>(n, (int32_t) sizeof(buf) - 1);
+    jbyteArray out = env->NewByteArray(len);
+    env->SetByteArrayRegion(out, 0, len, reinterpret_cast<const jbyte *>(buf));
+    return out;
 }
 
 // T-211: chat template stored in the GGUF (tokenizer.chat_template) as UTF-8 bytes, or null.

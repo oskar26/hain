@@ -28,6 +28,28 @@
       "default": true
     },
     {
+      "id": "jan-v3.5-4b-q4_k_m",
+      "name": "Jan-v3.5 4B",
+      "kind": "brain",
+      "tier": "strong",
+      "lang": [
+        "de",
+        "en"
+      ],
+      "files": [
+        {
+          "url": "https://huggingface.co/janhq/Jan-v3.5-4B-gguf/resolve/2b0fcab0066198e78f7c004a0815179fbce13985/Jan-v3.5-4B-Q4_K_M.gguf",
+          "sha256": "2f5305d93100ad9105eeb47c45ef1af99ba6d568c734fc267b0628b3be41c07a",
+          "size": 2716066656
+        }
+      ],
+      "min_ram_gb": 8,
+      "recommend_ram_gb": 12,
+      "licence": "Apache-2.0",
+      "licence_url": "https://huggingface.co/janhq/Jan-v3.5-4B-gguf/blob/2b0fcab0066198e78f7c004a0815179fbce13985/README.md",
+      "default": false
+    },
+    {
       "id": "moonshine-small-de",
       "name": "Moonshine Small (Deutsch)",
       "kind": "stt",

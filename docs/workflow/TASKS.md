@@ -155,6 +155,11 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-211 | Developer mode (7× tap on the version): own GGUF from Hugging Face, sampling, context, thinking, own system prompt, speed + debug info | feature | M | C | T-214,T-032 | review (04.11., extras PR) |
 | T-212 | Update check: version.json on nightly + v* releases, optional daily check via NetworkGate (purpose UPDATE), one-time ask card, calm banner → release page | feature | S | C | T-214,T-215 | review (04.11., extras PR) |
 | T-216 | Zurück-Pfeil zeigt nach links: Einstellungs-Unterseiten nutzen `HainIcons.back` (Lucide chevron-left, autoMirrored) statt chevron-right | fix | XS | B | T-214 | review (04.11., extras PR) |
+| T-240 | Großes Gehirn: Jan-v3.5-4B Q4_K_M als optionale Stufe für starke Handys (Katalog `tier`/`recommend_ram_gb`, Gehirn-Wähler, Modelle & Pakete, DeviceCheck, ADR-24) | feature | M | C | T-055,T-084 | review (05.11., 0.1.10.6, Draft-PR #54) |
+| T-241 | Qwen3-Chatformat fürs Große Gehirn (`BrainFormat` aus der GGUF-Architektur, `QwenPromptBuilder` gegen das Jinja der Jan-GGUF, JSON-Tool-Calls, kein Denken, Sampling laut Modellkarte) | native | M | C | T-240 | review (05.11., Draft-PR #54) |
+| T-242 | Schneller Start: KV-Snapshot des festen System-Prompts pro Modell + Prompt-Hash im Cache, Logs zu Aufwärmen und erstem Token | native | M | C | T-032 | review (05.11., Draft-PR #54) |
+| T-243 | Host-Test Jan-v3.5-4B mit Hains Prompt (Werkzeug, Argumente, unnötige Aufrufe, TTFT kalt/Snapshot, RAM) → docs/research/jan-host-test.md | plan | S | H | T-241 | review (05.11., Draft-PR #54) |
+| T-244 | Doku 0.1.10.6 (zuerst 0.1.10.4): README, Website (EN + /de), AGENTS, MODELS, LLM §2b/§2c, LICENSES, Version | docs | S | B | T-240 | review (05.11., Draft-PR #54) |
 | T-250 | Unique task IDs: T-084p thinking picker, T-088p/T-089p polish branch, mini-apps forest T-300–T-326 | docs | XS | B | - | review (05.11., 0.1.10.5, PR #55) |
 | T-251 | Tablets: Models & packs and Memory in two columns from 840 dp (`HainGrid`/`HainColumns`), "Über dich" + settings next to the memory list; phones unchanged | ui | S | B | T-235 | review (05.11., 0.1.10.5, PR #55) |
 | T-252 | Screenshot samples without real people or places: German shots use the same Paris example as the English ones, memory/tablet shots with invented facts; shots re-recorded | docs | S | B | T-107 | review (05.11., 0.1.10.5, PR #55) |
@@ -1389,6 +1394,40 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - type: `polish` · size: `S` · lane: `B` · depends: T-235
 - do: Abstände, Touch-Ziele (≥ 48 dp) und Lichtung-Tokens über alle Screens angeglichen, maßvoll (siehe PR).
 - check: Screens (CI)
+
+### T-240 · Großes Gehirn (Jan-v3.5-4B) als optionale Stufe
+
+- type: `feature` · size: `M` · lane: `C` · depends: T-055, T-084
+- files: core-models/src/main/assets/catalog.json, core-models/.../api/{Models,BrainChoice}.kt, core-models/.../internal/CatalogParser.kt, feature-chat/.../api/ModelPicker.kt, feature-settings/.../api/PacksScreen.kt, Strings, docs/decisions/ADR-24-grosses-gehirn-jan.md, Tests
+- do: Katalog-Eintrag `jan-v3.5-4b-q4_k_m` (`tier: strong`, `min_ram_gb` 8, `recommend_ram_gb` 12, Revision 2b0fcab0 gepinnt, sha256 geprüft); angezeigt nur, wo DeviceCheck nicht `TOO_SMALL` ist oder das Paket schon da ist; „Empfohlen für dein Handy“ erst ab 12 GB; Name „Großes Gehirn · für starke Handys“. LFM3 bleibt Standard, keine Migration.
+- note: zuerst Underdog Poodle 4B; am 05.11. 08:02 von Oskar durch Jan ersetzt (Poodle-Basismodell seit 05.11. 05:45 MEZ CC BY-NC 4.0).
+- check: `BrainChoiceTest`, `CatalogParserTest` (CI)
+
+### T-241 · Qwen3-Chatformat für Jan
+
+- type: `native` · size: `M` · lane: `C` · depends: T-240
+- files: core-llm/.../api/BrainFormat.kt, core-llm/.../internal/{QwenPromptBuilder,StreamSplitter,LlamaEngine}.kt, NewsBrain, MemoryExtraction, ChatEngine, prompts/jan-v3.5-4b_chat_template.jinja, tools/render_golden_qwen.py, golden/qwen/Q-01…Q-06
+- do: Format beim Laden aus `general.architecture` (`qwen3` → QWEN); Prompt wie das Jinja der Jan-GGUF, einzige Abweichung: Werkzeug-Block vor dem System-Text (fester Teil bleibt cachebar, LLM.md §2b); Tool-Calls als JSON (Parser-Reparaturpfad, Name beim Streamen); Jan denkt nie; Sampling 0,7 / top-p 0,8 / top-k 20.
+- check: `QwenPromptBuilderTest` (Goldens), `StreamSplitterTest`, `DevTuningTest` (CI)
+
+### T-242 · Schneller Start mit Snapshot des System-Prompts
+
+- type: `native` · size: `M` · lane: `C` · depends: T-032
+- files: core-llm/src/main/cpp/{hain_llm.cpp,hain_session.h}, core-llm/.../internal/{NativeLlm,LlamaEngine}.kt
+- do: KV-Zustand bis zum Ende des festen Teils als Datei in `cacheDir/llm-state/` (pro Modell, Kontextgröße, Prompt-Hash), beim nächsten Start laden; Logs: Aufwärmen, wiederverwendete Token, Snapshot-Ladezeit, Zeit bis zum ersten Token.
+- check: CI (nativer Build), Gerätetest offen
+
+### T-243 · Host-Test Jan-v3.5-4B
+
+- type: `plan` · size: `S` · lane: `H` · depends: T-241
+- do: Hains Prompt (System + Werkzeuge, beide Reihenfolgen) gegen Jan auf dem Sandbox-Host: 6 Werkzeug- + 4 Plauder-Prompts, TTFT kalt und mit Snapshot, Spitzen-RAM. Ergebnis: docs/research/jan-host-test.md.
+- check: Bericht
+
+### T-244 · Doku 0.1.10.6 (zuerst 0.1.10.4)
+
+- type: `docs` · size: `S` · lane: `B` · depends: T-240
+- do: README („New in“, Feature-Zeile, Pakettabelle), Website EN + /de („Schon da“), AGENTS, MODELS, LLM §2b/§2c, LICENSES, `hain.versionName=0.1.10.6` (nach dem Merge von #55; vorher 0.1.10.4).
+- check: `tools/check_strings.py`, CI
 
 ## 0.1.10.5 · Rest für 0.2 (`hark/v02-rest`, PR #55)
 

@@ -17,14 +17,18 @@ object DevTuning {
     /** Context above this needs a lot of memory on phones with little RAM. */
     const val BIG_CONTEXT = 4096
 
-    /** Sampling for one answer; [thinking] answers get the thinking budget as their token limit. */
+    /**
+     * Sampling for one answer; [thinking] answers get the thinking budget as their token limit. [base] is
+     * the brain's own chat sampling (T-241: LFM or Qwen) used while developer mode is off.
+     */
     fun sampling(
         dev: DevSettings,
         thinking: Boolean,
         defaultMax: Int,
         defaultMaxThinking: Int,
+        base: SamplingParams = SamplingParams.CHAT,
     ): SamplingParams {
-        if (!dev.enabled) return SamplingParams.CHAT.copy(maxTokens = if (thinking) defaultMaxThinking else defaultMax)
+        if (!dev.enabled) return base.copy(maxTokens = if (thinking) defaultMaxThinking else defaultMax)
         return SamplingParams(
             temperature = dev.temperature.coerceIn(0f, MAX_TEMPERATURE),
             topK = dev.topK.coerceIn(0, MAX_TOP_K),

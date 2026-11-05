@@ -3,11 +3,13 @@
 ## Catalogue (`core-models/src/main/assets/catalog.json`)
 
 Each entry: `id, name, kind (brain|embed|stt|tts|ocr|ocr_vl|omni|vl|imagegen|imageedit), lang, files[{url, sha256, size}], min_ram_gb, licence, licence_url, default bool`.
+Brains may also carry `tier` (`standard` = for every phone, default; `strong` = optional "Großes Gehirn", T-240/ADR-24) and `recommend_ram_gb` (memory from which the pack is marked "Empfohlen für dein Handy"; default = `min_ram_gb`). A `strong` brain is listed only where DeviceCheck is not `TOO_SMALL` or when it is already on the phone, and is never picked without the user.
 **URLs and sha256 must be filled from Hugging Face by a human or strong model (task T-080) — never invented.**
 
 | id | kind | approx size | default |
 |---|---|---|---|
 | lfm3-1.7b-qad-q4_0 | brain | 1.0 GB | ✓ |
+| jan-v3.5-4b-q4_k_m (`tier: strong`, min 8 / recommended 12 GB RAM, Apache-2.0, ADR-24) | brain | 2.7 GB | – |
 | lfm2.5-embed-350m-q8 | embed | 0.2 GB | ✓ |
 | ppocrv5-mobile-latin | ocr | 12 MB | ✓ (bundled in APK or first-start download) |
 | moonshine-small-de / -en | stt | 0.12–0.25 GB | ✓ for app language |

@@ -652,3 +652,25 @@ Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen 
 - `hain.versionName=0.1.10.5`; kein Release, kein Tag, kein Sprung auf 0.2.0.
 - Konflikte erwartet mit `hark/brain-poodle` (#54): gradle.properties, README.md, STATUS.md, TASKS.md, HANDOFF_LOG.md, MainActivity.kt.
 
+## 2026-11-05 · 0.1.10.4 – Großes Gehirn (Jan-v3.5-4B) · review · harness: Hark · model: Hark · branch `hark/brain-poodle` (PR #54)
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-240 | review | `BrainChoiceTest` (Stufe angeboten/empfohlen/verborgen), `CatalogParserTest` (Jan-Eintrag, Rev., sha256, Lizenz) | – | Tempo auf 8-/12-GB-Gerät |
+| T-241 | review | `QwenPromptBuilderTest` (Goldens Q-01…Q-06 aus dem Jinja der Jan-GGUF + Regeln), `StreamSplitterTest` (JSON-Call), `DevTuningTest` | `NewsBrain.kt`, `MemoryExtraction.kt` (Format des geladenen Gehirns) | Antwortqualität im echten Chat |
+| T-242 | review | CI (nativer Build) | `hain_session.h`, `hain_llm.cpp` | Snapshot-Größe/Ladezeit auf dem Gerät |
+| T-243 | review | Host-Test: 6/6 Werkzeug, 6/6 Argumente, 0/4 unnötig, kalt 83 s, Snapshot 2,9 s + Rest, Spitze 5,79 GB (Sandbox) | `docs/research/jan-host-test.md` | Gerätemessung |
+| T-244 | review | `tools/check_strings.py`, ktlint/detekt lokal | – | – |
+
+- Entscheidung Oskar 05.11. 08:02: Jan statt Poodle (Poodle-Basismodell seit 05.11. 05:45 MEZ CC BY-NC 4.0). Katalog, Format, Goldens, Doku umgestellt; ADR-24 nennt den Lizenzwechsel als Grund.
+- Jan = Qwen3-Architektur mit Qwen3-Template (JSON-Tool-Calls, kein Denken) – anders als Poodle (Qwen3.5, XML-Calls). `QwenPromptBuilder` neu gebaut; Werkzeug-Block bewusst vor dem System-Text (fester Teil ~1.580 Token bleibt speicherbar), im Host-Test beide Reihenfolgen geprüft.
+- RAM-Schwellen (8/12 GB) geprüft und belassen: Jan-Spitze 5,36 GB (ctx 4096) bzw. 5,8 GB (ctx 8192) ≈ 0,3 GB unter Poodle.
+- Der unfertige Doku-Stand aus dem ersten Lauf (nicht committet) war beim Start nicht mehr da; Doku neu für Jan geschrieben.
+- main (#53 News-Reader) ohne Konflikte hineingemergt. Gradle lokal nicht gestartet (paralleler Lauf), CI ist das Gate.
+- `hain.versionName=0.1.10.4`.
+
+## 2026-11-05 · 0.1.10.6 – main (#55, 0.1.10.5) in `hark/brain-poodle` gemergt · review · harness: Hark · model: Hark · branch `hark/brain-poodle` (PR #54)
+
+- Konflikte: gradle.properties, README.md, STATUS.md, TASKS.md, HANDOFF_LOG.md, `feature-settings/.../api/PacksScreen.kt` (T-251 `HainGrid` + T-240 `offeredPacks(models, cat, device)` kombiniert). Beide Seiten erhalten, T-259 `HostState` unverändert aus main.
+- `hain.versionName=0.1.10.6`; README „0.1.10.6“ = Großes Gehirn + schneller Start, „0.1.10.5“ bleibt. CI ist das Gate.
+

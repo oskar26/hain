@@ -172,7 +172,8 @@ private fun BrainRow(
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     val spacing = LocalHainSpacing.current
-    val name = stringResource(option.size.label())
+    // T-240: the optional strong brain gets its own plain name instead of the size word
+    val name = stringResource(if (option.strong) R.string.chat_brain_strong else option.size.label())
     val size = Formatter.formatShortFileSize(LocalContext.current, option.model.totalSize)
     val detail =
         if (option.installed) {

@@ -68,6 +68,59 @@ Golden files (create in T-041 by running the Jinja template with Python `jinja2`
 `core-llm/src/test/resources/golden/G-01_plain.txt`, `G-02_system.txt`, `G-03_tools.txt`, `G-04_toolloop.txt`, `G-05_multiturn_thinking_dropped.txt`, `G-06_nothink.txt`.
 Script: `tools/render_golden.py` (T-041).
 
+## 2b. Prompt format of the "Großes Gehirn" (Qwen3, Jan-v3.5-4B, T-241, ADR-24)
+
+`BrainFormat` is read once after loading from the GGUF's `general.architecture`: `qwen3`/`qwen3moe` → `QWEN`,
+everything else → `LFM`. Chat, news (`NewsBrain`) and memory extraction take `llm.format.promptBuilder()`, so the
+loaded brain always gets its own template; the developer mode's own model keeps using the GGUF template path.
+
+```
+<​|im_start|>system
+# Tools
+
+You may call one or more functions to assist with the user query.
+
+You are provided with function signatures within <tools></tools> XML tags:
+<tools>
+{"type": "function", "function": {"name": "weather", "description": "...", "parameters": {...}}}
+</tools>
+
+For each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:
+<tool_call>
+{"name": <function-name>, "arguments": <args-json-object>}
+</tool_call>
+
+{SYSTEM_PROMPT}<​|im_end|>
+<​|im_start|>user
+Wie wird das Wetter morgen in Köln?<​|im_end|>
+<​|im_start|>assistant
+```
+
+Rules for `QwenPromptBuilder` (golden files `golden/qwen/Q-01…Q-06`, script `tools/render_golden_qwen.py`, template
+`prompts/jan-v3.5-4b_chat_template.jinja` from the pinned GGUF):
+
+1. No BOS. ChatML turns `<​|im_start|>{role}\n{content}<​|im_end|>\n`, content as given.
+2. With tools: tool block first, then `"\n\n"` + system text (**the one difference to the template**, which puts the
+   system text first: so tools + rules before "# Kontext" stay one fixed, cacheable block, §2c). Without tools: system
+   turn = system text.
+3. Assistant tool calls: `<tool_call>\n{"name": "…", "arguments": {…}}\n</tool_call>` (JSON like Python `json.dumps`),
+   `\n` between calls and after non-empty text.
+4. Tool results: consecutive results in one `user` turn, each as `\n<tool_response>\n…\n</tool_response>`.
+5. Generation prompt: `<​|im_start|>assistant\n`. Jan does not think: no think block, `enable_thinking` is ignored,
+   `BrainFormat.QWEN.mayThink = false` (answer modes keep their search budget). An old `…</think>` in the history is dropped.
+6. Output: the JSON calls are read by `RepairingToolCallParser` (strict XML first, then the JSON repair path), the
+   `StreamSplitter` announces the tool name from the JSON `"name"` while streaming.
+7. Sampling (`BrainFormat.QWEN.chatSampling`, Jan model card): temperature 0.7, top-p 0.8, top-k 20, min-p 0, no repeat
+   penalty. Developer settings still override.
+
+## 2c. Fast start: snapshot of the fixed system prompt (T-242)
+
+After the first warm-up the KV state up to the end of the fixed part (`ChatEngine.fixedSystemEnd`: everything before
+"# Kontext") is written to `cacheDir/llm-state/` as one file per model file, context size and hash of the fixed prompt,
+and loaded on the next start instead of reading those tokens again (works for LFM3 and the big brain; Android may clear
+the cache, then it is rebuilt). `HainLlm` logs warm-up time, reused tokens, "snapshot from disk in N ms" and the time
+to the first token. Size depends on the model's KV cache (Jan, ~1,580 fixed tokens: ~233 MB on the host, docs/research/jan-host-test.md).
+
 ## 3. Tool call output (what the model writes)
 
 ```

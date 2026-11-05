@@ -3,6 +3,7 @@ package app.hain.llm.internal
 import android.content.Context
 import android.os.SystemClock
 import android.util.Log
+import app.hain.llm.api.BrainFormat
 import app.hain.llm.api.EngineState
 import app.hain.llm.api.GenerationEvent
 import app.hain.llm.api.GenerationStats
@@ -38,6 +39,11 @@ class LlamaEngine(
 
     /** Chat template of the loaded GGUF (T-211), read once after loading. */
     @Volatile private var template: ByteArray? = null
+
+    /** T-241: chat format from the GGUF architecture, read once after loading. */
+    @Volatile private var loadedFormat = BrainFormat.LFM
+
+    override val format: BrainFormat get() = loadedFormat
 
     // Each generation gets a number; cancel() stops every generation up to the current one. A plain
     // flag could be reset by the end of the previous generation and swallow a stop.
@@ -92,14 +98,26 @@ class LlamaEngine(
             val newHandle = NativeLlm.nativeLoad(path, contextSize, threadCount(), 0, progress)
             handle = newHandle
             loadedContext = if (newHandle != 0L) contextSize else 0
-            template =
-                if (newHandle != 0L) runCatching { NativeLlm.nativeChatTemplate(newHandle) }.getOrNull() else null
-            if (newHandle != 0L) {
-                Log.i(TAG, "brain loaded in ${NativeLlm.nativeStats(newHandle)[0].toInt()} ms, context $contextSize")
-            }
+            if (newHandle != 0L) afterLoad(newHandle, contextSize) else template = null
             mutableState.value = if (newHandle != 0L) EngineState.Ready(path) else EngineState.Failed("load failed")
             newHandle != 0L
         }
+
+    /** Reads template and format of the new model and switches on the disk snapshots (T-211, T-241, T-242). */
+    private fun afterLoad(
+        h: Long,
+        contextSize: Int,
+    ) {
+        template = runCatching { NativeLlm.nativeChatTemplate(h) }.getOrNull()
+        stateDir()?.let { NativeLlm.nativeSetStateDir(h, it) }
+        val arch = runCatching { NativeLlm.nativeMeta(h, ARCH_KEY) }.getOrNull()
+        loadedFormat = BrainFormat.ofArchitecture(arch?.decodeToString())
+        Log.i(
+            TAG,
+            "brain loaded in ${NativeLlm.nativeStats(h)[0].toInt()} ms, context $contextSize, " +
+                "format ${loadedFormat.name.lowercase()}",
+        )
+    }
 
     override suspend fun prefill(
         prompt: String,
@@ -109,7 +127,16 @@ class LlamaEngine(
             val h = handle
             if (h == 0L) return@withContext false
             NativeLlm.nativeSetCancel(h, false)
-            NativeLlm.nativePrefill(h, prompt.encodeToByteArray(), byteOffsets(prompt, checkpoints))
+            val startedAt = SystemClock.elapsedRealtime()
+            val ok = NativeLlm.nativePrefill(h, prompt.encodeToByteArray(), byteOffsets(prompt, checkpoints))
+            // T-242: how long the warm-up took and whether a snapshot from disk saved the reading
+            val s = NativeLlm.nativeStats(h)
+            Log.i(
+                TAG,
+                "warm-up ${SystemClock.elapsedRealtime() - startedAt} ms, prompt ${s[STAT_PROMPT].toInt()} tok, " +
+                    "reused ${s[STAT_REUSED].toInt()}${restoredNote(s)}",
+            )
+            ok
         }
 
     override fun generate(
@@ -191,6 +218,7 @@ class LlamaEngine(
             handle = 0L
             loadedContext = 0
             template = null
+            loadedFormat = BrainFormat.LFM
         }
     }
 
@@ -211,10 +239,26 @@ class LlamaEngine(
         Log.i(
             TAG,
             "prompt ${stats.promptTokens} tok, reused ${stats.reusedTokens}, read in ${stats.prefillMs} ms; " +
-                "${stats.genTokens} tok at ${"%.1f".format(stats.tokensPerSecond)} t/s",
+                "${stats.genTokens} tok at ${"%.1f".format(stats.tokensPerSecond)} t/s; " +
+                "first token after $firstTokenMs ms${restoredNote(s)}",
         )
         return stats
     }
+
+    /** T-242: snapshots of the system prompt live in the app's cache (Android may clear it; then it is rebuilt). */
+    private fun stateDir(): String? =
+        runCatching { java.io.File(context.cacheDir, STATE_DIR).apply { mkdirs() } }
+            .getOrNull()
+            ?.takeIf { it.isDirectory }
+            ?.absolutePath
+
+    /** T-242: ", snapshot from disk in N ms" when the last call loaded one, else empty. */
+    private fun restoredNote(stats: FloatArray): String =
+        stats
+            .getOrNull(STAT_RESTORED_MS)
+            ?.takeIf { it >= 0f }
+            ?.let { ", snapshot from disk in ${it.toInt()} ms" }
+            .orEmpty()
 
     private fun threadCount(): Int = (Runtime.getRuntime().availableProcessors() - 2).coerceIn(2, MAX_THREADS)
 
@@ -237,6 +281,9 @@ class LlamaEngine(
         const val STAT_PREFILL_MS = 3
         const val STAT_GEN_TOKENS = 4
         const val STAT_GEN_MS = 5
+        const val STAT_RESTORED_MS = 6
+        const val STATE_DIR = "llm-state"
+        const val ARCH_KEY = "general.architecture"
     }
 }
 

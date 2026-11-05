@@ -31,6 +31,9 @@ data class BrainOption(
     val fit: Fit,
 ) {
     val size: BrainSize get() = BrainSize.of(model.totalSize)
+
+    /** T-240: the optional "Großes Gehirn" for strong phones. */
+    val strong: Boolean get() = model.isStrong
 }
 
 /**
@@ -61,7 +64,8 @@ object BrainChoice {
     }
 
     /**
-     * Recommended for this phone: the biggest brain that fits well (DeviceCheck GOOD). If none fits
+     * Recommended for this phone: the biggest brain that fits well (DeviceCheck GOOD) and whose
+     * `recommend_ram_gb` the phone reaches (T-240: the Großes Gehirn only from 12 GB). If none fits
      * well, the smallest one that fits at all (TIGHT). `null` when no brain fits.
      */
     fun recommended(
@@ -71,8 +75,24 @@ object BrainChoice {
         val brains = brains(catalog)
         // free space only matters for brains still to download, not for the recommendation itself
         val roomy = device.copy(freeBytes = Long.MAX_VALUE)
-        return brains.filter { DeviceCheck.fit(it, roomy) == Fit.GOOD }.maxByOrNull { it.totalSize }
+        return brains
+            .filter { DeviceCheck.fit(it, roomy) == Fit.GOOD && device.ramGb >= it.recommendRamGb }
+            .maxByOrNull { it.totalSize }
+            ?: brains.filter { DeviceCheck.fit(it, roomy) == Fit.GOOD }.minByOrNull { it.totalSize }
             ?: brains.filter { DeviceCheck.fit(it, roomy) == Fit.TIGHT }.minByOrNull { it.totalSize }
+    }
+
+    /**
+     * T-240: whether a brain is shown at all. The Großes Gehirn ([ModelInfo.isStrong]) is only offered
+     * where it can run (not [Fit.TOO_SMALL]) or when it is already on the phone; standard brains always.
+     */
+    fun offered(
+        model: ModelInfo,
+        device: DeviceProfile,
+        installed: Boolean,
+    ): Boolean {
+        if (!model.isStrong || installed) return true
+        return DeviceCheck.fit(model, device.copy(freeBytes = Long.MAX_VALUE)) != Fit.TOO_SMALL
     }
 
     /** Menu rows: brains on the phone first (small to big), then the ones still to download. */
@@ -87,6 +107,7 @@ object BrainChoice {
         val active = active(catalog, selectedId, installed)
         val best = recommended(catalog, device)
         return brains
+            .filter { offered(it, device, installed(it)) }
             .map { model ->
                 val isInstalled = installed(model)
                 BrainOption(

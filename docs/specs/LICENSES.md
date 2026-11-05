@@ -8,6 +8,7 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | AndroidX DataStore (preferences) | Apache-2.0 | ok |
 | LFM3 models (1.7B, VL, Omni, Audio) | LFM Open License v1.0 (free < $10M revenue) | ok for non-commercial/small; show in About |
 | LFM2.5-Embedding-350M | LFM Open License v1.0 (`lfm1.0`, checked 04.11.2026 on the Hugging Face model card) | ok, same terms as the brain; optional pack |
+| Jan-v3.5-4B (optional „Großes Gehirn“, ADR-24) | Apache-2.0 (checked 05.11.2026 on the Hugging Face model cards of janhq/Jan-v3.5-4B and janhq/Jan-v3.5-4B-gguf; base Jan-v3-4B-base-instruct, Qwen3-4B architecture) | ok with GPL-3.0; optional pack |
 | zstd-jni (com.github.luben:zstd-jni 1.5.7-12, Android AAR, T-237) | BSD-2-Clause (zstd itself: BSD-3-Clause) | ok with GPL-3.0; reads the offline Wikipedia packs |
 | Wikipedia texts in the knowledge packs (Kiwix ZIM "mini", T-237) | CC BY-SA 4.0 (Wikipedia authors), packaged by Kiwix / openZIM | ok; downloaded only on request, not in the APK; source and licence shown in Settings → Modelle & Pakete → Wissen |
 | sherpa-onnx | Apache-2.0 | ok |
@@ -32,6 +33,7 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | reactivecircus/android-emulator-runner (GitHub Action, CI only, not in the app) | Apache-2.0 | ok (T-190, release smoke test) |
 | LFM3-1.7B GGUF (downloaded at runtime, not bundled) | LFM Open License v1.0 | model weights, not linked code; licence shown in onboarding (T-083) |
 | LFM2.5-Embedding-350M-Q4_0 GGUF (optional pack "Suche nach Bedeutung", downloaded at runtime, not bundled; T-110) | LFM Open License v1.0 (https://huggingface.co/LiquidAI/LFM2.5-Embedding-350M-GGUF/blob/main/LICENSE) | model weights, not linked code; catalogue entry carries `licence` + `licence_url` |
+| Jan-v3.5-4B Q4_K_M GGUF (optional „Großes Gehirn“, downloaded at runtime, not bundled; T-240, ADR-24) | Apache-2.0 (https://huggingface.co/janhq/Jan-v3.5-4B-gguf, pinned revision 2b0fcab0066198e78f7c004a0815179fbce13985, README `license: apache-2.0`) | model weights, not linked code; catalogue entry carries `licence` + `licence_url`, shown in Modelle & Pakete. Underdog Poodle 4B was dropped before merge: its base repo switched to CC BY-NC 4.0 on 05.11.2026 |
 | pdfbox-android (`com.tom-roush:pdfbox-android` 2.0.27.0, T-120) | Apache-2.0 | ok |
 | PP-OCRv5 mobile det + latin rec + PP-LCNet textline orientation, ONNX exports from huggingface.co/PaddlePaddle (downloaded at runtime, pinned commit + SHA-256) | Apache-2.0 | ok (T-121; shown in "Meine Dateien") |
 | MuPDF | AGPL | **do not use** |

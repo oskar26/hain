@@ -221,6 +221,7 @@
     <string name="chat_brain_size_small">Quick brain</string>
     <string name="chat_brain_size_medium">Balanced brain</string>
     <string name="chat_brain_size_large">Smart brain</string>
+    <string name="chat_brain_strong">Big brain · for strong phones</string>
     <string name="chat_brain_detail">%1$s · %2$s</string>
     <string name="chat_brain_not_installed">Not on your phone yet · %1$s</string>
     <string name="chat_brain_recommended">Recommended for your phone</string>

@@ -54,6 +54,7 @@
     <string name="packs_wiki_top_desc">Die Einleitungen der meistgelesenen Artikel. Klein, gut zum Anfangen.</string>
     <string name="packs_wiki_big_desc">Die Einleitung fast jedes Artikels. Groß – am besten im WLAN laden.</string>
     <string name="packs_brain_desc">Pims Gehirn: antwortet, denkt nach und nutzt Werkzeuge.</string>
+    <string name="packs_brain_strong_desc">Großes Gehirn für starke Handys: wählt Werkzeuge genauer und schreibt besseres Deutsch, antwortet aber langsamer. Freiwillig, das Standard-Gehirn bleibt.</string>
     <string name="packs_stt_desc">Diktieren in dieser Sprache, läuft auf deinem Handy.</string>
     <string name="packs_ocr_title">Texterkennung</string>
     <string name="packs_ocr_desc">Liest Text in Fotos und gescannten PDFs (PP-OCRv5). Klein, läuft auf deinem Handy.</string>

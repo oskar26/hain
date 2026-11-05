@@ -108,4 +108,48 @@ class BrainChoiceTest {
         assertEquals(BrainSize.MEDIUM, BrainSize.of(2_500_000_000L))
         assertEquals(BrainSize.LARGE, BrainSize.of(5_000_000_000L))
     }
+
+    // T-240: the optional "Großes Gehirn" (Jan-v3.5-4B): offered from 7 GB, recommended from 12 GB
+    private val jan =
+        brain("jan", 2_716_066_656L, 8).copy(tier = ModelInfo.TIER_STRONG, recommendRamGb = 12)
+    private val lfm = brain("lfm", 1_049_615_680L, 4, isDefault = true)
+    private val shipped = listOf(lfm, jan)
+
+    @Test
+    fun strongBrainIsHiddenOnPhonesThatAreTooSmall() {
+        val options = BrainChoice.options(shipped, null, { it == lfm }, phone(6))
+        assertEquals(listOf("lfm"), options.map { it.model.id })
+        assertFalse(BrainChoice.offered(jan, phone(6), installed = false))
+    }
+
+    @Test
+    fun strongBrainStaysVisibleWhenItIsAlreadyOnThePhone() {
+        assertTrue(BrainChoice.offered(jan, phone(4), installed = true))
+    }
+
+    @Test
+    fun strongBrainIsOfferedButNotRecommendedOnEightGigabytes() {
+        val options = BrainChoice.options(shipped, null, { it == lfm }, phone(8))
+        assertEquals(listOf("lfm", "jan"), options.map { it.model.id })
+        assertTrue(options.first { it.model == lfm }.recommended)
+        assertFalse(options.first { it.model == jan }.recommended)
+        assertTrue(options.first { it.model == jan }.strong)
+    }
+
+    @Test
+    fun strongBrainIsRecommendedOnTwelveGigabytes() {
+        assertEquals(jan, BrainChoice.recommended(shipped, phone(12)))
+    }
+
+    @Test
+    fun standardBrainStaysTheDefaultEvenWhenTheStrongOneIsRecommended() {
+        // no migration: without a pick the default brain is used, whatever is recommended
+        assertEquals(lfm, BrainChoice.active(shipped, null) { true })
+        assertEquals(jan, BrainChoice.active(shipped, "jan") { true })
+    }
+
+    @Test
+    fun standardBrainsAreAlwaysOffered() {
+        assertTrue(BrainChoice.offered(lfm, phone(1), installed = false))
+    }
 }

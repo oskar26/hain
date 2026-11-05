@@ -221,6 +221,7 @@
     <string name="chat_brain_size_small">Flinkes Gehirn</string>
     <string name="chat_brain_size_medium">Ausgewogenes Gehirn</string>
     <string name="chat_brain_size_large">Schlaues Gehirn</string>
+    <string name="chat_brain_strong">Großes Gehirn · für starke Handys</string>
     <string name="chat_brain_detail">%1$s · %2$s</string>
     <string name="chat_brain_not_installed">Noch nicht auf deinem Handy · %1$s</string>
     <string name="chat_brain_recommended">Empfohlen für dein Handy</string>

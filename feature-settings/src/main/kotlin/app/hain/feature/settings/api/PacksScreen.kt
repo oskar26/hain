@@ -42,6 +42,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hain.feature.settings.R
+import app.hain.models.api.BrainChoice
 import app.hain.models.api.DeviceCheck
 import app.hain.models.api.DeviceProfile
 import app.hain.models.api.DownloadState
@@ -193,7 +194,7 @@ fun PacksScreen(
                     verticalArrangement = Arrangement.spacedBy(spacing.md),
                 ) {
                     if (page == null) {
-                        PacksHub(models, extras, columns) { category = it }
+                        PacksHub(models, device, extras, columns) { category = it }
                     } else {
                         CategoryPage(page, models, device, extras, columns)
                     }
@@ -207,6 +208,7 @@ fun PacksScreen(
 @Composable
 private fun PacksHub(
     models: ModelRepository,
+    device: DeviceProfile,
     extras: List<ExtraPack>,
     columns: Int,
     open: (PackCategory) -> Unit,
@@ -216,7 +218,7 @@ private fun PacksHub(
         style = LocalHainTypography.current.bodySmall.copy(color = LocalHainColors.current.textMuted),
     )
     HainGrid(PackCategory.entries, columns, LocalHainSpacing.current.md) { cat, cell ->
-        val packs = models.catalog.filter { PackCategory.of(it) == cat }
+        val packs = offeredPacks(models, cat, device)
         val installed = packs.count { models.isInstalled(it) }
         val count = packs.size + extras.count { it.kind.category == cat }
         CategoryTile(cat, installed, count, cell) { open(cat) }
@@ -273,7 +275,7 @@ private fun CategoryPage(
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     BasicText(stringResource(categoryIntro(cat)), style = type.bodySmall.copy(color = colors.textMuted))
-    val packs = models.catalog.filter { PackCategory.of(it) == cat }
+    val packs = offeredPacks(models, cat, device)
     val extra = extras.filter { it.kind.category == cat }
     // T-251: catalogue packs and the extra packs share one grid
     val tiles: List<Any> = packs + extra
@@ -458,6 +460,7 @@ private fun packDescription(pack: ModelInfo): Int? =
         pack.kind == ModelInfo.KIND_EMBED -> R.string.packs_embed_desc
         pack.kind == ModelInfo.KIND_KNOWLEDGE && pack.id.contains("top") -> R.string.packs_wiki_top_desc
         pack.kind == ModelInfo.KIND_KNOWLEDGE -> R.string.packs_wiki_big_desc
+        pack.kind == ModelInfo.KIND_BRAIN && pack.isStrong -> R.string.packs_brain_strong_desc
         pack.kind == ModelInfo.KIND_BRAIN -> R.string.packs_brain_desc
         pack.kind == "stt" -> R.string.packs_stt_desc
         else -> null
@@ -495,4 +498,14 @@ private fun ActionButton(
     ) {
         BasicText(stringResource(label), style = LocalHainTypography.current.label.copy(color = colors.text))
     }
+}
+
+/** T-240: catalogue packs of [cat]; the Großes Gehirn only on phones where it can run (or when on the phone). */
+private fun offeredPacks(
+    models: ModelRepository,
+    cat: PackCategory,
+    device: DeviceProfile,
+): List<ModelInfo> {
+    val inCategory = models.catalog.filter { PackCategory.of(it) == cat }
+    return inCategory.filter { BrainChoice.offered(it, device, models.isInstalled(it)) }
 }

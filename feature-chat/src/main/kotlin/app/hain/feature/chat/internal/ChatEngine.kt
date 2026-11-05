@@ -16,7 +16,6 @@ import app.hain.llm.api.ToolSchema
 import app.hain.llm.api.UiDelta
 import app.hain.llm.internal.AnswerMode
 import app.hain.llm.internal.GgufPromptBuilder
-import app.hain.llm.internal.LfmPromptBuilder
 import app.hain.llm.internal.StreamSplitter
 import app.hain.llm.internal.ThinkingPolicy
 import app.hain.tools.api.HainTools
@@ -112,7 +111,8 @@ data class ResearchClock(
 class ChatEngine(
     private val llm: LlmEngine,
     private val systemPrompt: (atMillis: Long) -> String,
-    private val promptBuilder: PromptBuilder = LfmPromptBuilder(),
+    /** Fixed prompt builder (tests); `null` = the loaded brain's own format (T-241: LFM or Qwen). */
+    private val promptBuilder: PromptBuilder? = null,
     private val clock: () -> Long = System::currentTimeMillis,
     private val answerMode: () -> AnswerMode = { AnswerMode.AUTO },
     private val turnHint: (userMessages: List<String>) -> String? = { null },
@@ -130,8 +130,13 @@ class ChatEngine(
 ) {
     private val ggufBuilder = GgufPromptBuilder(llm::applyTemplate)
 
-    /** Hain's LFM prompt, or the own model's template in developer mode. */
-    private fun builder(): PromptBuilder = if (ownModel()) ggufBuilder else promptBuilder
+    /** Hain's prompt for the loaded brain (LFM or Qwen, T-241), or the own model's template in developer mode. */
+    private fun builder(): PromptBuilder =
+        when {
+            ownModel() -> ggufBuilder
+            promptBuilder != null -> promptBuilder
+            else -> llm.format.promptBuilder()
+        }
 
     private var anchor = 0L
 
@@ -188,7 +193,8 @@ class ChatEngine(
                 return@flow
             }
             val dev = tuning()
-            val thinking = DevTuning.thinking(dev, ThinkingPolicy.decide(lastUser, mode))
+            // T-241: a brain that may not think (Großes Gehirn) answers without, unless developer mode forces it
+            val thinking = DevTuning.thinking(dev, ThinkingPolicy.decide(lastUser, mode) && llm.format.mayThink)
             val system = DevTuning.systemPrompt(dev, systemPrompt(promptAnchor()))
             val docs = ctx.documents.isNotEmpty()
             val schemas = if (ownModel()) emptyList() else tools?.schemas(ctx.offline, ctx.webSearch, docs).orEmpty()
@@ -569,7 +575,7 @@ class ChatEngine(
                 addGenerationPrompt = true,
                 enableThinking = thinking,
             )
-        val params = DevTuning.sampling(turn.dev, thinking, MAX_TOKENS, MAX_TOKENS_THINKING)
+        val params = DevTuning.sampling(turn.dev, thinking, MAX_TOKENS, MAX_TOKENS_THINKING, llm.format.chatSampling)
         val checkpoints = checkpointsFor(prompt, system, history, roundTools)
         val splitter = StreamSplitter(thinkingEnabled = thinking)
         val reasoning = StringBuilder()
