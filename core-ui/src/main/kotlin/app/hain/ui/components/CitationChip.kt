@@ -85,7 +85,7 @@ private fun CitationChip(
     Box(
         Modifier
             .fillMaxSize()
-            .padding(start = 2.dp)
+            .padding(start = 1.dp)
             .clearAndSetSemantics {
                 contentDescription = label
                 role = Role.Button
@@ -124,8 +124,8 @@ private fun CitationChip(
 private fun inlineId(number: Int) = "hain-source-$number"
 
 private const val MAX_CHIPS = 99
-private const val CHIP_EM = 1.05f
-private const val DIGIT_EM = 0.45f
+private const val CHIP_EM = 0.9f
+private const val DIGIT_EM = 0.4f
 private const val PLACEHOLDER_EM = 0.95f
 private const val CHIP_HEIGHT = 0.86f
 private const val NUMBER_SP = 9.5f
