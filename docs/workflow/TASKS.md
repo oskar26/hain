@@ -155,6 +155,16 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-211 | Developer mode (7× tap on the version): own GGUF from Hugging Face, sampling, context, thinking, own system prompt, speed + debug info | feature | M | C | T-214,T-032 | review (04.11., extras PR) |
 | T-212 | Update check: version.json on nightly + v* releases, optional daily check via NetworkGate (purpose UPDATE), one-time ask card, calm banner → release page | feature | S | C | T-214,T-215 | review (04.11., extras PR) |
 | T-216 | Zurück-Pfeil zeigt nach links: Einstellungs-Unterseiten nutzen `HainIcons.back` (Lucide chevron-left, autoMirrored) statt chevron-right | fix | XS | B | T-214 | review (04.11., extras PR) |
+| T-250 | Unique task IDs: T-084p thinking picker, T-088p/T-089p polish branch, mini-apps forest T-300–T-326 | docs | XS | B | - | review (05.11., 0.1.10.5, PR #55) |
+| T-251 | Tablets: Models & packs and Memory in two columns from 840 dp (`HainGrid`/`HainColumns`), "Über dich" + settings next to the memory list; phones unchanged | ui | S | B | T-235 | review (05.11., 0.1.10.5, PR #55) |
+| T-252 | Screenshot samples without real people or places: German shots use the same Paris example as the English ones, memory/tablet shots with invented facts; shots re-recorded | docs | S | B | T-107 | review (05.11., 0.1.10.5, PR #55) |
+| T-253 | Share a PDF, photo or text file from another app into Hain: new chat with the file attached (paper clip way, only `content://`) | feature | S | B | T-144,T-123 | review (05.11., 0.1.10.5, PR #55) |
+| T-254 | Accessibility: thinking button and pack buttons get 48 × 48 dp touch targets | fix | XS | B | T-238 | review (05.11., 0.1.10.5, PR #55) |
+| T-255 | RELEASE_0.2_CHECKLIST.md: one line per feature with its screen and website text, README/website plan and signing for the 0.2.0 step | docs | S | B | - | review (05.11., 0.1.10.5, PR #55) |
+| T-256 | Fix: reading view (and news settings, ask sheet) centred short blocks like headings and list items instead of starting them at the left edge | fix | XS | B | T-076 | review (05.11., 0.1.10.5, PR #55) |
+| T-257 | Fix: memory tab "Vorschläge (1)" wrapped to two lines on phones; now "Vorschläge 1", at most "9+" | fix | XS | B | T-115 | review (05.11., 0.1.10.5, PR #55) |
+| T-258 | Fix: a deleted Wikipedia pack stayed open, so its space came back only after a restart; replaced pack files are opened again | fix | XS | B | T-237 | review (05.11., 0.1.10.5, PR #55) |
+| T-259 | Fix: after turning the phone the chat and news view models read the old activity (old language, offline switch, private flag); now one `HostState` view model | fix | S | B | T-079 | review (05.11., 0.1.10.5, PR #55) |
 
 ## M0 · Device check & setup (human)
 
@@ -1379,3 +1389,81 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - type: `polish` · size: `S` · lane: `B` · depends: T-235
 - do: Abstände, Touch-Ziele (≥ 48 dp) und Lichtung-Tokens über alle Screens angeglichen, maßvoll (siehe PR).
 - check: Screens (CI)
+
+## 0.1.10.5 · Rest für 0.2 (`hark/v02-rest`, PR #55)
+
+> Oskar 05.11. 07:33: 0.2.0 erst, wenn alle 0.2-Funktionen drin sind. Dieser Lauf schließt die Punkte aus Oskars
+> Liste vom 04.11. 22:18 (Tablet, Teilen, Bugs, Screenshots) – ohne Versionssprung, ohne Release.
+
+### T-250 · Eindeutige Task-IDs
+
+- type: `docs` · size: `XS` · lane: `B`
+- files: docs/workflow/TASKS.md, STATUS.md, ROADMAP.md
+- do: doppelte IDs umbenannt (T-084p Denk-Stufe im Nachrichtenfeld, T-088p/T-089p aus dem Polish-Branch), Mini-Apps-Wald M12 von T-200–T-226 nach T-300–T-326; HANDOFF_LOG bleibt unverändert (append-only).
+- check: jede ID genau einmal in der Übersicht
+
+### T-251 · Tablet: Pakete und Gedächtnis in zwei Spalten
+
+- type: `ui` · size: `S` · lane: `B` · depends: T-235
+- files: core-ui/.../layout/HainColumns.kt (neu, `HainGrid`), feature-settings/.../api/PacksScreen.kt, feature-memory/.../api/{MemoryPage,MemoryList}.kt, `TabletMemoryScreens`, `TabletSettingsScreens`
+- do: ab 840 dp (EXPANDED) Kacheln in zwei Spalten, Seite max. 1080 dp mittig; Gedächtnis: links die Liste, rechts „Über dich“ + Einstellungen (Tab „Über dich“ entfällt dort). Handys und Tablets hochkant bleiben einspaltig.
+- accept: gleiche Kachelhöhe pro Zeile, ungerade letzte Kachel eine Spalte breit
+- check: `HainColumnsTest`, `MemoryListTest`, Screens `tablet_packs_*`, `tablet_memory_*` (CI)
+
+### T-252 · Screenshot-Beispiele ohne echte Daten
+
+- type: `docs` · size: `S` · lane: `B` · depends: T-107
+- files: feature-chat/.../screens/{ChatScreens,ChatStyleScreens}.kt, feature-memory/.../screens/MemoryScreens.kt, core-ui/.../screens/MenuBlurScreens.kt, README.md, docs/design/screens/*, website/public/screenshots/*
+- do: keine echten Personen, Orte oder Adressen in Beispielen; deutsche Shots nutzen dasselbe Paris-Beispiel wie die englischen, Gedächtnis-Beispiele erfunden; Screens neu aufgenommen, Website-WebP neu erzeugt.
+- check: Screens (CI)
+
+### T-253 · Teilen aus anderen Apps: Datei in Hain
+
+- type: `feature` · size: `S` · lane: `B` · depends: T-144, T-123
+- files: app/src/main/AndroidManifest.xml, app/.../entry/LaunchRequest.kt, app/.../MainActivity.kt, feature-chat/.../api/ChatScreen.kt, `LaunchRequestTest`
+- do: Teilen-Ziel für PDF, Bilder und Text-/Markdown-Dateien; neuer Chat, die Datei wird wie über die Büroklammer gelesen (Fortschritt, ggf. „Texterkennung laden?“), eine mitgeschickte Bildunterschrift landet im Eingabefeld. Nur `content://`-Adressen, nie `file://` fremder Apps; nichts wird von selbst gesendet.
+- check: `LaunchRequestTest` (CI); Gerätetest offen
+
+### T-254 · Touch-Ziele 48 dp
+
+- type: `fix` · size: `XS` · lane: `B` · depends: T-238
+- files: feature-chat/.../api/ThinkingPicker.kt, feature-settings/.../api/PacksScreen.kt
+- do: Denk-Stufen-Knopf mindestens 48 × 48 dp (Inhalt mittig), Knöpfe in Modelle & Pakete mindestens 48 dp hoch.
+- check: Screens (CI)
+
+### T-255 · Release-Checkliste 0.2.0
+
+- type: `docs` · size: `S` · lane: `B`
+- files: docs/workflow/RELEASE_0.2_CHECKLIST.md (neu)
+- do: eine Zeile pro Funktion mit Screen (Test → Datei), Status des Shots (da/DE/neu) und Website-Text EN/DE; Plan für README und Website beim 0.2.0-Schritt; Signatur und Tag nur nach Oskars Freigabe.
+- check: Status „da“ nur, wenn ein DE- und ein EN-Test existiert
+
+### T-256 · Fix: Leseansicht-Ausrichtung
+
+- type: `fix` · size: `XS` · lane: `B` · depends: T-076
+- files: feature-news/.../api/{ReaderScreen,NewsSettingsPage}.kt
+- do: `wrapContentWidth` + `widthIn` zentrierte kurze Blöcke (Überschriften, Listenpunkte); danach wieder `fillMaxWidth`, damit alles links beginnt wie die Absätze (auch Frage-Sheet und Nachrichten-Einstellungen).
+- check: Screens `news_reader_*` (CI)
+
+### T-257 · Fix: Vorschläge-Tab
+
+- type: `fix` · size: `XS` · lane: `B` · depends: T-115
+- files: feature-memory/.../api/{MemoryList,MemoryPage}.kt, `MemoryListTest`
+- do: „Vorschläge (1)“ brach im Vier-Tab-Schalter auf dem Handy in zwei Zeilen um → „Vorschläge 1“ mit schmalem geschütztem Leerzeichen, höchstens „9+“.
+- check: `MemoryListTest`, Screens `memory_*` (CI)
+
+### T-258 · Fix: gelöschtes Wikipedia-Paket bleibt offen
+
+- type: `fix` · size: `XS` · lane: `B` · depends: T-237
+- files: core-tools/.../wiki/zim/ZimWiki.kt, `ZimWikiTest`
+- do: offene ZIM-Archive merken sich Größe + Änderungszeit; beim nächsten Nachschlagen werden Archive gelöschter oder ersetzter Pakete geschlossen, so wird der Platz sofort frei und ein neues Paket wird neu geöffnet.
+- check: `ZimWikiTest` (CI)
+
+### T-259 · Fix: View-Models lesen nach dem Drehen die alte Activity
+
+- type: `fix` · size: `S` · lane: `B` · depends: T-079
+- files: app/.../HostState.kt (neu), app/.../MainActivity.kt, `HostStateTest`
+- warum: Chat- und News-View-Model überleben das Drehen, ihre Lambdas lasen aber Felder der alten Activity (`current`, `privateChatOpen`, `resources`), die niemand mehr aktualisierte – News nutzte die alte Sprache, der Chat alte Schalter (Offline-Modus, Websuche) und ein altes „privater Chat“.
+- do: `HostState` ist selbst ein ViewModel (gleiche Instanz für jede Activity des Screens) und hält Einstellungen, Privat-Flag und Handy-Sprache; die Activity schreibt hinein, die Lambdas lesen daraus. News-View-Model und Vorlesen fassen die Activity gar nicht mehr an, Standort fürs Wetter über `applicationContext`.
+- offen: das Chat-View-Model hält weiter einige Activity-Objekte (DocLibrary, BrainPicking) – Werte stimmen jetzt, größerer Umbau nach 0.2.
+- check: `HostStateTest` (CI)
