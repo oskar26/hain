@@ -2,11 +2,17 @@
 #pragma once
 
 #include <algorithm>
+#include <cstring>
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <cstdio>
 #include <string>
 #include <vector>
+
+#include <dirent.h>
+#include <sys/stat.h>
+#include <utime.h>
 
 #include "llama.h"
 #include "hain_card_grammar.h"
@@ -57,6 +63,11 @@ struct Session {
     bool kvReuse = true;
     std::atomic<bool> cancel{false};
     Stats stats;
+    // T-242: folder for memory snapshots on disk (system prompt + tools), empty = off. `modelKey`
+    // ties a snapshot to this model file and context size, so another brain never reads it.
+    std::string stateDir;
+    uint64_t modelKey = 0;
+    double restoredMs = -1;  // time the last restore from disk took, -1 = none
 };
 
 inline double nowMs() {
@@ -177,6 +188,113 @@ inline size_t truncateTo(Session *s, size_t n) {
     return 0;
 }
 
+
+// ---- T-242: memory snapshots on disk ------------------------------------------------------------
+// Reading the system prompt and the tools (~1,700 tokens) takes ~25 s on a phone with a 4B brain.
+// After the first time, the memory at the end of that fixed prefix is written to a file; the next
+// start (or the next app launch) loads it in well under a second instead of reading it again.
+// File name = hash of model, context size and the prefix tokens, so a changed prompt or another
+// brain simply misses. Old files are pruned; at most MAX_STATE_FILES stay.
+constexpr size_t MAX_STATE_FILES = 3;
+constexpr uint64_t STATE_FORMAT = 1;
+
+inline uint64_t fnv1a(const void *data, size_t n, uint64_t h = 1469598103934665603ULL) {
+    const auto *p = static_cast<const unsigned char *>(data);
+    for (size_t i = 0; i < n; ++i) {
+        h ^= p[i];
+        h *= 1099511628211ULL;
+    }
+    return h;
+}
+
+// Identity of the loaded model + context size (what a snapshot depends on).
+inline uint64_t modelKeyOf(const llama_model *model, uint32_t nCtx) {
+    char desc[256] = {0};
+    llama_model_desc(model, desc, sizeof(desc));
+    uint64_t parts[4] = {STATE_FORMAT, llama_model_n_params(model), llama_model_size(model), nCtx};
+    return fnv1a(parts, sizeof(parts), fnv1a(desc, std::strlen(desc)));
+}
+
+inline std::string statePath(const Session *s, const std::vector<llama_token> &tokens, size_t n) {
+    uint64_t h = fnv1a(tokens.data(), n * sizeof(llama_token), s->modelKey);
+    char name[48];
+    std::snprintf(name, sizeof(name), "/%016llx.kv", (unsigned long long) h);
+    return s->stateDir + name;
+}
+
+inline bool fileExists(const std::string &path) {
+    struct stat st {};
+    return stat(path.c_str(), &st) == 0 && st.st_size > 0;
+}
+
+// Keeps the newest MAX_STATE_FILES snapshots (by modification time), deletes the rest.
+inline void pruneStates(const std::string &dir) {
+    DIR *d = opendir(dir.c_str());
+    if (d == nullptr) return;
+    std::vector<std::pair<long, std::string>> files;
+    while (dirent *e = readdir(d)) {
+        std::string name = e->d_name;
+        if (name.size() < 4 || name.compare(name.size() - 3, 3, ".kv") != 0) continue;
+        struct stat st {};
+        std::string path = dir + "/" + name;
+        if (stat(path.c_str(), &st) == 0) files.emplace_back((long) st.st_mtime, path);
+    }
+    closedir(d);
+    if (files.size() <= MAX_STATE_FILES) return;
+    std::sort(files.begin(), files.end(), [](const auto &a, const auto &b) { return a.first > b.first; });
+    for (size_t i = MAX_STATE_FILES; i < files.size(); ++i) std::remove(files[i].second.c_str());
+}
+
+// Writes the memory as it is now (s->cached) to its snapshot file, once per prefix.
+inline void persistState(Session *s) {
+    if (s->stateDir.empty() || s->cached.empty()) return;
+    const std::string path = statePath(s, s->cached, s->cached.size());
+    if (fileExists(path)) {
+        utime(path.c_str(), nullptr);  // keep it the newest
+        return;
+    }
+    const double t0 = nowMs();
+    const std::string tmp = path + ".tmp";
+    size_t n = llama_state_seq_save_file(s->ctx, tmp.c_str(), 0, s->cached.data(), s->cached.size());
+    if (n == 0 || std::rename(tmp.c_str(), path.c_str()) != 0) {
+        std::remove(tmp.c_str());
+        HAIN_LOGE("snapshot write failed");
+        return;
+    }
+    HAIN_LOGI("snapshot saved: %zu tok, %zu bytes in %.0f ms", s->cached.size(), n, nowMs() - t0);
+    pruneStates(s->stateDir);
+}
+
+// With empty memory: loads the longest snapshot whose tokens start `prompt`, trying the token counts
+// in `candidates`. Returns the token count now in memory (0 = nothing loaded).
+inline size_t restoreState(Session *s, const std::vector<llama_token> &prompt, std::vector<size_t> candidates) {
+    s->restoredMs = -1;
+    if (s->stateDir.empty() || !s->cached.empty()) return 0;
+    std::sort(candidates.rbegin(), candidates.rend());
+    for (size_t n : candidates) {
+        if (n == 0 || n > prompt.size()) continue;
+        const std::string path = statePath(s, prompt, n);
+        if (!fileExists(path)) continue;
+        const double t0 = nowMs();
+        std::vector<llama_token> tokens(n);
+        size_t count = 0;
+        size_t read = llama_state_seq_load_file(s->ctx, path.c_str(), 0, tokens.data(), tokens.size(), &count);
+        if (read == 0 || count != n || !std::equal(tokens.begin(), tokens.end(), prompt.begin())) {
+            clearMemory(s);
+            std::remove(path.c_str());  // broken or from an older build: read the prompt normally
+            HAIN_LOGE("snapshot unusable, removed");
+            continue;
+        }
+        s->cached = std::move(tokens);
+        saveCheckpoint(s);  // hybrid brains can come back here without re-reading
+        utime(path.c_str(), nullptr);
+        s->restoredMs = nowMs() - t0;
+        HAIN_LOGI("snapshot loaded: %zu tok in %.0f ms", n, s->restoredMs);
+        return n;
+    }
+    return 0;
+}
+
 enum class DecodeResult { OK, CANCELLED, ERROR };
 
 // Decodes tokens[from, to) in batches. On a stop or error the memory goes back to a safe point.
@@ -203,6 +321,12 @@ inline DecodeResult decodeRange(Session *s, const std::vector<llama_token> &toke
 inline DecodeResult ingestPrompt(Session *s, const std::vector<llama_token> &prompt, const std::vector<size_t> &cuts,
                                  bool checkpointEnd) {
     size_t keep = 0;
+    if (s->kvReuse && s->cached.empty() && !s->stateDir.empty()) {
+        // T-242: fresh memory (after loading): start from a snapshot of the prompt start if there is one
+        std::vector<size_t> candidates(cuts);
+        if (checkpointEnd) candidates.push_back(prompt.size());
+        restoreState(s, prompt, candidates);
+    }
     if (s->kvReuse) {
         while (keep < s->cached.size() && keep < prompt.size() && s->cached[keep] == prompt[keep]) ++keep;
         if (keep == prompt.size() && keep > 0 && !checkpointEnd) --keep;  // ≥ 1 token for fresh logits
@@ -218,10 +342,15 @@ inline DecodeResult ingestPrompt(Session *s, const std::vector<llama_token> &pro
         DecodeResult r = decodeRange(s, prompt, at, cut);
         if (r != DecodeResult::OK) return r;
         saveCheckpoint(s);
+        // T-242: the first cut is the end of the fixed system prompt, the same for every chat
+        if (s->kvReuse && cut == cuts.front()) persistState(s);
         at = cut;
     }
     DecodeResult r = decodeRange(s, prompt, at, prompt.size());
-    if (r == DecodeResult::OK && checkpointEnd) saveCheckpoint(s);
+    if (r == DecodeResult::OK && checkpointEnd) {
+        saveCheckpoint(s);
+        if (s->kvReuse) persistState(s);  // warm-up: the whole system turn (valid until its time moves)
+    }
     return r;
 }
 

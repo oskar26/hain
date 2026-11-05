@@ -144,17 +144,34 @@ Java_app_hain_llm_internal_NativeLlm_nativeKvReuse(JNIEnv *, jobject, jlong hand
     if (s != nullptr) s->kvReuse = enabled;
 }
 
-// [loadMs, promptTokens, reusedTokens, prefillMs, genTokens, genMs] of the last calls.
+// [loadMs, promptTokens, reusedTokens, prefillMs, genTokens, genMs, restoredMs] of the last calls;
+// restoredMs (T-242) is the time a snapshot from disk took, -1 when none was loaded.
 JNIEXPORT jfloatArray JNICALL
 Java_app_hain_llm_internal_NativeLlm_nativeStats(JNIEnv *env, jobject, jlong handle) {
     Session *s = session(handle);
-    jfloatArray out = env->NewFloatArray(6);
+    jfloatArray out = env->NewFloatArray(7);
     if (s == nullptr) return out;
     const auto &st = s->stats;
-    float v[6] = {(float) st.loadMs,    (float) st.promptTokens, (float) st.reusedTokens,
-                  (float) st.prefillMs, (float) st.genTokens,    (float) st.genMs};
-    env->SetFloatArrayRegion(out, 0, 6, v);
+    float v[7] = {(float) st.loadMs,    (float) st.promptTokens, (float) st.reusedTokens,
+                  (float) st.prefillMs, (float) st.genTokens,    (float) st.genMs,
+                  (float) s->restoredMs};
+    env->SetFloatArrayRegion(out, 0, 7, v);
     return out;
+}
+
+// T-242: folder for memory snapshots of the system prompt (created by the caller); null = off.
+JNIEXPORT void JNICALL
+Java_app_hain_llm_internal_NativeLlm_nativeSetStateDir(JNIEnv *env, jobject, jlong handle, jstring dir) {
+    Session *s = session(handle);
+    if (s == nullptr) return;
+    if (dir == nullptr) {
+        s->stateDir.clear();
+        return;
+    }
+    const char *cdir = env->GetStringUTFChars(dir, nullptr);
+    s->stateDir = cdir;
+    env->ReleaseStringUTFChars(dir, cdir);
+    s->modelKey = hain::modelKeyOf(s->model, llama_n_ctx(s->ctx));
 }
 
 // Reads a prompt prefix (e.g. the system prompt) into memory ahead of the first message.

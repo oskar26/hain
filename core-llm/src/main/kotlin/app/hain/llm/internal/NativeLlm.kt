@@ -66,8 +66,17 @@ internal object NativeLlm {
         cutBytes: IntArray,
     ): Boolean
 
-    /** [loadMs, promptTokens, reusedTokens, prefillMs, genTokens, genMs] of the last calls. */
+    /** [loadMs, promptTokens, reusedTokens, prefillMs, genTokens, genMs, restoredMs] of the last calls. */
     external fun nativeStats(handle: Long): FloatArray
+
+    /**
+     * T-242: folder where the memory after the system prompt is kept as a file (one per model and
+     * prompt), so the next start skips reading it again; `null` switches it off.
+     */
+    external fun nativeSetStateDir(
+        handle: Long,
+        dir: String?,
+    )
 
     external fun nativeKvReuse(
         handle: Long,
