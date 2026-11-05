@@ -25,6 +25,7 @@ import app.hain.tools.api.ResearchBudget
 import app.hain.tools.api.ResearchNotes
 import app.hain.tools.api.ToolCallFixer
 import app.hain.tools.api.ToolContext
+import app.hain.tools.api.ToolGuard
 import app.hain.tools.api.ToolResult
 import app.hain.tools.api.ToolRouter
 import app.hain.tools.internal.search.PageReader
@@ -127,6 +128,8 @@ class ChatEngine(
      * the question with the memory pack, so it runs off the main thread and may suspend.
      */
     private val memoryHint: (suspend (userMessages: List<String>) -> String?)? = null,
+    /** T-263: where the user said in this chat they live ("bin nach Köln gezogen"), for weather without place. */
+    private val placeOf: (userMessages: List<String>) -> String? = { null },
 ) {
     private val ggufBuilder = GgufPromptBuilder(llm::applyTemplate)
 
@@ -171,7 +174,8 @@ class ChatEngine(
 
     @Volatile private var active: Turn? = null
 
-    @Suppress("CyclomaticComplexMethod", "LongMethod") // the research loop: one place for its rules
+    // the research loop: one place for its rules
+    @Suppress("CyclomaticComplexMethod", "LongMethod", "LoopWithTooManyJumpStatements")
     fun respond(
         history: List<ChatMessage>,
         mode: AnswerMode = answerMode(),
@@ -180,12 +184,14 @@ class ChatEngine(
     ): Flow<TurnUpdate> =
         flow {
             val lastUser = history.lastOrNull()?.content.orEmpty()
+            val userMessages = history.filter { it.role == Role.USER }.map { it.content }
             val budget = ResearchBudget.of(mode)
             val ctx =
                 toolContext().copy(
                     pagesToRead = budget.pagesPerSearch,
                     searchApproved = SearchConsent.approved(history),
                     documents = documents,
+                    chatPlace = placeOf(userMessages),
                 )
             val quick = quickAnswer(history, ctx)
             if (quick != null) {
@@ -200,9 +206,12 @@ class ChatEngine(
             val schemas = if (ownModel()) emptyList() else tools?.schemas(ctx.offline, ctx.webSearch, docs).orEmpty()
             val researchHint = if (schemas.isNotEmpty() && !ctx.offline) researchHint(mode, ctx.lang) else null
             val online = schemas.any { tools?.isOnline(it.name) == true }
+            // T-263: a plain weather or news question gets a nudge to that tool (only then, never in general)
+            val asked = ToolGuard.asked(lastUser)?.takeIf { name -> schemas.any { it.name == name } }
             val followUp =
                 (if (online) FollowUp.link(history, ctx.lang) else null)
-                    ?: if (schemas.isNotEmpty()) FollowUp.hint(history, ctx.lang) else null
+                    ?: (if (schemas.isNotEmpty()) FollowUp.hint(history, ctx.lang) else null)
+                    ?: asked?.let { ToolGuard.nudge(it, ctx.lang) }
             val hints = listOfNotNull(researchHint, followUp).joinToString(" ").ifBlank { null }
             val base = withLanguageHint(history, lastUser, hints)
             val turn = Turn(budget, lastUser, dev)
@@ -211,7 +220,10 @@ class ChatEngine(
                 var round = 0
                 while (true) {
                     val final =
-                        round >= budget.maxRounds || turn.stopRequested || budget.timeUp(turn.startedAt, clock())
+                        round >= budget.maxRounds ||
+                            turn.stopRequested ||
+                            turn.toolsOff ||
+                            budget.timeUp(turn.startedAt, clock())
                     turn.finalRound = final
                     turn.textStarted = false
                     val roundTools = if (final) emptyList() else schemas
@@ -227,11 +239,28 @@ class ChatEngine(
                     }
                     val router = tools
                     // 4d: real names and parameters, dates relative to now, the same call only once
-                    val calls =
+                    val proposed =
                         router
                             ?.let { r -> ToolCallFixer.dedupe(result.output.toolCalls.map { r.fix(it, ctx).call }) }
                             .orEmpty()
+                    // T-263: weather and news only when the message asks for them; the rest of the round runs
+                    val calls =
+                        proposed
+                            .filter { ToolGuard.fits(it.name, userMessages, it.arguments["query"]?.toString()) }
                             .take(budget.callsPerRound)
+                    val offTopic = proposed.isNotEmpty() && calls.isEmpty()
+                    if (offTopic && !final && result.reason == StopReason.END) {
+                        // every call was off topic: once a hint to answer without them, then no tools at all
+                        if (turn.guardHinted) {
+                            turn.toolsOff = true
+                        } else {
+                            turn.guardHinted = true
+                            val hint = ToolGuard.hint(proposed.map { it.name }, ctx.lang)
+                            turn.add(ChatMessage(Role.SYSTEM, hint), round)
+                        }
+                        round++
+                        continue
+                    }
                     val answered = calls.isEmpty() || roundTools.isEmpty() || result.reason != StopReason.END
                     if (router == null || answered) {
                         val earlier = turn.reasoning.toString().trim()
@@ -295,6 +324,12 @@ class ChatEngine(
 
         /** T-236: the web search could not be reached in this turn; more searches would fail the same way. */
         var searchDown = false
+
+        /** T-263: the brain was told once that its calls did not fit the question. */
+        var guardHinted = false
+
+        /** T-263: it called off-topic tools again: the next round has none. */
+        var toolsOff = false
         val reasoning = StringBuilder()
         var thinkingMs = 0L
         var searches = 0
@@ -841,11 +876,13 @@ class ChatEngine(
 
         private const val THOROUGH_DE =
             "Gründliche Recherche: Du hast bis zu einer Minute. Suche mit mehreren Anfragen, " +
-                "auch umformuliert und auf Englisch, und nutze verschiedene Seiten. Du darfst bis zu " +
-                "3 Werkzeuge auf einmal aufrufen. Stütze Fakten auf mindestens 2 Quellen und nenne Widersprüche."
+                "auch umformuliert und auf Englisch, und nutze verschiedene Seiten. Braucht die Frage mehrere " +
+                "Dinge, darfst du bis zu 3 passende Werkzeuge auf einmal aufrufen, nie eins, das nicht zur Frage " +
+                "passt. Stütze Fakten auf mindestens 2 Quellen und nenne Widersprüche."
         private const val THOROUGH_EN =
             "Thorough research: you have up to one minute. Search with several queries, also reworded " +
-                "and in German, and use different pages. You may call up to 3 tools at once. " +
+                "and in German, and use different pages. If the question needs several things, you may call up to " +
+                "3 fitting tools at once, never one that does not fit the question. " +
                 "Back facts with at least 2 sources and point out contradictions."
         private const val FINAL_DE =
             "Die Recherche ist beendet. Antworte jetzt nur aus den Ergebnissen oben, nenne die Quellen " +

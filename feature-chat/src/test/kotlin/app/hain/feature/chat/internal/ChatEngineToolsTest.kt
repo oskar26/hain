@@ -67,6 +67,22 @@ class ChatEngineToolsTest {
         }
 
     @Test
+    fun offTopicWeatherIsNotRunAndTheBrainAnswersWithoutIt() =
+        runTest {
+            // T-263: "ich bin neu nach Köln gezogen was machen" is no weather question
+            val weather = FakeWeather()
+            val llm = FakeLlm(listOf(call("weather", "place", "Köln")), listOf("Geh an den Rhein und in die Altstadt."))
+            val engine = ChatEngine(llm, { "SYS" }, tools = ToolRouter(listOf(weather)), toolContext = { ctx })
+            val last =
+                engine.respond(user("ich bin neu nach Köln gezogen was machen"), AnswerMode.AUTO).toList().last()
+                    as TurnUpdate.Finished
+            assertEquals(0, weather.calls)
+            assertEquals("Geh an den Rhein und in die Altstadt.", last.output.text)
+            assertTrue(last.steps.isEmpty())
+            assertTrue(llm.prompts[1].contains("Die Frage braucht weather nicht."))
+        }
+
+    @Test
     fun afterTheRoundBudgetTheBrainMustAnswerWithoutTools() =
         runTest {
             val weather = FakeWeather()

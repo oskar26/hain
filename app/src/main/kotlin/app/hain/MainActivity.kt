@@ -94,6 +94,7 @@ import app.hain.memory.api.MemoryExtraction
 import app.hain.memory.api.MemoryStore
 import app.hain.memory.api.MemoryTurn
 import app.hain.memory.api.RememberTool
+import app.hain.memory.internal.SelfFacts
 import app.hain.models.api.BrainUpgrade
 import app.hain.models.api.DevModels
 import app.hain.models.api.DeviceCheck
@@ -389,8 +390,12 @@ class MainActivity : FragmentActivity() {
                             searxUrl = SearxAddress.normalize(cfg.searxUrl),
                             webSearch = cfg.webSearch,
                             here = if (cfg.weatherLocation) WeatherLocation.last(applicationContext) else null,
+                            // T-263: the kept home place for weather without place (never in a private chat)
+                            homePlace = if (privateChatOpen) null else memory.homePlace(),
                         )
                     },
+                    // T-263: "ich bin nach Köln gezogen" earlier in this chat → weather there
+                    placeOf = { messages -> SelfFacts.homePlace(SelfFacts.ruleFacts(messages).map { it.text }) },
                     tuning = { settings().dev },
                     ownModel = { ownModelPath() != null },
                     // 7b: off the main thread, may embed the question with the pack "Suche nach Bedeutung"
