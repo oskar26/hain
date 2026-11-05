@@ -18,6 +18,7 @@ import app.hain.llm.internal.AnswerMode
 import app.hain.llm.internal.GgufPromptBuilder
 import app.hain.llm.internal.StreamSplitter
 import app.hain.llm.internal.ThinkingPolicy
+import app.hain.tools.api.AlarmHints
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.InfoCard
 import app.hain.tools.api.NewsHeadline
@@ -185,6 +186,7 @@ class ChatEngine(
         flow {
             val lastUser = history.lastOrNull()?.content.orEmpty()
             val userMessages = history.filter { it.role == Role.USER }.map { it.content }
+            val lastAlarm = AlarmHints.lastTime(history.flatMap { it.toolCalls })
             val budget = ResearchBudget.of(mode)
             val ctx =
                 toolContext().copy(
@@ -248,6 +250,8 @@ class ChatEngine(
                         proposed
                             .filter { ToolGuard.fits(it.name, userMessages, it.arguments["query"]?.toString()) }
                             .take(budget.callsPerRound)
+                            // T-267: repeat days and "15 Minuten früher" from the user's own words
+                            .map { AlarmHints.fix(it, lastUser, lastAlarm) }
                     val offTopic = proposed.isNotEmpty() && calls.isEmpty()
                     if (offTopic && !final && result.reason == StopReason.END) {
                         // every call was off topic: once a hint to answer without them, then no tools at all
