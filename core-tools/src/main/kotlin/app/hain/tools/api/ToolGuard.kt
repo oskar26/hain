@@ -13,8 +13,8 @@ object ToolGuard {
     private const val NEWS = "news"
     private const val SEARCH = "web_search"
 
-    /** Longest message (in words) that still counts as a follow-up of the one before. */
-    private const val FOLLOW_UP_WORDS = 7
+    /** Longest message (in words) that still counts as a follow-up of the one before ("und morgen in Bonn?"). */
+    private const val FOLLOW_UP_WORDS = 5
 
     /**
      * Whether a call of [tool] fits the newest of [userMessages] (oldest first). A web search whose
