@@ -154,8 +154,10 @@ class FactExtractorTest {
 
             val store = DefaultMemoryStore(InMemoryFactSource(), backgroundScope)
             val broken = ExtractionBrain { _, _, _, _ -> null }
-            assertTrue(FactExtractor(store, broken, prompts).run(chat, null).suggested.isEmpty())
-            assertTrue(FactExtractor(store, FakeBrain("not json"), prompts).run(chat, null).suggested.isEmpty())
+            // T-262: the plain patterns work without a brain, so only the brain part is checked here
+            assertTrue(FactExtractor(store, broken, prompts, useRules = false).run(chat, null).suggested.isEmpty())
+            val notJson = FactExtractor(store, FakeBrain("not json"), prompts, useRules = false)
+            assertTrue(notJson.run(chat, null).suggested.isEmpty())
         }
 
     @Test
