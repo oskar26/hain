@@ -13,7 +13,7 @@
   (website: `<id>-light.webp`, `<id>-light-en.webp`, … 720 px wide, WebP q82).
 - Sample texts: invented only. No real people, places or addresses of the team (T-252: the German shots use
   the same Paris example as the English ones).
-- Status in the column "Shot": **da** = test exists in DE + EN, **DE** = only German so far, **neu** = test still
+- Status in the column "Shot": **da** = test exists in DE + EN (style tests write `styles/lichtung_<id>_<light|dark>[_en].png`), **DE** = only German so far, **neu** = test still
   to write.
 
 ## One line per feature
@@ -21,7 +21,7 @@
 | # | Feature (website section) | Screen name (test → file) | Shot | Website text (EN / DE) |
 |---|---|---|---|---|
 | 1 | Welcome tour + language step | `OnboardingStyleScreens` → `onboarding` | da | Welcome / Willkommen |
-| 2 | Brain download, skip, celebration | `OnboardingScreens` → `onboarding_success` | DE | Your brain, on your phone / Dein Gehirn auf dem Handy |
+| 2 | Brain download, skip, celebration | `OnboardingStyleScreens` (+ `…En`) → `onboarding_success` (old `OnboardingScreens` shot DE only) | da | Your brain, on your phone / Dein Gehirn auf dem Handy |
 | 3 | Chat: start page with Pim and suggestions | `ChatStyleScreens` → `chat_empty` | da | Just ask / Frag einfach |
 | 4 | Answer with Markdown, tables, code | `ChatStyleScreens` → `chat_long_answer` | da | Real answers / Richtige Antworten |
 | 5 | Thinking level in the message box | `ChatStyleScreens` → `chat_composer_picker` | da | Fast or thorough / Schnell oder gründlich |
@@ -54,12 +54,12 @@
 | 32 | Export chat as PDF / Markdown | neu: `export_sheet` (+ PDF page as picture) | neu | Take your chats along / Chats mitnehmen |
 | 33 | Network log + offline mode | neu: `settings_network_log` | neu | You see every request / Du siehst jede Anfrage |
 | 34 | Settings hub | `SettingsStyleScreens` → `settings` | da | Settings / Einstellungen |
-| 35 | Look: theme, app icon, font, vibration, reduce motion | `SettingsScreens` → `settings_look_dark` | DE | Your look / Dein Aussehen |
+| 35 | Look: theme, app icon, font, vibration, reduce motion | `SettingsStyleScreens` (+ `…En`) → `settings_look` (old `SettingsScreens` → `settings_look_dark` DE only) | da | Your look / Dein Aussehen |
 | 36 | Models & packs (Knowledge, Brains, Multimedia, Voice, Extras) | `SettingsScreens` → `packs_hub_light`, `packs_voice_dark` | DE | Models & packs / Modelle & Pakete |
 | 37 | Wikipedia offline | `SettingsScreens` → `packs_knowledge_light` | DE | Wikipedia without internet / Wikipedia ohne Internet |
 | 38 | Search by meaning (memory pack) | `MemoryScreens` → `memory_smart_search_dark` | DE | (part of 16) |
-| 39 | About Hain, update check | `SettingsScreens` → `settings_about` | DE | About / Über Hain |
-| 40 | Developer mode | `SettingsScreens` → `settings_dev` | DE | (README only) |
+| 39 | About Hain, update check | `SettingsStyleScreens` (+ `…En`) → `settings_about` | da | About / Über Hain |
+| 40 | Developer mode | `SettingsStyleScreens` (+ `…En`) → `settings_dev` | da | (README only) |
 | 41 | Tablets: chat list, settings list-detail | `TabletScreens` → `tablet_chat_*`; `TabletSettingsScreens` → `tablet_settings_*` | DE | Tablets |
 | 42 | Tablets: packs + memory in two columns (T-251) | `TabletSettingsScreens` → `tablet_packs_*`; `TabletMemoryScreens` → `tablet_memory_*` | DE | (part of 41) |
 | 43 | Tablets: news list + article side by side | `NewsScreens` → `news_tablet_*` | DE | (part of 41) |
