@@ -1605,3 +1605,8 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - do: Keine „[1]“ mehr im Fließtext: `CitationMarks.toLinks` macht aus gültigen Markern Links, `AssistantBlock` zeichnet sie als kleine hochgestellte runde Chips (Hain-Grün `accentSoft`/`accent`, Zahl), Tipp öffnet die Quelle (TalkBack: „Quelle 1: Titel“). Quellen unter der Antwort als eine Zeile mit übereinanderliegenden Favicons + „3 Quellen“, ausklappbar zur Liste (Nummer, Icon, Titel, Seite). Kopieren/Teilen/Vorlesen ohne Marker (`CitationMarks.strip`). EN + DE.
 - check: `CitationMarksTest`, Roborazzi `SourceRowScreens` (Chips hell/dunkel 360 dp, Liste offen), CI
 
+### T-275 · Recherche-Prompts ohne Meta-Rede
+
+- type: `fix` · size: `XS` · lane: `A`
+- do: `THOROUGH_*`/`FINAL_*` (DE + EN): Frage direkt beantworten, Wichtigstes zuerst, nur Fakten aus den Ergebnissen mit [1], keine Rede über Suche/Quellen/Widersprüche; fehlt etwas, kurz sagen was.
+- check: `ResearchPromptTest`, `ResearchLoopTest`, CI

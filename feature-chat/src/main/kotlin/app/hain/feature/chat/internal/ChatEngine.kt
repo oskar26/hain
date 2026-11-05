@@ -965,22 +965,27 @@ class ChatEngine(
         /** T-264: at most one live update per 40 ms (25 a second), enough for smooth text. */
         internal const val STREAM_MS = 40L
 
+        // T-275: answer the question itself; no talk about sources, searches or contradictions, only facts
+        // the results back up
         private const val THOROUGH_DE =
             "Gründliche Recherche: Du hast bis zu einer Minute. Suche mit mehreren Anfragen, " +
                 "auch umformuliert und auf Englisch, und nutze verschiedene Seiten. Braucht die Frage mehrere " +
                 "Dinge, darfst du bis zu 3 passende Werkzeuge auf einmal aufrufen, nie eins, das nicht zur Frage " +
-                "passt. Stütze Fakten auf mindestens 2 Quellen und nenne Widersprüche."
+                "passt. Nimm nur Fakten, die in den Ergebnissen stehen."
         private const val THOROUGH_EN =
             "Thorough research: you have up to one minute. Search with several queries, also reworded " +
                 "and in German, and use different pages. If the question needs several things, you may call up to " +
                 "3 fitting tools at once, never one that does not fit the question. " +
-                "Back facts with at least 2 sources and point out contradictions."
+                "Use only facts that are in the results."
         private const val FINAL_DE =
-            "Die Recherche ist beendet. Antworte jetzt nur aus den Ergebnissen oben, nenne die Quellen " +
-                "als [1], [2] und sag, wenn Quellen sich widersprechen."
+            "Die Recherche ist beendet. Beantworte jetzt direkt die Frage, mit dem Wichtigsten zuerst. " +
+                "Schreib nur Fakten, die in den Ergebnissen oben stehen, und setz [1], [2] hinter den Satz. " +
+                "Schreib nichts über die Suche, die Quellen oder Widersprüche; fehlt etwas, sag kurz, was."
         private const val FINAL_EN =
-            "The research is over. Answer now only from the results above, cite the sources as [1], [2] " +
-                "and say when sources contradict each other."
+            "The research is over. Now answer the question directly, the most important part first. " +
+                "Write only facts that are in the results above and put [1], [2] after the sentence. " +
+                "Do not write about the search, the sources or contradictions; " +
+                "if something is missing, say briefly what."
 
         private val DETAIL_KEYS =
             listOf("place", "topic", "expression", "query", "url", "time", "title", "destination")
