@@ -231,7 +231,11 @@ class NewsRepository(
      * not fetched within the refresh interval. Offline mode stops it and keeps the cached items.
      */
     @Suppress("ReturnCount", "SwallowedException")
-    suspend fun refresh(force: Boolean = false): RefreshResult {
+    suspend fun refresh(
+        force: Boolean = false,
+        /** T-265: feeds done / feeds due, after each feed ("Feeds laden 3/19"). */
+        onProgress: (done: Int, total: Int) -> Unit = { _, _ -> },
+    ): RefreshResult {
         val start = mutex.withLock { ensureLoaded() }
         val now = clock()
         val due =
@@ -240,6 +244,8 @@ class NewsRepository(
             }
         if (due.isEmpty()) return RefreshResult(0, 0)
         val failed = AtomicInteger(0)
+        val done = AtomicInteger(0)
+        onProgress(0, due.size)
         try {
             // T-075: every feed on its own, each shown as soon as it is there; a slow or broken feed
             // neither holds the others back nor stops them (time limit per feed)
@@ -255,6 +261,7 @@ class NewsRepository(
                             val items = outcome.parsed?.let { merge(s.items, feed, it, now) } ?: s.items
                             s.copy(feedStates = s.feedStates + (feed.id to outcome.state), items = items)
                         }
+                        onProgress(done.incrementAndGet(), due.size)
                     }
                 }
             }

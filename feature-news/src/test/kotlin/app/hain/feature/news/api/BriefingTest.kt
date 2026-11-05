@@ -103,6 +103,20 @@ class BriefingTest {
             assertEquals(3, calls)
         }
 
+    @Test fun stepsAreReportedReadingThenSummingUp() =
+        runTest {
+            // T-265: the card shows "Artikel lesen", then "Zusammenfassen" (only with a brain)
+            val steps = mutableListOf<BriefingStep>()
+            val brain = BrainCall { _, user -> user.lines().mapIndexed { i, _ -> "${i + 1}. S" }.joinToString("\n") }
+            BriefingMaker(MemoryBriefingStore(), brain = brain, clock = { now }, zone = { zone })
+                .today(items, "de", onStep = { steps += it })
+            assertEquals(listOf(BriefingStep.READING, BriefingStep.SUMMING_UP), steps)
+            steps.clear()
+            BriefingMaker(MemoryBriefingStore(), brain = null, clock = { now }, zone = { zone })
+                .today(items, "de", onStep = { steps += it })
+            assertEquals(listOf(BriefingStep.READING), steps)
+        }
+
     @Test fun withoutBrainTheStoriesOwnSentencesAreUsed() =
         runTest {
             val maker = BriefingMaker(MemoryBriefingStore(), brain = null, clock = { now }, zone = { zone })

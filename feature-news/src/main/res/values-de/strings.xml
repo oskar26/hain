@@ -94,4 +94,8 @@
     <string name="news_prefs_sample">So sieht ein Absatz im Lesemodus aus. Hain zeigt den Artikel direkt in der App, ohne Werbung und ohne Tracker.</string>
     <string name="news_bigger">Größer</string>
     <string name="news_smaller">Kleiner</string>
+    <string name="news_briefing_make_now">Jetzt erstellen</string>
+    <string name="news_briefing_step_feeds">Feeds laden %1$d/%2$d</string>
+    <string name="news_briefing_step_reading">Artikel lesen</string>
+    <string name="news_briefing_step_summing">Zusammenfassen</string>
 </resources>
