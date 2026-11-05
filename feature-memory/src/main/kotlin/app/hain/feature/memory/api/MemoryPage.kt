@@ -229,7 +229,7 @@ private fun TabSwitch(
             when (tab) {
                 MemoryTab.FACTS -> stringResource(R.string.memory_tab_facts)
                 MemoryTab.TOPICS -> stringResource(R.string.memory_tab_topics)
-                MemoryTab.SUGGESTIONS -> if (waiting > 0) "$suggestionsLabel ($waiting)" else suggestionsLabel
+                MemoryTab.SUGGESTIONS -> MemoryList.suggestionsLabel(suggestionsLabel, waiting)
                 MemoryTab.YOU -> stringResource(R.string.memory_tab_you)
             }
         }

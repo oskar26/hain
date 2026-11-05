@@ -34,6 +34,13 @@ class MemoryListTest {
     }
 
     @Test
+    fun suggestionsLabelStaysShort() {
+        assertEquals("Vorschläge", MemoryList.suggestionsLabel("Vorschläge", 0))
+        assertEquals("Vorschläge\u202F1", MemoryList.suggestionsLabel("Vorschläge", 1))
+        assertEquals("Vorschläge\u202F9+", MemoryList.suggestionsLabel("Vorschläge", 42))
+    }
+
+    @Test
     fun tabsSplitKeptFactsAndSuggestions() {
         assertEquals(listOf(1L, 2L), MemoryList.visible(facts, "", suggestions = false).map { it.id })
         assertEquals(listOf(3L), MemoryList.visible(facts, "", suggestions = true).map { it.id })
