@@ -1,105 +1,121 @@
 {
-  "version": 1,
-  "note": "Fixed standard mix (NEWS.md §2, ADR-14). No per-feed switches, no labels.",
+  "version": 2,
+  "note": "Fixed standard mix (NEWS.md §2, ADR-14): public broadcasters, big papers and left media in German and English. No per-feed switches, no labels, no paywall flags (T-077: only an article that is really cut off is marked).",
   "feeds": [
     {
       "id": "tagesschau",
       "name": "tagesschau",
       "lang": "de",
-      "url": "https://www.tagesschau.de/index~rss2.xml",
-      "paywall": false
+      "url": "https://www.tagesschau.de/index~rss2.xml"
+    },
+    {
+      "id": "zdf",
+      "name": "ZDFheute",
+      "lang": "de",
+      "url": "https://www.zdf.de/rss/zdf/nachrichten"
     },
     {
       "id": "dlf",
       "name": "Deutschlandfunk",
       "lang": "de",
-      "url": "https://www.deutschlandfunk.de/nachrichten-100.rss",
-      "paywall": false
+      "url": "https://www.deutschlandfunk.de/nachrichten-100.rss"
+    },
+    {
+      "id": "dw_de",
+      "name": "DW Deutsch",
+      "lang": "de",
+      "url": "https://rss.dw.com/xml/rss-de-all"
+    },
+    {
+      "id": "spiegel",
+      "name": "DER SPIEGEL",
+      "lang": "de",
+      "url": "https://www.spiegel.de/schlagzeilen/index.rss"
+    },
+    {
+      "id": "sz",
+      "name": "Süddeutsche Zeitung",
+      "lang": "de",
+      "url": "https://rss.sueddeutsche.de/rss/Topthemen"
     },
     {
       "id": "zeit",
       "name": "ZEIT ONLINE",
       "lang": "de",
-      "url": "https://newsfeed.zeit.de/index",
-      "paywall": true
+      "url": "https://newsfeed.zeit.de/index"
     },
     {
       "id": "taz",
       "name": "taz",
       "lang": "de",
-      "url": "https://taz.de/!p4608;rss/",
-      "paywall": false
+      "url": "https://taz.de/!p4608;rss/"
     },
     {
       "id": "jungewelt",
       "name": "junge Welt",
       "lang": "de",
-      "url": "https://www.jungewelt.de/feeds/newsticker.rss",
-      "paywall": true
+      "url": "https://www.jungewelt.de/feeds/newsticker.rss"
     },
     {
       "id": "nd",
       "name": "nd",
       "lang": "de",
-      "url": "https://www.nd-aktuell.de/rss/aktuell.php",
-      "paywall": true
-    },
-    {
-      "id": "bbc",
-      "name": "BBC News",
-      "lang": "en",
-      "url": "https://feeds.bbci.co.uk/news/rss.xml",
-      "paywall": false
-    },
-    {
-      "id": "guardian",
-      "name": "The Guardian",
-      "lang": "en",
-      "url": "https://www.theguardian.com/world/rss",
-      "paywall": false
-    },
-    {
-      "id": "dw_en",
-      "name": "DW",
-      "lang": "en",
-      "url": "https://rss.dw.com/rdf/rss-en-all",
-      "paywall": false
-    },
-    {
-      "id": "aje",
-      "name": "Al Jazeera",
-      "lang": "en",
-      "url": "https://www.aljazeera.com/xml/rss/all.xml",
-      "paywall": false
-    },
-    {
-      "id": "jacobin",
-      "name": "Jacobin",
-      "lang": "en",
-      "url": "https://jacobin.com/feed/",
-      "paywall": false
-    },
-    {
-      "id": "democracynow",
-      "name": "Democracy Now!",
-      "lang": "en",
-      "url": "https://www.democracynow.org/democracynow.rss",
-      "paywall": false
+      "url": "https://www.nd-aktuell.de/rss/aktuell.php"
     },
     {
       "id": "correctiv",
       "name": "CORRECTIV",
       "lang": "de",
       "url": "https://correctiv.org/feed/",
-      "paywall": false,
       "category": "Faktencheck"
+    },
+    {
+      "id": "bbc",
+      "name": "BBC News",
+      "lang": "en",
+      "url": "https://feeds.bbci.co.uk/news/rss.xml"
+    },
+    {
+      "id": "guardian",
+      "name": "The Guardian",
+      "lang": "en",
+      "url": "https://www.theguardian.com/world/rss"
+    },
+    {
+      "id": "dw_en",
+      "name": "DW",
+      "lang": "en",
+      "url": "https://rss.dw.com/rdf/rss-en-all"
+    },
+    {
+      "id": "npr",
+      "name": "NPR",
+      "lang": "en",
+      "url": "https://feeds.npr.org/1001/rss.xml"
+    },
+    {
+      "id": "aje",
+      "name": "Al Jazeera",
+      "lang": "en",
+      "url": "https://www.aljazeera.com/xml/rss/all.xml"
+    },
+    {
+      "id": "jacobin",
+      "name": "Jacobin",
+      "lang": "en",
+      "url": "https://jacobin.com/feed/"
+    },
+    {
+      "id": "democracynow",
+      "name": "Democracy Now!",
+      "lang": "en",
+      "url": "https://www.democracynow.org/democracynow.rss"
     },
     {
       "id": "fullfact",
       "name": "Full Fact",
       "lang": "en",
-      "url": "https://fullfact.org/feed/",
-      "paywall": false
+      "url": "https://fullfact.org/feed/"
     }
   ]
 }

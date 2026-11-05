@@ -17,10 +17,15 @@ class FeedParserTest {
         val withImages: Int,
     )
 
+    // T-075: pictures also come from the item's own HTML (tagesschau, Deutschlandfunk, Democracy Now!)
     private val expected =
         mapOf(
-            "tagesschau" to Expect(FeedFormat.RSS2, 63, 0),
-            "dlf" to Expect(FeedFormat.RSS2, 38, 0),
+            "tagesschau" to Expect(FeedFormat.RSS2, 63, 58),
+            "zdf" to Expect(FeedFormat.RSS2, 180, 179),
+            "dlf" to Expect(FeedFormat.RSS2, 38, 38),
+            "dw_de" to Expect(FeedFormat.RSS2, 83, 83),
+            "spiegel" to Expect(FeedFormat.RSS2, 30, 30),
+            "sz" to Expect(FeedFormat.RSS2, 15, 15),
             "zeit" to Expect(FeedFormat.RSS2, 15, 15),
             "taz" to Expect(FeedFormat.RSS2, 49, 49),
             "jungewelt" to Expect(FeedFormat.RSS2, 36, 34),
@@ -28,9 +33,10 @@ class FeedParserTest {
             "bbc" to Expect(FeedFormat.RSS2, 30, 30),
             "guardian" to Expect(FeedFormat.RSS2, 45, 45),
             "dw_en" to Expect(FeedFormat.RDF, 122, 0),
+            "npr" to Expect(FeedFormat.RSS2, 10, 10),
             "aje" to Expect(FeedFormat.RSS2, 25, 0),
             "jacobin" to Expect(FeedFormat.ATOM, 20, 20),
-            "democracynow" to Expect(FeedFormat.RSS2, 33, 0),
+            "democracynow" to Expect(FeedFormat.RSS2, 33, 23),
             "correctiv" to Expect(FeedFormat.RSS2, 100, 0),
             "fullfact" to Expect(FeedFormat.RSS2, 10, 0),
         )
@@ -44,6 +50,47 @@ class FeedParserTest {
 
     @Test fun tagesschau() {
         check("tagesschau")
+    }
+
+    @Test fun zdfHeute() {
+        check("zdf")
+    }
+
+    @Test fun dwGerman() {
+        check("dw_de")
+    }
+
+    @Test fun spiegel() {
+        check("spiegel")
+    }
+
+    @Test fun sueddeutsche() {
+        check("sz")
+    }
+
+    @Test fun npr() {
+        check("npr")
+    }
+
+    @Test fun everyPictureIsAnHttpsAddress() {
+        expected.keys.forEach { id ->
+            parse(id).items.mapNotNull { it.imageUrl }.forEach { url ->
+                assertTrue("$id $url", url.startsWith("https://"))
+            }
+        }
+    }
+
+    @Test
+    fun pictureInsideTheItemHtmlIsFoundButNotATrackingPixel() {
+        val rss = """<?xml version="1.0"?><rss version="2.0"><channel><title>T</title>
+            <item><title>Mit Bild</title><link>https://a.example/news/1</link>
+            <description>&lt;img src="https://a.example/px.gif" width="1" height="1"/&gt;&lt;p&gt;Text&lt;/p&gt;
+            &lt;img src="/bilder/gross.jpg?w=640&amp;amp;h=360" alt=""/&gt;</description></item>
+            <item><title>Ohne Bild</title><link>https://a.example/news/2</link><description>Nur Text</description></item>
+            </channel></rss>"""
+        val items = (parser.parse(rss.byteInputStream()) as FeedParseResult.Success).feed.items
+        assertEquals("https://a.example/bilder/gross.jpg?w=640&h=360", items[0].imageUrl)
+        assertEquals(null, items[1].imageUrl)
     }
 
     @Test fun deutschlandfunk() {
@@ -105,7 +152,8 @@ class FeedParserTest {
         assertEquals("$id format", want.format, feed.format)
         assertEquals("$id items", want.items, feed.items.size)
         assertEquals("$id images", want.withImages, feed.items.count { it.imageUrl != null })
-        val earliest = Instant.parse("2020-01-01T00:00:00Z")
+        // ZDFheute keeps a few evergreen pieces from 2019 in its feed (the 7-day window drops them)
+        val earliest = Instant.parse("2015-01-01T00:00:00Z")
         feed.items.forEach { item ->
             assertTrue("$id title", item.title.isNotBlank() && '<' !in item.title)
             assertTrue("$id link ${item.link}", item.link?.startsWith("http") == true)

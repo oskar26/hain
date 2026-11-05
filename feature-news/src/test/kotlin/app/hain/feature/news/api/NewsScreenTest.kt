@@ -42,7 +42,7 @@ class NewsScreenTest {
                 NewsBody(state, NewsActions(), startOnFeeds = true, now = now)
             }
         }
-        compose.onNodeWithText("Kölner Stadtblog").assertExists()
+        compose.onNodeWithText("Stadtblog").assertExists()
         compose.onAllNodesWithText("tagesschau").assertCountEquals(0)
         compose.onAllNodesWithText("junge Welt").assertCountEquals(0)
         compose.onAllNodes(toggles).assertCountEquals(0)

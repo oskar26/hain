@@ -7,7 +7,9 @@ import app.hain.tools.internal.news.NewsFeed
 import app.hain.tools.internal.news.NewsItem
 import app.hain.tools.internal.news.NewsMode
 import app.hain.tools.internal.news.NewsRepository
+import app.hain.tools.internal.news.NewsSnapshot
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,16 +20,26 @@ import kotlinx.coroutines.launch
 /** Why adding an own feed did not work (shown under the address field). */
 enum class AddFeedError { NOT_A_FEED, DUPLICATE, FULL, OFFLINE, FAILED }
 
-/** A summary on the news screen: running, or what came back (T-074; kept only while the screen is open). */
-sealed interface SummaryState {
-    data object Loading : SummaryState
+/** The article open in the reading view (T-076): its headline, and what loading it gave (`null` = loading). */
+data class OpenArticle(
+    val item: NewsItem,
+    val result: ReaderResult? = null,
+)
 
-    data class Ready(
-        val result: SummaryResult,
-    ) : SummaryState
-}
+/** A question to Pim about the open article (T-078): running, or Pim's answer. */
+data class AskState(
+    val question: String,
+    val result: AskResult? = null,
+)
 
-/** Everything the news screen shows (T-073). */
+/** The daily briefing on top of the list (T-079). */
+data class BriefingState(
+    val briefing: Briefing? = null,
+    val making: Boolean = false,
+    val expanded: Boolean = false,
+)
+
+/** Everything the news screen shows (T-073, T-075–T-079). */
 data class NewsUiState(
     val mode: NewsMode = NewsMode.STANDARD,
     val items: List<NewsItem> = emptyList(),
@@ -37,17 +49,24 @@ data class NewsUiState(
     val offline: Boolean = false,
     val adding: Boolean = false,
     val addError: AddFeedError? = null,
-    val summaries: Map<String, SummaryState> = emptyMap(),
+    val prefs: NewsPrefs = NewsPrefs(),
+    val briefing: BriefingState = BriefingState(),
+    val open: OpenArticle? = null,
+    val ask: AskState? = null,
 )
 
 /**
- * News screen state (T-073/T-074): the mode switch, own feeds (add, rename, delete), refresh and the
- * on-demand summary. [scope] replaces `viewModelScope` in tests.
+ * News screen state: the mode, own feeds (add, rename, delete), refresh, pictures for cards without
+ * one, the reading view, questions to Pim and the daily briefing. [scope] replaces `viewModelScope`
+ * in tests. Without [reader], [asker] or [briefings] that part is simply not there.
  */
-@Suppress("TooManyFunctions") // one function per screen action
+@Suppress("TooManyFunctions", "LongParameterList", "ReturnCount") // one function per screen action
 class NewsViewModel(
     private val repository: NewsRepository,
-    private val summarizer: SummarizeArticle? = null,
+    private val reader: ArticleReader? = null,
+    private val asker: ArticleAsk? = null,
+    private val briefings: BriefingMaker? = null,
+    private val prefsStore: NewsPrefsStore = MemoryNewsPrefs(),
     private val lang: () -> String = { "de" },
     scope: CoroutineScope? = null,
 ) : ViewModel() {
@@ -56,41 +75,60 @@ class NewsViewModel(
         val offline: Boolean = false,
         val adding: Boolean = false,
         val addError: AddFeedError? = null,
-        val summaries: Map<String, SummaryState> = emptyMap(),
+        val briefing: BriefingState = BriefingState(),
+        val open: OpenArticle? = null,
+        val ask: AskState? = null,
     )
 
     private val work: CoroutineScope = scope ?: viewModelScope
     private val local = MutableStateFlow(Local())
     private val mutableState = MutableStateFlow(NewsUiState())
+    private var askJob: Job? = null
+    private var openJob: Job? = null
     val state: StateFlow<NewsUiState> = mutableState.asStateFlow()
 
     init {
         work.launch {
-            combine(repository.state, local) { s, l ->
+            combine(repository.state, local, prefsStore.prefs) { s, l, p ->
                 NewsUiState(
                     mode = s.mode,
-                    items = repository.items(s),
+                    items = NewsRepository.mixed(repository.items(s)),
                     ownFeeds = s.ownFeeds,
                     broken = repository.brokenOwnFeeds(s),
                     refreshing = l.refreshing,
                     offline = l.offline,
                     adding = l.adding,
                     addError = l.addError,
-                    summaries = l.summaries,
+                    prefs = p,
+                    briefing = l.briefing,
+                    open = l.open?.let { o -> fresh(o, s) },
+                    ask = l.ask,
                 )
             }.collect { mutableState.value = it }
         }
     }
 
-    /** Opening the screen: read the cache, then fetch what is older than the refresh interval. */
+    /** The open article with its headline as it is now (the paywall mark can change after reading). */
+    private fun fresh(
+        open: OpenArticle,
+        s: NewsSnapshot,
+    ): OpenArticle {
+        val now = s.items.firstOrNull { it.guid == open.item.guid && it.feedId == open.item.feedId } ?: return open
+        val locked = now.link != null && now.link in s.locked
+        return open.copy(item = open.item.copy(paywall = locked, imageUrl = open.item.imageUrl ?: now.imageUrl))
+    }
+
+    /** Opening the screen: read the cache and today's briefing, then fetch what is older than the refresh interval. */
     fun start() {
         work.launch {
             repository.load()
+            briefings?.cached()?.let { b -> local.update { it.copy(briefing = it.briefing.copy(briefing = b)) } }
             if (repository.stale()) runRefresh(force = false)
+            makeBriefing(force = false)
         }
     }
 
-    /** The refresh button. */
+    /** Pull to refresh and the refresh button. */
     fun refresh() {
         work.launch { runRefresh(force = true) }
     }
@@ -100,6 +138,105 @@ class NewsViewModel(
             repository.setMode(mode)
             runRefresh(force = false)
         }
+    }
+
+    /** T-075: a card without a picture asks the article page for one (once, through the gate). */
+    fun wantPicture(item: NewsItem) {
+        val link = item.link ?: return
+        if (item.imageUrl != null || !prefsStore.prefs.value.listImages) return
+        work.launch { repository.lookUpPageImage(link) }
+    }
+
+    // ── reading view (T-076) ───────────────────────────────────────────────────
+
+    /** Opens [item] in the reading view and loads the article. */
+    fun open(item: NewsItem) {
+        openJob?.cancel()
+        askJob?.cancel()
+        local.update { it.copy(open = OpenArticle(item), ask = null) }
+        val reader = reader ?: return
+        openJob =
+            work.launch {
+                val link = item.link
+                val result = reader.read(link)
+                if (result is ReaderResult.Ready && link != null) {
+                    // T-077: the mark only when the text really is cut off; the page picture for the card
+                    repository.markRead(link, result.article.locked, result.article.leadImage)
+                }
+                local.update { l ->
+                    if (l.open?.item?.guid == item.guid) l.copy(open = OpenArticle(item, result)) else l
+                }
+            }
+    }
+
+    /** Back from the reading view. */
+    fun close() {
+        openJob?.cancel()
+        askJob?.cancel()
+        local.update { it.copy(open = null, ask = null) }
+    }
+
+    /** Opens the link of a briefing point in the reading view. */
+    fun openLink(link: String?) {
+        val item = state.value.items.firstOrNull { it.link == link } ?: return
+        open(item)
+    }
+
+    // ── Pim about the article (T-078) ───────────────────────────────────────────
+
+    fun ask(question: String) {
+        val article = (local.value.open?.result as? ReaderResult.Ready)?.article ?: return
+        val asker = asker ?: return
+        val running = local.value.ask?.let { it.result == null } == true
+        val q = question.trim()
+        if (q.isEmpty() || running) return
+        local.update { it.copy(ask = AskState(q)) }
+        askJob =
+            work.launch {
+                val result = asker.ask(article, q, lang())
+                local.update { l -> if (l.ask?.question == q) l.copy(ask = AskState(q, result)) else l }
+            }
+    }
+
+    fun closeAsk() {
+        askJob?.cancel()
+        local.update { it.copy(ask = null) }
+    }
+
+    /** The text "Im Chat weiterführen" puts into a new chat, or `null` without an answer. */
+    fun chatHandOff(): String? {
+        val l = local.value
+        val article = (l.open?.result as? ReaderResult.Ready)?.article ?: return null
+        val ask = l.ask ?: return null
+        val answer = (ask.result as? AskResult.Answer)?.text ?: return null
+        return ArticleAsk.chatHandOff(article, ask.question, answer, lang())
+    }
+
+    // ── briefing (T-079) ──────────────────────────────────────────────────────
+
+    /** "Neu erzeugen". */
+    fun remakeBriefing() {
+        work.launch { makeBriefing(force = true) }
+    }
+
+    fun toggleBriefing() {
+        local.update { it.copy(briefing = it.briefing.copy(expanded = !it.briefing.expanded)) }
+    }
+
+    private suspend fun makeBriefing(force: Boolean) {
+        val maker = briefings ?: return
+        if (local.value.briefing.making) return
+        val items = repository.items()
+        if (items.isEmpty()) return
+        local.update { it.copy(briefing = it.briefing.copy(making = true)) }
+        val made = runCatching { maker.today(items, lang(), force = force) }.getOrNull()
+        local.update { l -> l.copy(briefing = l.briefing.copy(briefing = made ?: l.briefing.briefing, making = false)) }
+    }
+
+    // ── settings and own feeds ──────────────────────────────────────────────────
+
+    fun updatePrefs(change: (NewsPrefs) -> NewsPrefs) {
+        prefsStore.update(change)
     }
 
     fun addFeed(
@@ -137,32 +274,10 @@ class NewsViewModel(
         work.launch { repository.deleteFeed(id) }
     }
 
-    /** "Zusammenfassen" on [item]; a second tap while it runs does nothing. */
-    fun summarize(item: NewsItem) {
-        val summarizer = summarizer ?: return
-        if (local.value.summaries[item.guid] == SummaryState.Loading) return
-        setSummary(item.guid, SummaryState.Loading)
-        work.launch {
-            val result = summarizer.summarize(item.link, item.title, lang())
-            setSummary(item.guid, SummaryState.Ready(result))
-        }
-    }
-
-    /** Folds a summary away again (it is gone for good: summaries are never stored). */
-    fun hideSummary(guid: String) {
-        local.update { it.copy(summaries = it.summaries - guid) }
-    }
-
-    private fun setSummary(
-        guid: String,
-        summary: SummaryState,
-    ) {
-        local.update { it.copy(summaries = it.summaries + (guid to summary)) }
-    }
-
     private suspend fun runRefresh(force: Boolean) {
         local.update { it.copy(refreshing = true) }
         val result = repository.refresh(force)
         local.update { it.copy(refreshing = false, offline = result.offline) }
+        if (result.fetched > 0 && local.value.briefing.briefing == null) makeBriefing(force = false)
     }
 }

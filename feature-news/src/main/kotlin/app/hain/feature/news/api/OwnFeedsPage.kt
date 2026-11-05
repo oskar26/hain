@@ -109,10 +109,10 @@ private fun FeedRow(
     if (editing) {
         Column(verticalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.xs)) {
             TextInput(name, feed.name) { name = it }
-            TextAction(stringResource(R.string.news_feed_save)) {
+            TextAction(stringResource(R.string.news_feed_save), onClick = {
                 actions.onRename(feed.id, name)
                 editing = false
-            }
+            })
         }
         return
     }

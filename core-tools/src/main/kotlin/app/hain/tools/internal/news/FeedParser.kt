@@ -55,6 +55,7 @@ sealed interface FeedParseResult {
  *
  * @param newParser creates a pull parser; Android's built-in one by default, injectable for JVM tests.
  */
+@Suppress("TooManyFunctions") // one small function per feed format detail
 class FeedParser(
     private val newParser: () -> XmlPullParser = { Xml.newPullParser() },
 ) {
@@ -113,7 +114,7 @@ class FeedParser(
                 guid = guid,
                 published = published,
                 summary = TextCleaner.summary(description),
-                imageUrl = image(item),
+                imageUrl = image(item) ?: htmlImage(description + item.childText("encoded").orEmpty(), link),
                 categories = categories.filter { it.isNotEmpty() },
             )
         }
@@ -134,7 +135,8 @@ class FeedParser(
         return if (title.isEmpty() || guid == null) {
             null
         } else {
-            FeedItem(title, link, guid, published, TextCleaner.summary(summary), atomImage ?: image(entry), categories)
+            val picture = atomImage ?: image(entry) ?: htmlImage(entry.childText("content").orEmpty() + summary, link)
+            FeedItem(title, link, guid, published, TextCleaner.summary(summary), picture, categories)
         }
     }
 
@@ -144,7 +146,27 @@ class FeedParser(
         val content = media.firstOrNull { it.name == "content" && it.isImage() }?.attr(null, "url")
         val thumbnail = media.firstOrNull { it.name == "thumbnail" }?.attr(null, "url")
         val enclosure = item.children("enclosure").firstOrNull { it.isImage() }?.attr(null, "url")
-        return (content ?: thumbnail ?: enclosure)?.trim()?.takeIf { it.startsWith("http") }
+        return (content ?: thumbnail ?: enclosure)?.trim()?.takeIf { it.startsWith("http") }?.let(::https)
+    }
+
+    /** T-075: the first real picture inside the item's HTML (taz, tagesschau, heise put it there). */
+    private fun htmlImage(
+        html: String,
+        link: String?,
+    ): String? {
+        if ("<img" !in html) return null
+        return HTML_IMG
+            .findAll(html)
+            .filterNot { tag -> TINY.containsMatchIn(tag.value) }
+            .mapNotNull { tag -> HTML_SRC.find(tag.value)?.let { it.groups[1]?.value ?: it.groups[2]?.value } }
+            .map { Entities.decode(it.trim()) }
+            .filterNot { it.startsWith("data:") || it.substringBefore('?').endsWith(".gif", ignoreCase = true) }
+            .firstNotNullOfOrNull { src -> Readability.absolute(link ?: src, src) }
+    }
+
+    private fun https(url: String): String {
+        val plain = url.startsWith("http://")
+        return if (plain) "https://" + url.removePrefix("http://") else url
     }
 
     private fun Node.isImage(): Boolean {
@@ -214,6 +236,9 @@ class FeedParser(
         private const val NS_ATOM = "http://www.w3.org/2005/Atom"
         private const val NS_RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         private const val NS_MEDIA = "http://search.yahoo.com/mrss/"
+        private val HTML_IMG = Regex("""<img\b[^>]*>""", RegexOption.IGNORE_CASE)
+        private val HTML_SRC = Regex("""\ssrc\s*=\s*(?:"([^"]+)"|'([^']+)')""", RegexOption.IGNORE_CASE)
+        private val TINY = Regex("""\s(?:width|height)\s*=\s*["']?[0-9]["'\s/>]""", RegexOption.IGNORE_CASE)
         private val IMAGE_EXTENSIONS = listOf(".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif")
 
         private fun attrKey(
