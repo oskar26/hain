@@ -209,6 +209,29 @@ section[id] {
   background: var(--c-surface-high);
   color: var(--c-muted);
 }
+/* T-269: the three feature marks, calm on purpose: green = new in 0.2, hairline = since 0.1,
+   dashed = planned (not in the app yet) */
+.badge-new {
+  background: var(--c-accent-soft);
+  color: var(--c-accent-ink);
+}
+.badge-since {
+  background: var(--c-card);
+  color: var(--c-ink);
+  box-shadow: inset 0 0 0 1px var(--c-line);
+}
+.badge-planned {
+  background: transparent;
+  color: var(--c-muted);
+  box-shadow: none;
+  outline: 1px dashed color-mix(in srgb, var(--c-muted) 55%, transparent);
+  outline-offset: -1px;
+}
+.card-planned {
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+}
 
 /* Screenshot frame: thin device outline, no heavy 3D */
 .device {
@@ -223,6 +246,12 @@ section[id] {
 }
 .device picture {
   display: block;
+}
+.device-wide {
+  border-radius: 22px;
+}
+.device-wide img {
+  border-radius: 16px;
 }
 
 /* Scroll reveal (class "in" is added by src/client.ts). Without JS everything stays visible. */

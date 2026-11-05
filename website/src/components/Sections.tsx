@@ -1,11 +1,11 @@
 import {
   ShieldCheck, WifiOff, PiggyBank, Leaf, MessageCircle, Lock, Calculator, Newspaper, Brain, EyeOff, SlidersHorizontal, Trees,
   Download, Smartphone, Sparkles, Check, X, ChevronDown, ArrowUpRight, Bug, Languages, CodeXml, Wrench, Globe, CloudSun, BookOpen,
-  Search, Link, AlarmClock, Package, NotebookPen, LayoutList, FileText, Mic, Clock, Share2, ImageIcon, Heart, RefreshCw,
-  Cpu, Gauge, Tablet,
+  Search, Link, AlarmClock, Package, NotebookPen, LayoutList, FileText, Mic, Share2, ImageIcon, Heart, RefreshCw,
+  Cpu, Gauge, Tablet, Sprout, GitBranch, Eye, AudioLines, BookOpenText, CircleDashed,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { COPY, LINKS, SCREENSHOTS, type Lang, type Status } from '../content'
+import { COPY, LINKS, type Feature, type Lang, type Status } from '../content'
 import { AppIcon, Container, GitHubIcon, IconTile, Reveal, SectionHead } from './ui'
 import { Shot } from './Hero'
 
@@ -41,66 +41,106 @@ export function Why({ lang }: { lang: Lang }) {
   )
 }
 
-/* ---------- Features with status ---------- */
+/* ---------- Features: one highlighted section per feature (T-269) ---------- */
 const FEATURE_ICONS: Record<string, LucideIcon> = {
   chat: MessageCircle, lock: Lock, brain: Brain, search: Search, book: BookOpen, link: Link, alarm: AlarmClock,
   shield: ShieldCheck, sliders: SlidersHorizontal, languages: Languages, package: Package, news: Newspaper,
   memory: NotebookPen, private: EyeOff, cards: LayoutList, file: FileText, mic: Mic, trees: Trees, calc: Calculator, share: Share2, image: ImageIcon,
-  update: RefreshCw, code: CodeXml, wrench: Wrench, cpu: Cpu, gauge: Gauge, tablet: Tablet,
+  update: RefreshCw, code: CodeXml, wrench: Wrench, cpu: Cpu, gauge: Gauge, tablet: Tablet, sprout: Sprout, branch: GitBranch,
+  eye: Eye, voice: AudioLines, smartphone: Smartphone, reader: BookOpenText, sparkles: Sparkles,
 }
 
+const BADGE: Record<Status, string> = { new: 'badge-new', since01: 'badge-since', planned: 'badge-planned' }
+
 export function StatusBadge({ s, label }: { s: Status; label: string }) {
+  const Icon = s === 'planned' ? CircleDashed : s === 'new' ? Sparkles : Check
   return (
-    <span className={`badge ${s === 'ready' ? 'badge-ready' : 'badge-soon'}`}>
-      {s === 'ready' ? <Check className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden /> : <Clock className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />}
+    <span className={`badge ${BADGE[s]}`}>
+      <Icon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
       {label}
     </span>
+  )
+}
+
+function FeatureText({ it, label, n }: { it: Feature; label: string; n: number }) {
+  const Icon = FEATURE_ICONS[it.icon] ?? Sparkles
+  return (
+    <div>
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-medium tabular-nums text-muted" aria-hidden>{String(n).padStart(2, '0')}</span>
+        <StatusBadge s={it.status} label={label} />
+      </div>
+      <h3 className="mt-4 flex items-center gap-3 text-[1.6rem] leading-tight font-normal tracking-tight sm:text-[1.85rem]">
+        <IconTile>
+          <Icon className="h-5 w-5" strokeWidth={SW} aria-hidden />
+        </IconTile>
+        <span className="min-w-0">{it.title}</span>
+      </h3>
+      <p className="mt-4 max-w-xl text-pretty text-[17px] leading-relaxed text-muted">{it.text}</p>
+    </div>
   )
 }
 
 export function Features({ lang }: { lang: Lang }) {
   const t = COPY[lang].features
   const st = COPY[lang].status
-  const groups: { s: Status; title: string }[] = [
-    { s: 'ready', title: t.readyTitle },
-    { s: 'soon', title: t.soonTitle },
-  ]
+  const order: Status[] = ['since01', 'new', 'planned']
   return (
     <section id="features" className="relative border-t border-line bg-surface/50 py-20 sm:py-28">
       <Container>
         <SectionHead kicker={t.kicker} title={t.title} sub={t.sub} />
-        {groups.map((g) => {
-          const items = t.items.filter((it) => it.status === g.s)
-          return (
-            <div key={g.s} className="mt-14">
-              <Reveal className="flex items-center gap-3">
-                <h3 className="text-xl font-medium">{g.title}</h3>
-                <span className="text-sm text-muted">{items.length}</span>
-                <span className="h-px flex-1 bg-line" aria-hidden />
+        <Reveal as="div" className="mx-auto mt-8 flex max-w-3xl flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-muted">
+          {order.map((s) => (
+            <span key={s} className="inline-flex items-center gap-2">
+              <StatusBadge s={s} label={st[s]} /> {t.legend[s]}
+            </span>
+          ))}
+        </Reveal>
+        <ol className="mx-auto mt-16 max-w-5xl space-y-20 sm:space-y-28">
+          {t.items.map((it, i) =>
+            it.wide ? (
+              <Reveal as="li" key={it.id} className="flex flex-col items-center gap-10">
+                <div className="mx-auto max-w-2xl"><FeatureText it={it} label={st[it.status]} n={i + 1} /></div>
+                <Shot id={it.shot} lang={lang} alt={it.shotAlt} className="w-full max-w-4xl" wide />
               </Reveal>
-              <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {items.map((it, i) => {
-                  const Icon = FEATURE_ICONS[it.icon] ?? Sparkles
-                  const soon = it.status === 'soon'
-                  return (
-                    <Reveal as="li" key={it.title} delay={(i % 3) * 0.05}>
-                      <div className="card card-hover flex h-full flex-col p-5">
-                        <div className="flex items-start justify-between gap-3">
-                          <IconTile muted={soon}>
-                            <Icon className="h-5 w-5" strokeWidth={SW} aria-hidden />
-                          </IconTile>
-                          <StatusBadge s={it.status} label={st[it.status]} />
-                        </div>
-                        <h4 className={`mt-4 text-[17px] font-medium ${soon ? 'text-ink/80' : ''}`}>{it.title}</h4>
-                        <p className="mt-1.5 text-[15px] leading-relaxed text-muted">{it.text}</p>
-                      </div>
-                    </Reveal>
-                  )
-                })}
-              </ul>
-            </div>
-          )
-        })}
+            ) : (
+              <Reveal
+                as="li"
+                key={it.id}
+                className={`grid items-center gap-10 md:gap-16 ${i % 2 ? 'md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[300px_minmax(0,1fr)]' : 'md:grid-cols-[minmax(0,1fr)_280px] lg:grid-cols-[minmax(0,1fr)_300px]'}`}
+              >
+                <div className={i % 2 ? 'md:order-2' : ''}><FeatureText it={it} label={st[it.status]} n={i + 1} /></div>
+                <Shot id={it.shot} lang={lang} alt={it.shotAlt} className={`mx-auto w-[230px] sm:w-[260px] md:w-full ${i % 2 ? 'md:order-1' : ''}`} />
+              </Reveal>
+            ),
+          )}
+        </ol>
+        <div className="mx-auto mt-24 max-w-5xl">
+          <Reveal className="flex items-center gap-3">
+            <h3 className="text-xl font-medium">{t.moreTitle}</h3>
+            <span className="text-sm text-muted">{t.moreSub}</span>
+            <span className="h-px flex-1 bg-line" aria-hidden />
+          </Reveal>
+          <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {t.more.map((it, i) => {
+              const Icon = FEATURE_ICONS[it.icon] ?? Sparkles
+              return (
+                <Reveal as="li" key={it.title} delay={(i % 3) * 0.05}>
+                  <div className="card flex h-full flex-col p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <IconTile>
+                        <Icon className="h-5 w-5" strokeWidth={SW} aria-hidden />
+                      </IconTile>
+                      <StatusBadge s={it.status} label={st[it.status]} />
+                    </div>
+                    <h4 className="mt-4 text-[17px] font-medium">{it.title}</h4>
+                    <p className="mt-1.5 text-[15px] leading-relaxed text-muted">{it.text}</p>
+                  </div>
+                </Reveal>
+              )
+            })}
+          </ul>
+        </div>
       </Container>
     </section>
   )
@@ -166,28 +206,6 @@ export function Install({ lang }: { lang: Lang }) {
           </details>
         </Reveal>
       </Container>
-    </section>
-  )
-}
-
-/* ---------- Screenshots ---------- */
-export function Screens({ lang }: { lang: Lang }) {
-  const t = COPY[lang].shots
-  return (
-    <section id="screens" className="relative overflow-hidden border-t border-line py-20 sm:py-28">
-      <Container>
-        <SectionHead kicker={t.kicker} title={t.title} sub={t.sub} />
-      </Container>
-      <div className="no-scrollbar mt-14 flex snap-x snap-mandatory gap-5 overflow-x-auto px-[max(1.25rem,calc((100vw-72rem)/2+2rem))] pb-6 pt-2">
-        {SCREENSHOTS.map((id, i) => (
-          <Reveal key={id} delay={(i % 3) * 0.06} className="snap-center">
-            <figure className="w-[210px] shrink-0 sm:w-[230px]">
-              <Shot id={id} lang={lang} alt={t.items[i]} eager />
-              <figcaption className="mt-3 text-center text-[15px] text-muted">{t.items[i]}</figcaption>
-            </figure>
-          </Reveal>
-        ))}
-      </div>
     </section>
   )
 }
@@ -308,32 +326,52 @@ function Cell({ good, text, label }: { good: boolean; text: string; label: strin
   )
 }
 
-/* ---------- Roadmap ---------- */
+/* ---------- Roadmap: what is planned (T-269) ---------- */
 export function Roadmap({ lang }: { lang: Lang }) {
   const t = COPY[lang].roadmap
+  const planned = COPY[lang].status.planned
   return (
     <section id="roadmap" className="relative border-t border-line py-20 sm:py-28">
       <Container>
         <SectionHead kicker={t.kicker} title={t.title} sub={t.sub} />
-        <ol className="relative mx-auto mt-14 max-w-2xl space-y-4 pl-8">
-          <span className="absolute bottom-3 left-[7px] top-3 w-px bg-line" aria-hidden />
-          {t.items.map((it, i) => (
-            <Reveal as="li" key={it.tag} delay={i * 0.08} className="relative">
-              <span className={`absolute -left-8 top-6 h-[15px] w-[15px] rounded-full border-2 border-bg ${it.now ? 'bg-hain ring-4 ring-accent-soft' : 'bg-surface-high'}`} aria-hidden />
-              <div className="card p-5">
-                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <span className="text-xl font-medium tracking-tight">{it.tag}</span>
-                  <span className={`badge ${it.now ? 'badge-ready' : 'badge-soon'}`}>{it.when}</span>
-                </div>
-                <p className="mt-2 leading-relaxed text-muted">{it.text}</p>
-              </div>
-            </Reveal>
+        <div className="mx-auto mt-14 max-w-5xl space-y-12">
+          {t.groups.map((g) => (
+            <div key={g.tag}>
+              <Reveal className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <h3 className="text-xl font-medium">{g.tag}</h3>
+                <span className="text-sm text-muted">{g.note}</span>
+                <span className="hidden h-px flex-1 self-center bg-line sm:block" aria-hidden />
+              </Reveal>
+              <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {g.items.map((it, i) => {
+                  const Icon = FEATURE_ICONS[it.icon] ?? Sparkles
+                  return (
+                    <Reveal as="li" key={it.title} delay={(i % 3) * 0.05}>
+                      <div className="card card-planned flex h-full flex-col p-5">
+                        <div className="flex items-start justify-between gap-3">
+                          <IconTile muted>
+                            <Icon className="h-5 w-5" strokeWidth={SW} aria-hidden />
+                          </IconTile>
+                          <StatusBadge s="planned" label={planned} />
+                        </div>
+                        <h4 className="mt-4 text-[17px] font-medium">{it.title}</h4>
+                        <p className="mt-1.5 text-[15px] leading-relaxed text-muted">{it.text}</p>
+                      </div>
+                    </Reveal>
+                  )
+                })}
+              </ul>
+            </div>
           ))}
-        </ol>
-        <Reveal className="mt-8 text-center text-[15px] text-muted">
+        </div>
+        <Reveal className="mt-10 text-center text-[15px] text-muted">
           {t.note}{' '}
           <a href={LINKS.roadmap} className="font-medium text-hain-ink underline decoration-line underline-offset-4 hover:decoration-hain">
             {t.link}
+          </a>
+          {' · '}
+          <a href={LINKS.concept} className="font-medium text-hain-ink underline decoration-line underline-offset-4 hover:decoration-hain">
+            {t.conceptLink}
           </a>
         </Reveal>
       </Container>
@@ -446,6 +484,9 @@ export function Footer({ lang }: { lang: Lang }) {
           </div>
           <p className="mt-3 text-muted">{t.tagline}</p>
           <p className="mt-3 text-sm text-muted">{t.noCookies}</p>
+          <p className="mt-3 text-sm text-muted">
+            <a className="footer-link" href={LINKS.models}>{t.models}</a>
+          </p>
         </div>
         <ul className="grid grid-cols-2 gap-x-10 gap-y-3 text-[15px] sm:grid-cols-3">
           <li><a className="footer-link" href={LINKS.repo}>{t.source}</a></li>
