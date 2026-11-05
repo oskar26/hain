@@ -15,6 +15,8 @@ import app.hain.common.api.net.NetworkGate
 import app.hain.common.api.net.NetworkLogEntry
 import app.hain.feature.news.api.AskResult
 import app.hain.feature.news.api.AskState
+import app.hain.feature.news.api.BriefingState
+import app.hain.feature.news.api.BriefingStep
 import app.hain.feature.news.api.LocalNewsImages
 import app.hain.feature.news.api.NewsActions
 import app.hain.feature.news.api.NewsBody
@@ -162,6 +164,36 @@ class NewsScreens {
         shoot("news_tablet_dark.png", dark = true) {
             withArticle(NewsSamples.state(now, pictures = true).copy(briefing = briefingShort()))
         }
+    }
+
+    // ---- T-269: website showcase (0.2), German and English, light and dark ----
+
+    /** T-265: the briefing card while it is made ("Feeds laden 7/19" with a bar). */
+    private fun briefingProgress() =
+        NewsSamples.state(now, pictures = true).copy(
+            briefing = BriefingState(making = true, available = true, step = BriefingStep.FEEDS, done = 7, total = 19),
+        )
+
+    @Test
+    fun webBriefingProgressLight() {
+        shoot("web/web_news_briefing_light.png", dark = false) { briefingProgress() }
+    }
+
+    @Test
+    fun webBriefingProgressDark() {
+        shoot("web/web_news_briefing_dark.png", dark = true) { briefingProgress() }
+    }
+
+    @Test
+    @Config(qualifiers = "en-w392dp-h850dp-xxhdpi")
+    fun webBriefingProgressLightEn() {
+        shoot("web/web_news_briefing_light_en.png", dark = false) { briefingProgress() }
+    }
+
+    @Test
+    @Config(qualifiers = "en-w392dp-h850dp-xxhdpi")
+    fun webBriefingProgressDarkEn() {
+        shoot("web/web_news_briefing_dark_en.png", dark = true) { briefingProgress() }
     }
 
     private fun listState() = NewsSamples.state(now, pictures = true).copy(briefing = briefingShort())
