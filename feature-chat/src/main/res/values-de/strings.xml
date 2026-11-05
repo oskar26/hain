@@ -291,4 +291,7 @@
     <string name="chat_brain_optional">Omni-Gehirn · optional</string>
     <string name="chat_mode_fast_hint_nothink">Antwortet sofort, mit wenig Recherche</string>
     <string name="chat_mode_thorough_hint_nothink">Mehr Recherche-Schritte für schwierige Fragen (dieses Gehirn denkt nicht laut nach)</string>
+    <string name="chat_source_chip">Quelle %1$d: %2$s</string>
+    <string name="chat_sources_open">ausgeklappt</string>
+    <string name="chat_sources_closed">eingeklappt</string>
 </resources>

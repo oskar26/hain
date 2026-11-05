@@ -48,6 +48,7 @@ import com.mikepenz.markdown.model.DefaultMarkdownColors
 import com.mikepenz.markdown.model.DefaultMarkdownTypography
 import com.mikepenz.markdown.model.MarkdownColors
 import com.mikepenz.markdown.model.MarkdownTypography
+import com.mikepenz.markdown.model.markdownInlineContent
 
 /**
  * User message: soft grey bubble on the right (DESIGN_SYSTEM.md §1). Like Gemini (T-057), a short
@@ -127,21 +128,29 @@ fun UserBubble(
     }
 }
 
-/** Assistant answer: plain markdown text without bubble, the action row (T-057) below when finished. */
+/**
+ * Assistant answer: plain markdown text without bubble, the action row (T-057) below when finished.
+ * T-274: with [citations], every "[1]" in the text is a small raised green chip (see [AnswerCitations]).
+ */
 @Composable
 fun AssistantBlock(
     markdown: String,
     modifier: Modifier = Modifier,
     actions: (@Composable () -> Unit)? = null,
+    citations: AnswerCitations? = null,
 ) {
+    val count = citations?.count ?: 0
+    val content = remember(markdown, count) { CitationMarks.toLinks(markdown, count) }
     Column(modifier.fillMaxWidth()) {
         SelectionContainer {
             Markdown(
-                content = markdown,
+                content = content,
                 colors = hainMarkdownColors(),
                 typography = hainMarkdownTypography(),
                 modifier = Modifier.fillMaxWidth(),
                 retainState = true,
+                annotator = remember { citationAnnotator() },
+                inlineContent = markdownInlineContent(citations?.let { citationInlineContent(it) }.orEmpty()),
             )
         }
         if (actions != null) AnswerActionRow(actions)

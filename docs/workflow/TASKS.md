@@ -1598,3 +1598,10 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - type: `fix` · size: `XS` · lane: `A`
 - do: `ChatUiState.brainThinks` aus `BrainFormat.mayThink`; ThinkingPicker zeigt bei Gehirnen ohne lautes Denken (LFM3-Omni) Untertitel, die nur den Recherche-Unterschied nennen (EN + DE).
 - check: `tools/check_strings.py`, CI
+
+### T-274 · Quellen-Design: Chips im Text, kompakte Quellenzeile
+
+- type: `feat` · size: `M` · lane: `A`
+- do: Keine „[1]“ mehr im Fließtext: `CitationMarks.toLinks` macht aus gültigen Markern Links, `AssistantBlock` zeichnet sie als kleine hochgestellte runde Chips (Hain-Grün `accentSoft`/`accent`, Zahl), Tipp öffnet die Quelle (TalkBack: „Quelle 1: Titel“). Quellen unter der Antwort als eine Zeile mit übereinanderliegenden Favicons + „3 Quellen“, ausklappbar zur Liste (Nummer, Icon, Titel, Seite). Kopieren/Teilen/Vorlesen ohne Marker (`CitationMarks.strip`). EN + DE.
+- check: `CitationMarksTest`, Roborazzi `SourceRowScreens` (Chips hell/dunkel 360 dp, Liste offen), CI
+

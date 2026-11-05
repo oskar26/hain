@@ -2,8 +2,6 @@
 
 package app.hain.feature.chat.api
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -11,7 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -41,15 +37,12 @@ import androidx.compose.ui.unit.dp
 import app.hain.feature.chat.R
 import app.hain.feature.chat.internal.ChatEngine
 import app.hain.feature.chat.internal.ResearchClock
-import app.hain.feature.chat.internal.SourceRef
 import app.hain.feature.chat.internal.StepState
 import app.hain.feature.chat.internal.ToolStep
-import app.hain.tools.api.Favicons
 import app.hain.tools.api.PhoneAction
 import app.hain.tools.internal.news.NewsTool
 import app.hain.ui.components.Hain3D
 import app.hain.ui.components.Hain3DIcon
-import app.hain.ui.components.HainChip
 import app.hain.ui.components.PulsingDot
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.theme.GlowHue
@@ -280,44 +273,6 @@ private fun ToolRow(step: ToolStep) {
                 )
             StepState.FAILED ->
                 BasicText("✕", style = LocalHainTypography.current.label.copy(color = colors.danger))
-        }
-    }
-}
-
-/** The pages an answer is based on; tap one to open it in the browser. */
-@Composable
-internal fun SourceChips(
-    sources: List<SourceRef>,
-    modifier: Modifier = Modifier,
-    favicons: Favicons? = null,
-) {
-    if (sources.isEmpty()) return
-    val context = LocalContext.current
-    val colors = LocalHainColors.current
-    Column(modifier.fillMaxWidth().padding(top = LocalHainSpacing.current.xs)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            BasicText(
-                stringResource(R.string.chat_sources),
-                style = LocalHainTypography.current.label.copy(color = colors.textMuted),
-            )
-        }
-        FlowRow(
-            Modifier.padding(top = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            sources.forEachIndexed { index, source ->
-                HainChip(
-                    text = "[${index + 1}] ${source.title}",
-                    // T-064c: the site's icon (or its first letter)
-                    leading = { SourceIcon(source.url, favicons) },
-                    onClick = {
-                        runCatching {
-                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(source.url)))
-                        }
-                    },
-                )
-            }
         }
     }
 }
