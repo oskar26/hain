@@ -36,10 +36,41 @@ class LaunchRequestTest {
     @Test
     fun emptyOrWrongSharesAreANormalStart() {
         assertNull(LaunchIntents.parse(send, "text/plain", "   ", null))
-        assertNull(LaunchIntents.parse(send, "image/png", "x", null))
+        assertNull(LaunchIntents.parse(send, "image/png", "x", null)) // a picture without the file
         assertNull(LaunchIntents.parse(send, null, "x", null))
         assertNull(LaunchIntents.parse("android.intent.action.MAIN", null, null, null))
         assertNull(LaunchIntents.parse(null, null, null, null))
+    }
+
+    @Test
+    fun aSharedFileOpensANewChatWithTheFileAttached() {
+        val pdf = "content://com.example.files/doc/42"
+        assertEquals(
+            LaunchRequest.NewChat("", focus = true, file = pdf),
+            LaunchIntents.parse(send, "application/pdf", null, "Rechnung.pdf", stream = pdf),
+        )
+        // a caption that comes with a photo goes into the message box
+        val photo = "content://media/external/images/media/7"
+        assertEquals(
+            LaunchRequest.NewChat("Was steht hier?", focus = true, file = photo),
+            LaunchIntents.parse(send, "image/jpeg", "Was steht hier?", null, stream = photo),
+        )
+        // a text file comes as a file, not as text
+        val txt = "content://x/notes.txt"
+        val fromText = LaunchIntents.parse(send, "text/plain", null, null, stream = txt) as LaunchRequest.NewChat
+        assertEquals(txt, fromText.file)
+    }
+
+    @Test
+    fun foreignFilePathsAndOtherTypesAreNeverRead() {
+        assertNull(LaunchIntents.parse(send, "application/pdf", null, null, stream = "file:///sdcard/secret.pdf"))
+        assertNull(LaunchIntents.parse(send, "application/zip", null, null, stream = "content://x/a.zip"))
+        assertNull(LaunchIntents.parse(send, null, null, null, stream = "content://x/a"))
+        // shared text with a stream of a type Hain cannot read stays a text share
+        assertEquals(
+            LaunchRequest.NewChat("Hallo", focus = true),
+            LaunchIntents.parse(send, "text/plain", "Hallo", null, stream = "file:///x"),
+        )
     }
 
     @Test

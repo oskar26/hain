@@ -71,6 +71,32 @@ class ZimWikiTest {
     }
 
     @Test
+    fun aRemovedPackIsClosedSoItsSpaceIsFreed() {
+        val file = zim()
+        var packs = mapOf("de" to listOf(file))
+        val wiki = ZimWiki({ packs }, noCodec)
+        assertNotNull(wiki.summary("Köln", "de"))
+        assertEquals(1, wiki.openCount())
+        // the pack is deleted in Modelle & Pakete: the next lookup closes the archive
+        packs = emptyMap()
+        assertNull(wiki.summary("Köln", "de"))
+        assertEquals(0, wiki.openCount())
+    }
+
+    @Test
+    fun aReplacedPackFileIsOpenedAgain() {
+        val file = zim()
+        val wiki = ZimWiki({ mapOf("de" to listOf(file)) }, noCodec)
+        assertNotNull(wiki.summary("Köln", "de"))
+        // a new download writes a different file at the same place
+        val bonn = TinyZim.Article("Bonn", "", "<p><b>Bonn</b> ist eine Stadt am Rhein.</p>")
+        file.writeBytes(TinyZim.build(listOf(bonn)))
+        assertNull(wiki.summary("Köln", "de"))
+        assertEquals("Bonn", wiki.summary("Bonn", "de")?.title)
+        assertEquals(1, wiki.openCount())
+    }
+
+    @Test
     fun disambiguationPagesAreRecognised() {
         val wiki = ZimWiki({ mapOf("de" to listOf(zim())) }, noCodec)
         assertTrue(wiki.summary("Merkur", "de")!!.disambiguation)

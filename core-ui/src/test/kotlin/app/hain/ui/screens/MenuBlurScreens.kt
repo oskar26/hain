@@ -83,7 +83,7 @@ private fun Page() {
         Pim(PimState.HAPPY, 96.dp)
         repeat(LINES) {
             BasicText(
-                "Chat ${it + 1} · Wie wird das Wetter morgen in Köln? Pim schaut nach.",
+                "Chat ${it + 1} · Wie wird das Wetter morgen in Paris? Pim schaut nach.",
                 style = type.body.copy(color = if (it == 2) colors.text else colors.textMuted),
             )
         }

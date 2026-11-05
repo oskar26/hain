@@ -228,6 +228,9 @@ private fun Modifier.readColumn(): Modifier =
     fillMaxWidth()
         .wrapContentWidth(Alignment.CenterHorizontally)
         .widthIn(max = MAX_READ_WIDTH.dp)
+        // T-256: fill the column again, so short blocks (headings, list items) start at the left
+        // edge like the paragraphs instead of being centred by wrapContentWidth
+        .fillMaxWidth()
         .padding(horizontal = 20.dp)
 
 @Suppress("LongParameterList")
@@ -665,6 +668,7 @@ private fun AskSheetBody(
             .fillMaxWidth()
             .wrapContentWidth(Alignment.CenterHorizontally)
             .widthIn(max = MAX_READ_WIDTH.dp)
+            .fillMaxWidth()
             .hainSurface(HainLevel.FLOATING, LocalHainShapes.current.sheet, fill = colors.bg)
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
             .navigationBarsPadding()

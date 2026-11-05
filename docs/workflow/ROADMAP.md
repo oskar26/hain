@@ -28,9 +28,11 @@ Status-Spalte pflegen: offen → in Arbeit → PR #x → gemerged. Reihenfolge =
 | 8 | **Privat & Teilen**: Privater Chat + App-Sperre (Fingerabdruck), Export Markdown/PDF, Teilen-Ziel + Widget + Schnellkachel, Verzweigungen, Scroll-Pill (Bearbeiten → 2d) | T-056, T-054, T-144, T-057, T-058 | offen |
 | 9 | **Dokumente**: PDF-Textebene + Seiten rendern, Chunking + Dokumentsuche + Anhängen im Chat (OCR T-121/T-122 wenn Zeit) | T-120, T-123 | offen |
 | 10 | **Sprache** (Stretch): Diktat Moonshine + Mikro-Knopf, Vorlesen | T-140, T-141 | offen |
-| 11 | **Feinschliff + Release**: Pim-Icon + animierter Pim, Barrierefreiheit/Performance, Version 0.2.0, Release-Notes, README-Statusspalte, alle Docs | T-061, T-163, T-190 | offen |
+| 11 | **Feinschliff + Release**: Pim-Icon + animierter Pim, Barrierefreiheit/Performance, Version 0.2.0, Release-Notes, README-Statusspalte, alle Docs | T-061, T-163, T-190 | 0.1.10.5 Rest = PR #55 (T-250–T-259); 0.1.10.6 Großes Gehirn (Jan-v3.5-4B) + schneller Start = PR #54 (Draft, T-240–T-244); Release-Schritt 0.2.0 erst nach Oskars Freigabe (docs/workflow/RELEASE_0.2_CHECKLIST.md) |
 
-Später (nach 06.11.): Mini-Apps-Wald (M12, T-200–T-226), Bildbearbeitung/-erzeugung, Omni/Sehen, Pocket-TTS-Pim-Stimme, Standard-Assistent + Bildschirm-Kontext (T-143), Beta F-Droid (T-199), Markenprüfung (T-195).
+> **05.11.:** 0.1.10.2 UI-Feinschliff (#52) und 0.1.10.3 News-Reader (#53) gemerged. 0.2.0 erst, wenn alle 0.2-Funktionen drin sind (Oskar 05.11. 07:33); offen laut Plan: Bilder in Antwort-Karten.
+
+Später (nach 06.11.): Mini-Apps-Wald (M12, T-300–T-326), Bildbearbeitung/-erzeugung, Omni/Sehen, Pocket-TTS-Pim-Stimme, Standard-Assistent + Bildschirm-Kontext (T-143), Beta F-Droid (T-199), Markenprüfung (T-195).
 
 Regeln: Own code, keine Forks; Libraries nur aus UI_LIBRARIES.md bzw. GPL-3.0-kompatibel + LICENSES.md; kein Material 3; keine Telemetrie/Play Services; alle Strings EN+DE; llama.cpp-Submodul nie editieren. README.md Feature-Tabelle (Spalte State) bei jedem Häppchen nachziehen.
 Gate lokal: `./gradlew assembleDebug testDebugUnitTest ktlintCheck detekt -Phain.native=false` + `python3 tools/check_strings.py`; nativer APK-Build läuft in GitHub Actions (`apk.yml`).

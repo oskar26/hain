@@ -43,11 +43,12 @@ class MemoryScreens {
 
     private val facts =
         listOf(
-            MemoryFact(1, "spielt Gitarre im Schulorchester", MemoryCategory.PREFERENCE, now),
+            // T-252: made-up sample facts (never real people or places of the team)
+            MemoryFact(1, "spielt Gitarre", MemoryCategory.PREFERENCE, now),
             MemoryFact(2, "mag keine Pilze", MemoryCategory.PREFERENCE, now - 3 * day),
-            MemoryFact(3, "Schwester Rosa, Bruder Artur", MemoryCategory.PERSON, now - 9 * day),
-            MemoryFact(4, "geht in die 10. Klasse", MemoryCategory.WORK, now - 20 * day),
-            MemoryFact(5, "wohnt in Köln-Rodenkirchen", MemoryCategory.PLACE, now - 30 * day),
+            MemoryFact(3, "hat eine Katze namens Mo", MemoryCategory.PERSON, now - 9 * day),
+            MemoryFact(4, "lernt gerade Spanisch", MemoryCategory.WORK, now - 20 * day),
+            MemoryFact(5, "wohnt in Musterstadt", MemoryCategory.PLACE, now - 30 * day),
             MemoryFact(6, "hat Heuschnupfen", MemoryCategory.HEALTH, now, suggested = true, sensitive = true),
         )
 
@@ -85,7 +86,7 @@ class MemoryScreens {
 
     @Test
     fun suggestionReplacesDark() {
-        val newer = MemoryFact(7, "wohnt jetzt in Bonn", MemoryCategory.PLACE, now, suggested = true, replaces = 5)
+        val newer = MemoryFact(7, "wohnt jetzt in Neustadt", MemoryCategory.PLACE, now, suggested = true, replaces = 5)
         val state = MemoryPageState(facts + newer, smartSearch = SmartSearch.Loading(42))
         compose.setContent {
             Frame(dark = true) { MemoryPage(state, MemoryActions(), startTab = MemoryTab.SUGGESTIONS) }

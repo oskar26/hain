@@ -633,6 +633,25 @@ Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen 
 - 05.11. main (mit #52, 0.1.10.2) in `hark/news-reader` gemergt: Konflikte in README, STATUS, HANDOFF_LOG, website/content.ts (Screenshots + Galerie beider Stände), gradle.properties (bleibt 0.1.10.3), NewsScreen.kt (T-238 `TextAction` 48 dp jetzt in `NewsCards.kt`, mind. 48 × 48 dp). NewsTool (Top-Schlagzeilen ohne Thema), Einstellungseintrag „Nachrichten“, MainActivity (Wikipedia-Pakete + News-Reader) automatisch zusammengeführt.
 - 05.11. CI: `8879379` (T-075 `TextAction` mit `onClick =`) kompiliert; danach rot in `NewsViewModelTest` (Leseansicht entfernt doppelte Absätze → Testseiten mit gleichen Absätzen zu kurz) → `a449a0a`/`b19d4b9` Tests mit verschiedenen Absätzen. Robolectric-Download-Flake (core-data/core-docs, IOException) einmalig, beim nächsten Lauf weg. CI @`b19d4b9`: assemble · test · lint · strings, debug APK (0.1.10.3, versionCode 197, `unzip -t` + apksigner ok) und Screens grün. Screens `news_*` in docs/design/screens/ + Website-WebPs (news, news_reader, DE/EN, hell/dunkel) aus dem Screens-Artifact.
 
+## 2026-11-05 · 0.1.10.5 – Rest für 0.2 · review · harness: Hark · model: Hark · branch `hark/v02-rest` (Draft-PR #55)
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-250 | review | IDs in TASKS.md eindeutig | ROADMAP.md, STATUS.md (Umbenennungen) | – |
+| T-251 | review | `HainColumnsTest`, `MemoryListTest`; Screens `tablet_packs_*`, `tablet_memory_*` | – | Gerätetest auf echtem Tablet |
+| T-252 | review | Screens (CI) neu, Website-WebP neu | README.md (Beispielorte) | – |
+| T-253 | review | `LaunchRequestTest` (Datei, Bildunterschrift, `file://` und fremde Typen nie gelesen) | ChatScreen.kt (Einhängepunkt) | Gerätetest Teilen aus Galerie/Dateien |
+| T-254 | review | Screens (CI) | – | – |
+| T-255 | review | Checkliste; Zeilen 2, 35, 39, 40 korrigiert (Style-Tests haben DE + EN) | – | – |
+| T-256 | review | Screens `news_reader_*` | NewsSettingsPage.kt (gleicher Fehler) | – |
+| T-257 | review | `MemoryListTest`, Screens `memory_*` | – | – |
+| T-258 | review | `ZimWikiTest` (gelöscht → geschlossen, ersetzt → neu geöffnet) | – | – |
+| T-259 | review | `HostStateTest` (gleiche Instanz nach Neuerstellung, alte Lambdas lesen neue Sprache/Privat-Flag) | – | Chat-VM hält weiter DocLibrary/BrainPicking der alten Activity (Werte stimmen, Umbau nach 0.2) |
+
+- Gradle lokal nicht gestartet (paralleler Lauf `hark/brain-poodle`): ktlint 1.5.0 + detekt 1.23.8 CLI lokal, Rest über CI (assemble · test · lint · strings, Screens, debug APK, Release-R8).
+- `hain.versionName=0.1.10.5`; kein Release, kein Tag, kein Sprung auf 0.2.0.
+- Konflikte erwartet mit `hark/brain-poodle` (#54): gradle.properties, README.md, STATUS.md, TASKS.md, HANDOFF_LOG.md, MainActivity.kt.
+
 ## 2026-11-05 · 0.1.10.4 – Großes Gehirn (Jan-v3.5-4B) · review · harness: Hark · model: Hark · branch `hark/brain-poodle` (PR #54)
 
 | task | status | check result | files outside list (reason) | open issues |
@@ -649,4 +668,9 @@ Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen 
 - Der unfertige Doku-Stand aus dem ersten Lauf (nicht committet) war beim Start nicht mehr da; Doku neu für Jan geschrieben.
 - main (#53 News-Reader) ohne Konflikte hineingemergt. Gradle lokal nicht gestartet (paralleler Lauf), CI ist das Gate.
 - `hain.versionName=0.1.10.4`.
+
+## 2026-11-05 · 0.1.10.6 – main (#55, 0.1.10.5) in `hark/brain-poodle` gemergt · review · harness: Hark · model: Hark · branch `hark/brain-poodle` (PR #54)
+
+- Konflikte: gradle.properties, README.md, STATUS.md, TASKS.md, HANDOFF_LOG.md, `feature-settings/.../api/PacksScreen.kt` (T-251 `HainGrid` + T-240 `offeredPacks(models, cat, device)` kombiniert). Beide Seiten erhalten, T-259 `HostState` unverändert aus main.
+- `hain.versionName=0.1.10.6`; README „0.1.10.6“ = Großes Gehirn + schneller Start, „0.1.10.5“ bleibt. CI ist das Gate.
 

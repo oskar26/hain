@@ -168,7 +168,8 @@ private fun SettingsListDetail(
                     // T-238: the page stays readable and sits in the middle of the free space
                     .wrapContentWidth(Alignment.CenterHorizontally)
                     .padding(horizontal = spacing.xl)
-                    .widthIn(max = DETAIL_MAX_WIDTH.dp),
+                    .widthIn(max = DETAIL_MAX_WIDTH.dp)
+                    .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(spacing.md),
             ) {
                 PageBody(page, settings, actions, networkLog, extras)

@@ -376,16 +376,18 @@ data class ShotTexts(
                 send = "Senden",
                 stop = "Stopp",
                 thinkingButton = "Denk-Stufe",
-                drawerToday = listOf("Wetter in Köln am Wochenende", "Erklär mir Photosynthese"),
+                // T-252: same example as the English shots (no real places of the team)
+                drawerToday = listOf("Wetter in Paris am Wochenende", "Erklär mir Photosynthese"),
                 drawerYesterday = "Geburtstagsgedicht für Oma",
-                question = "Wie wird das Wetter morgen in Köln, und was ist der Kölner Dom?",
+                question = "Wie wird das Wetter morgen in Paris, und was ist der Eiffelturm?",
                 answer =
-                    "Morgen wird es in **Köln** mild:\n\n- 14 °C am Nachmittag\n- leichter Wind aus Südwest\n- " +
-                        "kaum Regen\n\nDer Kölner Dom ist eine gotische Kathedrale und seit 1996 Welterbe.",
-                steps = listOf("weather" to "Köln, morgen", "wikipedia" to "Kölner Dom"),
+                    "Morgen wird es in **Paris** mild:\n\n- 15 °C am Nachmittag\n- leichter Wind aus Südwest\n- " +
+                        "kaum Regen\n\nDer Eiffelturm ist ein Turm aus Schmiedeeisen, gebaut für die " +
+                        "Weltausstellung 1889.",
+                steps = listOf("weather" to "Paris, morgen", "wikipedia" to "Eiffelturm"),
                 sources =
                     listOf(
-                        "Kölner Dom – Wikipedia" to "https://de.wikipedia.org/wiki/K%C3%B6lner_Dom",
+                        "Eiffelturm – Wikipedia" to "https://de.wikipedia.org/wiki/Eiffelturm",
                         "Open-Meteo" to "https://open-meteo.com",
                     ),
                 compare = "Vergleich bitte Fahrrad, Bus und Auto",
