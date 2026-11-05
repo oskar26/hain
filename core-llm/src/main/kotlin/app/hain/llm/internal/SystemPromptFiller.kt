@@ -57,6 +57,11 @@ object EmergencyNumbers {
 object SystemPromptFiller {
     private val TRIPLE_NEWLINES = Regex("""\n{3,}""")
 
+    /** Placeholders that stand behind a label of their own ("Ort: {city}."). */
+    private val LABELLED = listOf("{city}", "{memory_snippets}")
+
+    private fun labelled(key: String) = Regex(" ?[^.\n:]*: " + Regex.escape(key) + "\\.?")
+
     fun fill(
         template: String,
         vars: SystemPromptVars,
@@ -74,6 +79,11 @@ object SystemPromptFiller {
                 "{language_rule}" to vars.languageRule,
             )
         var result = template
+        // T-262: a labelled value that is empty ("Ort: {city}." without a city, "Über den Nutzer: …" without
+        // facts) goes away with its label; before, the brain read "Ort: ." and an empty "Über den Nutzer:"
+        LABELLED.forEach { key ->
+            if (values[key].isNullOrBlank()) result = result.replace(labelled(key), "")
+        }
         values.forEach { (placeholder, value) -> result = result.replace(placeholder, value?.trim().orEmpty()) }
         return result.replace(TRIPLE_NEWLINES, "\n\n").trimEnd() + if (template.endsWith("\n")) "\n" else ""
     }

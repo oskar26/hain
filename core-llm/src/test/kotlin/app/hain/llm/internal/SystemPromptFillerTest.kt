@@ -40,7 +40,10 @@ class SystemPromptFillerTest {
         val filled = SystemPromptFiller.fill(template, SystemPromptVars())
         assertFalse(filled, filled.contains("{"))
         assertFalse(filled, filled.contains("\n\n\n"))
-        assertTrue(filled.contains("Place: ."))
+        // T-262: an empty labelled value goes with its label
+        assertFalse(filled, filled.contains("Place:"))
+        assertFalse(filled, filled.contains("About the user:"))
+        assertTrue(filled, filled.contains("(Europe/Berlin).") || filled.contains("()."))
         assertTrue(filled.endsWith("End\n"))
     }
 

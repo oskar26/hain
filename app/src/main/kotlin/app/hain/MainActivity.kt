@@ -486,7 +486,11 @@ class MainActivity : FragmentActivity() {
                 .drop(1)
                 .collect { HainWidget.refresh(applicationContext) }
         }
-        val prompts = SystemPromptSource(applicationContext) { current }
+        // T-262: the user's kept one-value facts (home, name …) in "Über den Nutzer", never in a private chat
+        val prompts =
+            SystemPromptSource(applicationContext, { current }) {
+                if (privateChatOpen) emptyList() else memory.profile().map { it.text }
+            }
         // T-056: start locked when the lock is on (read synchronously, so the chat never flashes up)
         val lockOn = startPrefs.getBoolean(KEY_LOCK, false)
         appLock = AppLock(this, initiallyLocked = lockOn)

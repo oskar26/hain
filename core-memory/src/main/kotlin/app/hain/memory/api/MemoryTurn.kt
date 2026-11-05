@@ -3,6 +3,7 @@ package app.hain.memory.api
 import app.hain.memory.internal.ExplicitMemory
 import app.hain.memory.internal.MemoryBlock
 import app.hain.memory.internal.Ranking
+import app.hain.memory.internal.SelfFacts
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,8 +23,15 @@ data class MemoryUse(
     val forgotten: List<MemoryFact> = emptyList(),
     /** "Rückgängig" was tapped: the save or the forget is undone. */
     val undone: Boolean = false,
+    /**
+     * T-262: what the message said about the user ("ich bin nach Köln gezogen" → "wohnt in Köln"),
+     * waiting as a suggestion; the chip "Merken" under the answer keeps it with one tap.
+     */
+    val suggested: List<MemoryFact> = emptyList(),
+    /** The suggestions of this turn were kept ("Merken" tapped). */
+    val accepted: Boolean = false,
 ) {
-    val isEmpty: Boolean get() = used.isEmpty() && saved.isEmpty() && forgotten.isEmpty()
+    val isEmpty: Boolean get() = used.isEmpty() && saved.isEmpty() && forgotten.isEmpty() && suggested.isEmpty()
 }
 
 /**
@@ -89,9 +97,41 @@ class MemoryTurn(
                 line
             }
         if (explicit != null) return explicit
+        suggestFrom(last, turn)
         val context = store.recall(last, lang, clock())
         record(turn) { it.copy(used = context?.used.orEmpty()) }
         return listOfNotNull(context?.block, MemoryBlock.toolRule(lang)).joinToString("\n")
+    }
+
+    /**
+     * T-262: facts the plain patterns find in the user's own statement ([SelfFacts.ruleFacts]) become
+     * suggestions right away, not only two minutes later through the brain. A newer value of the same
+     * kind ("wohnt in Bonn" after "wohnt in Köln") replaces the kept one once accepted.
+     */
+    private suspend fun suggestFrom(
+        message: String,
+        turn: String,
+    ) {
+        val found = SelfFacts.ruleFacts(listOf(message))
+        if (found.isEmpty()) return
+        val known = store.facts.value
+        val new =
+            found
+                .mapNotNull { f ->
+                    if (known.any { same(it.text, f.text) }) return@mapNotNull null
+                    val slot = SelfFacts.slot(f.text)
+                    val old = known.firstOrNull { !it.suggested && slot != null && SelfFacts.slot(it.text) == slot }
+                    store.remember(f.text, f.category, sensitive = f.sensitive, suggested = true, replaces = old?.id)
+                }.filter { it.suggested }
+        if (new.isNotEmpty()) record(turn) { it.copy(suggested = (it.suggested + new).distinctBy { f -> f.id }) }
+    }
+
+    /** "Merken" under the answer of [turnKey]: its suggestions become kept facts. */
+    fun accept(turnKey: String) {
+        val use = mutableUses.value[turnKey] ?: return
+        if (use.accepted || use.suggested.isEmpty()) return
+        record(turnKey) { it.copy(accepted = true) }
+        scope.launch { use.suggested.forEach { store.accept(it.id) } }
     }
 
     /** The `remember` tool kept [fact] while answering the current turn. */
@@ -135,6 +175,11 @@ class MemoryTurn(
     }
 
     companion object {
+        private fun same(
+            a: String,
+            b: String,
+        ): Boolean = a.trim().lowercase() == b.trim().lowercase()
+
         private const val KEEP = 16
         private const val KEEP_USES = 64
         private const val MARGIN = 0.05

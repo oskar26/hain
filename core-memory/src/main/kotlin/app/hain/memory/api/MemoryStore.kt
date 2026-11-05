@@ -79,6 +79,16 @@ interface MemoryStore {
      */
     suspend fun nearest(text: String): Nearest? = null
 
+    /**
+     * T-262: kept facts that describe the user in one value (where they live or come from, name, age,
+     * class, job; never sensitive ones), newest first. They go into the system prompt as "Über den
+     * Nutzer", so Pim knows them in every answer without the keyword search. Empty while the memory is off.
+     */
+    fun profile(): List<MemoryFact> = emptyList()
+
+    /** T-262: the place of the kept home fact ("wohnt in Köln" → "Köln"), e.g. for the weather; `null` if none. */
+    fun homePlace(): String? = null
+
     /** True when the embedder pack is installed, so recall is by meaning too. */
     fun smartSearch(): Boolean = false
 

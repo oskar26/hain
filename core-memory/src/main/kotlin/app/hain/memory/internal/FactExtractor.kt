@@ -55,6 +55,8 @@ class FactExtractor(
     private val store: MemoryStore,
     private val brain: ExtractionBrain,
     private val prompts: ExtractionPrompts,
+    /** T-262: facts from plain patterns ([SelfFacts.ruleFacts]) first; off only in tests of the brain part. */
+    private val useRules: Boolean = true,
 ) {
     /** What one run did. */
     data class Outcome(
@@ -62,16 +64,35 @@ class FactExtractor(
         val skipped: Int,
     )
 
+    /**
+     * T-262: only the user's own first-person statements count ([SelfFacts.selfSentences]). Without
+     * any (only questions, requests, Pim's answers) the brain is not asked at all. Pattern facts
+     * ("wohnt in Köln") come first; the brain's facts are kept only when the user's own sentences
+     * back them ([SelfFacts.grounded]) and they do not repeat a pattern fact.
+     */
     @Suppress("ReturnCount")
     suspend fun run(
         lines: List<ChatLine>,
         chatId: Long?,
     ): Outcome {
         if (!store.enabled.value || lines.none { it.fromUser }) return Outcome(emptyList(), 0)
-        val answer =
-            brain.complete(prompts.extract, transcript(lines), ExtractionJson.FACTS_GRAMMAR, MAX_TOKENS)
-                ?: return Outcome(emptyList(), 0)
-        val candidates = ExtractionJson.parseFacts(answer).take(MAX_FACTS)
+        val userTexts = lines.takeLast(MAX_LINES).filter { it.fromUser }.map { it.text }
+        val selfs = SelfFacts.selfSentences(userTexts)
+        if (selfs.isEmpty()) return Outcome(emptyList(), 0)
+        val rules =
+            if (useRules) {
+                SelfFacts.ruleFacts(userTexts).map { Candidate(it.text, it.category, it.sensitive) }
+            } else {
+                emptyList()
+            }
+        val answer = brain.complete(prompts.extract, transcript(selfs), ExtractionJson.FACTS_GRAMMAR, MAX_TOKENS)
+        val fromBrain =
+            answer
+                ?.let { ExtractionJson.parseFacts(it) }
+                .orEmpty()
+                .filter { SelfFacts.grounded(it.text, selfs) }
+                .filterNot { c -> rules.any { SelfFacts.grounded(c.text, listOf(it.text)) } }
+        val candidates = (rules + fromBrain).distinctBy { it.text.lowercase() }.take(MAX_FACTS)
         val out = mutableListOf<MemoryFact>()
         var skipped = 0
         for (candidate in candidates) {
@@ -150,13 +171,14 @@ class FactExtractor(
         private const val MAX_TOKENS = 400
         private const val LABEL_TOKENS = 24
         private const val USER_CHARS = 800
-        private const val PIM_CHARS = 300
 
-        /** The chat as plain lines; Pim's answers short, they only give context. */
-        fun transcript(lines: List<ChatLine>): String =
-            lines.takeLast(MAX_LINES).joinToString("\n") { line ->
-                val text = line.text.replace(Regex("\\s+"), " ").trim()
-                if (line.fromUser) "User: " + text.take(USER_CHARS) else "Pim: " + text.take(PIM_CHARS)
+        /**
+         * T-262: what the brain reads: only the user's own statements about themselves, one per line.
+         * Pim's answers and the user's questions are left out, so their topics cannot become "facts".
+         */
+        fun transcript(selfSentences: List<String>): String =
+            selfSentences.takeLast(MAX_LINES).joinToString("\n") { s ->
+                "User: " + s.replace(Regex("\\s+"), " ").trim().take(USER_CHARS)
             }
     }
 }

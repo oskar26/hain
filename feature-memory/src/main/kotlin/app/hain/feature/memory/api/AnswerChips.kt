@@ -56,8 +56,12 @@ data class AnswerChips(
     val undone: Boolean = false,
     /** Facts this answer used: "N Erinnerungen genutzt", tap shows which. */
     val used: List<MemoryFact> = emptyList(),
+    /** T-262: what the message said about the user, as "Merken: wohnt in Köln" (one tap keeps it). */
+    val suggestion: MemoryFact? = null,
+    /** The suggestion was kept: "Gemerkt ✓". */
+    val accepted: Boolean = false,
 ) {
-    val isEmpty: Boolean get() = !saved && !forgotten && !undone && used.isEmpty()
+    val isEmpty: Boolean get() = !saved && !forgotten && !undone && used.isEmpty() && suggestion == null
 
     companion object {
         fun of(use: MemoryUse?): AnswerChips {
@@ -68,6 +72,8 @@ data class AnswerChips(
                 forgotten = use.forgotten.isNotEmpty() && !use.undone,
                 undone = changed && use.undone,
                 used = use.used,
+                suggestion = use.suggested.firstOrNull(),
+                accepted = use.accepted,
             )
         }
     }
@@ -88,7 +94,7 @@ fun MemoryAnswerChips(
     val key = MemoryTurn.key(userMessages)
     val chips = AnswerChips.of(uses[key])
     if (chips.isEmpty) return
-    AnswerChipsView(chips, onUndo = { turn.undo(key) }, modifier = modifier)
+    AnswerChipsView(chips, onUndo = { turn.undo(key) }, modifier = modifier, onKeep = { turn.accept(key) })
 }
 
 /** The chips themselves, without the memory (previews, screenshots). */
@@ -98,6 +104,7 @@ fun AnswerChipsView(
     chips: AnswerChips,
     onUndo: () -> Unit,
     modifier: Modifier = Modifier,
+    onKeep: () -> Unit = {},
 ) {
     val spacing = LocalHainSpacing.current
     val haptics = rememberHainHaptics()
@@ -114,6 +121,18 @@ fun AnswerChipsView(
                     ChipTarget(undo, description = "$done, $undo") {
                         haptics.toggle()
                         onUndo()
+                    }
+                }
+            }
+            chips.suggestion?.let { fact ->
+                // T-262: "Merken: wohnt in Köln" – one tap keeps it; it also waits on the memory page
+                if (chips.accepted) {
+                    ChipTarget(stringResource(R.string.memory_chip_kept, fact.text), selected = true)
+                } else {
+                    val label = stringResource(R.string.memory_chip_keep, fact.text)
+                    ChipTarget(label, description = label) {
+                        haptics.toggle()
+                        onKeep()
                     }
                 }
             }

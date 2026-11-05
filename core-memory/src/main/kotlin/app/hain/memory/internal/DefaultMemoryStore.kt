@@ -86,6 +86,20 @@ class DefaultMemoryStore(
         this.on.value = on
     }
 
+    override fun profile(): List<MemoryFact> {
+        if (!on.value) return emptyList()
+        // newest first; one fact per slot (an accepted update puts the old one out of use anyway)
+        return facts.value
+            .filter { !it.suggested && !it.sensitive }
+            .mapNotNull { f -> SelfFacts.slot(f.text)?.let { it to f } }
+            .distinctBy { it.first }
+            .map { it.second }
+            .take(PROFILE_MAX)
+    }
+
+    override fun homePlace(): String? =
+        SelfFacts.homePlace(profile().filter { SelfFacts.slot(it.text) == SelfFacts.Slot.HOME }.map { it.text })
+
     override suspend fun remember(
         text: String,
         category: MemoryCategory,
@@ -309,6 +323,7 @@ class DefaultMemoryStore(
     private companion object {
         val NOT_WORD = Regex("[^\\p{L}\\p{N}]+")
         const val RECENT = 32
+        const val PROFILE_MAX = 6
         const val FORGET_MARGIN = 0.05
         const val MAX_FORGET = 3
         const val EXPORT_VERSION = 1
