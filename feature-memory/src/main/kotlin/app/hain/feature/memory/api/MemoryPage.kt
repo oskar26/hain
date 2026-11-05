@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions") // page, tab switch, tabs, rows and tiles of one screen
+
 package app.hain.feature.memory.api
 
 import androidx.activity.compose.BackHandler
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.BasicText
@@ -47,6 +50,8 @@ import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.HainSwitch
 import app.hain.ui.components.SegmentedControl
 import app.hain.ui.components.TopBar
+import app.hain.ui.layout.HainColumns
+import app.hain.ui.layout.currentHainWindowSize
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.hainTween
 import app.hain.ui.motion.rememberHainHaptics
@@ -155,6 +160,10 @@ fun MemoryPage(
     val spacing = LocalHainSpacing.current
     val colors = LocalHainColors.current
     var tab by rememberSaveable { mutableStateOf(startTab) }
+    // T-251: on wide windows "Über dich" and the settings sit in a second column next to the list
+    val wide = HainColumns.count(currentHainWindowSize()) > 1
+    val tabs = MemoryList.tabs(wide)
+    val shown = if (tab in tabs) tab else MemoryTab.FACTS
     BackHandler(onBack = actions.onBack)
     Box(modifier.fillMaxSize().background(colors.bg)) {
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
@@ -162,44 +171,80 @@ fun MemoryPage(
                 title = stringResource(R.string.memory_title),
                 leading = { HainIconButton(HainIcons.back, stringResource(R.string.memory_back), actions.onBack) },
             )
-            Column(
-                Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = spacing.lg),
-                verticalArrangement = Arrangement.spacedBy(spacing.md),
-            ) {
-                BasicText(
-                    stringResource(R.string.memory_intro),
-                    style = LocalHainTypography.current.bodySmall.copy(color = colors.textMuted),
-                )
-                val waiting = state.facts.count { it.suggested }
-                val suggestionsLabel = stringResource(R.string.memory_tab_suggestions)
-                SegmentedControl(
-                    options =
-                        listOf(
-                            stringResource(R.string.memory_tab_facts),
-                            stringResource(R.string.memory_tab_topics),
-                            if (waiting > 0) "$suggestionsLabel ($waiting)" else suggestionsLabel,
-                            stringResource(R.string.memory_tab_you),
-                        ),
-                    selected = tab.ordinal,
-                    onSelect = { tab = MemoryTab.entries[it] },
-                )
-                when (tab) {
-                    MemoryTab.FACTS -> FactsTab(state, actions)
-                    MemoryTab.TOPICS -> TopicsTab(state, actions)
-                    MemoryTab.SUGGESTIONS -> SuggestionsTab(state, actions)
-                    MemoryTab.YOU -> YouTab(state, actions)
+            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+                Row(
+                    Modifier
+                        .widthIn(max = HainColumns.pageMaxDp(if (wide) 2 else 1).dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = spacing.lg),
+                    horizontalArrangement = Arrangement.spacedBy(spacing.lg),
+                ) {
+                    Column(
+                        Modifier.weight(1f).verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(spacing.md),
+                    ) {
+                        BasicText(
+                            stringResource(R.string.memory_intro),
+                            style = LocalHainTypography.current.bodySmall.copy(color = colors.textMuted),
+                        )
+                        TabSwitch(state, tabs, shown) { tab = it }
+                        when (shown) {
+                            MemoryTab.FACTS -> FactsTab(state, actions, withSettings = !wide)
+                            MemoryTab.TOPICS -> TopicsTab(state, actions)
+                            MemoryTab.SUGGESTIONS -> SuggestionsTab(state, actions)
+                            MemoryTab.YOU -> YouTab(state, actions)
+                        }
+                        Spacer(Modifier.height(spacing.xl))
+                    }
+                    if (wide) {
+                        Column(
+                            Modifier.weight(1f).verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.spacedBy(spacing.md),
+                        ) {
+                            YouTab(state, actions)
+                            SmartSearchTile(state.smartSearch, actions.onGetSmartSearch)
+                            SettingsTile(state, actions)
+                            Spacer(Modifier.height(spacing.xl))
+                        }
+                    }
                 }
-                Spacer(Modifier.height(spacing.xl))
             }
         }
         Notice(state, actions, Modifier.align(Alignment.BottomCenter))
     }
 }
 
+/** The tab switch; the suggestions tab shows how many wait for a yes. */
+@Composable
+private fun TabSwitch(
+    state: MemoryPageState,
+    tabs: List<MemoryTab>,
+    selected: MemoryTab,
+    onSelect: (MemoryTab) -> Unit,
+) {
+    val waiting = state.facts.count { it.suggested }
+    val suggestionsLabel = stringResource(R.string.memory_tab_suggestions)
+    val labels =
+        tabs.map { tab ->
+            when (tab) {
+                MemoryTab.FACTS -> stringResource(R.string.memory_tab_facts)
+                MemoryTab.TOPICS -> stringResource(R.string.memory_tab_topics)
+                MemoryTab.SUGGESTIONS -> MemoryList.suggestionsLabel(suggestionsLabel, waiting)
+                MemoryTab.YOU -> stringResource(R.string.memory_tab_you)
+            }
+        }
+    SegmentedControl(
+        options = labels,
+        selected = tabs.indexOf(selected).coerceAtLeast(0),
+        onSelect = { onSelect(tabs[it]) },
+    )
+}
+
 @Composable
 private fun FactsTab(
     state: MemoryPageState,
     actions: MemoryActions,
+    withSettings: Boolean = true,
 ) {
     val spacing = LocalHainSpacing.current
     var query by rememberSaveable { mutableStateOf("") }
@@ -224,9 +269,11 @@ private fun FactsTab(
             shown.forEach { fact -> FactRow(fact, actions) }
         }
     }
-    SmartSearchTile(state.smartSearch, actions.onGetSmartSearch)
-    Spacer(Modifier.height(spacing.sm))
-    SettingsTile(state, actions)
+    if (withSettings) {
+        SmartSearchTile(state.smartSearch, actions.onGetSmartSearch)
+        Spacer(Modifier.height(spacing.sm))
+        SettingsTile(state, actions)
+    }
 }
 
 @Composable

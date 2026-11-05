@@ -2,6 +2,8 @@ package app.hain.entry
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import app.hain.MainActivity
 import app.hain.feature.chat.internal.ChatStore
 import app.hain.feature.chat.internal.ChatViewModel
@@ -10,13 +12,17 @@ import kotlinx.coroutines.flow.first
 /**
  * What Hain should open when it is started from outside (T-144): the share sheet, the home screen
  * widget or the quick settings tile. Nothing is ever sent on its own: shared text only lands in the
- * message box of a new chat.
+ * message box of a new chat, a shared file (T-253) is attached to it like one from the paper clip.
  */
 sealed interface LaunchRequest {
-    /** A new chat; [text] goes into the message box, [focus] opens the keyboard. */
+    /**
+     * A new chat; [text] goes into the message box, [focus] opens the keyboard. [file] is the
+     * `content://` address of a shared PDF, photo or text file (T-253), read like the paper clip does.
+     */
     data class NewChat(
         val text: String = "",
         val focus: Boolean = false,
+        val file: String? = null,
     ) : LaunchRequest
 
     /** An existing chat (widget "last chat"); a new chat when it is gone. */
@@ -36,13 +42,17 @@ object LaunchIntents {
     const val MAX_SHARED_CHARS = 8_000
 
     private const val SEND = "android.intent.action.SEND"
+
+    /** T-253: what the share sheet may hand over as a file (the paper clip's types). */
+    private val FILE_TYPES = listOf("application/pdf", "image/", "text/")
     private const val NO_CHAT = -1L
     private val LONE_LINK = Regex("^(https?://|www\\.)\\S+$", RegexOption.IGNORE_CASE)
     private val INVISIBLE = Regex("[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F\\u200B\\uFEFF]")
 
     /**
      * The request for one start. [text] and [subject] are the share extras (`EXTRA_TEXT`,
-     * `EXTRA_SUBJECT`), [chatId] and [focus] come from widget and tile. `null` = a normal start.
+     * `EXTRA_SUBJECT`), [chatId] and [focus] come from widget and tile, [stream] is a shared file
+     * (`EXTRA_STREAM`, T-253). `null` = a normal start.
      */
     @Suppress("LongParameterList") // the plain values of one intent, so it stays testable without Android
     fun parse(
@@ -52,13 +62,33 @@ object LaunchIntents {
         subject: String?,
         chatId: Long = NO_CHAT,
         focus: Boolean = false,
+        stream: String? = null,
     ): LaunchRequest? =
         when (action) {
-            SEND -> shared(type, text, subject)
+            SEND -> sharedFile(type, text, stream) ?: shared(type, text, subject)
             ACTION_NEW_CHAT -> LaunchRequest.NewChat(focus = focus)
             ACTION_OPEN_CHAT -> if (chatId > 0) LaunchRequest.OpenChat(chatId) else LaunchRequest.NewChat()
             else -> null
         }
+
+    /**
+     * T-253: a shared PDF, photo or text file opens a new chat with the file attached; text that came
+     * along (a caption) goes into the message box. Only `content://` addresses: a `file://` path of
+     * another app is never read. Other types are a normal start.
+     */
+    private fun sharedFile(
+        type: String?,
+        text: CharSequence?,
+        stream: String?,
+    ): LaunchRequest? {
+        val file = stream?.trim()?.takeIf { it.startsWith("content://") }
+        val readable = type?.lowercase()?.let { mime -> FILE_TYPES.any { mime.startsWith(it) } } == true
+        return if (file != null && readable) {
+            LaunchRequest.NewChat(sharedText(text, null).orEmpty(), focus = true, file = file)
+        } else {
+            null
+        }
+    }
 
     private fun shared(
         type: String?,
@@ -108,8 +138,17 @@ object LaunchIntents {
             subject = intent.getStringExtra(Intent.EXTRA_SUBJECT),
             chatId = intent.getLongExtra(EXTRA_CHAT_ID, NO_CHAT),
             focus = intent.getBooleanExtra(EXTRA_FOCUS, false),
+            stream = streamOf(intent)?.toString(),
         )
     }
+
+    private fun streamOf(intent: Intent): Uri? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(Intent.EXTRA_STREAM) as? Uri
+        }
 
     /** "Neuer Chat" from widget and tile; [focus] opens the keyboard ("Frag Pim"). */
     fun newChat(
@@ -134,18 +173,20 @@ object LaunchIntents {
 
 /**
  * Carries out this request in the chat once the saved chats are loaded: a new chat (shared text in
- * the message box, [onFocus] opens the keyboard) or the chat [LaunchRequest.OpenChat] names, a new
- * one when it was deleted meanwhile.
+ * the message box, [onFocus] opens the keyboard, [onFile] reads a shared file into it) or the chat
+ * [LaunchRequest.OpenChat] names, a new one when it was deleted meanwhile.
  */
 suspend fun LaunchRequest.applyTo(
     store: ChatStore,
     chat: ChatViewModel,
+    onFile: (String) -> Unit = {},
     onFocus: () -> Unit,
 ) {
     store.loaded.first { it }
     when (this) {
         is LaunchRequest.NewChat -> {
             if (text.isBlank()) chat.newChat() else chat.newChatWith(text)
+            file?.let(onFile)
             if (focus || text.isNotBlank()) onFocus()
         }
         is LaunchRequest.OpenChat ->

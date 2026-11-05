@@ -9,7 +9,9 @@ import java.util.Locale
 /**
  * T-237: Wikipedia without internet from the installed knowledge packs (Kiwix "mini" ZIM files: the
  * intro of every article). [packs] gives the pack file per language ("de", "en"), bigger packs
- * first; archives stay open until the list changes.
+ * first; archives stay open until the list changes. T-258: an archive whose pack was removed (or
+ * replaced by a new download) is closed at the next lookup, so deleting a 4.7 GB pack really frees
+ * the space without restarting Hain.
  *
  * Finding an article: the title as typed, then with a capital first letter, then Title Case
  * ("kölner dom" → "Kölner Dom"); redirects are followed ("Koeln" → "Köln"). Disambiguation pages
@@ -19,20 +21,47 @@ class ZimWiki(
     private val packs: () -> Map<String, List<File>>,
     private val codec: ClusterCodec,
 ) : OfflineWiki {
-    private val open = mutableMapOf<File, ZimArchive>()
+    private class Opened(
+        val archive: ZimArchive,
+        val stamp: Pair<Long, Long>,
+    )
 
-    override fun languages(): Set<String> = packs().filterValues { files -> files.any { it.isFile } }.keys
+    private val open = mutableMapOf<File, Opened>()
+
+    override fun languages(): Set<String> {
+        val all = packs()
+        closeGone(all)
+        return all.filterValues { files -> files.any { it.isFile } }.keys
+    }
 
     override fun summary(
         topic: String,
         lang: String,
-    ): WikiSummary? =
-        packs()[lang]
+    ): WikiSummary? {
+        val all = packs()
+        closeGone(all)
+        return all[lang]
             .orEmpty()
             .asSequence()
             .filter { it.isFile }
             .mapNotNull { file -> archive(file)?.let { summaryIn(it, topic, lang) } }
             .firstOrNull()
+    }
+
+    /** Number of archives held open (tests). */
+    @Synchronized
+    internal fun openCount(): Int = open.size
+
+    /** Closes archives of packs that are no longer installed or were replaced by a new file. */
+    @Synchronized
+    private fun closeGone(all: Map<String, List<File>>) {
+        val current = all.values.flatten().toSet()
+        val gone = open.filter { (file, opened) -> file !in current || !file.isFile || stampOf(file) != opened.stamp }
+        gone.forEach { (file, opened) ->
+            runCatching { opened.archive.close() }
+            open.remove(file)
+        }
+    }
 
     private fun summaryIn(
         archive: ZimArchive,
@@ -54,7 +83,10 @@ class ZimWiki(
 
     @Synchronized
     private fun archive(file: File): ZimArchive? =
-        open[file] ?: runCatching { ZimArchive(file, codec) }.getOrNull()?.also { open[file] = it }
+        open[file]?.archive
+            ?: runCatching { ZimArchive(file, codec) }.getOrNull()?.also { open[file] = Opened(it, stampOf(file)) }
+
+    private fun stampOf(file: File): Pair<Long, Long> = file.length() to file.lastModified()
 
     /** The article for [topic] in [archive], following redirects; `null` when there is none. */
     internal fun find(

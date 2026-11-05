@@ -10,6 +10,7 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -93,7 +95,9 @@ fun ThinkingPicker(
     Box(modifier) {
         Row(
             Modifier
-                .heightIn(min = 40.dp)
+                // T-254: touch target at least 48 × 48 dp (TalkBack, big fingers)
+                .heightIn(min = 48.dp)
+                .widthIn(min = 48.dp)
                 .clip(LocalHainShapes.current.button)
                 .background(if (active || open) colors.accentSoft else Color.Transparent)
                 .semantics(mergeDescendants = true) {
@@ -104,6 +108,7 @@ fun ThinkingPicker(
                     open = !open
                 }.padding(horizontal = spacing.sm + 2.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
         ) {
             Image(
                 HainIcons.brain,
