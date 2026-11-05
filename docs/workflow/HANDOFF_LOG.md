@@ -698,3 +698,17 @@ Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen 
 - Checks: npm run build; CI screens + website build; local preview 1440 + 390 px, EN + DE: no overflow, no broken images.
 - Notes/risks: base is `hark/v0110-7` (#56) → rebase onto main after #56. `releases/latest` only works once a non-prerelease 0.2.0 exists (deploy only from main anyway). No shots yet for widget/quick tile/share sheet, dictation while recording, private chat bar.
 - Next: Oskar reviews; at the 0.2.0 release step merge after #56.
+
+## 2026-11-05 · 0.1.10.8 – LFM3 wieder Standard, Werkzeug-Leaks, Quellen-Chips, UI-Fixes · review · harness: Hark · model: Hark · branch `hark/v0110-7b` (PR #59)
+
+| task | status | check result | open issues |
+|---|---|---|---|
+| T-270 | review | `BrainChoiceTest`, `CatalogParserTest` | – |
+| T-271 | review | `RawToolTextTest`, `RawToolTextEngineTest`, `AnswerPartsTest`, `RememberToolTest`, `SelfFactsTest`, `CalculatorTest`; Host-Messung siehe PR | Gerätetest |
+| T-272 | review | `ActionRowFitTest`, Roborazzi `action_row_branch_360dp` | Composer-Unterkante am Gerät mit Gestennavigation prüfen |
+| T-273 | review | `check_strings.py` | – |
+| T-274 | review | `CitationMarksTest`, Roborazzi `sources_chips_360dp(_dark)`, `sources_list_open` | Chips nur, wenn das Gehirn [n] schreibt |
+| T-275 | review | `ResearchPromptTest`, `ResearchLoopTest` | Wirkung am Gerät |
+| T-276 | review | `check_strings.py`, CI | – |
+
+- Basis main 0a44391 (#56–#58). `hain.versionName=0.1.10.8`; versionCode = Laufnummer der CI. Kein Release, kein Tag, kein Merge. Gradle lokal nicht gestartet, CI ist das Gate.

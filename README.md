@@ -75,17 +75,17 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 
 ## Features
 
-**Since 0.1** = already in the 0.1 test versions (0.1.3.1) · **New in 0.2** = added on the way to 0.2 (0.1.4 – 0.1.10.7) · **Planned** = in the [concept](docs/concept/KONZEPT.md) or [roadmap](docs/workflow/ROADMAP.md), not in the app yet. Same marks as on the [website](https://oskar26.github.io/hain/).
+**Since 0.1** = already in the 0.1 test versions (0.1.3.1) · **New in 0.2** = added on the way to 0.2 (0.1.4 – 0.1.10.8) · **Planned** = in the [concept](docs/concept/KONZEPT.md) or [roadmap](docs/workflow/ROADMAP.md), not in the app yet. Same marks as on the [website](https://oskar26.github.io/hain/).
 
 | Area | What Hain does | Status |
 |---|---|---|
 | 💬 Chat | Streaming answers, Markdown and code, collapsible "thinking" block, stop (reacts at once). Under every answer a quiet row: copy, share, thumbs up/down (stays on your phone), ask again | Since 0.1 |
 | ⚡ Speed | Faster test build, brain loads in the background with progress, remembers the chat between answers instead of re-reading it, system prompt read ahead. Release build shrunk and optimised with R8, with a baseline profile so the app starts and scrolls faster from the first start (also without Play) | New in 0.2 |
 | 🌍 Answer language | Pim answers in the language you write in (German, English, French, Turkish, Russian, …), or always in German or English if you want | Since 0.1 |
-| 🌱 First start | Playful welcome tour with Pim, brain download (LFM3-Omni 2B, 1.05 GB) with resume and checksum, celebration screen; the download can wait or run in the background | Since 0.1 |
+| 🌱 First start | Playful welcome tour with Pim, brain download (LFM3 1.7B, 1.05 GB) with resume and checksum, celebration screen; the download can wait or run in the background | Since 0.1 |
 | 🗂️ Saved chats | Stored encrypted on the phone; search, rename, pin, delete, grouped by day | Since 0.1 |
 | ⚙️ Settings | Theme, app icon (3D or flat), easy-to-read font, answer mode (fast / auto / thorough), answer language, "about me" and answer style. Thinking level also right in the message box (brain button) | Since 0.1 |
-| 🧠 Choose the brain | Tap "Hain · On this phone" at the top: a small frosted menu lists the brains on your phone with a plain name ("Quick brain"), model and size, marks the one recommended for your phone and loads your pick in the background with progress. Brains not on your phone lead to Knowledge packs. On phones with 8 GB of memory or more there is also the optional **Big brain · for strong phones** (Jan-v3.5-4B, 2.7 GB): better at picking tools, about three times slower; **LFM3-Omni 2B** is the standard (since 0.1.10.7, LFM3 1.7B stays only while it is on your phone, with a hint to switch) | New in 0.2 |
+| 🧠 Choose the brain | Tap "Hain · On this phone" at the top: a small frosted menu lists the brains on your phone with a plain name ("Quick brain"), model and size, marks the one recommended for your phone and loads your pick in the background with progress. Brains not on your phone lead to Knowledge packs. On phones with 8 GB of memory or more there is also the optional **Big brain · for strong phones** (Jan-v3.5-4B, 2.7 GB): better at picking tools, about three times slower; **LFM3 1.7B** is the standard brain and thinks out loud when a question needs it; **LFM3-Omni 2B** is optional (always offered, never picked by itself; it does not think out loud and calls fewer unneeded tools) | New in 0.2 |
 | 📦 Models & packs | Settings → Models & packs, sorted into Knowledge, Brains, Multimedia, Voice and Extras: see, download and remove packs, with hints on what fits your phone. **Wikipedia offline** (German ~136 MB or all articles ~4.7 GB, English ~297 MB or 1 million articles ~3 GB): with a pack the Wikipedia tool answers without internet | New in 0.2 |
 | 🎨 Look | One calm design "Lichtung": lots of white, fine hairlines, Hain green only as an accent, radii 12–16 dp, quiet line icons; light font (Hanken Grotesk), dark mode; "Reduce motion" stops all movement | Since 0.1 |
 | 📱 Tablets | From 840 dp width (tablet in landscape, open foldable, big split screen) the chat list stays open on the left, and settings show the list and the open page side by side. **Models & packs** and **Memory** use two columns (memory: your list on the left, "About you" and the settings on the right), News shows list and article side by side. Phones stay as they are | New in 0.2 |
@@ -117,6 +117,11 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Version 0.1.10.8 – LFM3 is the standard brain again, no tool code in answers, sources as chips.**
+  - **LFM3 1.7B is the standard brain again** and thinks out loud when a question needs it. **LFM3-Omni 2B** stays as an optional brain under **Models & packs** and in the brain menu (never recommended or picked by itself); the switch hint and the "legacy" label are gone. With Omni the thinking menu says honestly that Fast and Thorough only differ in research.
+  - **No tool code in answers.** Raw tool calls the brain writes into its text (JSON, `<|tool_call|>`, `calculate(…)`) are removed; cards only appear from a real card block. Pim saves to memory only what you said about yourself or asked him to remember, and asks back instead of leaving an empty answer.
+  - **Sources as chips.** No more "[1]" in the text: small raised green chips with the number open the page; under the answer one quiet line with the site icons and "3 sources" opens the list. Copy, share and read aloud leave the markers out. Thorough research answers the question directly instead of talking about its sources.
+  - **Chat fixes:** the page colour reaches under the message box, the row under an answer stays on one line on small phones (also with "‹ 3/3 ›"), the version counter no longer shows two numbers on top of each other, long tool steps end in "…".
 - **Version 0.1.10.7 – a new standard brain, tools only when they fit, faster text.**
   - **New standard brain: LFM3-Omni 2B** (1.05 GB, LFM Open License v1.0). Quicker and better German than LFM3 1.7B. If you still have the old brain, a calm hint offers **Get the new one** and later **Remove the old one** – nothing switches by itself.
   - **Tools only when they fit.** Pim no longer looks up the weather or the news when you did not ask for them (host test: weather without reason 5/10 → 0/10, right tool 7/10 → 8/10). For the weather he uses the place from the chat, then your location, then what he remembers.
@@ -249,7 +254,7 @@ You don't need to be technical. Hain is not in the Play Store yet, so you instal
 flowchart LR
     You([🙂 You]) --> App["📱 Hain app<br/>on your phone"]
     App --> LLM["⚙️ llama.cpp<br/>runs the AI on the phone"]
-    LLM --> Brain[("🧠 Brain<br/>LFM3-Omni 2B, 1 GB")]
+    LLM --> Brain[("🧠 Brain<br/>LFM3 1.7B, 1 GB")]
     App --> DB[("🔒 Encrypted chats<br/>& settings")]
     App -. "only when you ask<br/>(weather, search, packs)" .-> Gate{{"🛡️ NetworkGate<br/>one gate, visible log"}}
     Gate -.-> Web((🌐 Internet))
@@ -263,8 +268,8 @@ Hain speaks of "knowledge packs" instead of "models". Only the brain is needed; 
 
 | Pack | Model | Size | Purpose |
 |---|---|---|---|
-| Brain (base) | LFM3-Omni-2B Q4_0 (text) | 1.05 GB | chat, tools, memory |
-| Previous brain (legacy) | LFM3-1.7B QAD Q4_0 | 1.0 GB | only listed while still on your phone |
+| Brain (base) | LFM3-1.7B QAD Q4_0 | 1.05 GB | chat, tools, memory, thinking |
+| Omni brain (optional) | LFM3-Omni-2B Q4_0 (text) | 1.05 GB | chat, tools, memory; no thinking out loud, fewer unneeded tools |
 | Big brain (optional) | Jan-v3.5-4B Q4_K_M | 2.7 GB | stronger tool use; offered from 8 GB RAM, recommended from 12 GB |
 | Remember & files | LFM2.5-Embedding-350M | ~0.2 GB | search in memory, chats, files |
 | Reading text | PaddleOCR PP-OCRv5 mobile (detection + Latin + line orientation, ONNX) | 14 MB | scanned PDFs and photos, without Google (asked when first needed) |
@@ -285,7 +290,7 @@ Details: [docs/specs/ARCHITECTURE.md](docs/specs/ARCHITECTURE.md).
 
 ## How AI is used
 
-**In the app:** Hain runs an open language model (LFM3-Omni 2B by Liquid AI) on your phone. It can be wrong, make things up, or sound more sure than it is. Check anything important, especially health, money and legal questions. Hain does not replace a doctor, a lawyer or therapy. Actions that reach other people (SMS, calls, mail) will always need your OK.
+**In the app:** Hain runs an open language model (LFM3 1.7B by Liquid AI, optionally LFM3-Omni 2B) on your phone. It can be wrong, make things up, or sound more sure than it is. Check anything important, especially health, money and legal questions. Hain does not replace a doctor, a lawyer or therapy. Actions that reach other people (SMS, calls, mail) will always need your OK.
 
 **Building the app:** Hain is made by one person (Oskar) together with AI coding agents. Large parts of the code, docs and graphics are written or drafted by AI (an AI assistant plus local models via llama.cpp). Every change goes through a pull request that a human reviews, tests and merges. If you find code that looks copied or wrong, please [open an issue](https://github.com/oskar26/hain/issues).
 
@@ -389,7 +394,7 @@ Architecture: [docs/specs/ARCHITECTURE.md](docs/specs/ARCHITECTURE.md) · Design
 
 ## Auf Deutsch
 
-Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Gerät läuft: chatten, rechnen, Wetter und Wikipedia nachschauen, im Web suchen, Nachrichten aus einem festen Mix (inkl. junge Welt) oder eigenen Feeds mit Bildern direkt in der App lesen, mit täglichem Briefing und Fragen an Pim zum Artikel, Wecker, Timer, Termine und Routen vorbereiten (du bestätigst jedes Mal mit einem Tipp), sich Dinge merken („Merk dir …“), Listen und Checklisten als Karten zeigen, private Chats führen, Chats exportieren, Nachrichten diktieren (Mikro neben Senden, Deutsch und Englisch, alles auf dem Handy), Antworten vorlesen und deine PDFs, Fotos von Seiten und Textdateien verstehen (Büroklammer, Texterkennung auf dem Handy). Wikipedia gibt es auch als Paket fürs Handy (ohne Internet). Texte, Links, PDFs und Fotos kannst du aus jeder anderen App in Hain teilen, und auf Tablets bleibt die Chat-Liste links offen, Modelle & Pakete und das Gedächtnis zeigen zwei Spalten. Auf starken Handys (ab 8 GB Arbeitsspeicher) kannst du zusätzlich das freiwillige „Große Gehirn“ laden (Jan-v3.5-4B): wählt Werkzeuge zuverlässiger, antwortet aber langsamer; Standard-Gehirn ist seit 0.1.10.7 LFM3-Omni 2B. Keine Cloud, kein Konto, keine API-Schlüssel. Ins Internet geht Hain nur, wenn du etwas brauchst, und zeigt dir genau, wohin die Anfrage geht. Das ganze Konzept steht in [docs/concept/KONZEPT.md](docs/concept/KONZEPT.md).
+Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Gerät läuft: chatten, rechnen, Wetter und Wikipedia nachschauen, im Web suchen, Nachrichten aus einem festen Mix (inkl. junge Welt) oder eigenen Feeds mit Bildern direkt in der App lesen, mit täglichem Briefing und Fragen an Pim zum Artikel, Wecker, Timer, Termine und Routen vorbereiten (du bestätigst jedes Mal mit einem Tipp), sich Dinge merken („Merk dir …“), Listen und Checklisten als Karten zeigen, private Chats führen, Chats exportieren, Nachrichten diktieren (Mikro neben Senden, Deutsch und Englisch, alles auf dem Handy), Antworten vorlesen und deine PDFs, Fotos von Seiten und Textdateien verstehen (Büroklammer, Texterkennung auf dem Handy). Wikipedia gibt es auch als Paket fürs Handy (ohne Internet). Texte, Links, PDFs und Fotos kannst du aus jeder anderen App in Hain teilen, und auf Tablets bleibt die Chat-Liste links offen, Modelle & Pakete und das Gedächtnis zeigen zwei Spalten. Auf starken Handys (ab 8 GB Arbeitsspeicher) kannst du zusätzlich das freiwillige „Große Gehirn“ laden (Jan-v3.5-4B): wählt Werkzeuge zuverlässiger, antwortet aber langsamer; Standard-Gehirn ist LFM3 1.7B (denkt bei Bedarf laut nach), LFM3-Omni 2B gibt es freiwillig. Keine Cloud, kein Konto, keine API-Schlüssel. Ins Internet geht Hain nur, wenn du etwas brauchst, und zeigt dir genau, wohin die Anfrage geht. Das ganze Konzept steht in [docs/concept/KONZEPT.md](docs/concept/KONZEPT.md).
 
 **Installieren:** Auf dem Handy die [Nightly-Seite](https://github.com/oskar26/hain/releases/tag/nightly) öffnen, `hain-debug.apk` laden, beim Öffnen „Unbekannte Apps installieren“ für den Browser erlauben, installieren. Beim ersten Start lädt Pim das Gehirn (ca. 1 GB, am besten im WLAN) – das kannst du auch überspringen und später im Chat nachholen. Updates einfach drüber installieren, Chats und Gehirn bleiben erhalten.
 

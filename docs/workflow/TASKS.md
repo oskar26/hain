@@ -1610,3 +1610,9 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - type: `fix` · size: `XS` · lane: `A`
 - do: `THOROUGH_*`/`FINAL_*` (DE + EN): Frage direkt beantworten, Wichtigstes zuerst, nur Fakten aus den Ergebnissen mit [1], keine Rede über Suche/Quellen/Widersprüche; fehlt etwas, kurz sagen was.
 - check: `ResearchPromptTest`, `ResearchLoopTest`, CI
+
+### T-276 · Doku + Version 0.1.10.8
+
+- type: `docs` · size: `XS` · lane: `B`
+- do: `hain.versionName=0.1.10.8`, README (Tabelle, „Neu in 0.1.10.8“, Modell-Tabelle), Website EN + /de (Gehirn-Abschnitt, Lizenzen), LICENSES, MODELS, STATUS, TASKS, HANDOFF_LOG, PR-Text.
+- check: `tools/check_strings.py`, Website-Build, CI
