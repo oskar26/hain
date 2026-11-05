@@ -1302,3 +1302,73 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - accept:
   - Alle Unterseiten zeigen einen nach links zeigenden Pfeil
 - check: `ktlintCheck detekt` + Screens (CI)
+
+## 0.1.10.2 · UI-Feinschliff (`hark/ui-polish`, PR #52)
+
+### T-230 · Chat-Kopfzeile als Milchglas
+
+- type: `polish` · size: `S` · lane: `B` · depends: T-233
+- files: feature-chat/.../api/{ChatChrome,ChatScreen}.kt, core-ui/.../components/{Scaffolding,Buttons,Messages}.kt, core-ui/.../effects/ChromeGlass.kt, `TopBarTitleTest`
+- do: Kopfzeile schwebt als Milchglas über dem Chat (Chat scrollt darunter), Titel mittig auf der ganzen Leiste, kompakter; Debug-Werte in einer Zeile.
+- accept: Titel bleibt mittig bei 1–3 Knöpfen; ohne Blur (Android < 12, Akkusparen) ruhige Seitenfarbe
+- check: Screens (CI)
+
+### T-231 · Ein Pim-Status für Warten, Denken, Nachschlagen, Schreiben
+
+- type: `polish` · size: `S` · lane: `B`
+- files: feature-chat/.../api/{PimStatus,ToolTimeline,ChatScreen}.kt, Strings, `PimStatusTest`
+- do: ein einziges Status-Element mit Pim statt mehrerer Zeilen; Phase wechselt weich.
+- check: `PimStatusTest` + Screens (CI)
+
+### T-232 · Nachrichtenfeld als Milchglas
+
+- type: `polish` · size: `S` · lane: `B` · depends: T-230
+- files: core-ui/.../components/Composer.kt, feature-chat/.../api/ChatChrome.kt
+- do: Eingabefeld und die Zeilen darüber als Milchglas über dem Chat, ruhiges Lichtung-Licht hinter dem Chat.
+- check: Screens (CI)
+
+### T-233 · Stärkeres Milchglas für Menüs, Popover, Sprung-Knopf, Seitenleiste
+
+- type: `polish` · size: `S` · lane: `B`
+- files: core-ui/.../effects/{HainGlass,MenuBackdrop}.kt, feature-chat/.../api/{ChatListDrawer,ChatScreen}.kt, `HainGlassTest`, `MenuBackdropTest`
+- do: einheitlich stärkerer Blur; im Akkusparmodus kein Blur.
+- check: Screens (CI)
+
+### T-236 · Nachrichten ohne Thema, ehrliche Fehlschritte
+
+- type: `fix` · size: `S` · lane: `B`
+- files: core-tools/.../news/{NewsQuery,NewsTool}.kt, core-tools/.../api/ToolRouter.kt, feature-chat/.../internal/ChatEngine.kt, feature-chat/.../api/ToolTimeline.kt, Tests
+- do: „Was gibt’s Neues?“ ohne Thema bringt die Top-Schlagzeilen; ein fehlgeschlagener Werkzeug-Schritt sagt kurz warum; dieselbe Suche wird nicht wiederholt.
+- check: `NewsQueryTest`, `ToolRouterTest`, `RobustCallsTest` (CI)
+
+### T-237 · Wissenspakete: Wikipedia offline (Kiwix ZIM)
+
+- type: `feature` · size: `M` · lane: `B` · depends: T-084
+- files: core-tools/.../wiki/zim/*, core-tools/.../wiki/WikipediaTool.kt, core-models/src/main/assets/catalog.json, core-models/.../api/KnowledgePacks.kt, app/.../MainActivity.kt, gradle/libs.versions.toml, docs/specs/LICENSES.md
+- do: eigener ZIM-Leser (Header, Pfad-Index, Cluster), zstd über zstd-jni (BSD-2-Clause, nur die Android-AAR); Pakete DE + EN im Katalog; das Werkzeug `wikipedia` liest zuerst offline, sonst online über das NetworkGate.
+- note: zstd-jni ist auf **1.5.7-12** gepinnt – ab 1.5.7-13 verlangt die AAR `minCompileSdk=37` (wir bauen gegen 36, KI-04); 1.5.7-12 ist 16-KB-ausgerichtet.
+- check: `ZimWikiTest`, `CatalogParserTest` (CI)
+
+### T-234 · Einstellungen aufgeräumt: „Modelle & Pakete“
+
+- type: `polish` · size: `M` · lane: `B` · depends: T-237
+- files: feature-settings/.../api/{SettingsScreen,PacksScreen,SettingsActions}.kt, app/.../MainActivity.kt, Strings, Tests
+- do: erste Ebene nur Gruppen; „Modelle & Pakete“ mit Unterseiten Wissen, Gehirne, Multimedia, Sprache, Extras; eigener Eintrag „Nachrichten“.
+- check: `PackCategoryTest` + Screens (CI)
+
+### T-235 · Tablet und Breitbild
+
+- type: `feature` · size: `M` · lane: `B` · depends: T-234
+- files: core-ui/.../layout/HainWindowSize.kt (neu), feature-chat/.../api/{ChatSidePanel (neu),ChatListDrawer,ChatScreen}.kt, feature-settings/.../api/SettingsScreen.kt, Screens-Tests
+- do:
+  1. `HainWindowSize` (COMPACT < 600 dp, MEDIUM < 840 dp, EXPANDED ab 840 dp; Grenzen wie Androids WindowSizeClass, eigener Code ohne Material).
+  2. Ab 840 dp bleibt die Chat-Liste als ruhige Seitenleiste (320 dp, Haarlinie) links offen; kein Menü-Knopf, kein Scrim, kein Gleiten.
+  3. Einstellungen als List-Detail: links die Gruppen (offene Gruppe mit grünem Rand, TalkBack „ausgewählt“), rechts die Seite (max. 720 dp breit). Gedächtnis, Pakete und Nachrichten öffnen weiter als eigene Seiten.
+- accept: Handy unverändert; Drehen/Split-Screen wechselt sauber; Tablet-Screens 1280 × 800 dp
+- check: `HainWindowSizeTest` + `TabletScreens`, `TabletSettingsScreens` (CI)
+
+### T-238 · Feinschliff über alle Screens
+
+- type: `polish` · size: `S` · lane: `B` · depends: T-235
+- do: Abstände, Touch-Ziele (≥ 48 dp) und Lichtung-Tokens über alle Screens angeglichen, maßvoll (siehe PR).
+- check: Screens (CI)

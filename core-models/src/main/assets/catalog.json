@@ -140,6 +140,70 @@
       "min_ram_gb": 3,
       "licence": "LFM Open License v1.0",
       "licence_url": "https://huggingface.co/LiquidAI/LFM2.5-Embedding-350M-GGUF/blob/main/LICENSE"
+    },
+    {
+      "id": "wikipedia-de-top-mini",
+      "name": "Wikipedia Deutsch · Top",
+      "kind": "knowledge",
+      "lang": ["de"],
+      "files": [
+        {
+          "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_de_top_mini_2026-10.zim",
+          "sha256": "4ce9bfd5140d811535c2f0d7bdc84b3dbb6d01d7a6f4f111d8d0f2e8e815bcef",
+          "size": 136444709
+        }
+      ],
+      "min_ram_gb": 2,
+      "licence": "CC BY-SA 4.0 (Wikipedia), packaged by Kiwix",
+      "licence_url": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "wikipedia-en-top-mini",
+      "name": "Wikipedia English · Top",
+      "kind": "knowledge",
+      "lang": ["en"],
+      "files": [
+        {
+          "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_en_top_mini_2026-09.zim",
+          "sha256": "9e75b5f03b4ff61864772d811bd9715c9cdc27a429229abb779aaa3cc3aa8e05",
+          "size": 296858160
+        }
+      ],
+      "min_ram_gb": 2,
+      "licence": "CC BY-SA 4.0 (Wikipedia), packaged by Kiwix",
+      "licence_url": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "wikipedia-en-top1m-mini",
+      "name": "Wikipedia English · 1 million",
+      "kind": "knowledge",
+      "lang": ["en"],
+      "files": [
+        {
+          "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_en_top1m_mini_2026-04.zim",
+          "sha256": "56b963ffb5f5246da10cf87d1bdbaaad457b39e3b766d52844ccd1aab3a49a34",
+          "size": 3022411034
+        }
+      ],
+      "min_ram_gb": 2,
+      "licence": "CC BY-SA 4.0 (Wikipedia), packaged by Kiwix",
+      "licence_url": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "wikipedia-de-all-mini",
+      "name": "Wikipedia Deutsch · alle",
+      "kind": "knowledge",
+      "lang": ["de"],
+      "files": [
+        {
+          "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_de_all_mini_2026-10.zim",
+          "sha256": "0e281a87af92a798297fc671f8b37004cb7874ac051e13876b7335be96649e59",
+          "size": 4686161304
+        }
+      ],
+      "min_ram_gb": 2,
+      "licence": "CC BY-SA 4.0 (Wikipedia), packaged by Kiwix",
+      "licence_url": "https://creativecommons.org/licenses/by-sa/4.0/"
     }
   ]
 }

@@ -174,7 +174,7 @@ fun DomeIconButton(
     }
 }
 
-/** 40 dp round icon button with a 20 dp Lucide icon. */
+/** Round icon button with a 20 dp Lucide icon and a 48 dp touch target (T-236). */
 @Suppress("LongParameterList") // optional styling parameters with defaults
 @Composable
 fun HainIconButton(
@@ -190,7 +190,8 @@ fun HainIconButton(
     Box(
         modifier =
             modifier
-                .size(40.dp)
+                // T-236: 48 dp touch target everywhere (Android guidelines), the icon stays small
+                .size(ICON_BUTTON_TOUCH.dp)
                 .alpha(if (enabled) 1f else DISABLED_ALPHA)
                 .clip(LocalHainShapes.current.composer)
                 .background(background)
@@ -249,3 +250,6 @@ private const val PRESS_DAMPING = 0.5f
 private const val PRESS_STIFFNESS = 600f
 private const val DOME_ELEVATION = 8
 private const val ICON_SHARE = 0.45f
+
+/** Touch size of [HainIconButton] (T-236: ≥ 48 dp). */
+const val ICON_BUTTON_TOUCH = 48

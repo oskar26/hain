@@ -53,7 +53,13 @@ class ToolRouter(
     fun fix(
         call: ToolCall,
         ctx: ToolContext,
-    ): ToolCallFixer.Fixed = fixer.fix(call, ctx.now)
+    ): ToolCallFixer.Fixed {
+        // T-236: a registered tool without its own entry in tools.json (`news`) keeps its name; before,
+        // "news" was taken as an alias of web_search, which needs a query, so Pim asked for one
+        val own = call.name.trim().lowercase()
+        if (own in byName && fixer.toolName(own) != own) return ToolCallFixer.Fixed(call.copy(name = own))
+        return fixer.fix(call, ctx.now)
+    }
 
     /**
      * Schemas for the prompt; online tools are left out while offline (shorter prompt, no dead ends),

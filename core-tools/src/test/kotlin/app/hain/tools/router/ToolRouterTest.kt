@@ -47,6 +47,31 @@ class ToolRouterTest {
             assertEquals("12*7 = 84", r.label)
         }
 
+    /** A tool registered under a name the fixer only knows as an alias of another tool. */
+    private class News : Tool {
+        var ran = false
+        override val online = true
+        override val schema = ToolSchema("news", "Headlines.", JsonObject(emptyMap()))
+
+        override suspend fun run(
+            args: Map<String, Any?>,
+            ctx: ToolContext,
+        ): ToolResult {
+            ran = true
+            return ToolResult("[1] tagesschau – Titel", null)
+        }
+    }
+
+    @Test
+    fun newsWithoutTopicRunsInsteadOfAskingForASearchTerm() =
+        runTest {
+            // T-236: "news" was read as web_search, which needs a query → Pim asked for a search term
+            val news = News()
+            val r = ToolRouter(listOf(news)).run(call("news"), ctx)
+            assertNull(r.error)
+            assertTrue(news.ran)
+        }
+
     @Test
     fun errorsBecomeShortCodes() =
         runTest {

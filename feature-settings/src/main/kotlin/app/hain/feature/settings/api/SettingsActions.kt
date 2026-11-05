@@ -54,4 +54,6 @@ class SettingsActions(
     val onBlockScreenshots: (Boolean) -> Unit = {},
     /** All chats as a Markdown ZIP into the file the user picked (T-054). */
     val onExportAll: (Uri) -> Unit = {},
+    /** T-234: the news page with its own settings (feature-news); `null` = no news entry. */
+    val onOpenNews: (() -> Unit)? = null,
 )

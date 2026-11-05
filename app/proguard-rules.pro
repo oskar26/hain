@@ -72,3 +72,9 @@
 -dontwarn javax.annotation.**
 -dontwarn com.google.errorprone.annotations.**
 -dontwarn org.jetbrains.annotations.**
+
+# ---------------------------------------------------------------------------------------------
+# zstd-jni (T-237, offline Wikipedia packs): the native library binds its classes by name.
+# ---------------------------------------------------------------------------------------------
+-keep class com.github.luben.zstd.** { *; }
+-dontwarn com.github.luben.zstd.**

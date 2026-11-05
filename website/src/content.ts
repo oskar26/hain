@@ -96,7 +96,9 @@ export const COPY: Record<Lang, Copy> = {
         { icon: 'languages', title: 'Speaks your language', text: 'Pim answers in the language you write in, or always in German or English.', status: 'ready' },
         { icon: 'cpu', title: 'Choose the brain', text: 'Tap “Hain · On this phone” at the top to switch between the brains on your phone. Plain names, the size, and which one is recommended for your phone. The new one loads in the background.', status: 'ready' },
         { icon: 'gauge', title: 'Quick start', text: 'The release version is shrunk and optimised and brings a profile, so Hain starts and scrolls faster from the very first start, also without Play.', status: 'ready' },
-        { icon: 'package', title: 'Knowledge packs', text: 'See, download and remove packs, with hints on what fits your phone.', status: 'ready' },
+        { icon: 'package', title: 'Models & packs', text: 'Knowledge, brains, multimedia and voice, each on its own page: see, download and remove packs, with hints on what fits your phone.', status: 'ready' },
+        { icon: 'book', title: 'Wikipedia offline', text: 'Load Wikipedia onto your phone (German or English, from about 140 MB). Pim then looks things up without internet, even in flight mode.', status: 'ready' },
+        { icon: 'tablet', title: 'Tablets & wide screens', text: 'On a tablet the chat list stays open on the left, and settings show the list and the open page side by side.', status: 'ready' },
         { icon: 'update', title: 'Update check (optional)', text: 'If you want, Hain asks GitHub once a day whether a newer version is out and shows a calm hint. Off until you say yes, nothing about you is sent, nothing installs by itself.', status: 'ready' },
         { icon: 'code', title: 'Developer mode', text: 'Hidden for tinkerers: tap the version 7 times. Try your own GGUF model from Hugging Face, tune sampling and thinking, see tokens per second.', status: 'ready' },
         { icon: 'news', title: 'News', text: 'A calm news reader with pictures: 19 sources in German and English, plus your own feeds if you like. Read articles right in the app, get your daily briefing and ask Pim about an article, on your phone.', status: 'ready' },
@@ -138,7 +140,7 @@ export const COPY: Record<Lang, Copy> = {
       title: 'Calm, clear, and a little green.',
       sub: 'Lots of white, fine lines, green only where it matters. In light and dark.',
       placeholder: 'Screenshot coming soon',
-      items: ['Welcome', 'Start page', 'Thinking level', 'Long answers', 'Your chats', 'Settings', 'News', 'Reading view'],
+      items: ['Welcome', 'Start page', 'Thinking level', 'Pim looks it up', 'Long answers', 'Your chats', 'Settings', 'News', 'Reading view'],
     },
     privacy: {
       kicker: 'Privacy',
@@ -281,7 +283,9 @@ export const COPY: Record<Lang, Copy> = {
         { icon: 'languages', title: 'Spricht deine Sprache', text: 'Pim antwortet in der Sprache, in der du schreibst, oder immer auf Deutsch oder Englisch.', status: 'ready' },
         { icon: 'cpu', title: 'Gehirn wählen', text: 'Tippe oben auf „Hain · Auf diesem Handy“ und wechsle zwischen den Gehirnen auf deinem Handy. Mit einfachen Namen, der Größe und dem, was für dein Handy empfohlen ist. Das neue lädt im Hintergrund.', status: 'ready' },
         { icon: 'gauge', title: 'Schneller Start', text: 'Die Release-Version ist verkleinert und optimiert und bringt ein Profil mit: Hain startet und scrollt schon beim ersten Start schneller, auch ohne Play.', status: 'ready' },
-        { icon: 'package', title: 'Wissenspakete', text: 'Pakete ansehen, laden und entfernen, mit Hinweis, was zu deinem Handy passt.', status: 'ready' },
+        { icon: 'package', title: 'Modelle & Pakete', text: 'Wissen, Gehirne, Multimedia und Sprache, jedes auf einer eigenen Seite: Pakete ansehen, laden und entfernen, mit Hinweis, was zu deinem Handy passt.', status: 'ready' },
+        { icon: 'book', title: 'Wikipedia offline', text: 'Lade Wikipedia aufs Handy (Deutsch oder Englisch, ab etwa 140 MB). Dann schlägt Pim ohne Internet nach, auch im Flugmodus.', status: 'ready' },
+        { icon: 'tablet', title: 'Tablets & große Bildschirme', text: 'Auf dem Tablet bleibt die Chat-Liste links offen, und die Einstellungen zeigen Liste und offene Seite nebeneinander.', status: 'ready' },
         { icon: 'update', title: 'Update-Prüfung (freiwillig)', text: 'Wenn du willst, fragt Hain einmal am Tag bei GitHub, ob es eine neue Version gibt, und zeigt einen ruhigen Hinweis. Aus, bis du Ja sagst. Über dich wird nichts gesendet, nichts installiert sich von selbst.', status: 'ready' },
         { icon: 'code', title: 'Entwicklermodus', text: 'Versteckt für Bastler: tippe 7× auf die Version. Probier eigene GGUF-Modelle von Hugging Face, stell Sampling und Denken ein, sieh Token pro Sekunde.', status: 'ready' },
         { icon: 'news', title: 'Nachrichten', text: 'Ein ruhiger Nachrichten-Reader mit Bildern: 19 Quellen auf Deutsch und Englisch, auf Wunsch mit deinen eigenen Feeds. Artikel direkt in der App lesen, dein tägliches Briefing und Fragen an Pim zum Artikel, alles auf dem Handy.', status: 'ready' },
@@ -323,7 +327,7 @@ export const COPY: Record<Lang, Copy> = {
       title: 'Ruhig, klar und ein bisschen grün.',
       sub: 'Viel Weiß, feine Linien, Grün nur da, wo es zählt. Hell und dunkel.',
       placeholder: 'Screenshot folgt',
-      items: ['Willkommen', 'Startseite', 'Denk-Stufe', 'Lange Antworten', 'Deine Chats', 'Einstellungen', 'Nachrichten', 'Leseansicht'],
+      items: ['Willkommen', 'Startseite', 'Denk-Stufe', 'Pim schaut nach', 'Lange Antworten', 'Deine Chats', 'Einstellungen', 'Nachrichten', 'Leseansicht'],
     },
     privacy: {
       kicker: 'Datenschutz',
@@ -423,24 +427,23 @@ export const COPY: Record<Lang, Copy> = {
 // Screenshots in style A "Lichtung" (from docs/design/screens/style_a_*.png, converted to WebP).
 // Each has a light and a dark file in public/screenshots/: <id>-light.webp, <id>-dark.webp.
 // The page shows the one matching the visitor's colour scheme.
-export const SCREENSHOTS: string[] = ['onboarding', 'chat_empty', 'chat_composer_picker', 'chat_long_answer', 'drawer', 'settings', 'news', 'news_reader']
+export const SCREENSHOTS: string[] = ['onboarding', 'chat_empty', 'chat_composer_picker', 'chat_pim_tools', 'chat_long_answer', 'drawer', 'settings', 'news', 'news_reader']
 
 // Pixel size of each screenshot (light and dark are the same). They are cropped to where the app
 // content ends (T-105): no empty bottom strip, and the short settings page ends after its last row.
 export const SHOT_SIZE: Record<string, [number, number]> = {
-  onboarding: [720, 1548],
-  chat_empty: [720, 1548],
-  chat_composer_picker: [720, 1548],
-  chat_long_answer: [720, 1548],
-  drawer: [720, 1548],
-  settings: [720, 1008],
+  onboarding: [720, 1561],
+  chat_empty: [720, 1561],
+  chat_composer_picker: [720, 1561],
+  chat_pim_tools: [720, 1561],
+  chat_long_answer: [720, 1561],
+  drawer: [720, 1561],
+  settings: [720, 1112],
   // News (T-075/T-076, 0.1.10.3): recorded at 392 × 850 dp, scaled to 720 wide
   news: [720, 1561],
   news_reader: [720, 1561],
 }
 
-// The English screenshots (`<id>-<mode>-en.webp`, T-107) were recorded later: the settings page
-// has a short intro at the top since then, so it is taller. Others are as in SHOT_SIZE.
-export const SHOT_SIZE_EN: Record<string, [number, number]> = {
-  settings: [720, 1110],
-}
+// Since 0.1.10.2 (T-238) all screenshots are re-recorded with the frosted top bar and message box;
+// the English ones have the same size, so nothing differs here any more.
+export const SHOT_SIZE_EN: Record<string, [number, number]> = {}

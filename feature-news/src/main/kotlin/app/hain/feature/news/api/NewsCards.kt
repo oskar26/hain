@@ -13,9 +13,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -311,7 +311,10 @@ internal fun Hairline(modifier: Modifier = Modifier) {
     Box(modifier.fillMaxWidth().height(1.dp).background(LocalHainColors.current.border))
 }
 
-/** Quiet green text button ("Alle Punkte zeigen", "Auf Website öffnen"). */
+/**
+ * Quiet green text button ("Alle Punkte zeigen", "Auf Website öffnen", "Zusammenfassen"). T-238: the text stays
+ * small, the touch target is 48 dp high and at least 48 dp wide.
+ */
 @Composable
 internal fun TextAction(
     text: String,
@@ -322,7 +325,7 @@ internal fun TextAction(
         modifier
             .clip(LocalHainShapes.current.row)
             .clickable(role = Role.Button, onClick = onClick)
-            .heightIn(min = MIN_TOUCH.dp)
+            .defaultMinSize(minWidth = MIN_TOUCH.dp, minHeight = MIN_TOUCH.dp)
             .padding(horizontal = 6.dp),
         contentAlignment = Alignment.CenterStart,
     ) {

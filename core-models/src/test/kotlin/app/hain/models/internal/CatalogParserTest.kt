@@ -29,6 +29,35 @@ class CatalogParserTest {
         assertEquals("08bb9bfdfb516146b7aeb6d51994206b38e8b31c9e6e66a7bdcebbbc0afa3cea", embed.files.single().sha256)
     }
 
+    @Test
+    fun bundledCatalogHasWikipediaPacksInBothLanguages() {
+        // T-237: offline Wikipedia (Kiwix "mini" ZIM), German and English, small and big
+        val models = CatalogParser.parse(File("src/main/assets/catalog.json").readText())
+        val packs = models.filter { it.kind == ModelInfo.KIND_KNOWLEDGE }
+        assertEquals(setOf("de", "en"), packs.flatMap { it.lang }.toSet())
+        assertTrue(
+            packs.all {
+                it.files
+                    .single()
+                    .fileName
+                    .endsWith(".zim") &&
+                    it.files
+                        .single()
+                        .sha256.length == 64
+            },
+        )
+        assertTrue(
+            packs.all {
+                it.files
+                    .single()
+                    .url
+                    .startsWith("https://download.kiwix.org/zim/wikipedia/")
+            },
+        )
+        assertEquals(136_444_709L, packs.single { it.id == "wikipedia-de-top-mini" }.totalSize)
+        assertTrue(packs.none { it.isDefault })
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun rejectsInventedChecksum() {
         CatalogParser.parse(

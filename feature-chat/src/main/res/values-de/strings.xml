@@ -92,6 +92,12 @@
     <string name="chat_tool_route">Route</string>
     <string name="chat_tool_remember">Gemerkt</string>
     <string name="chat_tool_failed">hat nicht geklappt</string>
+    <string name="chat_tool_quoted">„%1$s“</string>
+    <string name="chat_tool_unreachable">Dienst gerade nicht erreichbar</string>
+    <string name="chat_tool_timeout">hat zu lange gedauert</string>
+    <string name="chat_tool_not_found">nichts gefunden</string>
+    <string name="chat_tool_unclear">Anfrage unklar</string>
+    <string name="chat_tool_no_place">kein Ort angegeben</string>
     <string name="chat_tool_offline">du bist offline</string>
     <string name="chat_tool_ask_first">fragt erst</string>
     <string name="chat_tool_search_off">Websuche ist aus</string>
@@ -203,6 +209,10 @@
     <string name="game_lost_title">Keine Züge mehr</string>
     <string name="game_lost_body">Pim glaubt an dich. Noch eine Runde?</string>
     <string name="game_try">Nochmal</string>
+    <string name="chat_status_waiting">Pim liest deine Nachricht…</string>
+    <string name="chat_status_writing">Pim schreibt…</string>
+    <string name="chat_status_thought">Nachgedacht</string>
+    <string name="chat_status_open_thinking">Gedanken zeigen oder verbergen</string>
     <string name="chat_pim_looking">Pim schaut nach…</string>
     <string name="chat_dev_stats">%1$s Token/s · erstes Token nach %2$s s</string>
     <string name="chat_dev_copy_debug">Debug-Infos kopieren</string>
@@ -214,7 +224,7 @@
     <string name="chat_brain_detail">%1$s · %2$s</string>
     <string name="chat_brain_not_installed">Noch nicht auf deinem Handy · %1$s</string>
     <string name="chat_brain_recommended">Empfohlen für dein Handy</string>
-    <string name="chat_brain_get_more">Mehr Gehirne in Wissenspaketen</string>
+    <string name="chat_brain_get_more">Mehr Gehirne unter Modelle &amp; Pakete</string>
     <string name="chat_brain_own_active">Gerade läuft dein eigenes Modell aus dem Entwicklermodus.</string>
     <!-- T-056 private chat, T-054 export -->
     <string name="chat_private_title">Privater Chat</string>

@@ -2,7 +2,6 @@ package app.hain.feature.chat.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -15,7 +14,10 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import app.hain.common.api.AnswerMode
+import app.hain.feature.chat.api.ChatBottomArea
+import app.hain.feature.chat.api.ChatChrome
 import app.hain.feature.chat.api.ChatListDrawer
+import app.hain.feature.chat.api.ChatTopGlass
 import app.hain.feature.chat.api.DrawerActions
 import app.hain.feature.chat.api.Greeting
 import app.hain.feature.chat.api.MessageList
@@ -31,6 +33,8 @@ import app.hain.ui.HainIcons
 import app.hain.ui.components.Composer
 import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.TopBar
+import app.hain.ui.effects.LocalForceFrost
+import app.hain.ui.effects.rememberHainGlassState
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.theme.HainTheme
 import app.hain.ui.theme.LocalHainColors
@@ -112,6 +116,31 @@ class ChatScreens {
         shot("drawer_dark")
     }
 
+    // ---- T-231: one status element for every phase ----
+
+    @Test
+    fun statusLookingUpLight() {
+        compose.setContent { Frame(dark = false) { ChatFrame(statusState(writing = false)) } }
+        shot("chat_status_tools_light")
+    }
+
+    @Test
+    fun statusWritingDark() {
+        compose.setContent { Frame(dark = true) { ChatFrame(statusState(writing = true)) } }
+        shot("chat_status_writing_dark")
+    }
+
+    @Test
+    fun statusWaitingLight() {
+        val state =
+            ChatUiState(
+                messages = listOf(UiMessage(1, true, "Was ist ein Hain?"), UiMessage(2, false, "", streaming = true)),
+                isGenerating = true,
+            )
+        compose.setContent { Frame(dark = false) { ChatFrame(state) } }
+        shot("chat_status_waiting_light")
+    }
+
     // ---- T-085: long texts ----
 
     @Test
@@ -182,6 +211,8 @@ internal fun Frame(
         CompositionLocalProvider(
             LocalReduceMotion provides true,
             LocalDensity provides Density(density.density, fontScale),
+            // T-230: Robolectric blurs the main window when asked; the chrome is glass in the pictures
+            LocalForceFrost provides true,
         ) {
             Box(Modifier.fillMaxSize().background(LocalHainColors.current.bg)) { content() }
         }
@@ -194,33 +225,51 @@ internal fun ChatFrame(
     state: ChatUiState,
     mode: AnswerMode = AnswerMode.AUTO,
     texts: ShotTexts = ShotTexts.DE,
+    /** T-235: no menu button when the chat list stays open on the left. */
+    menu: Boolean = true,
 ) {
-    Column(Modifier.fillMaxSize()) {
-        TopBar(
-            title = "Hain",
-            subtitle = texts.subtitle,
-            leading = { HainIconButton(HainIcons.menu, texts.menu, {}) },
-            trailing = { HainIconButton(HainIcons.plus, texts.newChat, {}) },
-        )
-        Box(Modifier.weight(1f)) {
-            if (state.messages.isEmpty()) {
-                Greeting(onSuggestion = {}, hour = 15, seed = 3)
-            } else {
-                MessageList(state, emptyMap(), {}, {}, { _, _ -> }, { _, _, _ -> })
+    // T-230/T-232: the same frosted frame as the app (top bar and message box over the chat)
+    val glass = rememberHainGlassState()
+    ChatChrome(
+        glass = glass,
+        thinking = state.isGenerating,
+        top = {
+            ChatTopGlass(glass) {
+                TopBar(
+                    title = "Hain",
+                    subtitle = texts.subtitle,
+                    onTitleClick = {},
+                    leading = { if (menu) HainIconButton(HainIcons.menu, texts.menu, {}) },
+                    trailing = {
+                        HainIconButton(HainIcons.share, texts.menu, {})
+                        HainIconButton(HainIcons.plus, texts.newChat, {})
+                    },
+                )
             }
+        },
+        bottom = {
+            ChatBottomArea {
+                Composer(
+                    text = state.input,
+                    onTextChange = {},
+                    placeholder = texts.placeholder,
+                    isGenerating = state.isGenerating,
+                    onSend = {},
+                    onStop = {},
+                    sendLabel = texts.send,
+                    stopLabel = texts.stop,
+                    modifier = Modifier.padding(12.dp),
+                    leading = { ThinkingPicker(mode, {}) },
+                    glass = glass,
+                )
+            }
+        },
+    ) { padding ->
+        if (state.messages.isEmpty()) {
+            Box(Modifier.fillMaxSize().padding(padding)) { Greeting(onSuggestion = {}, hour = 15, seed = 3) }
+        } else {
+            MessageList(state, emptyMap(), {}, {}, { _, _ -> }, { _, _, _ -> }, chrome = padding)
         }
-        Composer(
-            text = state.input,
-            onTextChange = {},
-            placeholder = texts.placeholder,
-            isGenerating = false,
-            onSend = {},
-            onStop = {},
-            sendLabel = texts.send,
-            stopLabel = texts.stop,
-            modifier = Modifier.padding(12.dp),
-            leading = { ThinkingPicker(mode, {}) },
-        )
     }
 }
 
@@ -252,6 +301,33 @@ internal fun Drawer(
         actions = DrawerActions({}, {}, {}, {}, { _, _ -> }, { _, _ -> }, {}, {}),
     )
 }
+
+/** T-231: Pim thinks, one tool is done, one still runs; [writing] = the answer text has started. */
+internal fun statusState(writing: Boolean): ChatUiState =
+    ChatUiState(
+        messages =
+            listOf(
+                UiMessage(1, true, "Was gibt es Neues zum Deutschlandticket?"),
+                UiMessage(
+                    2,
+                    false,
+                    if (writing) "Das **Deutschlandticket** kostet seit Januar" else "",
+                    reasoning = "Die Frage ist aktuell, also suche ich im Web und lese zwei Seiten.",
+                    streaming = true,
+                    steps =
+                        listOf(
+                            ToolStep("web_search", "Deutschlandticket Preis 2026", StepState.DONE, online = true),
+                            ToolStep(
+                                "read_pages",
+                                "2",
+                                if (writing) StepState.DONE else StepState.RUNNING,
+                                online = true,
+                            ),
+                        ),
+                ),
+            ),
+        isGenerating = true,
+    )
 
 internal fun answerState(texts: ShotTexts = ShotTexts.DE): ChatUiState =
     ChatUiState(

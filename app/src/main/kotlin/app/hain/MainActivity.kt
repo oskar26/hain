@@ -75,6 +75,7 @@ import app.hain.feature.news.api.NewsScreen
 import app.hain.feature.news.api.SharedNewsPrefs
 import app.hain.feature.onboarding.api.OnboardingScreen
 import app.hain.feature.settings.api.AppInfo
+import app.hain.feature.settings.api.ExtraPack
 import app.hain.feature.settings.api.PacksScreen
 import app.hain.feature.settings.api.SettingsActions
 import app.hain.feature.settings.api.SettingsExtras
@@ -95,6 +96,7 @@ import app.hain.models.api.DeviceCheck
 import app.hain.models.api.DeviceProfile
 import app.hain.models.api.DownloadState
 import app.hain.models.api.Fit
+import app.hain.models.api.KnowledgePacks
 import app.hain.models.api.ModelInfo
 import app.hain.models.api.ModelRepository
 import app.hain.tools.api.Favicons
@@ -148,6 +150,9 @@ class MainActivity : FragmentActivity() {
 
     @Inject lateinit var brainChoice: BrainChoiceStore
 
+    /** T-237: Wikipedia from the knowledge packs on the phone (Settings → Modelle & Pakete → Wissen). */
+    private val offlineWiki by lazy { HainTools.offlineWiki { KnowledgePacks.installed(models) } }
+
     /** T-055: brain picker in the top bar (catalogue + DataStore choice). */
     private val brainPicking by lazy {
         BrainPicking(models, brainChoice, lifecycleScope, ::deviceRamGb, ::ownModelPath)
@@ -157,6 +162,7 @@ class MainActivity : FragmentActivity() {
         onBack: () -> Unit,
         onOpenPacks: () -> Unit,
         onOpenMemory: () -> Unit = {},
+        onOpenNews: (() -> Unit)? = null,
     ): SettingsActions {
         val repo = settingsRepository
 
@@ -195,6 +201,7 @@ class MainActivity : FragmentActivity() {
             onUpdateChannel = { write { repo.setUpdateChannel(it) } },
             onCheckUpdate = { checkForUpdate() },
             onOpenMemory = onOpenMemory,
+            onOpenNews = onOpenNews,
             onAppLock = { on ->
                 if (on) {
                     // T-056: the lock only turns on after the phone confirmed it is you
@@ -302,6 +309,18 @@ class MainActivity : FragmentActivity() {
     /** Häppchen 9: attaching files in the chat (paper clip, progress, "Texterkennung laden?"). */
     private val chatDocs by lazy { ChatDocs(docLibrary, lifecycleScope) }
 
+    /** T-234: the text recognition pack in Settings → Modelle & Pakete → Multimedia. */
+    private val ocrPack by lazy {
+        ExtraPack(
+            ExtraPack.Kind.OCR,
+            docLibrary.pack.totalBytes,
+            installed = chatDocs.ocrInstalled,
+            progress = chatDocs.state.map { it.download },
+            onGet = chatDocs::loadPack,
+            onRemove = chatDocs::removePack,
+        )
+    }
+
     /**
      * T-074: the brain file for news summaries, `null` while no brain is on the phone; the brain
      * picked in the top bar (T-055) like in the chat.
@@ -343,6 +362,8 @@ class MainActivity : FragmentActivity() {
                                 // Häppchen 9: search_document in the attached files
                                 docLibrary.searchTool,
                             ),
+                            // T-237: Wikipedia from the installed knowledge packs first
+                            offlineWiki = offlineWiki,
                         ),
                     toolContext = {
                         val cfg = settings()
@@ -660,6 +681,11 @@ class MainActivity : FragmentActivity() {
                                         onBack = { showSettings = false },
                                         onOpenPacks = { showPacks = true },
                                         onOpenMemory = { showMemory = true },
+                                        // T-234: "Nachrichten" leads to the news page and its settings
+                                        onOpenNews = {
+                                            showSettings = false
+                                            showNews = true
+                                        },
                                     ),
                                     networkLog = log,
                                     extras =
@@ -697,7 +723,7 @@ class MainActivity : FragmentActivity() {
                                         slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
                                 exit = fadeOut(hainTween(HainMotion.FAST_MS)),
                             ) {
-                                PacksScreen(models, deviceRamGb(), { showPacks = false })
+                                PacksScreen(models, deviceRamGb(), { showPacks = false }, extras = listOf(ocrPack))
                             }
                         }
                     }

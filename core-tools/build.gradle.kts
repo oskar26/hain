@@ -27,6 +27,8 @@ dependencies {
     api(project(":core-llm"))
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.androidx.core.ktx)
+    // T-237: offline Wikipedia packs are zstd-compressed (only the Android AAR, never the desktop jar)
+    implementation(variantOf(libs.zstd.jni) { artifactType("aar") })
 
     testImplementation(libs.junit)
     testImplementation(libs.kxml2)

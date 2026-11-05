@@ -142,7 +142,7 @@ class ModelPickerTest {
     fun moreBrainsOpensTheKnowledgePacks() {
         show(setOf(small))
         openMenu()
-        compose.onNodeWithText("More brains in Knowledge packs").performClick()
+        compose.onNodeWithText("More brains in Models & packs").performClick()
         compose.waitForIdle()
         assertEquals(1, packsOpened)
     }

@@ -602,6 +602,20 @@ Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen 
 - Konflikte: ChatStore/RoomChatPersistence (Karten + Verzweigungen + Anhänge), ChatExtras (answerFooter + favicons), MainActivity (DocLibrary + Favicons), Strings (`chat_action_*` → `cards_action_*` in core-cards), README/Website/TASKS/STATUS.
 - `hain.versionName=0.1.10.1`.
 
+## 2026-11-05 · 0.1.10.2 – UI-Feinschliff · review · harness: Hark · model: Hark · branch `hark/ui-polish` (PR #52)
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-230–T-233 | review | Screens (CI) grün, `TopBarTitleTest`, `PimStatusTest`, `HainGlassTest`, `MenuBackdropTest` | – | – |
+| T-236 | review | `NewsQueryTest`, `ToolRouterTest`, `RobustCallsTest` (Erwartung an die eine Router-Wiederholung nach Netzfehler angepasst) | – | – |
+| T-237 | review | CI rot durch `checkDebugAarMetadata`: zstd-jni 1.5.7-25 verlangt `minCompileSdk=37`. Alle AARs geprüft: bis **1.5.7-12** ohne minCompileSdk und 16-KB-ausgerichtet → gepinnt | LICENSES.md (Version) | Gerätetest mit echtem ZIM |
+| T-234 | review | `PackCategoryTest`; `ModelPickerTest` folgt dem neuen Text „More brains in Models & packs“ | – | – |
+| T-235 | review | `HainWindowSizeTest`, `TabletScreens`, `TabletSettingsScreens` (1280 × 800 dp) | – | Gerätetest Tablet/Foldable, Drehen |
+| T-238 | review | Screens (CI) | NewsScreen (`TextAction` 48 dp) | – |
+
+- Gradle lokal nicht gestartet (geteilte Sandbox): ktlint 1.5.0 + detekt 1.23.8 CLI, `tools/check_strings.py` lokal, Rest über CI, APK, Screens.
+- `HainWindowSize`: eigene Klasse mit den Grenzen von Androids WindowSizeClass (600/840 dp), keine Material-Bibliothek. Breite aus `LocalConfiguration.screenWidthDp` (folgt Split-Screen und Drehen).
+- Konflikte mit `hark/news-reader` erwartet: ChatScreen.kt, ChatEngine.kt, MainActivity.kt, catalog.json, libs.versions.toml, gradle.properties, strings.xml, NewsTool.kt (dazu README/Website/TASKS/STATUS).
 ## 2026-11-04 · 0.1.10.3 – News-Reader · review · harness: Hark · model: Hark · branch `hark/news-reader`
 
 | task | status | check result | files outside list (reason) | open issues |
@@ -616,4 +630,5 @@ Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen 
 - Gradle lokal nicht gestartet (RAM, paralleler LLM-Test im Sandbox): ktlint 1.5.0, detekt 1.23.8 CLI, `tools/check_strings.py` lokal grün, Rest über CI.
 - Erwartete Konflikte mit #52: `MainActivity.kt` (News-Einhängepunkt), `feature-news/src/main/res/values(-de)/strings.xml`, README/STATUS/TASKS/HANDOFF_LOG, `gradle.properties`.
 - `hain.versionName=0.1.10.3`.
+- 05.11. main (mit #52, 0.1.10.2) in `hark/news-reader` gemergt: Konflikte in README, STATUS, HANDOFF_LOG, website/content.ts (Screenshots + Galerie beider Stände), gradle.properties (bleibt 0.1.10.3), NewsScreen.kt (T-238 `TextAction` 48 dp jetzt in `NewsCards.kt`, mind. 48 × 48 dp). NewsTool (Top-Schlagzeilen ohne Thema), Einstellungseintrag „Nachrichten“, MainActivity (Wikipedia-Pakete + News-Reader) automatisch zusammengeführt.
 - 05.11. CI: `8879379` (T-075 `TextAction` mit `onClick =`) kompiliert; danach rot in `NewsViewModelTest` (Leseansicht entfernt doppelte Absätze → Testseiten mit gleichen Absätzen zu kurz) → `a449a0a`/`b19d4b9` Tests mit verschiedenen Absätzen. Robolectric-Download-Flake (core-data/core-docs, IOException) einmalig, beim nächsten Lauf weg. CI @`b19d4b9`: assemble · test · lint · strings, debug APK (0.1.10.3, versionCode 197, `unzip -t` + apksigner ok) und Screens grün. Screens `news_*` in docs/design/screens/ + Website-WebPs (news, news_reader, DE/EN, hell/dunkel) aus dem Screens-Artifact.

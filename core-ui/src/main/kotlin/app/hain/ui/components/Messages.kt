@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -153,10 +154,10 @@ fun AssistantBlock(
  */
 @Composable
 fun AnswerActionRow(actions: @Composable () -> Unit) {
-    Row(
+    // T-236: on a narrow phone "‹ 2/3 ›" + six icons wrap onto a second line instead of being cut off
+    FlowRow(
         Modifier.padding(top = LocalHainSpacing.current.xs).offset(x = -ICON_INSET.dp),
         horizontalArrangement = Arrangement.spacedBy(ACTION_GAP.dp),
-        verticalAlignment = Alignment.CenterVertically,
     ) { actions() }
 }
 
@@ -233,10 +234,10 @@ fun MessageAction(
 
 enum class MessageActionKind { COPY, SHARE, THUMB_UP, THUMB_DOWN, SPEAK, RETRY, EDIT }
 
-/** Icon buttons are 40 dp with a centred 18 dp icon: this much empty room on each side. */
-private const val ICON_INSET = 11
-private const val ACTION_GAP = 2
+/** Icon buttons are 48 dp with a centred 18 dp icon: this much empty room on each side. */
 private const val ACTION_ICON = 18
+private const val ICON_INSET = (ICON_BUTTON_TOUCH - ACTION_ICON) / 2
+private const val ACTION_GAP = 0
 private const val BUBBLE_FRACTION = 0.85f
 private const val BUBBLE_MAX = 560
 private const val COLLAPSED_LINES = 14
