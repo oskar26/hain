@@ -601,3 +601,18 @@ Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen 
 - Schon in #50 enthalten (f8835fe): Anhänge aus privaten Chats nur flüchtig (`EphemeralDocs`, negative IDs, nie in `hain_docs.db`), Artikel aus NewsCard/Nachrichten über `LocalExternalLaunch` (App-Sperre greift nicht).
 - Konflikte: ChatStore/RoomChatPersistence (Karten + Verzweigungen + Anhänge), ChatExtras (answerFooter + favicons), MainActivity (DocLibrary + Favicons), Strings (`chat_action_*` → `cards_action_*` in core-cards), README/Website/TASKS/STATUS.
 - `hain.versionName=0.1.10.1`.
+
+## 2026-11-05 · 0.1.10.2 – UI-Feinschliff · review · harness: Hark · model: Hark · branch `hark/ui-polish` (PR #52)
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-230–T-233 | review | Screens (CI) grün, `TopBarTitleTest`, `PimStatusTest`, `HainGlassTest`, `MenuBackdropTest` | – | – |
+| T-236 | review | `NewsQueryTest`, `ToolRouterTest`, `RobustCallsTest` (Erwartung an die eine Router-Wiederholung nach Netzfehler angepasst) | – | – |
+| T-237 | review | CI rot durch `checkDebugAarMetadata`: zstd-jni 1.5.7-25 verlangt `minCompileSdk=37`. Alle AARs geprüft: bis **1.5.7-12** ohne minCompileSdk und 16-KB-ausgerichtet → gepinnt | LICENSES.md (Version) | Gerätetest mit echtem ZIM |
+| T-234 | review | `PackCategoryTest`; `ModelPickerTest` folgt dem neuen Text „More brains in Models & packs“ | – | – |
+| T-235 | review | `HainWindowSizeTest`, `TabletScreens`, `TabletSettingsScreens` (1280 × 800 dp) | – | Gerätetest Tablet/Foldable, Drehen |
+| T-238 | review | Screens (CI) | NewsScreen (`TextAction` 48 dp) | – |
+
+- Gradle lokal nicht gestartet (geteilte Sandbox): ktlint 1.5.0 + detekt 1.23.8 CLI, `tools/check_strings.py` lokal, Rest über CI, APK, Screens.
+- `HainWindowSize`: eigene Klasse mit den Grenzen von Androids WindowSizeClass (600/840 dp), keine Material-Bibliothek. Breite aus `LocalConfiguration.screenWidthDp` (folgt Split-Screen und Drehen).
+- Konflikte mit `hark/news-reader` erwartet: ChatScreen.kt, ChatEngine.kt, MainActivity.kt, catalog.json, libs.versions.toml, gradle.properties, strings.xml, NewsTool.kt (dazu README/Website/TASKS/STATUS).
