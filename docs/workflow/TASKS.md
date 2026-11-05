@@ -7,6 +7,12 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 
 ## Overview
 
+> **Unique IDs (05.11., release 0.2.0):** every ID in this file is used once. Earlier double uses were renamed:
+> the thinking picker is **T-084p** (T-084 = packs screen), the polish-branch tasks are **T-088p**/**T-089p**
+> (T-088 = app icon, T-089 = website), and the planned mini-apps forest (M12) moves from T-200–T-226 to
+> **T-300–T-326**, because T-210–T-238 are taken. HANDOFF_LOG.md is append-only and keeps the old names in
+> older entries. Commit 6c07e89 is titled "T-230" but belongs to T-075–T-077 (see M7). New IDs: check here first.
+
 | Task | Title | Type | Size | Lane | Depends | Status |
 |---|---|---|---|---|---|---|
 | T-000 | Benchmark LFM3 on own phone | plan | S | H | - | todo |
@@ -51,7 +57,8 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-081 | Catalog + DeviceCheck | feature | S | F | T-002 | review (DeviceCheck pure rules + Packs screen) |
 | T-082 | PackDownloader (WorkManager) | feature | M | F | T-081 | review |
 | T-083 | Onboarding (welcome, language, download brain) | ui | M | F | T-082,T-016 | review (tour + success + skip download; language → 2f) |
-| T-084 | Packs screen in settings | ui | S | F | T-082 | review (packs screen 2c; ID also used 03.11. for the thinking picker in the composer, see HANDOFF_LOG) |
+| T-084 | Packs screen in settings | ui | S | F | T-082 | review (packs screen 2c) |
+| T-084p | Thinking picker in the composer (brain button + glass popover, same `AnswerMode` as Settings → Answers) | ui | S | B | T-100 | review (03.11., `hark/redesign-3d`; was a second "T-084", renamed 05.11.) |
 | T-085 | UI fixes for long texts (bubble fold, follow-scroll, ellipsis, composer 6 lines, 200 % font, 360 dp, landscape) | ui | S | E | T-052 | review (03.11., screenshots via screens.yml) |
 | T-088 | App icon: glossy glass Pim (squircle, adaptive + themed + debug "dev") | ui | S | B | T-061 | review (03.11., own SVG → assets/icon/src/make_icon.py, in app/src/{main,debug}/res) |
 | T-089 | Website in style A "Lichtung" + feature status badges + new icon | docs | S | B | T-088 | review (03.11.) |
@@ -127,8 +134,8 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 | T-163 | Pim animated (Compose: blink, breathe, squash, eye tracking) | ui | M | B | T-061,T-019 | review (no eye tracking) |
 | T-170 | Image generation pack (SD1.5+DMD2, MNN) | native | M | D | T-160 | todo |
 | T-087 | Lichtung as the only style (remove Morgennebel, style switch, 3D icons) | ui | S | B | T-086 | review |
-| T-088p | Speed: time out of the system prompt, TTFT log (`HainLlm`) – polish branch (ID also used for the app icon) | perf | S | B | T-045 | review |
-| T-089p | Pim alive everywhere, leaf anchored to the head, frame tests – polish branch (ID also used for the website) | ui | M | B | T-163 | review |
+| T-088p | Speed: time out of the system prompt, TTFT log (`HainLlm`) – polish branch (logged as "T-088" on 04.11., renamed) | perf | S | B | T-045 | review |
+| T-089p | Pim alive everywhere, leaf anchored to the head, frame tests – polish branch (logged as "T-089" on 04.11., renamed) | ui | M | B | T-163 | review |
 | T-091 | Start page: big draggable Pim, 60+ rotating suggestions per language | ui | S | B | T-089p | review |
 | T-096 | Premium haptics `HainHaptics` (primitives only, levels Off/Subtle/Normal/Strong) | ui | S | B | T-100 | review |
 | T-097 | Pim normal size + 5 s easter egg (grows to ≤ 5×, trembling, rising haptics, burst) | ui | S | B | T-091,T-096 | review |
