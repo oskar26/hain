@@ -3,6 +3,7 @@ package app.hain.llm.internal
 import android.content.Context
 import android.os.SystemClock
 import android.util.Log
+import app.hain.llm.api.BrainFormat
 import app.hain.llm.api.EngineState
 import app.hain.llm.api.GenerationEvent
 import app.hain.llm.api.GenerationStats
@@ -38,6 +39,11 @@ class LlamaEngine(
 
     /** Chat template of the loaded GGUF (T-211), read once after loading. */
     @Volatile private var template: ByteArray? = null
+
+    /** T-241: chat format from the GGUF architecture, read once after loading. */
+    @Volatile private var loadedFormat = BrainFormat.LFM
+
+    override val format: BrainFormat get() = loadedFormat
 
     // Each generation gets a number; cancel() stops every generation up to the current one. A plain
     // flag could be reset by the end of the previous generation and swallow a stop.
@@ -92,14 +98,25 @@ class LlamaEngine(
             val newHandle = NativeLlm.nativeLoad(path, contextSize, threadCount(), 0, progress)
             handle = newHandle
             loadedContext = if (newHandle != 0L) contextSize else 0
-            template =
-                if (newHandle != 0L) runCatching { NativeLlm.nativeChatTemplate(newHandle) }.getOrNull() else null
-            if (newHandle != 0L) {
-                Log.i(TAG, "brain loaded in ${NativeLlm.nativeStats(newHandle)[0].toInt()} ms, context $contextSize")
-            }
+            if (newHandle != 0L) afterLoad(newHandle, contextSize) else template = null
             mutableState.value = if (newHandle != 0L) EngineState.Ready(path) else EngineState.Failed("load failed")
             newHandle != 0L
         }
+
+    /** Reads template and format of the new model (T-211, T-241). */
+    private fun afterLoad(
+        h: Long,
+        contextSize: Int,
+    ) {
+        template = runCatching { NativeLlm.nativeChatTemplate(h) }.getOrNull()
+        val arch = runCatching { NativeLlm.nativeMeta(h, ARCH_KEY) }.getOrNull()
+        loadedFormat = BrainFormat.ofArchitecture(arch?.decodeToString())
+        Log.i(
+            TAG,
+            "brain loaded in ${NativeLlm.nativeStats(h)[0].toInt()} ms, context $contextSize, " +
+                "format ${loadedFormat.name.lowercase()}",
+        )
+    }
 
     override suspend fun prefill(
         prompt: String,
@@ -191,6 +208,7 @@ class LlamaEngine(
             handle = 0L
             loadedContext = 0
             template = null
+            loadedFormat = BrainFormat.LFM
         }
     }
 
@@ -237,6 +255,7 @@ class LlamaEngine(
         const val STAT_PREFILL_MS = 3
         const val STAT_GEN_TOKENS = 4
         const val STAT_GEN_MS = 5
+        const val ARCH_KEY = "general.architecture"
     }
 }
 

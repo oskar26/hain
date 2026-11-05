@@ -22,7 +22,6 @@ import app.hain.llm.api.LlmEngine
 import app.hain.llm.api.Role
 import app.hain.llm.api.SamplingParams
 import app.hain.llm.api.StopReason
-import app.hain.llm.internal.LfmPromptBuilder
 import app.hain.memory.internal.ChatLine
 import app.hain.memory.internal.ExtractionBrain
 import app.hain.memory.internal.ExtractionPrompts
@@ -195,8 +194,6 @@ class MemoryExtractionWorker(
 internal class LlmExtractionBrain(
     private val llm: LlmEngine,
 ) : ExtractionBrain {
-    private val builder = LfmPromptBuilder()
-
     override suspend fun complete(
         system: String,
         user: String,
@@ -204,7 +201,9 @@ internal class LlmExtractionBrain(
         maxTokens: Int,
     ): String? {
         if (llm.state.value !is EngineState.Ready) return null
-        val prompt = builder.build(system, emptyList(), listOf(ChatMessage(Role.USER, user)), true, false)
+        // T-241: the loaded brain's own format (LFM or Qwen)
+        val prompt =
+            llm.format.promptBuilder().build(system, emptyList(), listOf(ChatMessage(Role.USER, user)), true, false)
         val params = SamplingParams(temperature = 0.1f, repeatPenalty = 1.0f, maxTokens = maxTokens, grammar = grammar)
         val out = StringBuilder()
         var reason = StopReason.ERROR

@@ -2,6 +2,7 @@
 // hain_session.h so it can be tested on a computer without Android.
 #include <jni.h>
 
+#include <algorithm>
 #include <atomic>
 #include <cstring>
 #include <mutex>
@@ -202,6 +203,22 @@ Java_app_hain_llm_internal_NativeLlm_nativeGenerate(JNIEnv *env, jobject, jlong 
     };
     return hain::generate(s, bytesOf(env, promptUtf8), intsOf(env, cutBytes), p.data(), (int) nParams,
                           cgrammar.empty() ? nullptr : cgrammar.c_str(), ccard.empty() ? nullptr : ccard.c_str(), emit);
+}
+
+// T-241: one GGUF metadata value (e.g. general.architecture) as UTF-8 bytes, or null.
+JNIEXPORT jbyteArray JNICALL
+Java_app_hain_llm_internal_NativeLlm_nativeMeta(JNIEnv *env, jobject, jlong handle, jstring key) {
+    Session *s = session(handle);
+    if (s == nullptr) return nullptr;
+    const char *ckey = env->GetStringUTFChars(key, nullptr);
+    char buf[256];
+    int32_t n = llama_model_meta_val_str(s->model, ckey, buf, sizeof(buf));
+    env->ReleaseStringUTFChars(key, ckey);
+    if (n < 0) return nullptr;
+    const auto len = (jsize) std::min<int32_t>(n, (int32_t) sizeof(buf) - 1);
+    jbyteArray out = env->NewByteArray(len);
+    env->SetByteArrayRegion(out, 0, len, reinterpret_cast<const jbyte *>(buf));
+    return out;
 }
 
 // T-211: chat template stored in the GGUF (tokenizer.chat_template) as UTF-8 bytes, or null.

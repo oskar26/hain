@@ -1,0 +1,12 @@
+{
+  "system": null,
+  "tools": [],
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hallo Pim!"
+    }
+  ],
+  "add_generation_prompt": true,
+  "enable_thinking": false
+}

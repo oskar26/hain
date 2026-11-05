@@ -1,0 +1,12 @@
+{
+  "system": "Du bist Pim, ein freundlicher Helfer, der ganz auf diesem Handy läuft.\n\n# Kontext\nJetzt: Donnerstag, 5. November 2026, 07:30.",
+  "tools": [],
+  "messages": [
+    {
+      "role": "user",
+      "content": "Was ist ein Hain?"
+    }
+  ],
+  "add_generation_prompt": true,
+  "enable_thinking": false
+}

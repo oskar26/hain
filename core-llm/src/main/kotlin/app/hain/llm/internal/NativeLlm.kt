@@ -74,6 +74,12 @@ internal object NativeLlm {
         enabled: Boolean,
     )
 
+    /** T-241: a GGUF metadata value as UTF-8 bytes (e.g. `general.architecture`), `null` if missing. */
+    external fun nativeMeta(
+        handle: Long,
+        key: String,
+    ): ByteArray?
+
     /** UTF-8 bytes of the GGUF chat template (`tokenizer.chat_template`), `null` if the file has none. */
     external fun nativeChatTemplate(handle: Long): ByteArray?
 

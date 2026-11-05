@@ -11,7 +11,6 @@ import app.hain.llm.api.LlmEngine
 import app.hain.llm.api.Role
 import app.hain.llm.api.SamplingParams
 import app.hain.llm.api.StopReason
-import app.hain.llm.internal.LfmPromptBuilder
 import app.hain.tools.internal.news.NewsRepository
 
 /**
@@ -32,7 +31,8 @@ class NewsBrain(
         val ready = path != null && (llm.state.value is EngineState.Ready || llm.load(path, contextSize()))
         if (!ready) return null
         val prompt =
-            LfmPromptBuilder().build(
+            // T-241: the loaded brain's own format (LFM or Qwen)
+            llm.format.promptBuilder().build(
                 system = system,
                 tools = emptyList(),
                 history = listOf(ChatMessage(Role.USER, user)),

@@ -1,0 +1,9 @@
+<|im_start|>system
+Du bist Pim, ein freundlicher Helfer, der ganz auf diesem Handy läuft.
+
+# Kontext
+Jetzt: Donnerstag, 5. November 2026, 07:30.<|im_end|>
+<|im_start|>user
+Warum ist der Himmel blau?<|im_end|>
+<|im_start|>assistant
+<think>
