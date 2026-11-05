@@ -121,6 +121,19 @@ and loaded on the next start instead of reading those tokens again (works for LF
 the cache, then it is rebuilt). `HainLlm` logs warm-up time, reused tokens, "snapshot from disk in N ms" and the time
 to the first token. Size depends on the model's KV cache (Jan, ~1,580 fixed tokens: ~233 MB on the host, docs/research/jan-host-test.md).
 
+## 2d. Speed (T-264)
+
+- **Threads = performance cores.** llama.cpp waits for its slowest thread, so `CpuCores.threads` reads
+  `cpu*/cpufreq/cpuinfo_max_freq` and counts only the cores faster than the slowest cluster (the efficiency cores),
+  2…6. All cores alike or unreadable → all cores minus two (the old rule). Logged as `brain threads: N` in `HainLlm`.
+- **No lost tokens.** `LlamaEngine.generate` is a `callbackFlow` with `buffer(Channel.UNLIMITED)`: the default buffer
+  of 64 made `trySend` drop tokens (and even the `Done` event) when the UI was slower than the brain.
+- **Live text at most every 40 ms** (`ChatEngine.STREAM_MS`): the first text and every new tool step are shown at once,
+  the rest batched, the last state flushed before the round ends. `CitationCleaner` runs with each shown update instead
+  of per token (it scanned the whole answer every token). The final answer is always cleaned in full.
+- `HainLlm` logs per answer: prompt/reused tokens, prefill ms, generated tokens and **t/s**, first token ms.
+  Compare with `adb logcat -s HainLlm`. KleidiAI / CPU variants are unchanged.
+
 ## 3. Tool call output (what the model writes)
 
 ```

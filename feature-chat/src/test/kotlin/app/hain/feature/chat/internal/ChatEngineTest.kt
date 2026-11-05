@@ -22,7 +22,10 @@ class ChatEngineTest {
             assertTrue(llm.lastPrompt.startsWith("<|startoftext|><|im_start|>system\nSYS<|im_end|>"))
             assertTrue(llm.lastPrompt.endsWith("<|im_start|>assistant\n<think></think>"))
             assertEquals(1024, llm.lastParams?.maxTokens)
-            assertEquals("Paris", (updates[1] as TurnUpdate.Streaming).text)
+            // T-264: the first text at once, then at most every 40 ms; the last live state is the whole text
+            val live = updates.filterIsInstance<TurnUpdate.Streaming>().map { it.text }
+            assertTrue(live.first { it.isNotEmpty() }.startsWith("Pa"))
+            assertEquals("Paris.", live.last())
         }
 
     @Test

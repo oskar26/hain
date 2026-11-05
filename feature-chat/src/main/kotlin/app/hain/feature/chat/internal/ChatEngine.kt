@@ -593,7 +593,7 @@ class ChatEngine(
         return ResearchClock(start, turn.budget.timeMs)
     }
 
-    @Suppress("LongParameterList", "CyclomaticComplexMethod") // one generation needs all of these
+    @Suppress("LongParameterList", "CyclomaticComplexMethod", "LongMethod") // one generation needs all of these
     private suspend fun FlowCollector<TurnUpdate>.generateRound(
         system: String,
         roundTools: List<ToolSchema>,
@@ -621,6 +621,12 @@ class ChatEngine(
         var stats: GenerationStats? = null
         var pending: ToolStep? = null
         val earlier = turn.reasoning.toString()
+        // T-264: the live text at most every STREAM_MS (and the citation clean-up with it), not per token;
+        // the first text and every new step at once, and what is still unshown at the end
+        var shownAt = Long.MIN_VALUE / 2
+        var shownText = false
+        var shownSteps: List<ToolStep> = turn.steps.toList()
+        var unshown = false
 
         fun apply(deltas: List<UiDelta>) {
             deltas.forEach { d ->
@@ -654,8 +660,16 @@ class ChatEngine(
                         apply(splitter.feed(event.text))
                         if (text.isNotEmpty()) turn.textStarted = true
                         val steps = turn.steps + listOfNotNull(pending)
-                        val shown = (earlier + reasoning).trim()
-                        emit(TurnUpdate.Streaming(shown, cleaned(text, turn), thinking, steps, clockOf(turn)))
+                        val now = clock()
+                        val due = now - shownAt >= STREAM_MS || text.isNotEmpty() != shownText || steps != shownSteps
+                        if (due) {
+                            val shown = (earlier + reasoning).trim()
+                            emit(TurnUpdate.Streaming(shown, cleaned(text, turn), thinking, steps, clockOf(turn)))
+                            shownAt = now
+                            shownText = text.isNotEmpty()
+                            shownSteps = steps
+                        }
+                        unshown = !due
                     }
                     is GenerationEvent.Done -> {
                         reason = event.reason
@@ -663,6 +677,11 @@ class ChatEngine(
                     }
                 }
             }
+        if (unshown) {
+            val steps = turn.steps + listOfNotNull(pending)
+            val shown = (earlier + reasoning).trim()
+            emit(TurnUpdate.Streaming(shown, cleaned(text, turn), thinking, steps, clockOf(turn)))
+        }
         if (mayCut && turn.cut && reason != StopReason.END) reason = StopReason.CANCELLED
         val (rest, parsed) = splitter.finish()
         apply(rest)
@@ -873,6 +892,9 @@ class ChatEngine(
         internal fun finalHint(lang: String): String = if (lang == "de") FINAL_DE else FINAL_EN
 
         private fun closingLine(lang: String) = ChatMessage(Role.SYSTEM, finalHint(lang))
+
+        /** T-264: at most one live update per 40 ms (25 a second), enough for smooth text. */
+        internal const val STREAM_MS = 40L
 
         private const val THOROUGH_DE =
             "Gründliche Recherche: Du hast bis zu einer Minute. Suche mit mehreren Anfragen, " +

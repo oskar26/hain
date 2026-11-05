@@ -13,11 +13,13 @@ import app.hain.llm.api.StopReason
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
@@ -181,7 +183,10 @@ class LlamaEngine(
             trySend(GenerationEvent.Done(code.toStopReason(), stats))
             close()
             awaitClose { }
-        }.flowOn(dispatcher)
+        }
+            // T-264: no token may get lost; the default buffer of 64 dropped tokens when the UI lagged behind
+            .buffer(Channel.UNLIMITED)
+            .flowOn(dispatcher)
 
     override fun cancel() {
         cancelledUpTo = started
@@ -262,7 +267,12 @@ class LlamaEngine(
             ?.let { ", snapshot from disk in ${it.toInt()} ms" }
             .orEmpty()
 
-    private fun threadCount(): Int = (Runtime.getRuntime().availableProcessors() - 2).coerceIn(2, MAX_THREADS)
+    /** T-264: only the performance cores (CpuCores); logged once per load. */
+    private fun threadCount(): Int {
+        val threads = CpuCores.threads(CpuCores.read())
+        Log.i(TAG, "brain threads: $threads (performance cores)")
+        return threads
+    }
 
     private fun Int.toStopReason(): StopReason =
         when (this) {
@@ -276,7 +286,6 @@ class LlamaEngine(
     private companion object {
         const val TAG = "HainLlm"
         const val CARD_GRAMMAR = "card.gbnf"
-        const val MAX_THREADS = 6
         const val PROGRESS_STEP = 0.02f
         const val STAT_PROMPT = 1
         const val STAT_REUSED = 2
