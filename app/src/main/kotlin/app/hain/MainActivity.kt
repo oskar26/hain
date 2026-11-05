@@ -30,6 +30,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -145,8 +146,18 @@ class MainActivity : FragmentActivity() {
     /** T-112/T-113/7b: "merk dir …" and the fitting facts before each answer; what it did, for the chips. */
     @Inject lateinit var memoryTurn: MemoryTurn
 
+    /**
+     * What the chat and news view models read (settings, private chat, phone language). It outlives
+     * this activity like they do, so after turning the phone they never read a stale old activity.
+     */
+    private val host by lazy { ViewModelProvider(this)[HostState::class.java] }
+
     /** T-056 × T-112: a private chat is open; the memory then neither reads nor writes (MEMORY.md §3). */
-    @Volatile private var privateChatOpen = false
+    private var privateChatOpen: Boolean
+        get() = host.privateChatOpen
+        set(value) {
+            host.privateChatOpen = value
+        }
 
     @Inject lateinit var brainChoice: BrainChoiceStore
 
@@ -337,7 +348,8 @@ class MainActivity : FragmentActivity() {
 
     /** Häppchen 10: dictation (Moonshine pack) and read aloud for the chat, in the answer language. */
     private val chatVoice by lazy {
-        ChatVoice.create(applicationContext, models, networkGate) { toolLanguage(current) }
+        val host = host
+        ChatVoice.create(applicationContext, models, networkGate) { host.toolLanguage() }
     }
 
     private fun chatViewModel(
@@ -373,7 +385,7 @@ class MainActivity : FragmentActivity() {
                             cfg.offlineMode,
                             searxUrl = SearxAddress.normalize(cfg.searxUrl),
                             webSearch = cfg.webSearch,
-                            here = if (cfg.weatherLocation) WeatherLocation.last(this) else null,
+                            here = if (cfg.weatherLocation) WeatherLocation.last(applicationContext) else null,
                         )
                     },
                     tuning = { settings().dev },
@@ -402,12 +414,10 @@ class MainActivity : FragmentActivity() {
     private val embedPack: ModelInfo? by lazy { models.catalog.firstOrNull { it.kind == ModelInfo.KIND_EMBED } }
 
     /** Language for Wikipedia and weather words: the answer language, or the phone's on "Automatisch". */
-    private fun toolLanguage(settings: HainSettings): String =
-        when (settings.answerLanguage) {
-            AnswerLanguage.DE -> "de"
-            AnswerLanguage.EN -> "en"
-            AnswerLanguage.AUTO -> if (resources.configuration.locales[0]?.language == "de") "de" else "en"
-        }
+    private fun toolLanguage(settings: HainSettings): String {
+        val phone = host.systemLanguage
+        return HostState.toolLanguage(settings.answerLanguage, phone)
+    }
 
     /** Small start flags (read on the main thread, so no flash of the wrong screen). */
     private val startPrefs by lazy { getSharedPreferences(START_PREFS, MODE_PRIVATE) }
@@ -450,6 +460,11 @@ class MainActivity : FragmentActivity() {
     @Suppress("LongMethod", "CyclomaticComplexMethod") // compose root: theme, onboarding, chat, settings overlays
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // the phone language of this (newest) activity, read by the view models through the host
+        host.systemLanguage =
+            resources.configuration.locales[0]
+                ?.language
+                .orEmpty()
         enableEdgeToEdge()
         if (savedInstanceState == null) launchRequest = LaunchIntents.of(intent)
         if (intent?.getStringExtra(BriefingDaily.EXTRA_OPEN) == BriefingDaily.OPEN_NEWS) openNewsRequest = true
@@ -652,11 +667,13 @@ class MainActivity : FragmentActivity() {
                             ) {
                                 val newsViewModel =
                                     viewModel {
+                                        // read through the host, never this activity: the model outlives it
+                                        val host = host
                                         newsScreenModel(
                                             NewsParts(newsRepository, networkGate, llm, newsPrefs, briefingStore),
                                             modelPath = brainPath,
-                                            contextSize = { DevTuning.contextSize(current.dev) },
-                                            lang = { toolLanguage(current) },
+                                            contextSize = { DevTuning.contextSize(host.settings.dev) },
+                                            lang = { host.toolLanguage() },
                                         )
                                     }
                                 NewsScreen(
@@ -737,8 +754,12 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    /** Latest settings, read by the prompt source and [onStop]. */
-    private var current = HainSettings()
+    /** Latest settings, read by the prompt source and [onStop]; kept in [host] (survives turning). */
+    private var current: HainSettings
+        get() = host.settings
+        set(value) {
+            host.settings = value
+        }
 
     /** Stored icon choice; null until DataStore was read, so [onStop] never flips it by mistake. */
     private var storedIcon: AppIcon? = null
