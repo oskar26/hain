@@ -1,6 +1,6 @@
 import type React from 'react'
 import { Download, Menu, X, ArrowDown, Languages, Check } from 'lucide-react'
-import { COPY, LINKS, SHOT_SIZE, SHOT_SIZE_EN, type Lang } from '../content'
+import { COPY, LINKS, SHOT_SIZE, type Lang } from '../content'
 import { AppIcon, BASE, Container, GitHubIcon } from './ui'
 
 export function Nav({ lang }: { lang: Lang }) {
@@ -8,6 +8,7 @@ export function Nav({ lang }: { lang: Lang }) {
   const links = [
     ['#why', t.nav.why],
     ['#features', t.nav.features],
+    ['#roadmap', t.nav.roadmap],
     ['#install', t.nav.how],
     ['#privacy', t.nav.privacy],
     ['#faq', t.nav.faq],
@@ -97,6 +98,12 @@ export function Hero({ lang }: { lang: Lang }) {
             </a>
           </div>
           <p className="mt-5 text-sm text-muted">{t.note}</p>
+          <p className="mx-auto mt-3 max-w-xl text-pretty text-sm leading-relaxed text-muted lg:mx-0">
+            {t.installHint}{' '}
+            <a href="#install" className="font-medium text-hain-ink underline decoration-line underline-offset-4 hover:decoration-hain">
+              {t.ctaHelp}
+            </a>
+          </p>
           <ul className="mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[14px] text-muted lg:justify-start">
             {m.slice(0, 5).map((x) => (
               <li key={x} className="flex items-center gap-1.5">
@@ -115,14 +122,14 @@ export function Hero({ lang }: { lang: Lang }) {
 }
 
 /** One app screenshot, light or dark to match the visitor, with the app in the page's language (T-107). */
-export function Shot({ id, alt, lang, className = '', eager = false }: { id: string; alt: string; lang: Lang; className?: string; eager?: boolean }) {
+export function Shot({ id, alt, lang, className = '', eager = false, wide = false }: { id: string; alt: string; lang: Lang; className?: string; eager?: boolean; wide?: boolean }) {
   const src = (m: string) => `${BASE}screenshots/${id}-${m}${lang === 'en' ? '-en' : ''}.webp`
-  const [w, h] = (lang === 'en' ? SHOT_SIZE_EN[id] : undefined) ?? SHOT_SIZE[id] ?? [720, 1548]
+  const [w, h] = SHOT_SIZE[id] ?? (wide ? [1280, 800] : [720, 1561])
   return (
-    <div className={`device self-start ${className}`}>
+    <div className={`device self-start ${wide ? 'device-wide' : ''} ${className}`}>
       <picture>
         <source srcSet={src('dark')} media="(prefers-color-scheme: dark)" />
-        <img src={src('light')} alt={alt} width={w} height={h} loading={eager ? 'eager' : 'lazy'} className="block h-auto w-full" />
+        <img src={src('light')} alt={alt} width={w} height={h} loading={eager ? 'eager' : 'lazy'} decoding="async" className="block h-auto w-full" />
       </picture>
     </div>
   )

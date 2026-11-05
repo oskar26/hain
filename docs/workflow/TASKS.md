@@ -1563,3 +1563,12 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - type: `docs` · size: `XS` · lane: `B`
 - do: `hain.versionName=0.1.10.7` (versionCode setzt die CI), README, Website EN + /de, LICENSES, MODELS, STATUS, TASKS, HANDOFF_LOG, PR-Text.
 - check: `tools/check_strings.py`, CI
+
+## Website 0.2 (`hark/web-0.2`, PR #57, Basis `hark/v0110-7`)
+
+### T-269 · Website 0.2: ehrliche Status-Kennzeichen, Feature-Showcase, Roadmap
+
+- type: `docs` · size: `M` · lane: `B`
+- do: Website EN + /de, als wäre 0.2 veröffentlicht: Status „Seit 0.1 / Neu in 0.2 / Geplant“ statt „Schon da / Kommt bald“ (Seit 0.1 = Stand 0.1.3.1), Hero „Version 0.2“ + Download `releases/latest` + Installationshinweis, ein Abschnitt pro Funktion mit Screenshot (19), „Außerdem in 0.2“, „Was noch kommt“ aus KONZEPT.md / ROADMAP.md / RELEASE_0.2_CHECKLIST.md (ohne Termine), Lizenzen GPL-3.0 + LFM Open License v1.0 + Apache-2.0. Neue Screenshot-Tests `WebShowcaseScreens`, `WebSettingsScreens`, `NewsScreens.web*` (DE + EN, hell + dunkel), `website/scripts/web_shots.sh`. README-Feature-Tabelle mit denselben Kennzeichen.
+- offen: kein Screenshot für Widget/Schnellkachel/Teilen, Diktat im Aufnahmezustand und privaten Chat (nur Text bzw. Einstellungsseite).
+- check: Website-Build, Screens (CI)
