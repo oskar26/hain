@@ -3,6 +3,7 @@
 package app.hain.feature.chat.api
 
 import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -123,6 +124,9 @@ fun ChatScreen(
     voice: ChatVoice? = null,
     /** Häppchen 9: attach files (paper clip, "Meine Dateien"); `null` = no files. */
     docs: ChatDocs? = null,
+    /** T-253: `content://` address of a file from the share sheet, read once like the paper clip. */
+    sharedFile: String? = null,
+    onSharedFileTaken: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     // Häppchen 10: dictation in the message box, read aloud under the answers (null = no voice)
@@ -144,6 +148,12 @@ fun ChatScreen(
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri != null) docs?.open(uri, privateChat = state.privateChat) { viewModel.attach(it) }
         }
+    // T-253: a file shared into Hain goes the paper clip's way (progress line, text recognition question)
+    LaunchedEffect(sharedFile, docs) {
+        val file = sharedFile ?: return@LaunchedEffect
+        docs?.open(Uri.parse(file), privateChat = state.privateChat) { viewModel.attach(it) }
+        onSharedFileTaken()
+    }
     // T-056: files of a private chat live only as long as the chat
     LaunchedEffect(state.privateChat) { if (!state.privateChat) docs?.forgetPrivate() }
     val colors = LocalHainColors.current

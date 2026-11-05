@@ -30,6 +30,14 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
             </intent-filter>
+            <!-- T-253: share a PDF, photo or text file into Hain: a new chat with the file attached -->
+            <intent-filter android:label="@string/share_target_label">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/pdf" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="text/markdown" />
+            </intent-filter>
         </activity>
 
         <!-- T-103: two launcher entries for the icon "Pim im Wald" (3D default, flat). Only one is

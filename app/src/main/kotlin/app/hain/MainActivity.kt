@@ -431,6 +431,9 @@ class MainActivity : FragmentActivity() {
     /** T-144: what the share sheet, widget or tile asked for; handled once the chat is there. */
     private var launchRequest by mutableStateOf<LaunchRequest?>(null)
 
+    /** T-253: a file from the share sheet, waiting for the chat to read it (paper clip way). */
+    private var sharedFile by mutableStateOf<String?>(null)
+
     /** T-144: counts up when the message box should open the keyboard. */
     private var composerFocus by mutableIntStateOf(0)
 
@@ -563,7 +566,7 @@ class MainActivity : FragmentActivity() {
                                     showSettings = false
                                     showPacks = false
                                     showGame = false
-                                    request.applyTo(chatStore, chatViewModel) { composerFocus++ }
+                                    request.applyTo(chatStore, chatViewModel, { sharedFile = it }) { composerFocus++ }
                                     launchRequest = null
                                 }
                             }
@@ -582,6 +585,8 @@ class MainActivity : FragmentActivity() {
                                 onOpenNews = { showNews = true },
                                 brainPicker = brainPicker,
                                 focusTick = composerFocus,
+                                sharedFile = sharedFile,
+                                onSharedFileTaken = { sharedFile = null },
                                 voice = chatVoice,
                                 extras =
                                     ChatExtras(
