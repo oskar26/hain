@@ -61,10 +61,24 @@ internal enum class ThinkingLevel(
     val icon: Hain3D,
     val label: Int,
     val hint: Int,
+    /** T-273: the sentence for a brain that does not think out loud (LFM3-Omni): only the research differs. */
+    val hintNoThinking: Int = hint,
 ) {
     AUTO(AnswerMode.AUTO, Hain3D.SPARKLES, R.string.chat_mode_auto, R.string.chat_mode_auto_hint),
-    FAST(AnswerMode.FAST, Hain3D.BOLT, R.string.chat_mode_fast, R.string.chat_mode_fast_hint),
-    THOROUGH(AnswerMode.THOROUGH, Hain3D.BULB, R.string.chat_mode_thorough, R.string.chat_mode_thorough_hint),
+    FAST(
+        AnswerMode.FAST,
+        Hain3D.BOLT,
+        R.string.chat_mode_fast,
+        R.string.chat_mode_fast_hint,
+        R.string.chat_mode_fast_hint_nothink,
+    ),
+    THOROUGH(
+        AnswerMode.THOROUGH,
+        Hain3D.BULB,
+        R.string.chat_mode_thorough,
+        R.string.chat_mode_thorough_hint,
+        R.string.chat_mode_thorough_hint_nothink,
+    ),
     ;
 
     companion object {
@@ -82,6 +96,8 @@ fun ThinkingPicker(
     mode: AnswerMode,
     onMode: (AnswerMode) -> Unit,
     modifier: Modifier = Modifier,
+    /** T-273: `false` for a brain without thinking: "Gründlich" then means more research steps. */
+    canThink: Boolean = true,
 ) {
     val colors = LocalHainColors.current
     val spacing = LocalHainSpacing.current
@@ -132,7 +148,7 @@ fun ThinkingPicker(
         }
         HainPopover(expanded = open, onDismiss = { open = false }) {
             ThinkingLevel.entries.forEach { option ->
-                LevelRow(option, selected = option == level) {
+                LevelRow(option, selected = option == level, canThink = canThink) {
                     haptics.select()
                     onMode(option.mode)
                     open = false
@@ -147,6 +163,7 @@ fun ThinkingPicker(
 private fun LevelRow(
     level: ThinkingLevel,
     selected: Boolean,
+    canThink: Boolean,
     onClick: () -> Unit,
 ) {
     val colors = LocalHainColors.current
@@ -171,7 +188,8 @@ private fun LevelRow(
         Spacer(Modifier.width(spacing.md))
         Column(Modifier.weight(1f)) {
             BasicText(name, style = type.button.copy(color = colors.text))
-            BasicText(stringResource(level.hint), style = type.bodySmall.copy(color = colors.textMuted))
+            val hint = if (canThink) level.hint else level.hintNoThinking
+            BasicText(stringResource(hint), style = type.bodySmall.copy(color = colors.textMuted))
         }
         Spacer(Modifier.width(spacing.sm))
         Box(Modifier.size(20.dp), contentAlignment = Alignment.Center) {

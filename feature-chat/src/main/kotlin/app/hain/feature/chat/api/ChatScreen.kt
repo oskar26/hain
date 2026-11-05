@@ -309,7 +309,7 @@ fun ChatScreen(
                             if (docs != null) {
                                 AttachButton(onFile = { picker.launch(DOC_TYPES) }, onLibrary = { showFiles = true })
                             }
-                            ThinkingPicker(answerMode, onAnswerMode)
+                            ThinkingPicker(answerMode, onAnswerMode, canThink = state.brainThinks)
                         },
                         trailing = { voiceUi?.let { MicButton(it, enabled = !state.isGenerating) } },
                         glass = chrome,

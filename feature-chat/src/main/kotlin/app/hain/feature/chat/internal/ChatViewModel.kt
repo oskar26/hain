@@ -48,6 +48,8 @@ data class ChatUiState(
     val queue: List<QueuedMessage> = emptyList(),
     /** Häppchen 9: files waiting in the composer for the next message. */
     val attachments: List<DocAttachment> = emptyList(),
+    /** T-273: the loaded brain can think out loud (LFM3); `false` for LFM3-Omni and the Großes Gehirn. */
+    val brainThinks: Boolean = true,
 )
 
 /** A message waiting until Pim's current answer is done (T-057, shown as "wartet"). */
@@ -126,6 +128,7 @@ class ChatViewModel(
                 branches = current?.let { Branches.info(it.all, it.messages) }.orEmpty(),
                 queue = l.queue.filter { it.chatId == l.currentChatId },
                 attachments = l.attachments,
+                brainThinks = llm.format.mayThink,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT), ChatUiState())
 

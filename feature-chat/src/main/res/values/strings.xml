@@ -289,4 +289,6 @@
     <string name="chat_read_code">Code block skipped</string>
     <string name="chat_read_formula">Formula skipped</string>
     <string name="chat_brain_optional">Omni brain · optional</string>
+    <string name="chat_mode_fast_hint_nothink">Answers right away, with little research</string>
+    <string name="chat_mode_thorough_hint_nothink">More research steps for hard questions (this brain does not think out loud)</string>
 </resources>

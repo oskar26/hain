@@ -1592,3 +1592,9 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - type: `fix` · size: `S` · lane: `A`
 - do: Seitenfarbe blendet unter dem Eingabefeld bis zum Rand ein (kein Chat mehr unter der Navigationsleiste); Aktionszeile unter Antworten immer einzeilig (`ActionRowFit`: nur Icon-Knöpfe werden schmaler, min. 34 dp), Pfeile des Versionszählers 40 dp; „2/3“ ohne Überblendung; Werkzeugschritte einzeilig mit „…“.
 - check: `ActionRowFitTest`, Roborazzi (Aktionszeile 360 dp, Composer-Unterkante, Werkzeugschritt), CI
+
+### T-273 · Denk-Auswahl ehrlich je Gehirn
+
+- type: `fix` · size: `XS` · lane: `A`
+- do: `ChatUiState.brainThinks` aus `BrainFormat.mayThink`; ThinkingPicker zeigt bei Gehirnen ohne lautes Denken (LFM3-Omni) Untertitel, die nur den Recherche-Unterschied nennen (EN + DE).
+- check: `tools/check_strings.py`, CI
