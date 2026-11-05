@@ -20,10 +20,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -43,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
@@ -67,6 +66,8 @@ import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.HainMenuRow
 import app.hain.ui.components.HainPopupItem
 import app.hain.ui.components.HainPopupMenu
+import app.hain.ui.effects.GlassEdge
+import app.hain.ui.effects.chromeGlass
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.HainMotionMoment
 import app.hain.ui.motion.LocalReduceMotion
@@ -86,6 +87,7 @@ import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 import app.hain.ui.theme.glassTile
 import app.hain.ui.theme.hainSurface
+import dev.chrisbanes.haze.HazeState
 
 /** Chat list drawer: search, sections Pinned/Today/Yesterday/7 days/Older, rename, pin, delete (T-053). */
 @Suppress("LongParameterList", "LongMethod") // drawer state is passed flat so previews stay simple
@@ -97,9 +99,10 @@ internal fun ChatListDrawer(
     searchQuery: String,
     currentChatId: Long?,
     actions: DrawerActions,
+    /** T-233: the chat behind the panel; with it the panel is frosted glass over the chat. */
+    glass: HazeState? = null,
 ) {
     val colors = LocalHainColors.current
-    val spacing = LocalHainSpacing.current
     val reduce = LocalReduceMotion.current
     // scrim fades, the panel glides on the calm drawer spring; both snap with reduced motion (T-053)
     AnimatedVisibility(
@@ -120,52 +123,23 @@ internal fun ChatListDrawer(
         exit = slideOutHorizontally(motionSpec(HainMotionMoment.DRAWER, reduce)) { -it },
     ) {
         // T-011: the drawer is a pane of glass lit softly in mint from the top, rounded on the open side
-        Column(
+        DrawerContent(
+            hasChats,
+            groups,
+            searchQuery,
+            currentChatId,
+            actions,
             Modifier
                 .fillMaxHeight()
                 .width(DRAWER_WIDTH.dp)
-                .glassTile(GlowHue.MINT, DrawerShape, DRAWER_ELEVATION.dp, Offset(x = 0.15f, y = 0f), floorGlow = false)
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(spacing.md),
-        ) {
-            Row(
-                Modifier.padding(horizontal = spacing.xs, vertical = spacing.sm),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                LivePim(PimState.HAPPY, 32.dp)
-                Spacer(Modifier.width(spacing.sm))
-                BasicText(
-                    stringResource(R.string.chat_title),
-                    style = LocalHainTypography.current.title.copy(color = colors.text),
-                )
-            }
-            SearchField(searchQuery, actions.onSearch)
-            Spacer(Modifier.height(spacing.md))
-            HainButton(
-                stringResource(R.string.chat_new),
-                actions.onNewChat,
-                Modifier.fillMaxWidth(),
-                style = HainButtonStyle.SECONDARY,
-            )
-            Spacer(Modifier.height(spacing.md))
-            DrawerList(hasChats, groups, searchQuery, currentChatId, actions, Modifier.weight(1f))
-            actions.onNews?.let { openNews ->
-                HainMenuRow(HainIcons.news, stringResource(R.string.chat_news), openNews, Modifier.fillMaxWidth())
-            }
-            HainMenuRow(
-                HainIcons.settings,
-                stringResource(R.string.chat_settings),
-                actions.onSettings,
-                Modifier.fillMaxWidth(),
-            )
-        }
+                .drawerSurface(glass),
+        )
     }
 }
 
 @Suppress("LongParameterList")
 @Composable
-private fun DrawerList(
+internal fun DrawerList(
     hasChats: Boolean,
     groups: List<Pair<ChatGroup, List<Chat>>>,
     searchQuery: String,
@@ -270,7 +244,7 @@ private fun ChatGroup.label(): Int =
     }
 
 @Composable
-private fun SearchField(
+internal fun SearchField(
     query: String,
     onChange: (String) -> Unit,
 ) {
@@ -492,6 +466,26 @@ private fun ConfirmDelete(
         }
     }
 }
+
+/**
+ * T-233: over the chat the side panel is frosted glass (the chat shows through blurred, a soft
+ * shadow lifts it); without a glass source the mint-lit glass tile of T-011.
+ */
+@Composable
+private fun Modifier.drawerSurface(glass: HazeState?): Modifier =
+    if (glass != null) {
+        val colors = LocalHainColors.current
+        this
+            .shadow(
+                DRAWER_ELEVATION.dp,
+                DrawerShape,
+                clip = false,
+                ambientColor = colors.shadow,
+                spotColor = colors.shadow,
+            ).chromeGlass(glass, DrawerShape, GlassEdge.ALL)
+    } else {
+        glassTile(GlowHue.MINT, DrawerShape, DRAWER_ELEVATION.dp, Offset(x = 0.15f, y = 0f), floorGlow = false)
+    }
 
 private const val DRAWER_WIDTH = 300
 private const val DRAWER_ELEVATION = 24

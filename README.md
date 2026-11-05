@@ -59,13 +59,13 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 <table>
   <tr>
     <td align="center"><img src="docs/design/screens/style_a_onboarding_light.png" alt="Welcome screen in the calm Lichtung style" width="190"><br><sub>Welcome tour</sub></td>
-    <td align="center"><img src="docs/design/screens/style_a_chat_empty_light.png" alt="Empty chat with three suggestions" width="190"><br><sub>Chat</sub></td>
-    <td align="center"><img src="docs/design/screens/style_a_chat_composer_picker_light.png" alt="Thinking level picker in the message box" width="190"><br><sub>Thinking level</sub></td>
-    <td align="center"><img src="docs/design/screens/style_a_settings_light.png" alt="Settings with calm line icons" width="190"><br><sub>Settings &amp; packs</sub></td>
+    <td align="center"><img src="docs/design/screens/ui_chat_answer_light.png" alt="Answer with weather and Wikipedia steps under a frosted top bar" width="190"><br><sub>Chat</sub></td>
+    <td align="center"><img src="docs/design/screens/ui_chat_pim_status_light.png" alt="One small Pim status while Pim looks something up" width="190"><br><sub>Pim looks it up</sub></td>
+    <td align="center"><img src="docs/design/screens/ui_models_packs_light.png" alt="Settings page Models and packs with Knowledge, Brains, Multimedia, Voice and Extras" width="190"><br><sub>Models &amp; packs</sub></td>
   </tr>
 </table>
 
-<sub>Real screenshots are coming. To replace one, overwrite the matching file in <code>docs/readme/</code> (portrait, about 1:2).</sub>
+<p align="center"><img src="docs/design/screens/ui_tablet_chat_light.png" alt="Hain on a tablet: chat list on the left, chat on the right" width="780"><br><sub>On tablets the chat list stays open</sub></p>
 
 ## Features
 
@@ -80,12 +80,13 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🗂️ Saved chats | Stored encrypted on the phone; search, rename, pin, delete, grouped by day | ✅ |
 | ⚙️ Settings | Theme, app icon (3D or flat), easy-to-read font, answer mode (fast / auto / thorough), answer language, "about me" and answer style. Thinking level also right in the message box (brain button) | ✅ |
 | 🧠 Choose the brain | Tap "Hain · On this phone" at the top: a small frosted menu lists the brains on your phone with a plain name ("Quick brain"), model and size, marks the one recommended for your phone and loads your pick in the background with progress. Brains not on your phone lead to Knowledge packs | ✅ |
-| 📦 Knowledge packs | See, download and remove packs, with hints on what fits your phone | ✅ |
+| 📦 Models & packs | Settings → Models & packs, sorted into Knowledge, Brains, Multimedia, Voice and Extras: see, download and remove packs, with hints on what fits your phone. **Wikipedia offline** (German ~136 MB or all articles ~4.7 GB, English ~297 MB or 1 million articles ~3 GB): with a pack the Wikipedia tool answers without internet | ✅ |
 | 🎨 Look | One calm design "Lichtung": lots of white, fine hairlines, Hain green only as an accent, radii 12–16 dp, quiet line icons; light font (Hanken Grotesk), dark mode; "Reduce motion" stops all movement | ✅ |
+| 📱 Tablets | From 840 dp width (tablet in landscape, open foldable, big split screen) the chat list stays open on the left, and settings show the list and the open page side by side. Phones stay as they are | ✅ |
 | 🌱 Pim | Lives everywhere (start page, thinking, done, errors, empty search, pull gestures) and the leaf always stays on his head. Tap him for a different little reaction each time, drag him around on the start page and he springs back | ✅ |
 | 📳 Haptics | Fine, crisp clicks instead of buzzing – send, switches, thinking level, answer done, menus, confirming a delete, pull gestures, errors. Never while text streams. Settings → Look → Vibration: Off / Subtle (default) / Normal / Strong | ✅ |
 | 🎮 Secret | Hold Pim on the start page for 5 seconds without letting go … (hint: 2048) | ✅ |
-| 🪟 Frosted menus | ⋯ menus, long-press menus and the thinking picker are frosted glass: what lies behind shows through softly blurred (Android 12+, a solid card on older phones) | ✅ |
+| 🪟 Frosted glass | Top bar and message box float as frosted glass over the chat, which scrolls under them; ⋯ menus, long-press menus, the thinking picker, the ↓ button and the side panel too (Android 12+, a calm solid surface on older phones and in battery saver). One Pim status shows waiting, thinking, looking up and writing | ✅ |
 | ℹ️ About Hain | Pim, version (with build number and commit), website, code on GitHub, licence and open-source licences – links open only after your tap | ✅ |
 | 🔄 Update check | Optional: once a day at start Hain asks GitHub if a newer version is out (stable or nightly) and shows a calm hint that opens the release page. Off until you say yes, nothing is installed by itself, the request shows in the network log | ✅ |
 | 🛠️ Developer mode | Hidden: tap the version in "About Hain" 7 times. Own GGUF model from Hugging Face (size, RAM hint, download with progress), sampling, context size, thinking, own system prompt, tokens per second under answers | ✅ |
@@ -110,6 +111,13 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Version 0.1.10.2 – UI polish, offline Wikipedia, tablets.**
+  - **Frosted glass over the chat.** The top bar and the message box now float as frosted glass over the chat – the chat scrolls under them and shows through softly. The title sits truly in the middle. Menus, the thinking picker, the ↓ button and the side panel use the same, a bit stronger glass; in battery saver and on phones older than Android 12 they are a calm solid surface.
+  - **One Pim status.** Waiting, thinking, looking something up and writing are now one small element with Pim instead of several lines.
+  - **Tidier settings.** The first page only lists the groups. Everything to download is under **Models & packs**: Knowledge, Brains, Multimedia, Voice and Extras, each on its own page with “2 of 3 on your phone”. **News** has its own entry.
+  - **Wikipedia without internet.** Under **Models & packs → Knowledge** you can load Wikipedia for your phone (German: top articles ~136 MB or all ~4.7 GB; English: top ~297 MB or 1 million articles ~3 GB). With a pack, Pim's Wikipedia tool reads from your phone first – also in flight mode – and only goes online if the article is not in it.
+  - **News and honest steps.** “Was gibt’s Neues?” without a topic brings the top headlines. When a tool step fails, the step says why in plain words, and Pim does not repeat the same search again and again.
+  - **Tablets and wide screens.** From 840 dp width the chat list stays open on the left as a calm side panel, and **Settings** show the list on the left and the open page on the right.
 - **Version 0.1.10.1 – charts, site icons, steadier cards** (from 0.1.6.1).
   - **Charts in cards.** Numbers to compare or over time now come as a calm **bar** or **line chart** in Hain green. Try “Ich habe Mo 2, Di 3, Mi 1, Do 4 und Fr 2 Stunden gelernt, zeig das als Liniendiagramm” or ask for the weather of the next days as a chart. TalkBack reads the chart as one sentence (how many values, which is the highest).
   - **Cards stay in shape.** While Pim writes a card, a small grammar only lets through what a card can be, so lists, tables and charts break less often. Everything outside the card is written as before, and if something still goes wrong you simply see the text.
@@ -347,7 +355,7 @@ Architecture: [docs/specs/ARCHITECTURE.md](docs/specs/ARCHITECTURE.md) · Design
 
 ## Auf Deutsch
 
-Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Gerät läuft: chatten, rechnen, Wetter und Wikipedia nachschauen, im Web suchen, Nachrichten aus einem festen Mix (inkl. junge Welt) oder eigenen Feeds lesen und von Pim zusammenfassen lassen, Wecker, Timer, Termine und Routen vorbereiten (du bestätigst jedes Mal mit einem Tipp), sich Dinge merken („Merk dir …“), Listen und Checklisten als Karten zeigen, private Chats führen, Chats exportieren, Nachrichten diktieren (Mikro neben Senden, Deutsch und Englisch, alles auf dem Handy), Antworten vorlesen und deine PDFs, Fotos von Seiten und Textdateien verstehen (Büroklammer, Texterkennung auf dem Handy). Keine Cloud, kein Konto, keine API-Schlüssel. Ins Internet geht Hain nur, wenn du etwas brauchst, und zeigt dir genau, wohin die Anfrage geht. Das ganze Konzept steht in [docs/concept/KONZEPT.md](docs/concept/KONZEPT.md).
+Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Gerät läuft: chatten, rechnen, Wetter und Wikipedia nachschauen, im Web suchen, Nachrichten aus einem festen Mix (inkl. junge Welt) oder eigenen Feeds lesen und von Pim zusammenfassen lassen, Wecker, Timer, Termine und Routen vorbereiten (du bestätigst jedes Mal mit einem Tipp), sich Dinge merken („Merk dir …“), Listen und Checklisten als Karten zeigen, private Chats führen, Chats exportieren, Nachrichten diktieren (Mikro neben Senden, Deutsch und Englisch, alles auf dem Handy), Antworten vorlesen und deine PDFs, Fotos von Seiten und Textdateien verstehen (Büroklammer, Texterkennung auf dem Handy). Wikipedia gibt es auch als Paket fürs Handy (ohne Internet), und auf Tablets bleibt die Chat-Liste links offen. Keine Cloud, kein Konto, keine API-Schlüssel. Ins Internet geht Hain nur, wenn du etwas brauchst, und zeigt dir genau, wohin die Anfrage geht. Das ganze Konzept steht in [docs/concept/KONZEPT.md](docs/concept/KONZEPT.md).
 
 **Installieren:** Auf dem Handy die [Nightly-Seite](https://github.com/oskar26/hain/releases/tag/nightly) öffnen, `hain-debug.apk` laden, beim Öffnen „Unbekannte Apps installieren“ für den Browser erlauben, installieren. Beim ersten Start lädt Pim das Gehirn (ca. 1 GB, am besten im WLAN) – das kannst du auch überspringen und später im Chat nachholen. Updates einfach drüber installieren, Chats und Gehirn bleiben erhalten.
 

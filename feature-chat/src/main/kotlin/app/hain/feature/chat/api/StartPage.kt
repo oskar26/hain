@@ -195,6 +195,8 @@ private fun SuggestionCard(
     val scale = pressScale(interaction)
     Row(
         Modifier
+            // T-238: on wide windows the cards keep a calm width instead of running across the screen
+            .widthIn(max = SUGGESTION_MAX.dp)
             .fillMaxWidth()
             .heightIn(min = CARD_MIN.dp)
             .graphicsLayer {
@@ -234,6 +236,7 @@ private const val MID_PIM = 72
 private const val SMALL_PIM = 56
 private const val TEXT_MAX = 340
 private const val CARD_MIN = 48
+private const val SUGGESTION_MAX = 480
 private const val ICON = 24
 private const val HOUR_FOR_SHOTS = 15
 private const val MORNING_FROM = 5

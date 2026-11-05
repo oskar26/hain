@@ -26,14 +26,18 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.hain.ui.HainIcons
+import app.hain.ui.effects.GlassEdge
+import app.hain.ui.effects.chromeGlass
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 import app.hain.ui.theme.isHainDark
+import dev.chrisbanes.haze.HazeState
 
 /**
- * The message box (T-011): a calm card in the active style (see composerCard). The text grows up
+ * The message box (T-011): a calm card in the active style (see composerCard); over the chat
+ * (T-232, [glass]) frosted glass with a hairline, so the chat shows through softly. The text grows up
  * to [MAX_LINES] lines and then scrolls inside; below it a row with [leading] controls (the thinking
  * picker) on the left and the round send button on the right, which turns into stop while an
  * answer streams. The buttons never scroll away, however long the text gets (T-085).
@@ -59,12 +63,24 @@ fun Composer(
     focusRequester: FocusRequester? = null,
     // Häppchen 10: the mic sits right next to send
     trailing: @Composable RowScope.() -> Unit = {},
+    /** T-232: the chat behind the box; with it the box is frosted glass over the chat. */
+    glass: HazeState? = null,
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     val spacing = LocalHainSpacing.current
     val shape = LocalHainShapes.current.composer
-    Column(modifier.fillMaxWidth().composerCard(shape)) {
+    Column(
+        modifier.fillMaxWidth().then(
+            if (glass !=
+                null
+            ) {
+                Modifier.chromeGlass(glass, shape, GlassEdge.ALL)
+            } else {
+                Modifier.composerCard(shape)
+            },
+        ),
+    ) {
         Box(
             Modifier
                 .fillMaxWidth()

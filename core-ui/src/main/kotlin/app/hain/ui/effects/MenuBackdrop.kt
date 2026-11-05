@@ -2,7 +2,6 @@
 
 package app.hain.ui.effects
 
-import android.os.Build
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -59,14 +58,17 @@ class MenuBackdropState internal constructor() {
 
 private val LocalMenuBackdrop = staticCompositionLocalOf<MenuBackdropState?> { null }
 
-/** Blur radius inside a frosted card (DESIGN_LANGUAGE.md: glass over content, 24 dp). */
-val FROST_BLUR_RADIUS: Dp = 24.dp
+/**
+ * Blur radius inside a frosted card. T-233 (Oskar 04.11. 22:18, "Frosted Glass etwas ausgeprägter"):
+ * 32 dp instead of 24 dp, the same as the chat's chrome ([CHROME_BLUR_RADIUS]).
+ */
+val FROST_BLUR_RADIUS: Dp = CHROME_BLUR_RADIUS
 
-/** White tint over the blur in light mode: frosted, text stays crisp. */
-const val FROST_TINT_LIGHT = 0.66f
+/** White tint over the blur in light mode: frosted, text stays crisp (T-233: 0.66 → 0.58). */
+const val FROST_TINT_LIGHT = 0.58f
 
-/** Dark tint over the blur in dark mode (a bit more, dark glass shows busy text sooner). */
-const val FROST_TINT_DARK = 0.72f
+/** Dark tint over the blur in dark mode (a bit more, dark glass shows busy text sooner; T-233: 0.72 → 0.66). */
+const val FROST_TINT_DARK = 0.66f
 
 /** The quiet dimming of the rest of the screen while a card is open, as a share of the theme's `scrim`. */
 const val MENU_DIM_SHARE = 0.35f
@@ -125,7 +127,7 @@ internal fun frostedFallback(
 /**
  * T-210: makes a floating card frosted glass. The screen behind shows through blurred (Haze, API
  * 31+, inside a [HainMenuBackdrop]); a soft shadow lifts it and a thin edge, light at the top, frames
- * it. Below API 31 an opaque tinted surface.
+ * it. Below API 31 (and in battery saver, T-233) an opaque tinted surface.
  */
 @Composable
 fun Modifier.frostedGlass(shape: Shape): Modifier {
@@ -146,7 +148,8 @@ fun Modifier.frostedGlass(shape: Shape): Modifier {
             .shadow(FROST_SHADOW.dp, shape, clip = false, ambientColor = c.shadow, spotColor = c.shadow)
             .clip(shape)
     val glass =
-        if (state != null && Build.VERSION.SDK_INT >= BLUR_MIN_SDK) {
+        // T-233: no blur in battery saver either (glassAllowed)
+        if (state != null && glassAllowed()) {
             lifted.hazeEffect(state.haze, frostedStyle(c.bg, tint, dark)) { if (force) blurEnabled = true }
         } else {
             lifted.background(frostedFallback(tint, dark), shape)
@@ -171,8 +174,6 @@ fun rememberMenuBackdrop(open: Boolean) {
     }
 }
 
-// Android 12 is the first release with RenderEffect-based blur.
-private const val BLUR_MIN_SDK = 31
 private const val FROST_SHADOW = 12
 private const val EDGE_WIDTH = 1
 private const val EDGE_TOP_DARK = 0.22f

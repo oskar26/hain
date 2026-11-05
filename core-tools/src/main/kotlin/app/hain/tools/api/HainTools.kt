@@ -14,6 +14,9 @@ import app.hain.tools.internal.search.SearchTool
 import app.hain.tools.internal.time.ClockAnswer
 import app.hain.tools.internal.weather.WeatherTool
 import app.hain.tools.internal.wiki.WikipediaTool
+import app.hain.tools.internal.wiki.zim.ZimWiki
+import app.hain.tools.internal.wiki.zim.ZstdCodec
+import java.io.File
 import java.time.ZonedDateTime
 
 /**
@@ -28,13 +31,15 @@ object HainTools {
         gate: NetworkGate,
         news: NewsRepository? = null,
         extra: List<Tool> = emptyList(),
+        /** T-237: Wikipedia from the installed knowledge packs, before going online. */
+        offlineWiki: OfflineWiki? = null,
     ): ToolRouter {
         val reader = PageReader(gate)
         val tools =
             listOf(
                 CalculatorTool(),
                 WeatherTool(gate),
-                WikipediaTool(gate),
+                WikipediaTool(gate, offlineWiki),
                 SearchTool(gate),
                 ReadPageTool(reader),
                 SetAlarmTool(),
@@ -44,6 +49,12 @@ object HainTools {
             ) + listOfNotNull(news?.let(::NewsTool)) + extra
         return ToolRouter(tools, pages = reader, fallbacks = FALLBACKS)
     }
+
+    /**
+     * T-237: Wikipedia from the knowledge packs on the phone; [packs] = pack files per language
+     * ("de" → […]), the biggest first.
+     */
+    fun offlineWiki(packs: () -> Map<String, List<File>>): OfflineWiki = ZimWiki(packs, ZstdCodec)
 
     /**
      * 4c: an empty Wikipedia answer becomes a web search with the same words. (The web search's

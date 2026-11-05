@@ -35,6 +35,9 @@ data class ModelInfo(
 
         /** The pack "Suche nach Bedeutung" for the memory (T-110, MEMORY.md §3). */
         const val KIND_EMBED = "embed"
+
+        /** T-237: a knowledge pack (offline Wikipedia, Kiwix ZIM) for the `wikipedia` tool. */
+        const val KIND_KNOWLEDGE = "knowledge"
     }
 }
 

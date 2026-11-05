@@ -8,10 +8,10 @@ import org.junit.Test
 
 class MenuBackdropTest {
     @Test
-    fun `frosted card blurs 24 dp with a 60 to 75 percent tint`() {
+    fun `frosted card blurs 32 dp with a 55 to 75 percent tint`() {
         val bg = Color(0xFFFFFFFF)
         val light = frostedStyle(bg, Color.White, dark = false)
-        assertEquals(24.dp, light.blurRadius)
+        assertEquals(32.dp, light.blurRadius)
         assertEquals(bg, light.backgroundColor)
         assertEquals(1, light.tints.size)
         assertEquals(Color.White.copy(alpha = FROST_TINT_LIGHT), light.tints.first().color)
@@ -24,7 +24,7 @@ class MenuBackdropTest {
                 .color.alpha,
             0.01f,
         )
-        listOf(FROST_TINT_LIGHT, FROST_TINT_DARK).forEach { assertTrue(it in 0.6f..0.75f) }
+        listOf(FROST_TINT_LIGHT, FROST_TINT_DARK).forEach { assertTrue(it in 0.55f..0.75f) }
     }
 
     @Test
