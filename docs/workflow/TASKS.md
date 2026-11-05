@@ -1506,3 +1506,60 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - do: `HostState` ist selbst ein ViewModel (gleiche Instanz für jede Activity des Screens) und hält Einstellungen, Privat-Flag und Handy-Sprache; die Activity schreibt hinein, die Lambdas lesen daraus. News-View-Model und Vorlesen fassen die Activity gar nicht mehr an, Standort fürs Wetter über `applicationContext`.
 - offen: das Chat-View-Model hält weiter einige Activity-Objekte (DocLibrary, BrainPicking) – Werte stimmen jetzt, größerer Umbau nach 0.2.
 - check: `HostStateTest` (CI)
+
+## 0.1.10.7 · Neues Standard-Gehirn, Werkzeuge nur wenn passend, Tempo (`hark/v0110-7`, PR #56)
+
+### T-260 · LFM3-Omni 2B als Standard-Gehirn
+
+- type: `feat` · size: `M` · lane: `B`
+- do: Katalog `lfm3-omni-2b-q4_0` (Rev. d508b88, sha256 geprüft, LFM Open License v1.0) als `default`; LFM3 1.7B → `tier: legacy` (nur gelistet, solange installiert, nie empfohlen); Hinweis „Neues holen“ / „Altes entfernen“; `BrainFormat.LFM_OMNI` (kein Denken, fast greedy, keine Wiederholungsstrafe); Omni-Goldens; Extraktion nutzt das gewählte Gehirn.
+- check: `BrainChoiceTest`, `CatalogParserTest`, Goldens (CI)
+
+### T-261 · Ehrliche Paket-Beschreibungen
+
+- type: `copy` · size: `XS` · lane: `B`
+- do: jede Paket-Zeile sagt in 1–2 Sätzen, was sie bringt und wann sie sich lohnt (Omni, Jan 4B ab 8 GB, Legacy, STT, OCR, Wikipedia). EN + DE.
+- check: `tools/check_strings.py`
+
+### T-262 · Gedächtnis nur aus eigenen Aussagen
+
+- type: `fix` · size: `S` · lane: `B`
+- do: `SelfFacts`-Muster + nur belegte Fakten des Gehirns; Chip „Merken: wohnt in Köln“; Ein-Wert-Fakten im System-Prompt; leere Labels fallen weg.
+- check: Unit-Tests (CI)
+
+### T-263 · Werkzeuge nur, wenn sie passen
+
+- type: `fix` · size: `S` · lane: `B`
+- do: `ToolGuard` verwirft Wetter/News (und Wetter-Websuchen), nach denen die Nachricht nicht fragt; einmal Hinweis, dann ohne Werkzeuge; Ort fürs Wetter: Chat → Standort → Gedächtnis.
+- check: Unit-Tests; Host-Test Omni: Wetter ohne Anlass 5/10 → 0/10, richtiges Werkzeug 7/10 → 8/10
+
+### T-264 · Tempo
+
+- type: `perf` · size: `S` · lane: `B`
+- do: Threads = Performance-Kerne (`CpuCores`, 2…6), `buffer(Channel.UNLIMITED)` im `callbackFlow` (keine verlorenen Tokens), Live-Text höchstens alle 40 ms; LLM.md §2d.
+- check: `CpuCoresTest`, `ChatEngineTest` (CI); t/s am Gerät offen
+
+### T-265 · News-Briefing: Fortschritt + „Jetzt erstellen“
+
+- type: `feat` · size: `S` · lane: `B`
+- do: Karte zeigt „Feeds laden 3/19 → Artikel lesen → Zusammenfassen“; „Jetzt erstellen“ vor dem ersten Briefing; Neu-Erzeugen lädt zuerst frische Feeds.
+- check: `BriefingTest` (CI)
+
+### T-266 · Einstellungen aufgeräumt
+
+- type: `ui` · size: `S` · lane: `B`
+- do: Privatsphäre in Gruppen (Online gehen / Sicherheit / Deine Daten), eigene Suche + volle Adressen im Netzwerk-Log in den Entwickler-Bereich, 16 dp Zeilenabstand; Einstellungen → Nachrichten öffnet die News-Einstellungen, Zurück führt zurück.
+- check: Screenshots (CI)
+
+### T-267 · Fixes: Wecker-Tage, „15 Minuten früher“, Fett-Prompt
+
+- type: `fix` · size: `S` · lane: `B`
+- do: `AlarmHints` übernimmt Wiederhol-Tage und „15 Minuten früher“ (relativ zum letzten Wecker) aus den Worten des Nutzers; Prompt-Zeile zu Fettdruck ohne Beispielwort „fett“.
+- offen: #44, wenn das Modell gar kein `set_alarm` ruft.
+- check: `AlarmHintsTest` (CI)
+
+### T-268 · Doku + Version 0.1.10.7
+
+- type: `docs` · size: `XS` · lane: `B`
+- do: `hain.versionName=0.1.10.7` (versionCode setzt die CI), README, Website EN + /de, LICENSES, MODELS, STATUS, TASKS, HANDOFF_LOG, PR-Text.
+- check: `tools/check_strings.py`, CI

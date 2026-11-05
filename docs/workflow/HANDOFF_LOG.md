@@ -674,3 +674,20 @@ Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen 
 - Konflikte: gradle.properties, README.md, STATUS.md, TASKS.md, HANDOFF_LOG.md, `feature-settings/.../api/PacksScreen.kt` (T-251 `HainGrid` + T-240 `offeredPacks(models, cat, device)` kombiniert). Beide Seiten erhalten, T-259 `HostState` unverändert aus main.
 - `hain.versionName=0.1.10.6`; README „0.1.10.6“ = Großes Gehirn + schneller Start, „0.1.10.5“ bleibt. CI ist das Gate.
 
+
+## 2026-11-05 · 0.1.10.7 – LFM3-Omni 2B, Werkzeuge nur wenn passend, Tempo · review · harness: Hark · model: Hark · branch `hark/v0110-7` (PR #56)
+
+| task | status | check result | open issues |
+|---|---|---|---|
+| T-260 | review | `BrainChoiceTest` (doppelte `jan`-Fixture → `janStrong`, brach `compileDebugUnitTestKotlin`), `CatalogParserTest`, Goldens | Antwortqualität am Gerät |
+| T-261 | review | `check_strings.py` | – |
+| T-262 | review | Unit-Tests | – |
+| T-263 | review | Host-Test Omni: Wetter ohne Anlass 5/10 → 0/10, richtiges Werkzeug 7/10 → 8/10 | „Was gibt's Neues?“ → `web_search` statt `news` |
+| T-264 | review | `CpuCoresTest`, `ChatEngineTest` | t/s am Gerät messen (`adb logcat -s HainLlm`) |
+| T-265 | review | `BriefingTest` | – |
+| T-266 | review | Screenshots (CI) | – |
+| T-267 | review | `AlarmHintsTest` | #44, wenn gar kein `set_alarm` kommt |
+| T-268 | review | `check_strings.py`, ktlint/detekt lokal, CI | – |
+
+- `hain.versionName=0.1.10.7`; versionCode = Laufnummer der CI. Kein Release, kein Tag, kein Merge.
+- Offen außerdem: Pocket TTS noch nicht im Katalog, KleidiAI aus. Gradle lokal nicht gestartet, CI ist das Gate.
