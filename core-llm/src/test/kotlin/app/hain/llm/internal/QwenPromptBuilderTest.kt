@@ -59,12 +59,14 @@ class QwenPromptBuilderTest {
     }
 
     @Test
-    fun systemTextComesFirstAndIsUsedAsGiven() {
+    fun toolsComeBeforeTheSystemTextSoTheFixedPartCanBeCached() {
         val tool = ToolSchema("t", "d", buildJsonObject { put("type", JsonPrimitive("object")) })
         val system = "Du bist Pim.\n\n# Kontext\nJetzt: 07:30"
         val prompt = builder.build(system, listOf(tool), listOf(ChatMessage(Role.USER, "Hi")))
-        // as in the Jan template and in Hain's LFM prompt: the fixed rules come first and stay cacheable
-        assertTrue(prompt.startsWith("<|im_start|>system\n$system\n\n# Tools"))
+        assertTrue(prompt.startsWith("<|im_start|>system\n# Tools"))
+        assertTrue(prompt.indexOf("</tools>") < prompt.indexOf("# Kontext"))
+        // the system text is used as given, so the chat engine finds it (fixed-system checkpoint)
+        assertTrue(prompt.contains("</tool_call>\n\n$system<|im_end|>\n"))
     }
 
     @Test

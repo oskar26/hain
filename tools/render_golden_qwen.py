@@ -7,6 +7,11 @@ core-llm/src/test/resources/golden/qwen/Q-xx_<name>.json (input) + .txt (expecte
 Same scenario format and Jinja setup as tools/render_golden.py. The template has no thinking switch;
 Q-06 checks that enable_thinking=True changes nothing.
 
+Hain's one deliberate difference (ADR-24 §6): with tools, the tool block comes first in the system turn
+and the system text follows after "\n\n" (cacheable fixed part, T-242). The golden files with tools are
+therefore the template's own output for the conversation without the system message, with
+"\n\n" + system text inserted before the first <|im_end|>; everything else is the template unchanged.
+
 Usage: python3 tools/render_golden_qwen.py   (needs: pip install jinja2)
 """
 
@@ -23,6 +28,7 @@ from render_golden import SEARCH, WEATHER, raise_exception, tojson  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 TEMPLATE = ROOT / "prompts" / "jan-v3.5-4b_chat_template.jinja"
 OUT = ROOT / "core-llm" / "src" / "test" / "resources" / "golden" / "qwen"
+IM_END = "<|im_end|>"
 SYSTEM = "Du bist Pim, ein freundlicher Helfer, der ganz auf diesem Handy läuft.\n\n# Kontext\nJetzt: Donnerstag, 5. November 2026, 07:30."
 
 SCENARIOS = [
@@ -84,12 +90,18 @@ def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     for name, scenario in SCENARIOS:
         tools = [{"type": "function", "function": t} for t in scenario["tools"]]
+        messages = to_template_messages(scenario)
+        system = scenario["system"]
+        moved = bool(tools) and system is not None
         prompt = template.render(
-            messages=to_template_messages(scenario),
+            messages=messages[1:] if moved else messages,
             tools=tools or None,
             add_generation_prompt=scenario["add_generation_prompt"],
             enable_thinking=scenario["enable_thinking"],
         )
+        if moved:
+            end = prompt.index(IM_END)
+            prompt = prompt[:end] + "\n\n" + system + prompt[end:]
         (OUT / f"{name}.json").write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         (OUT / f"{name}.txt").write_bytes(prompt.encode("utf-8"))
         print(f"{name}: {len(prompt)} chars")
