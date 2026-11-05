@@ -53,6 +53,9 @@ import app.hain.ui.components.Hain3D
 import app.hain.ui.components.Hain3DIcon
 import app.hain.ui.components.HainIconButton
 import app.hain.ui.components.TopBar
+import app.hain.ui.layout.HainColumns
+import app.hain.ui.layout.HainGrid
+import app.hain.ui.layout.currentHainWindowSize
 import app.hain.ui.motion.HainMotion
 import app.hain.ui.motion.LocalReduceMotion
 import app.hain.ui.motion.hainTween
@@ -151,6 +154,8 @@ fun PacksScreen(
     var category by rememberSaveable { mutableStateOf(startCategory) }
     BackHandler { if (category != null) category = null else onBack() }
     val device = DeviceProfile(ramGb, models.freeSpace())
+    // T-251: two columns of tiles on wide windows (tablet landscape, open foldable)
+    val columns = HainColumns.count(currentHainWindowSize())
     Column(
         modifier
             .fillMaxSize()
@@ -181,16 +186,16 @@ fun PacksScreen(
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
                 Column(
                     Modifier
-                        .widthIn(max = PAGE_MAX.dp)
+                        .widthIn(max = HainColumns.pageMaxDp(columns).dp)
                         .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = spacing.lg),
                     verticalArrangement = Arrangement.spacedBy(spacing.md),
                 ) {
                     if (page == null) {
-                        PacksHub(models, extras) { category = it }
+                        PacksHub(models, extras, columns) { category = it }
                     } else {
-                        CategoryPage(page, models, device, extras)
+                        CategoryPage(page, models, device, extras, columns)
                     }
                     Spacer(Modifier.height(spacing.xl))
                 }
@@ -203,17 +208,18 @@ fun PacksScreen(
 private fun PacksHub(
     models: ModelRepository,
     extras: List<ExtraPack>,
+    columns: Int,
     open: (PackCategory) -> Unit,
 ) {
     BasicText(
         stringResource(R.string.packs_intro),
         style = LocalHainTypography.current.bodySmall.copy(color = LocalHainColors.current.textMuted),
     )
-    PackCategory.entries.forEach { cat ->
+    HainGrid(PackCategory.entries, columns, LocalHainSpacing.current.md) { cat, cell ->
         val packs = models.catalog.filter { PackCategory.of(it) == cat }
         val installed = packs.count { models.isInstalled(it) }
         val count = packs.size + extras.count { it.kind.category == cat }
-        CategoryTile(cat, installed, count) { open(cat) }
+        CategoryTile(cat, installed, count, cell) { open(cat) }
     }
 }
 
@@ -223,13 +229,14 @@ private fun CategoryTile(
     cat: PackCategory,
     installed: Int,
     count: Int,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     val spacing = LocalHainSpacing.current
     Row(
-        Modifier
+        modifier
             .fillMaxWidth()
             .heightIn(min = TILE_MIN.dp)
             .glassTile(cat.hue, lightAt = Offset(x = 0.1f, y = 0.5f))
@@ -261,14 +268,21 @@ private fun CategoryPage(
     models: ModelRepository,
     device: DeviceProfile,
     extras: List<ExtraPack>,
+    columns: Int,
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     BasicText(stringResource(categoryIntro(cat)), style = type.bodySmall.copy(color = colors.textMuted))
     val packs = models.catalog.filter { PackCategory.of(it) == cat }
     val extra = extras.filter { it.kind.category == cat }
-    packs.forEach { PackRow(it, models, device) }
-    extra.forEach { ExtraPackRow(it) }
+    // T-251: catalogue packs and the extra packs share one grid
+    val tiles: List<Any> = packs + extra
+    HainGrid(tiles, columns, LocalHainSpacing.current.md) { tile, cell ->
+        when (tile) {
+            is ModelInfo -> PackRow(tile, models, device, cell)
+            is ExtraPack -> ExtraPackRow(tile, cell)
+        }
+    }
     // reading aloud uses the phone's own voices: nothing to download
     if (cat == PackCategory.VOICE) InfoTile(R.string.packs_tts_title, R.string.packs_tts_desc)
     if (cat == PackCategory.KNOWLEDGE) {
@@ -312,6 +326,7 @@ private fun PackRow(
     pack: ModelInfo,
     models: ModelRepository,
     device: DeviceProfile,
+    modifier: Modifier = Modifier,
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
@@ -326,6 +341,7 @@ private fun PackRow(
         size = pack.totalSize,
         description = packDescription(pack)?.let { stringResource(it) },
         warning = fitText(fit)?.let { stringResource(it) },
+        modifier = modifier,
     ) {
         val running = state as? DownloadState.Running
         when {
@@ -354,7 +370,10 @@ private fun PackRow(
 }
 
 @Composable
-private fun ExtraPackRow(pack: ExtraPack) {
+private fun ExtraPackRow(
+    pack: ExtraPack,
+    modifier: Modifier = Modifier,
+) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     val installed by pack.installed.collectAsStateWithLifecycle(false)
@@ -365,6 +384,7 @@ private fun ExtraPackRow(pack: ExtraPack) {
         title = stringResource(pack.kind.title),
         size = pack.bytes,
         description = stringResource(pack.kind.description),
+        modifier = modifier,
     ) {
         val loading = progress
         when {
@@ -392,13 +412,14 @@ private fun PackTile(
     size: Long,
     description: String? = null,
     warning: String? = null,
+    modifier: Modifier = Modifier,
     actions: @Composable () -> Unit,
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     val spacing = LocalHainSpacing.current
     Column(
-        Modifier
+        modifier
             .fillMaxWidth()
             .glassTile(hue, lightAt = Offset(x = 0.12f, y = 0.2f))
             .padding(spacing.lg),
@@ -444,7 +465,6 @@ private fun packDescription(pack: ModelInfo): Int? =
 
 private const val PERCENT = 100
 private const val TILE_MIN = 72
-private const val PAGE_MAX = 720
 
 private fun fitText(fit: Fit): Int? =
     when (fit) {

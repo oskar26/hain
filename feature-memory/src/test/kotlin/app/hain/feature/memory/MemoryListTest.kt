@@ -2,6 +2,7 @@ package app.hain.feature.memory
 
 import app.hain.feature.memory.api.AnswerChips
 import app.hain.feature.memory.api.MemoryList
+import app.hain.feature.memory.api.MemoryTab
 import app.hain.feature.memory.api.SmartSearch
 import app.hain.memory.api.MemoryCategory
 import app.hain.memory.api.MemoryFact
@@ -22,6 +23,15 @@ class MemoryListTest {
             MemoryFact(2, "spielt Gitarre im Orchester", createdAt = 0),
             MemoryFact(3, "hat Asthma", MemoryCategory.HEALTH, createdAt = 0, suggested = true),
         )
+
+    @Test
+    fun wideWindowsShowAboutYouBesideTheListNotAsATab() {
+        assertEquals(MemoryTab.entries, MemoryList.tabs(wide = false))
+        assertEquals(
+            listOf(MemoryTab.FACTS, MemoryTab.TOPICS, MemoryTab.SUGGESTIONS),
+            MemoryList.tabs(wide = true),
+        )
+    }
 
     @Test
     fun tabsSplitKeptFactsAndSuggestions() {

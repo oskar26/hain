@@ -67,6 +67,15 @@ internal object MemoryList {
         facts: List<MemoryFact>,
     ): MemoryFact? = suggestion.replaces?.let { id -> facts.firstOrNull { it.id == id && !it.suggested } }
 
+    /**
+     * T-251: the tabs of the switch. On wide windows "Über dich" is not a tab: it stays open in the
+     * second column next to the list, together with the settings.
+     */
+    fun tabs(wide: Boolean): List<MemoryTab> {
+        val all = MemoryTab.entries.toList()
+        return if (wide) all - MemoryTab.YOU else all
+    }
+
     private val SPACES = Regex("\\s+")
 }
 
