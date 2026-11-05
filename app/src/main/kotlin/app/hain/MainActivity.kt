@@ -73,6 +73,7 @@ import app.hain.feature.memory.api.SmartSearch
 import app.hain.feature.news.api.BriefingDaily
 import app.hain.feature.news.api.FileBriefingStore
 import app.hain.feature.news.api.NewsImages
+import app.hain.feature.news.api.NewsPage
 import app.hain.feature.news.api.NewsScreen
 import app.hain.feature.news.api.SharedNewsPrefs
 import app.hain.feature.onboarding.api.OnboardingScreen
@@ -528,6 +529,8 @@ class MainActivity : FragmentActivity() {
             var showMemory by rememberSaveable { mutableStateOf(false) }
             var showGame by rememberSaveable { mutableStateOf(false) }
             var showNews by rememberSaveable { mutableStateOf(false) }
+            // T-266: "Nachrichten" in the settings opens the news settings right away; back returns there
+            var newsFromSettings by rememberSaveable { mutableStateOf(false) }
             LaunchedEffect(openNewsRequest) {
                 if (openNewsRequest) {
                     showNews = true
@@ -713,7 +716,11 @@ class MainActivity : FragmentActivity() {
                                     }
                                 NewsScreen(
                                     newsViewModel,
-                                    { showNews = false },
+                                    {
+                                        showNews = false
+                                        if (newsFromSettings) showSettings = true
+                                        newsFromSettings = false
+                                    },
                                     images = newsImages,
                                     // T-078: "Im Chat weiterführen" opens a new chat with the article and Pim's answer
                                     onContinueInChat = { text ->
@@ -722,6 +729,7 @@ class MainActivity : FragmentActivity() {
                                         composerFocus++
                                     },
                                     onBriefingSchedule = { on -> BriefingDaily.schedule(applicationContext, on) },
+                                    startPage = if (newsFromSettings) NewsPage.SETTINGS else NewsPage.LIST,
                                 )
                             }
                             AnimatedVisibility(
@@ -741,6 +749,7 @@ class MainActivity : FragmentActivity() {
                                         // T-234: "Nachrichten" leads to the news page and its settings
                                         onOpenNews = {
                                             showSettings = false
+                                            newsFromSettings = true
                                             showNews = true
                                         },
                                     ),

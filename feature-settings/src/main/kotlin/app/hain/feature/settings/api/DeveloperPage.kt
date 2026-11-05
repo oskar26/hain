@@ -62,6 +62,8 @@ internal fun DeveloperPage(
     dev: DevSettings,
     actions: SettingsActions,
     devModels: DevModels?,
+    /** T-266: the technical privacy parts (own search, full addresses in the network log). */
+    network: @Composable () -> Unit = {},
 ) {
     val set = actions.onDev
     Info(R.string.dev_intro)
@@ -116,6 +118,8 @@ internal fun DeveloperPage(
         set(dev.copy(systemPrompt = it))
     }
     Toggle(R.string.dev_stats, R.string.dev_stats_hint, dev.showStats) { set(dev.copy(showStats = it)) }
+    network()
+    Group(R.string.dev_more)
     Link(R.string.dev_reset, R.string.dev_reset_hint) { set(dev.resetTuning()) }
     Link(R.string.about_dev_off, R.string.about_dev_off_hint) { set(dev.copy(enabled = false)) }
 }

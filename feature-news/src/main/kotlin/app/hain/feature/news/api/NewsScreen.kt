@@ -196,10 +196,18 @@ fun NewsBody(
     BoxWithConstraints(modifier.fillMaxSize().background(LocalHainColors.current.bg)) {
         val wide = maxWidth >= WIDE_FROM.dp
         val open = state.open
-        BackHandler(enabled = page != NewsPage.LIST) { page = NewsPage.LIST }
+        // T-266: opened right on the settings (from Settings → Nachrichten), back leaves the news again
+        val leave: () -> Unit = {
+            if (startPage == NewsPage.SETTINGS) {
+                actions.onBack()
+            } else {
+                page = NewsPage.LIST
+            }
+        }
+        BackHandler(enabled = page != NewsPage.LIST) { leave() }
         BackHandler(enabled = page == NewsPage.LIST && open == null) { actions.onBack() }
         when {
-            page != NewsPage.LIST -> SubPage(page, state, actions) { page = NewsPage.LIST }
+            page != NewsPage.LIST -> SubPage(page, state, actions) { leave() }
             wide -> {
                 // T-076: list on the left, the article on the right (list-detail from 840 dp)
                 val listWidth = (maxWidth * LIST_SHARE).coerceIn(LIST_MIN.dp, LIST_MAX.dp)

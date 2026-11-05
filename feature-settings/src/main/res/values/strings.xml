@@ -240,5 +240,10 @@
     <string name="settings_export_all">Export all chats</string>
     <string name="settings_export_all_hint">One ZIP file with every chat as a Markdown file. You choose where it’s saved.</string>
     <string name="packs_embed_desc">Search by meaning: Pim finds your memories even when you use other words. Small, works offline, and everything stays on your phone.</string>
+    <string name="settings_privacy_group_online">Going online</string>
+    <string name="settings_privacy_group_safety">Safety</string>
+    <string name="settings_privacy_group_data">Your data</string>
+    <string name="dev_network">Network &amp; search</string>
+    <string name="dev_more">More</string>
     <string name="packs_brain_legacy_desc">The previous brain (LFM3 1.7B). The standard brain usually answers better; keep this one only if you prefer its answers. Deleting it frees space.</string>
 </resources>

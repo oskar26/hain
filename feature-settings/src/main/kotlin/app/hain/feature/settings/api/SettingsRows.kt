@@ -1,11 +1,13 @@
 package app.hain.feature.settings.api
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.BasicText
@@ -21,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
 import app.hain.ui.components.HainSwitch
 import app.hain.ui.components.SegmentedControl
 import app.hain.ui.motion.rememberHainHaptics
@@ -33,12 +36,18 @@ import app.hain.ui.theme.hainSurface
 
 @Composable
 internal fun Group(label: Int) {
-    BasicText(
-        stringResource(label),
-        style = LocalHainTypography.current.label.copy(color = LocalHainColors.current.textMuted),
-        modifier = Modifier.padding(top = LocalHainSpacing.current.md),
-    )
+    // T-266 (Lichtung): a hairline above each group and more air, so a page reads in calm blocks
+    val spacing = LocalHainSpacing.current
+    Column(Modifier.fillMaxWidth().padding(top = spacing.sm), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
+        Box(Modifier.fillMaxWidth().height(HAIRLINE.dp).background(LocalHainColors.current.border))
+        BasicText(
+            stringResource(label),
+            style = LocalHainTypography.current.label.copy(color = LocalHainColors.current.accent),
+        )
+    }
 }
+
+private const val HAIRLINE = 0.5f
 
 @Composable
 internal fun <T> Choice(
