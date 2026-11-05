@@ -24,7 +24,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** T-241: the Qwen3.5 prompt equals the GGUF's Jinja template (golden files from tools/render_golden_qwen.py). */
+/** T-241: the Qwen3 prompt equals the Jan GGUF's Jinja template (golden files from tools/render_golden_qwen.py). */
 class QwenPromptBuilderTest {
     private val builder = QwenPromptBuilder()
 
@@ -59,13 +59,12 @@ class QwenPromptBuilderTest {
     }
 
     @Test
-    fun toolsComeBeforeTheSystemTextSoTheFixedPartCanBeCached() {
+    fun systemTextComesFirstAndIsUsedAsGiven() {
         val tool = ToolSchema("t", "d", buildJsonObject { put("type", JsonPrimitive("object")) })
         val system = "Du bist Pim.\n\n# Kontext\nJetzt: 07:30"
         val prompt = builder.build(system, listOf(tool), listOf(ChatMessage(Role.USER, "Hi")))
-        assertTrue(prompt.indexOf("</tools>") < prompt.indexOf("# Kontext"))
-        // the system text is used as given, so the chat engine finds it (fixed-system checkpoint)
-        assertTrue(prompt.contains(system))
+        // as in the Jan template and in Hain's LFM prompt: the fixed rules come first and stay cacheable
+        assertTrue(prompt.startsWith("<|im_start|>system\n$system\n\n# Tools"))
     }
 
     @Test
@@ -74,18 +73,34 @@ class QwenPromptBuilderTest {
         val head = builder.build("S", listOf(tool), emptyList(), addGenerationPrompt = false, enableThinking = false)
         val full = builder.build("S", listOf(tool), listOf(ChatMessage(Role.USER, "Hi")), true, false)
         assertTrue(full.startsWith(head))
-        assertTrue(full.endsWith("<|im_start|>assistant\n<think>\n\n</think>\n\n"))
+        assertTrue(full.endsWith("<|im_start|>user\nHi<|im_end|>\n<|im_start|>assistant\n"))
     }
 
     @Test
-    fun booleansInToolArgumentsAreJson() {
+    fun thinkingSwitchChangesNothingBecauseJanDoesNotThink() {
+        val history = listOf(ChatMessage(Role.USER, "Hallo"))
+        val off = builder.build("S", emptyList(), history, true, false)
+        assertEquals(off, builder.build("S", emptyList(), history, true, true))
+    }
+
+    @Test
+    fun toolCallsAreJsonWithBooleansAsJson() {
         val history =
             listOf(
                 ChatMessage(Role.USER, "q"),
                 ChatMessage(Role.ASSISTANT, "", listOf(ToolCall("call_0", "x", mapOf("on" to true)))),
             )
         val prompt = builder.build(null, emptyList(), history, addGenerationPrompt = false)
-        assertTrue(prompt.contains("<parameter=on>\ntrue\n</parameter>"))
+        val call = "<tool_call>\n{\"name\": \"x\", \"arguments\": {\"on\": true}}\n</tool_call>"
+        assertTrue(prompt.contains("<|im_start|>assistant\n$call"))
+    }
+
+    @Test
+    fun oldThinkBlockIsDroppedFromTheHistory() {
+        val old = ChatMessage(Role.ASSISTANT, "<think>\nhm\n</think>\n\nAntwort")
+        val history = listOf(ChatMessage(Role.USER, "q"), old)
+        val prompt = builder.build(null, emptyList(), history, addGenerationPrompt = false)
+        assertTrue(prompt.endsWith("<|im_start|>assistant\nAntwort<|im_end|>\n"))
     }
 
     @Test
@@ -97,23 +112,28 @@ class QwenPromptBuilderTest {
 
     @Test
     fun formatFollowsTheGgufArchitecture() {
-        assertEquals(BrainFormat.QWEN, BrainFormat.ofArchitecture("qwen35"))
+        assertEquals(BrainFormat.QWEN, BrainFormat.ofArchitecture("qwen3"))
         assertEquals(BrainFormat.LFM, BrainFormat.ofArchitecture("lfm2"))
         assertEquals(BrainFormat.LFM, BrainFormat.ofArchitecture(null))
         assertFalse(BrainFormat.QWEN.mayThink)
         assertTrue(BrainFormat.LFM.mayThink)
-        assertEquals(0.6f, BrainFormat.QWEN.chatSampling.temperature)
+        // Jan-v3.5-4B model card: temperature 0.7, top-p 0.8, top-k 20
+        assertEquals(0.7f, BrainFormat.QWEN.chatSampling.temperature)
+        assertEquals(0.8f, BrainFormat.QWEN.chatSampling.topP)
         assertEquals(20, BrainFormat.QWEN.chatSampling.topK)
         assertTrue(BrainFormat.QWEN.promptBuilder() is QwenPromptBuilder)
         assertTrue(BrainFormat.LFM.promptBuilder() is LfmPromptBuilder)
     }
 
     @Test
-    fun outputOfTheBrainIsReadByTheSameToolCallParser() {
-        val out = "<tool_call>\n<function=set_alarm>\n<parameter=time>\n06:30\n</parameter>\n</function>\n</tool_call>"
-        val parsed = XmlToolCallParser().parse(out)
+    fun jsonToolCallOfTheBrainIsReadByTheChatParser() {
+        val out =
+            "<tool_call>\n{\"name\": \"set_alarm\", \"arguments\": {\"time\": \"06:30\", \"days\": [1, 2]}}" +
+                "\n</tool_call>"
+        val parsed = RepairingToolCallParser().parse(out)
         assertEquals("set_alarm", parsed.toolCalls.single().name)
         assertEquals("06:30", parsed.toolCalls.single().arguments["time"])
+        assertEquals("", parsed.text)
     }
 
     private fun assertGolden(name: String) {

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Render the golden prompt files for QwenPromptBuilder (T-241).
 
-Runs the Qwen3.5 chat template as stored in the Underdog Poodle 4B GGUF
-(prompts/qwen3.5_chat_template.jinja, mradermacher Q4_K_M, revision 86a171fc) once per scenario and
-writes core-llm/src/test/resources/golden/qwen/Q-xx_<name>.json (input) + .txt (expected prompt).
-Same scenario format and Jinja setup as tools/render_golden.py. Tool arguments avoid booleans on
-purpose (the template prints Python's True; Hain writes JSON true, see QwenPromptBuilder).
+Runs the Qwen3 chat template as stored in the Jan-v3.5-4B GGUF (prompts/jan-v3.5-4b_chat_template.jinja,
+janhq/Jan-v3.5-4B-gguf Q4_K_M, revision 2b0fcab0) once per scenario and writes
+core-llm/src/test/resources/golden/qwen/Q-xx_<name>.json (input) + .txt (expected prompt).
+Same scenario format and Jinja setup as tools/render_golden.py. The template has no thinking switch;
+Q-06 checks that enable_thinking=True changes nothing.
 
 Usage: python3 tools/render_golden_qwen.py   (needs: pip install jinja2)
 """
@@ -21,7 +21,7 @@ import jinja2  # noqa: E402
 from render_golden import SEARCH, WEATHER, raise_exception, tojson  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
-TEMPLATE = ROOT / "prompts" / "qwen3.5_chat_template.jinja"
+TEMPLATE = ROOT / "prompts" / "jan-v3.5-4b_chat_template.jinja"
 OUT = ROOT / "core-llm" / "src" / "test" / "resources" / "golden" / "qwen"
 SYSTEM = "Du bist Pim, ein freundlicher Helfer, der ganz auf diesem Handy läuft.\n\n# Kontext\nJetzt: Donnerstag, 5. November 2026, 07:30."
 

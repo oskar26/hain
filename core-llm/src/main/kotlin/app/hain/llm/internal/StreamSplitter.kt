@@ -119,7 +119,8 @@ class StreamSplitter(
         if (state == State.TOOL) {
             toolBody.append(piece)
             if (!toolNameSent) {
-                FUNCTION_HEADER.find(toolBody)?.let {
+                // XML header (LFM) or the JSON "name" of a Qwen3 call (Großes Gehirn, T-241)
+                (FUNCTION_HEADER.find(toolBody) ?: JSON_NAME.find(toolBody))?.let {
                     output += UiDelta.ToolCallStarted(it.groupValues[1])
                     toolNameSent = true
                 }
@@ -151,5 +152,6 @@ class StreamSplitter(
         private const val CALL_OPEN = "<tool_call>"
         private const val CALL_CLOSE = "</tool_call>"
         private val FUNCTION_HEADER = Regex("""<function=([A-Za-z0-9_.\-]{1,64})>""")
+        private val JSON_NAME = Regex("""^\s*\{\s*"name"\s*:\s*"([A-Za-z0-9_.\-]{1,64})"""")
     }
 }

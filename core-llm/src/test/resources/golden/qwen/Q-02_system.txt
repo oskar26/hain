@@ -6,7 +6,3 @@ Jetzt: Donnerstag, 5. November 2026, 07:30.<|im_end|>
 <|im_start|>user
 Was ist ein Hain?<|im_end|>
 <|im_start|>assistant
-<think>
-
-</think>
-

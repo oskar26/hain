@@ -9,19 +9,20 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 
 /**
- * T-241: Pure-Kotlin re-implementation of the Qwen3.5 chat template (ChatML with `<tool_call>` XML),
- * used by the "Großes Gehirn" Underdog Poodle 4B (a Qwen3.5-4B fine-tune). Same output as the Jinja
- * template in the GGUF for text, tool calls and tool results; differences on purpose:
+ * T-241: Pure-Kotlin re-implementation of the Qwen3 chat template (ChatML, tool calls as JSON inside
+ * `<tool_call>`), used by the "Großes Gehirn" Jan-v3.5-4B (Qwen3-4B architecture, ADR-24). Output
+ * equals the Jinja template stored in the Jan GGUF (`prompts/jan-v3.5-4b_chat_template.jinja`),
+ * proven by the golden files Q-01…Q-06 (tools/render_golden_qwen.py). Layout as in the template and
+ * as in Hain's LFM prompt: system text first, then the tool block, so the fixed part of the system
+ * text (before "# Kontext") is cached and kept as a snapshot on disk (T-242).
  *
- * - Tools come first in the system turn (as in the template), then Hain's system prompt. So the
- *   fixed part of the prompt (tools + rules, before "# Kontext") is one block that is cached and kept
- *   as a snapshot on disk (T-242).
- * - The system text is used as given (not trimmed), so the chat engine finds it in the prompt.
- * - A later system message (language hint) becomes its own system turn; the template would refuse it.
- * - Booleans in tool arguments are written as JSON (`true`), like in the LFM prompt.
+ * Differences on purpose:
+ * - The system text is used as given (the chat engine finds it in the prompt for its checkpoints).
+ * - A think block an older answer may carry (`…</think>`) is dropped from the history; Jan does not
+ *   think, the template has no think handling at all.
  *
- * Thinking off = an empty think block `<think>\n\n</think>\n\n` after the assistant header, exactly
- * like `enable_thinking=false` in the template.
+ * Jan is a non-thinking model: the template has no `enable_thinking`, so [build] ignores it and the
+ * generation prompt is just the assistant header.
  */
 class QwenPromptBuilder : PromptBuilder {
     override fun build(
@@ -32,48 +33,40 @@ class QwenPromptBuilder : PromptBuilder {
         enableThinking: Boolean,
     ): String {
         val out = StringBuilder()
-        appendSystem(system.orEmpty(), tools, out)
-        val lastUser = history.indexOfLast { it.role == Role.USER }
+        appendSystem(system, tools, out)
         history.forEachIndexed { index, message ->
             when (message.role) {
-                Role.SYSTEM ->
+                Role.SYSTEM, Role.USER ->
                     out
                         .append(IM_START)
-                        .append("system\n")
-                        .append(message.content.trim())
+                        .append(message.role.wire)
+                        .append('\n')
+                        .append(message.content)
                         .append(IM_END_NL)
-                Role.USER ->
-                    out
-                        .append(IM_START)
-                        .append("user\n")
-                        .append(message.content.trim())
-                        .append(IM_END_NL)
-                Role.ASSISTANT -> appendAssistant(message, index > lastUser, out)
+                Role.ASSISTANT -> appendAssistant(message, out)
                 Role.TOOL -> {
                     val previous = history.getOrNull(index - 1)
                     val next = history.getOrNull(index + 1)
                     if (previous?.role != Role.TOOL) out.append(IM_START).append("user")
                     out
                         .append("\n<tool_response>\n")
-                        .append(message.content.trim())
+                        .append(message.content)
                         .append("\n</tool_response>")
                     if (next?.role != Role.TOOL) out.append(IM_END_NL)
                 }
             }
         }
-        if (addGenerationPrompt) {
-            out.append(IM_START).append("assistant\n").append(if (enableThinking) THINK_START else EMPTY_THINK)
-        }
+        if (addGenerationPrompt) out.append(IM_START).append("assistant\n")
         return out.toString()
     }
 
     private fun appendSystem(
-        system: String,
+        system: String?,
         tools: List<ToolSchema>,
         out: StringBuilder,
     ) {
         if (tools.isEmpty()) {
-            if (system.isNotBlank()) {
+            if (system != null) {
                 out
                     .append(IM_START)
                     .append("system\n")
@@ -82,11 +75,11 @@ class QwenPromptBuilder : PromptBuilder {
             }
             return
         }
-        out.append(IM_START).append("system\n").append(TOOLS_HEAD)
+        out.append(IM_START).append("system\n")
+        if (system != null) out.append(system).append("\n\n")
+        out.append(TOOLS_HEAD)
         tools.forEach { out.append('\n').append(toolLine(it)) }
-        out.append("\n</tools>").append(TOOLS_RULES)
-        if (system.isNotBlank()) out.append("\n\n").append(system)
-        out.append(IM_END_NL)
+        out.append(TOOLS_TAIL).append(IM_END_NL)
     }
 
     /** One tool as the template's `tool | tojson` writes an OpenAI-style function entry. */
@@ -107,30 +100,12 @@ class QwenPromptBuilder : PromptBuilder {
 
     private fun appendAssistant(
         message: ChatMessage,
-        afterLastUser: Boolean,
         out: StringBuilder,
     ) {
-        var content = message.content.trim()
-        var reasoning = message.reasoning.orEmpty()
-        if (message.reasoning == null && THINK_CLOSE in content) {
-            reasoning =
-                content
-                    .substringBefore(THINK_CLOSE)
-                    .trimEnd('\n')
-                    .substringAfterLast(THINK_OPEN)
-                    .trimStart('\n')
-            content = content.substringAfterLast(THINK_CLOSE).trimStart('\n')
-        }
-        out.append(IM_START).append("assistant\n")
-        if (afterLastUser) {
-            out
-                .append(THINK_OPEN)
-                .append('\n')
-                .append(reasoning.trim())
-                .append("\n</think>\n\n")
-        }
-        out.append(content)
-        appendToolCalls(message.toolCalls, content.isNotBlank(), out)
+        var content = message.content
+        if (THINK_CLOSE in content) content = content.substringAfterLast(THINK_CLOSE).trimStart('\n')
+        out.append(IM_START).append("assistant\n").append(content)
+        appendToolCalls(message.toolCalls, content.isNotEmpty(), out)
         out.append(IM_END_NL)
     }
 
@@ -140,53 +115,27 @@ class QwenPromptBuilder : PromptBuilder {
         out: StringBuilder,
     ) {
         calls.forEachIndexed { index, call ->
-            when {
-                index > 0 -> out.append('\n')
-                hasText -> out.append("\n\n")
-            }
-            out.append("<tool_call>\n<function=").append(call.name).append(">\n")
-            call.arguments.forEach { (name, value) ->
-                out
-                    .append("<parameter=")
-                    .append(name)
-                    .append(">\n")
-                    .append(renderValue(value))
-                    .append("\n</parameter>\n")
-            }
-            out.append("</function>\n</tool_call>")
+            if (index > 0 || hasText) out.append('\n')
+            out
+                .append("<tool_call>\n{\"name\": \"")
+                .append(call.name)
+                .append("\", \"arguments\": ")
+                .append(PyJson.encodeValue(call.arguments))
+                .append("}\n</tool_call>")
         }
     }
-
-    /** Template: maps and lists as JSON, everything else as plain text. */
-    private fun renderValue(value: Any?): String =
-        when (value) {
-            null -> "null"
-            is String -> value
-            is Boolean -> if (value) "true" else "false"
-            is Map<*, *>, is Iterable<*>, is kotlinx.serialization.json.JsonElement -> PyJson.encodeValue(value)
-            else -> value.toString()
-        }
 
     companion object {
         const val IM_START = "<|im_start|>"
         const val IM_END = "<|im_end|>"
         private const val IM_END_NL = "$IM_END\n"
-        private const val THINK_OPEN = "<think>"
         private const val THINK_CLOSE = "</think>"
-        private const val THINK_START = "<think>\n"
-        const val EMPTY_THINK = "<think>\n\n</think>\n\n"
-        private const val TOOLS_HEAD = "# Tools\n\nYou have access to the following functions:\n\n<tools>"
-        private const val TOOLS_RULES =
-            "\n\nIf you choose to call a function ONLY reply in the following format with NO suffix:\n\n" +
-                "<tool_call>\n<function=example_function_name>\n<parameter=example_parameter_1>\nvalue_1\n" +
-                "</parameter>\n<parameter=example_parameter_2>\nThis is the value for the second parameter\n" +
-                "that can span\nmultiple lines\n</parameter>\n</function>\n</tool_call>\n\n<IMPORTANT>\n" +
-                "Reminder:\n- Function calls MUST follow the specified format: an inner <function=...></function> " +
-                "block must be nested within <tool_call></tool_call> XML tags\n" +
-                "- Required parameters MUST be specified\n" +
-                "- You may provide optional reasoning for your function call in natural language BEFORE the " +
-                "function call, but NOT after\n" +
-                "- If there is no function call available, answer the question like normal with your current " +
-                "knowledge and do not tell the user about function calls\n</IMPORTANT>"
+        private const val TOOLS_HEAD =
+            "# Tools\n\nYou may call one or more functions to assist with the user query.\n\n" +
+                "You are provided with function signatures within <tools></tools> XML tags:\n<tools>"
+        private const val TOOLS_TAIL =
+            "\n</tools>\n\nFor each function call, return a json object with function name and arguments " +
+                "within <tool_call></tool_call> XML tags:\n<tool_call>\n" +
+                "{\"name\": <function-name>, \"arguments\": <args-json-object>}\n</tool_call>"
     }
 }
