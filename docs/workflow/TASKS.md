@@ -1572,3 +1572,17 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - do: Website EN + /de, als wäre 0.2 veröffentlicht: Status „Seit 0.1 / Neu in 0.2 / Geplant“ statt „Schon da / Kommt bald“ (Seit 0.1 = Stand 0.1.3.1), Hero „Version 0.2“ + Download `releases/latest` + Installationshinweis, ein Abschnitt pro Funktion mit Screenshot (19), „Außerdem in 0.2“, „Was noch kommt“ aus KONZEPT.md / ROADMAP.md / RELEASE_0.2_CHECKLIST.md (ohne Termine), Lizenzen GPL-3.0 + LFM Open License v1.0 + Apache-2.0. Neue Screenshot-Tests `WebShowcaseScreens`, `WebSettingsScreens`, `NewsScreens.web*` (DE + EN, hell + dunkel), `website/scripts/web_shots.sh`. README-Feature-Tabelle mit denselben Kennzeichen.
 - offen: kein Screenshot für Widget/Schnellkachel/Teilen, Diktat im Aufnahmezustand und privaten Chat (nur Text bzw. Einstellungsseite).
 - check: Website-Build, Screens (CI)
+
+## 0.1.10.8 (`hark/v0110-7b`, Basis main 0a44391)
+
+### T-270 · LFM3-1.7B wieder Standard, Omni optional
+
+- type: `feat` · size: `S` · lane: `A`
+- do: LFM3 1.7B (QAD Q4_0) ist wieder das Standard-Gehirn; LFM3-Omni 2B wird `tier: optional` (unter Modelle & Pakete und im Gehirn-Menü immer angeboten, nie empfohlen oder selbst gewählt). Upgrade-Banner und „Legacy“-Kennzeichen entfernt, ehrlicher Pakettext.
+- check: `BrainChoiceTest`, `CatalogParserTest`, CI
+
+### T-271 · Werkzeug-Leaks im Antworttext
+
+- type: `fix` · size: `M` · lane: `A`
+- do: `RawToolText` erkennt rohe Werkzeugaufrufe im Fließtext (JSON, `<|tool_call|>`, Funktionsschreibweise) und entfernt sie; `AnswerParts.fenceLooseCards` – Karten nur im ```card-Block; `RememberTool.allowed` – Merken nur bei eigener Aussage oder ausdrücklicher Bitte; Nachfrage statt leerer Antwort bei verworfenem/leerem Aufruf; Merk-Regel im System-Prompt nur bei Bitte; SelfFacts „ich lerne …“; Rechner verträgt Suffix „um/bitte“.
+- check: `RawToolTextTest`, `RawToolTextEngineTest`, `AnswerPartsTest`, `RememberToolTest`, `SelfFactsTest`, `CalculatorTest`, CI

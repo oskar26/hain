@@ -184,6 +184,45 @@ object SelfFacts {
 
     private fun capitalize(w: String) = w.split('-').joinToString("-") { part -> part.replaceFirstChar { it.titlecase(Locale.GERMAN) } }
 
+    /** What someone learns, one word ("Spanisch", "Gitarre"); `null` for "für", "heute", "to" …. */
+    private fun learned(raw: String): String? {
+        val word = raw.trim().trimEnd('.', ',', '!')
+        if (word.length < MIN_WORD || word.lowercase(Locale.GERMAN) in LEARN_STOP) return null
+        return capitalize(word)
+    }
+
+    private val LEARN_STOP =
+        setOf(
+            "für",
+            "fuer",
+            "heute",
+            "morgen",
+            "noch",
+            "mit",
+            "zu",
+            "so",
+            "viel",
+            "gern",
+            "gerne",
+            "das",
+            "es",
+            "auf",
+            "dass",
+            "wie",
+            "was",
+            "alles",
+            "nichts",
+            "immer",
+            "nie",
+            "to",
+            "for",
+            "how",
+            "about",
+            "the",
+            "a",
+            "and",
+        )
+
     private fun thing(raw: String): String? {
         val t =
             raw
@@ -257,6 +296,11 @@ object SelfFacts {
                 thing(j)?.let { "works as $it" }
             },
             Rule(Regex("\\bi study ([\\p{L}\\-]+)"), MemoryCategory.WORK) { s -> thing(s)?.let { "studies $it" } },
+            // T-271: "hi ich lerne gerade spanisch" → chip "Merken: lernt Spanisch"
+            Rule(Regex("${ICH}lerne $ADV([\\p{L}\\-]+)"), MemoryCategory.OTHER) { l -> learned(l)?.let { "lernt $it" } },
+            Rule(Regex("\\bi(?:'m| am) (?:currently |now |just )?learning ([\\p{L}\\-]+)"), MemoryCategory.OTHER) { l ->
+                learned(l)?.let { "is learning " + l.trim().trimEnd('.', ',', '!') }
+            },
             // family and pets
             familyRule,
             Rule(Regex("${ICH}habe (?:einen|eine|ein|zwei|drei|\\d) ($PETS)"), MemoryCategory.OTHER) { p -> "hat ${pet(p)}" },

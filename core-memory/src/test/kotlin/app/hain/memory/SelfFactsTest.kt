@@ -91,4 +91,15 @@ class SelfFactsTest {
         assertEquals("Bristol", SelfFacts.homePlace(listOf("lives in Bristol.")))
         assertNull(SelfFacts.homePlace(listOf("kommt aus Graz")))
     }
+
+    @Test
+    fun learningSomethingIsASelfFact() {
+        // T-271: Oskar's device test, "hi ich lerne gerade spanisch" → chip "Merken: lernt Spanisch"
+        assertEquals(listOf("lernt Spanisch"), facts("hi ich lerne gerade spanisch"))
+        assertEquals(listOf("lernt Gitarre"), facts("Ich lerne seit zwei Jahren Gitarre."))
+        assertEquals(listOf("is learning Spanish"), facts("I'm learning Spanish"))
+        assertEquals(emptyList<String>(), facts("ich lerne für die Matheklausur"))
+        assertEquals(emptyList<String>(), facts("Lerntipps für Mathe"))
+        assertEquals(emptyList<String>(), facts("Wie lerne ich am besten Vokabeln?"))
+    }
 }

@@ -75,6 +75,8 @@ class CalculatorTool : Tool {
                         .removeSuffix("?")
                         .trim() + " "
             QUESTION_PREFIXES.firstOrNull { t.startsWith(" $it ") }?.let { t = " " + t.removePrefix(" $it ") }
+            // T-271: "Rechne 2,5 Meilen in km um" (the "um" of "umrechnen" at the end)
+            SPOKEN_SUFFIXES.firstOrNull { t.endsWith(" $it ") }?.let { t = t.removeSuffix(" $it ") + " " }
             SPOKEN_OPERATORS.forEach { (word, sign) -> t = t.replace(word, sign) }
             return t.trim()
         }
@@ -95,6 +97,7 @@ class CalculatorTool : Tool {
                 "how much is",
                 "calculate",
             )
+        private val SPOKEN_SUFFIXES = listOf("um", "bitte", "please")
         private val SPOKEN_OPERATORS =
             listOf(
                 " prozent von " to "% * ",

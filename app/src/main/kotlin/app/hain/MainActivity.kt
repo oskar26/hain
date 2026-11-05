@@ -395,6 +395,8 @@ class MainActivity : FragmentActivity() {
                     },
                     // T-263: "ich bin nach Köln gezogen" earlier in this chat → weather there
                     placeOf = { messages -> SelfFacts.homePlace(SelfFacts.ruleFacts(messages).map { it.text }) },
+                    // T-271: remember only for the user's own statements or when asked to
+                    mayRemember = RememberTool::allowed,
                     tuning = { settings().dev },
                     ownModel = { ownModelPath() != null },
                     // 7b: off the main thread, may embed the question with the pack "Suche nach Bedeutung"

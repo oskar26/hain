@@ -86,4 +86,35 @@ class AnswerPartsTest {
         val card = CardParser.parse(body)!!
         assertEquals("A | B\n1 | 2\nFertig: 30 %", CardText.plain(card))
     }
+
+    @Test
+    fun looseCardSyntaxGetsItsFence() {
+        // T-271: Oskar's device test, "Bastelidee mit Altpapier" (LFM3-Omni wrote the card without fence)
+        val raw =
+            "Card title=\"Altpapier Bastelidee\"\nChecklist\n• Altpapier\n• Stifte\n" +
+                "• Papierbügel Button label=\"Kopieren\" action=copy"
+        val fixed = AnswerParts.fenceLooseCards(raw)
+        val card =
+            AnswerParts
+                .split(fixed)
+                .filterIsInstance<AnswerPart.Card>()
+                .single()
+                .card
+        assertEquals("Altpapier Bastelidee", card.title)
+        val list = card.blocks.filterIsInstance<CardBlock.Checklist>().single()
+        assertEquals(listOf("Altpapier", "Stifte", "Papierbügel"), list.items.map { it.text })
+        assertTrue(card.blocks.any { it is CardBlock.Button })
+        assertFalse(fixed.contains("•"))
+    }
+
+    @Test
+    fun textAroundALooseCardStaysAndRealCardsAreUntouched() {
+        val raw = "Hier ist deine Liste:\n\nCard title=\"Einkauf\"\nList\n- Milch\n- Brot\n\nViel Spaß!"
+        val parts = AnswerParts.split(AnswerParts.fenceLooseCards(raw))
+        assertEquals(3, parts.size)
+        assertEquals("Viel Spaß!", (parts.last() as AnswerPart.Text).markdown)
+        val fenced = "```card\nCard title=\"A\"\nList\n- x\n```"
+        assertEquals(fenced, AnswerParts.fenceLooseCards(fenced))
+        assertEquals("Eine Karte für dich.", AnswerParts.fenceLooseCards("Eine Karte für dich."))
+    }
 }

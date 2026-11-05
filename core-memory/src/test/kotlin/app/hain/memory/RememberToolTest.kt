@@ -8,6 +8,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -72,4 +73,15 @@ class RememberToolTest {
             RememberTool(store).run(emptyMap(), ctx)
             Unit
         }
+
+    @Test
+    fun rememberOnlyRunsForOwnStatementsOrWhenAsked() {
+        // T-271: never for a topic question; a statement the chip offers is left to the chip
+        assertFalse(RememberTool.allowed("Lerntipps für Mathe", "Lerntipps für Mathe: regelmäßig üben"))
+        assertFalse(RememberTool.allowed("Bastelidee mit Altpapier", "Bastelidee mit Altpapier"))
+        assertFalse(RememberTool.allowed("hi ich lerne gerade spanisch", "lernt Spanisch"))
+        assertTrue(RememberTool.allowed("Kannst du dir bitte merken, dass mein Bus um 7 fährt?", "Bus fährt um 7"))
+        assertTrue(RememberTool.allowed("Ich trinke morgens immer Tee", "trinkt morgens Tee"))
+        assertFalse(RememberTool.allowed("Ich trinke morgens immer Tee", "mag Kaffee"))
+    }
 }
