@@ -26,6 +26,8 @@ enum class NewsMode(
  * One feed. Standard feeds come from `assets/news/standard_feeds.json`; own feeds are added by
  * the user (max [NewsRepository.MAX_OWN_FEEDS]).
  *
+ * A feed is never marked "paywall" as a whole (T-077): only an article Hain could not read in full.
+ *
  * @property lang `de` or `en`; `null` for own feeds (shown for every language).
  * @property category only items whose category contains this text are kept (CORRECTIV: "Faktencheck").
  */
@@ -34,7 +36,6 @@ data class NewsFeed(
     val name: String,
     val url: String,
     val lang: String? = null,
-    val paywall: Boolean = false,
     val own: Boolean = false,
     val category: String? = null,
 )
@@ -56,7 +57,10 @@ data class FeedState(
     }
 }
 
-/** One headline as Hain keeps it (7 days). [published] falls back to [fetchedAt] for sorting. */
+/**
+ * One headline as Hain keeps it (7 days). [published] falls back to [fetchedAt] for sorting.
+ * [paywall] is only `true` once the reading view found this article's text cut off (T-077).
+ */
 data class NewsItem(
     val feedId: String,
     val source: String,
@@ -73,11 +77,18 @@ data class NewsItem(
     val time: Long get() = published ?: fetchedAt
 }
 
-/** Everything the news feature keeps on the phone: the mode, own feeds, feed states and the items. */
+/**
+ * Everything the news feature keeps on the phone: the mode, own feeds, feed states and the items.
+ * [pageImages]: the picture an article page names (`og:image`) for items whose feed has none,
+ * `""` when the page has none either (T-075). [locked]: links of articles the reading view found cut
+ * off (T-077).
+ */
 data class NewsSnapshot(
     val mode: NewsMode = NewsMode.STANDARD,
     val ownFeeds: List<NewsFeed> = emptyList(),
     val feedStates: Map<String, FeedState> = emptyMap(),
     val items: List<NewsItem> = emptyList(),
     val lastRefresh: Long = 0,
+    val pageImages: Map<String, String> = emptyMap(),
+    val locked: Set<String> = emptySet(),
 )

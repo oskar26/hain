@@ -7,7 +7,6 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
@@ -83,6 +82,8 @@ object NewsJson {
                 }
             }
             putJsonArray("items") { s.items.forEach { add(item(it)) } }
+            putJsonObject("pageImages") { s.pageImages.forEach { (link, image) -> put(link, image) } }
+            putJsonArray("locked") { s.locked.forEach { add(JsonPrimitive(it)) } }
         }.toString()
 
     fun decode(text: String): NewsSnapshot {
@@ -102,8 +103,20 @@ object NewsJson {
             mode = NewsMode.fromKey(root.text("mode")),
             ownFeeds = (root["ownFeeds"] as? JsonArray).orEmpty().mapNotNull { readFeed(it, own = true) },
             feedStates = states.toMap(),
+            // version 1 marked whole feeds as paywall: such marks are not read any more (T-077)
             items = (root["items"] as? JsonArray).orEmpty().mapNotNull(::readItem),
             lastRefresh = root.long("lastRefresh") ?: 0,
+            pageImages =
+                (root["pageImages"] as? JsonObject)
+                    .orEmpty()
+                    .mapNotNull { (link, el) ->
+                        (el as? JsonPrimitive)?.takeIf { it.isString }?.let { link to it.content }
+                    }.toMap(),
+            locked =
+                (root["locked"] as? JsonArray)
+                    .orEmpty()
+                    .mapNotNull { (it as? JsonPrimitive)?.takeIf { p -> p.isString }?.content }
+                    .toSet(),
         )
     }
 
@@ -119,7 +132,6 @@ object NewsJson {
             put("name", f.name)
             put("url", f.url)
             f.lang?.let { put("lang", it) }
-            put("paywall", f.paywall)
             f.category?.let { put("category", it) }
         }
 
@@ -136,7 +148,6 @@ object NewsJson {
             name = o.text("name") ?: id,
             url = url,
             lang = o.text("lang"),
-            paywall = o.bool("paywall") == true,
             own = own,
             category = o.text("category"),
         )
@@ -153,7 +164,6 @@ object NewsJson {
             put("fetchedAt", i.fetchedAt)
             put("summary", i.summary)
             i.imageUrl?.let { put("image", it) }
-            if (i.paywall) put("paywall", true)
             i.lang?.let { put("lang", it) }
         }
 
@@ -170,18 +180,15 @@ object NewsJson {
             fetchedAt = o.long("fetchedAt") ?: 0,
             summary = o.text("summary").orEmpty(),
             imageUrl = o.text("image"),
-            paywall = o.bool("paywall") == true,
             lang = o.text("lang"),
         )
     }
 
-    private const val VERSION = 1
+    private const val VERSION = 2
 
     private fun JsonObject.text(key: String): String? = (this[key] as? JsonPrimitive)?.takeIf { it.isString }?.content
 
     private fun JsonObject.long(key: String): Long? = (this[key] as? JsonPrimitive)?.longOrNull
 
     private fun JsonObject.int(key: String): Int? = (this[key] as? JsonPrimitive)?.intOrNull
-
-    private fun JsonObject.bool(key: String): Boolean? = (this[key] as? JsonPrimitive)?.booleanOrNull
 }

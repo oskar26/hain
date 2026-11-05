@@ -22,12 +22,15 @@ class NewsToolTest {
     private val feeds =
         listOf(
             NewsFeed("tagesschau", "tagesschau", "https://www.tagesschau.de/index~rss2.xml", "de"),
-            NewsFeed("jungewelt", "junge Welt", "https://www.jungewelt.de/feeds/newsticker.rss", "de", paywall = true),
+            NewsFeed("jungewelt", "junge Welt", "https://www.jungewelt.de/feeds/newsticker.rss", "de"),
             NewsFeed("bbc", "BBC News", "https://feeds.bbci.co.uk/news/rss.xml", "en"),
         )
 
-    private fun tool(items: List<NewsItem>): NewsTool {
-        val store = MemoryNewsStore(NewsSnapshot(items = items, lastRefresh = now))
+    private fun tool(
+        items: List<NewsItem>,
+        locked: Set<String> = emptySet(),
+    ): NewsTool {
+        val store = MemoryNewsStore(NewsSnapshot(items = items, lastRefresh = now, locked = locked))
         val gate = FakeGate { GateResponse(500, "") }
         return NewsTool(NewsRepository(gate, store, feeds, FeedParser { KXmlParser() }, clock = { now }))
     }
@@ -47,14 +50,14 @@ class NewsToolTest {
         published = now - minutesAgo * MINUTE,
         fetchedAt = now,
         summary = summary,
-        paywall = feeds.first { it.id == feed }.paywall,
         lang = lang,
     )
 
     @Test fun linesHaveSourceTitleTeaserAndLocalDate() =
         runTest {
             val ford = item("jungewelt", "Streik bei Ford", 30, "Beschäftigte legen die Arbeit nieder.")
-            val result = tool(listOf(ford)).run(mapOf("query" to "Streik"), ctx)
+            // T-077: only an article the reading view found cut off carries the mark
+            val result = tool(listOf(ford), locked = setOf(ford.link!!)).run(mapOf("query" to "Streik"), ctx)
             assertNull(result.error)
             assertEquals(
                 "[1] junge Welt – Streik bei Ford – Beschäftigte legen die Arbeit nieder. – 2026-11-04 17:00",
@@ -63,6 +66,8 @@ class NewsToolTest {
             assertEquals("Streik", result.label)
             assertEquals("junge Welt: Streik bei Ford", result.sources.single().title)
             assertTrue(result.news.single().paywall)
+            val free = tool(listOf(ford)).run(mapOf("query" to "Streik"), ctx)
+            assertFalse(free.news.single().paywall)
         }
 
     @Test fun atMostEightHeadlinesNewestFirstWithoutQuery() =

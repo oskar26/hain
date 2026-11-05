@@ -616,3 +616,19 @@ Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen 
 - Gradle lokal nicht gestartet (geteilte Sandbox): ktlint 1.5.0 + detekt 1.23.8 CLI, `tools/check_strings.py` lokal, Rest über CI, APK, Screens.
 - `HainWindowSize`: eigene Klasse mit den Grenzen von Androids WindowSizeClass (600/840 dp), keine Material-Bibliothek. Breite aus `LocalConfiguration.screenWidthDp` (folgt Split-Screen und Drehen).
 - Konflikte mit `hark/news-reader` erwartet: ChatScreen.kt, ChatEngine.kt, MainActivity.kt, catalog.json, libs.versions.toml, gradle.properties, strings.xml, NewsTool.kt (dazu README/Website/TASKS/STATUS).
+## 2026-11-04 · 0.1.10.3 – News-Reader · review · harness: Hark · model: Hark · branch `hark/news-reader`
+
+| task | status | check result | files outside list (reason) | open issues |
+|---|---|---|---|---|
+| T-075 | review | `NewsRepositoryTest`, `FeedParserTest`, `NewsImagesTest` (5), `NewsViewModelTest` (7), `NewsScreenTest`; Screens `news_light/dark(_en)` | `core-tools/.../news/*` (Datenschicht, Commit 6c07e89 „T-230“), `MainActivity` (NewsImages, Prefs, Briefing-Store, Öffnen aus der Benachrichtigung) | Bilder-Tempo auf dem Handy messen |
+| T-076 | review | `ReadabilityTest` (Fixtures), `NewsViewModelTest` (öffnen/schließen); Screens `news_reader_*`, `news_tablet_*` | – | – |
+| T-077 | review | `PaywallTest`, `NewsViewModelTest` (gekürzter Artikel bekommt die Markierung) | – | – |
+| T-078 | review | `ArticleAskTest` (7, Kontextbudget), `NewsViewModelTest` (Frage + Übergabe an den Chat); Screen `news_ask_light` | `NewsBrain.kt` (nur-wenn-geladen-Variante), `SummarizeArticle` + Test entfernt | Antwortqualität mit echtem LFM3 |
+| T-079 | review | `BriefingTest` (9); Screen `news_briefing_light` | `HainApp` (BriefingDaily, NewsRepository als `dagger.Lazy`) | Benachrichtigung auf dem Gerät prüfen |
+
+- Task-IDs: T-230–T-237 sind im parallelen PR #52 (`hark/ui-polish`) vergeben → News-Reader unter den freien IDs T-075–T-079; der gepushte Commit 6c07e89 heißt noch „T-230“ (= Datenschicht von T-075–T-077), Kommentare im Code auf T-075/T-076 umbenannt.
+- Gradle lokal nicht gestartet (RAM, paralleler LLM-Test im Sandbox): ktlint 1.5.0, detekt 1.23.8 CLI, `tools/check_strings.py` lokal grün, Rest über CI.
+- Erwartete Konflikte mit #52: `MainActivity.kt` (News-Einhängepunkt), `feature-news/src/main/res/values(-de)/strings.xml`, README/STATUS/TASKS/HANDOFF_LOG, `gradle.properties`.
+- `hain.versionName=0.1.10.3`.
+- 05.11. main (mit #52, 0.1.10.2) in `hark/news-reader` gemergt: Konflikte in README, STATUS, HANDOFF_LOG, website/content.ts (Screenshots + Galerie beider Stände), gradle.properties (bleibt 0.1.10.3), NewsScreen.kt (T-238 `TextAction` 48 dp jetzt in `NewsCards.kt`, mind. 48 × 48 dp). NewsTool (Top-Schlagzeilen ohne Thema), Einstellungseintrag „Nachrichten“, MainActivity (Wikipedia-Pakete + News-Reader) automatisch zusammengeführt.
+- 05.11. CI: `8879379` (T-075 `TextAction` mit `onClick =`) kompiliert; danach rot in `NewsViewModelTest` (Leseansicht entfernt doppelte Absätze → Testseiten mit gleichen Absätzen zu kurz) → `a449a0a`/`b19d4b9` Tests mit verschiedenen Absätzen. Robolectric-Download-Flake (core-data/core-docs, IOException) einmalig, beim nächsten Lauf weg. CI @`b19d4b9`: assemble · test · lint · strings, debug APK (0.1.10.3, versionCode 197, `unzip -t` + apksigner ok) und Screens grün. Screens `news_*` in docs/design/screens/ + Website-WebPs (news, news_reader, DE/EN, hell/dunkel) aus dem Screens-Artifact.
