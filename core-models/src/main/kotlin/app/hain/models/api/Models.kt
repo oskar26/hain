@@ -33,6 +33,12 @@ data class ModelInfo(
     /** T-240: the optional "Großes Gehirn" for strong phones (Jan-v3.5-4B, ADR-24). */
     val isStrong: Boolean get() = tier == TIER_STRONG
 
+    /**
+     * T-260: the brain that was the default before (LFM3 1.7B). Shown only while it is on the phone,
+     * never recommended; LFM3-Omni 2B replaces it (same backbone, better tool discipline).
+     */
+    val isLegacy: Boolean get() = tier == TIER_LEGACY
+
     /** Packs of several files (dictation: graphs + tokenizer) live in their own folder (T-140). */
     val isMultiFile: Boolean get() = files.size > 1
 
@@ -43,11 +49,14 @@ data class ModelInfo(
         /** The pack "Suche nach Bedeutung" for the memory (T-110, MEMORY.md §3). */
         const val KIND_EMBED = "embed"
 
-        /** T-240: brain for every phone (LFM3 1.7B). */
+        /** T-240: brain for every phone (T-260: LFM3-Omni 2B). */
         const val TIER_STANDARD = "standard"
 
         /** T-240: optional bigger brain, offered only on phones with enough memory. */
         const val TIER_STRONG = "strong"
+
+        /** T-260: the former default brain, kept only for phones that still have it. */
+        const val TIER_LEGACY = "legacy"
 
         /** T-237: a knowledge pack (offline Wikipedia, Kiwix ZIM) for the `wikipedia` tool. */
         const val KIND_KNOWLEDGE = "knowledge"

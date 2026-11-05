@@ -51,13 +51,13 @@
     <string name="packs_wiki_de_all">Wikipedia German · all articles</string>
     <string name="packs_wiki_en_top">Wikipedia English · most read</string>
     <string name="packs_wiki_en_1m">Wikipedia English · 1 million articles</string>
-    <string name="packs_wiki_top_desc">The intros of the most read articles. Small, good to start with.</string>
-    <string name="packs_wiki_big_desc">The intro of almost every article. Big – best over Wi-Fi.</string>
-    <string name="packs_brain_desc">Pim\'s brain: answers, thinks and uses tools.</string>
-    <string name="packs_brain_strong_desc">Big brain for strong phones: picks tools more carefully and writes better German, but answers more slowly. Optional, the standard brain stays.</string>
-    <string name="packs_stt_desc">Dictation in this language, runs on your phone.</string>
+    <string name="packs_wiki_top_desc">The intros of the most read articles, offline. Small and good to start with; without a pack Pim asks Wikipedia online.</string>
+    <string name="packs_wiki_big_desc">The intro of almost every article. Big – only worth it if you are often offline; best over Wi-Fi.</string>
+    <string name="packs_brain_desc">The standard brain (LFM3-Omni 2B): quick, good German, uses tools. The best choice for almost every phone.</string>
+    <string name="packs_brain_strong_desc">Big brain (Jan 4B) for phones with 8 GB of RAM or more: picks tools more carefully and writes better German, but answers clearly more slowly and needs a lot of space. Worth it when quality matters more to you than speed.</string>
+    <string name="packs_stt_desc">Dictation with Moonshine, fully offline. Worth it if you often speak instead of typing; otherwise your keyboard\'s voice input is enough.</string>
     <string name="packs_ocr_title">Text recognition</string>
-    <string name="packs_ocr_desc">Reads text in photos and scanned PDFs (PP-OCRv5). Small, runs on your phone.</string>
+    <string name="packs_ocr_desc">Reads text in photos and scanned PDFs (PP-OCRv5), offline. Worth it if you often photograph worksheets, letters or signs; PDFs with real text work without it.</string>
     <string name="packs_failed">Did not work. Try again.</string>
     <string name="settings_news">News</string>
     <string name="settings_news_hint">Your sources and how news are shown.</string>
@@ -163,7 +163,7 @@
     <string name="dev_intro">For trying things out. Changes apply to your next message.</string>
     <string name="dev_model">Model</string>
     <string name="dev_model_active">In use: %1$s</string>
-    <string name="dev_model_default">LFM3 1.7B (Hain brain)</string>
+    <string name="dev_model_default">Hain brain (as picked in the chat)</string>
     <string name="dev_model_back">Use the Hain brain again</string>
     <string name="dev_model_back_hint">Your own model stays on the phone.</string>
     <string name="dev_model_repo">Model from Hugging Face</string>
@@ -240,4 +240,10 @@
     <string name="settings_export_all">Export all chats</string>
     <string name="settings_export_all_hint">One ZIP file with every chat as a Markdown file. You choose where it’s saved.</string>
     <string name="packs_embed_desc">Search by meaning: Pim finds your memories even when you use other words. Small, works offline, and everything stays on your phone.</string>
+    <string name="settings_privacy_group_online">Going online</string>
+    <string name="settings_privacy_group_safety">Safety</string>
+    <string name="settings_privacy_group_data">Your data</string>
+    <string name="dev_network">Network &amp; search</string>
+    <string name="dev_more">More</string>
+    <string name="packs_brain_legacy_desc">The previous brain (LFM3 1.7B). The standard brain usually answers better; keep this one only if you prefer its answers. Deleting it frees space.</string>
 </resources>

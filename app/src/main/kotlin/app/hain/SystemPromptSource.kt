@@ -8,6 +8,7 @@ import app.hain.llm.internal.ReplyLanguage
 import app.hain.llm.internal.ReplyLanguagePolicy
 import app.hain.llm.internal.SystemPromptFiller
 import app.hain.llm.internal.SystemPromptVars
+import app.hain.memory.internal.SelfFacts
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -21,6 +22,11 @@ import java.util.Locale
 class SystemPromptSource(
     private val context: Context,
     private val settings: () -> HainSettings = { HainSettings() },
+    /**
+     * T-262: kept facts that describe the user in one value ("wohnt in Köln", "heißt Mia"), for
+     * "Über den Nutzer"; the home place also fills "Ort". Empty while the memory is off or in a private chat.
+     */
+    private val profile: () -> List<String> = { emptyList() },
 ) {
     private val templates = mutableMapOf<ReplyLanguage, String>()
     private val toolTexts = mutableMapOf<ReplyLanguage, PromptTemplates>()
@@ -50,6 +56,7 @@ class SystemPromptSource(
     fun current(atMillis: Long = System.currentTimeMillis()): String {
         val device = deviceLocale()
         val current = settings()
+        val profile = profile()
         val language = ReplyLanguagePolicy.promptLanguage(current.answerLanguage, ReplyLanguage.fromLocale(device))
         val locale =
             Locale
@@ -62,6 +69,8 @@ class SystemPromptSource(
             SystemPromptVars
                 .of(at, locale, device.country.ifEmpty { null })
                 .copy(
+                    city = SelfFacts.homePlace(profile),
+                    memorySnippets = profile.joinToString("; ").ifBlank { null },
                     userCustomInstructions = instructions(language, current),
                     languageRule = ReplyLanguagePolicy.rule(language, current.answerLanguage),
                 )

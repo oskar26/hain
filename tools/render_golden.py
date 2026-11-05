@@ -24,7 +24,10 @@ Scenario JSON format (also what LfmPromptBuilderTest parses):
   "enable_thinking": true
 }
 
-Usage: python3 tools/render_golden.py   (needs: pip install jinja2)
+Usage: python3 tools/render_golden.py          (needs: pip install jinja2)
+       python3 tools/render_golden.py --omni   (T-260: the same scenarios with thinking off through
+                                                prompts/lfm3-omni-2b_chat_template.jinja → golden/omni/O-xx;
+                                                LFM3-Omni 2B uses LfmPromptBuilder, these prove it fits)
 """
 
 from __future__ import annotations
@@ -188,14 +191,24 @@ def to_template_messages(scenario: dict) -> list[dict]:
 
 
 def main() -> None:
+    import sys
+
+    omni = "--omni" in sys.argv[1:]
+    template_path = ROOT / "prompts" / "lfm3-omni-2b_chat_template.jinja" if omni else TEMPLATE
+    out_dir = OUT / "omni" if omni else OUT
     env = jinja2.Environment(extensions=[GenerationExtension, "jinja2.ext.loopcontrols"], keep_trailing_newline=True)
     env.policies["json.dumps_function"] = json.dumps
     env.filters["tojson"] = tojson
     env.globals["raise_exception"] = raise_exception
-    template = env.from_string(TEMPLATE.read_text(encoding="utf-8"))
+    template = env.from_string(template_path.read_text(encoding="utf-8"))
 
-    OUT.mkdir(parents=True, exist_ok=True)
+    out_dir.mkdir(parents=True, exist_ok=True)
     for name, scenario in SCENARIOS:
+        if omni:
+            # Omni is a non-reasoning model: thinking always off, no reasoning text in old answers
+            name = "O" + name[1:]
+            scenario = dict(scenario, enable_thinking=False)
+            scenario["messages"] = [{k: v for k, v in m.items() if k != "reasoning"} for m in scenario["messages"]]
         tools = [{"type": "function", "function": t} for t in scenario["tools"]]
         prompt = template.render(
             messages=to_template_messages(scenario),
@@ -204,8 +217,8 @@ def main() -> None:
             add_generation_prompt=scenario["add_generation_prompt"],
             enable_thinking=scenario["enable_thinking"],
         )
-        (OUT / f"{name}.json").write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        (OUT / f"{name}.txt").write_bytes(prompt.encode("utf-8"))
+        (out_dir / f"{name}.json").write_text(json.dumps(scenario, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        (out_dir / f"{name}.txt").write_bytes(prompt.encode("utf-8"))
         print(f"{name}: {len(prompt)} chars")
 
 

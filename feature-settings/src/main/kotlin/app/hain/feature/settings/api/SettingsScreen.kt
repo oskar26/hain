@@ -196,7 +196,8 @@ private fun PageBody(
             .fillMaxWidth()
             .glassTile(page.hue, elevation = 8.dp, lightAt = Offset(x = 0.5f, y = 0f))
             .padding(LocalHainSpacing.current.lg),
-        verticalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.md),
+        // T-266: 16 dp between the rows of a page (was 12)
+        verticalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.lg),
     ) {
         SettingsPageContent(page, settings, actions, networkLog, extras)
     }

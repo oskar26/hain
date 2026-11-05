@@ -294,6 +294,9 @@ object BriefingJson {
     private fun JsonObject.str(key: String): String? = (this[key] as? JsonPrimitive)?.takeIf { it.isString }?.content
 }
 
+/** T-265: what the briefing is doing right now, shown on its card with a counter for the feeds. */
+enum class BriefingStep { FEEDS, READING, SUMMING_UP }
+
 /**
  * Today's briefing (T-079): made at most once a day and kept in [store]; "Neu erzeugen" makes it
  * again. With a brain each point is one short sentence written on the phone; without one (or when it
@@ -331,12 +334,14 @@ class BriefingMaker(
         lang: String,
         force: Boolean = false,
         useBrain: Boolean = true,
+        onStep: (BriefingStep) -> Unit = {},
     ): Briefing? =
         lock.withLock {
             val kept = cached()
             val upgrade = kept != null && !kept.byBrain && useBrain && quickBrain != null
             if (kept != null && !force && !upgrade) return@withLock kept
             val now = clock()
+            onStep(BriefingStep.READING)
             val stories = BriefingPicker.stories(items, now)
             if (stories.size < MIN_STORIES) return@withLock kept
             val writer =
@@ -347,6 +352,7 @@ class BriefingMaker(
                 } else {
                     quickBrain
                 }
+            if (writer != null) onStep(BriefingStep.SUMMING_UP)
             val sentences = writer?.let { brainSentences(it, stories, lang) }
             // an upgrade without an answer keeps today's briefing as it is
             if (upgrade && !force && sentences == null) return@withLock kept

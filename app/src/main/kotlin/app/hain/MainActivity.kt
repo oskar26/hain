@@ -54,6 +54,7 @@ import app.hain.entry.LaunchIntents
 import app.hain.entry.LaunchRequest
 import app.hain.entry.WidgetData
 import app.hain.entry.applyTo
+import app.hain.feature.chat.api.BrainUpgradeBanner
 import app.hain.feature.chat.api.ChatDocs
 import app.hain.feature.chat.api.ChatExtras
 import app.hain.feature.chat.api.ChatScreen
@@ -72,11 +73,13 @@ import app.hain.feature.memory.api.SmartSearch
 import app.hain.feature.news.api.BriefingDaily
 import app.hain.feature.news.api.FileBriefingStore
 import app.hain.feature.news.api.NewsImages
+import app.hain.feature.news.api.NewsPage
 import app.hain.feature.news.api.NewsScreen
 import app.hain.feature.news.api.SharedNewsPrefs
 import app.hain.feature.onboarding.api.OnboardingScreen
 import app.hain.feature.settings.api.AppInfo
 import app.hain.feature.settings.api.ExtraPack
+import app.hain.feature.settings.api.PackCategory
 import app.hain.feature.settings.api.PacksScreen
 import app.hain.feature.settings.api.SettingsActions
 import app.hain.feature.settings.api.SettingsExtras
@@ -92,6 +95,8 @@ import app.hain.memory.api.MemoryExtraction
 import app.hain.memory.api.MemoryStore
 import app.hain.memory.api.MemoryTurn
 import app.hain.memory.api.RememberTool
+import app.hain.memory.internal.SelfFacts
+import app.hain.models.api.BrainUpgrade
 import app.hain.models.api.DevModels
 import app.hain.models.api.DeviceCheck
 import app.hain.models.api.DeviceProfile
@@ -386,8 +391,12 @@ class MainActivity : FragmentActivity() {
                             searxUrl = SearxAddress.normalize(cfg.searxUrl),
                             webSearch = cfg.webSearch,
                             here = if (cfg.weatherLocation) WeatherLocation.last(applicationContext) else null,
+                            // T-263: the kept home place for weather without place (never in a private chat)
+                            homePlace = if (privateChatOpen) null else memory.homePlace(),
                         )
                     },
+                    // T-263: "ich bin nach Köln gezogen" earlier in this chat → weather there
+                    placeOf = { messages -> SelfFacts.homePlace(SelfFacts.ruleFacts(messages).map { it.text }) },
                     tuning = { settings().dev },
                     ownModel = { ownModelPath() != null },
                     // 7b: off the main thread, may embed the question with the pack "Suche nach Bedeutung"
@@ -483,7 +492,11 @@ class MainActivity : FragmentActivity() {
                 .drop(1)
                 .collect { HainWidget.refresh(applicationContext) }
         }
-        val prompts = SystemPromptSource(applicationContext) { current }
+        // T-262: the user's kept one-value facts (home, name …) in "Über den Nutzer", never in a private chat
+        val prompts =
+            SystemPromptSource(applicationContext, { current }) {
+                if (privateChatOpen) emptyList() else memory.profile().map { it.text }
+            }
         // T-056: start locked when the lock is on (read synchronously, so the chat never flashes up)
         val lockOn = startPrefs.getBoolean(KEY_LOCK, false)
         appLock = AppLock(this, initiallyLocked = lockOn)
@@ -511,9 +524,13 @@ class MainActivity : FragmentActivity() {
             current = settings
             var showSettings by rememberSaveable { mutableStateOf(false) }
             var showPacks by rememberSaveable { mutableStateOf(false) }
+            // T-260: "Laden" for a brain opens Modelle & Pakete right on the brains page
+            var packsAtBrains by rememberSaveable { mutableStateOf(false) }
             var showMemory by rememberSaveable { mutableStateOf(false) }
             var showGame by rememberSaveable { mutableStateOf(false) }
             var showNews by rememberSaveable { mutableStateOf(false) }
+            // T-266: "Nachrichten" in the settings opens the news settings right away; back returns there
+            var newsFromSettings by rememberSaveable { mutableStateOf(false) }
             LaunchedEffect(openNewsRequest) {
                 if (openNewsRequest) {
                     showNews = true
@@ -586,11 +603,15 @@ class MainActivity : FragmentActivity() {
                                 }
                             }
                             var updateHidden by rememberSaveable { mutableStateOf(false) }
+                            var upgradeHidden by rememberSaveable { mutableStateOf(false) }
                             val dev = settings.dev
                             ChatScreen(
                                 viewModel = chatViewModel,
                                 onOpenSettings = { showSettings = true },
-                                onGetBrain = { showPacks = true },
+                                onGetBrain = {
+                                    packsAtBrains = true
+                                    showPacks = true
+                                },
                                 answerMode = settings.answerMode,
                                 onAnswerMode = { mode ->
                                     lifecycleScope.launch { settingsRepository.setAnswerMode(mode) }
@@ -618,7 +639,24 @@ class MainActivity : FragmentActivity() {
                                     ),
                                 banner = {
                                     val status = updateStatus
-                                    if (status is UpdateStatus.Newer && !updateHidden) {
+                                    // T-260: switch to the new default brain (LFM3-Omni 2B), never by itself
+                                    val upgrade by
+                                        remember { brainPicking.upgradeFlow() }
+                                            .collectAsStateWithLifecycle(BrainUpgrade.NONE)
+                                    if (upgrade != BrainUpgrade.NONE && !upgradeHidden) {
+                                        BrainUpgradeBanner(
+                                            upgrade = upgrade,
+                                            onGet = {
+                                                packsAtBrains = true
+                                                showPacks = true
+                                            },
+                                            onRemoveOld = {
+                                                brainPicking.removeOldBrains()
+                                                upgradeHidden = true
+                                            },
+                                            onLater = { upgradeHidden = true },
+                                        )
+                                    } else if (status is UpdateStatus.Newer && !updateHidden) {
                                         val uri = LocalUriHandler.current
                                         UpdateBanner(status.versionName, { uri.openUri(status.page) }, {
                                             updateHidden =
@@ -678,7 +716,11 @@ class MainActivity : FragmentActivity() {
                                     }
                                 NewsScreen(
                                     newsViewModel,
-                                    { showNews = false },
+                                    {
+                                        showNews = false
+                                        if (newsFromSettings) showSettings = true
+                                        newsFromSettings = false
+                                    },
                                     images = newsImages,
                                     // T-078: "Im Chat weiterführen" opens a new chat with the article and Pim's answer
                                     onContinueInChat = { text ->
@@ -687,6 +729,7 @@ class MainActivity : FragmentActivity() {
                                         composerFocus++
                                     },
                                     onBriefingSchedule = { on -> BriefingDaily.schedule(applicationContext, on) },
+                                    startPage = if (newsFromSettings) NewsPage.SETTINGS else NewsPage.LIST,
                                 )
                             }
                             AnimatedVisibility(
@@ -706,6 +749,7 @@ class MainActivity : FragmentActivity() {
                                         // T-234: "Nachrichten" leads to the news page and its settings
                                         onOpenNews = {
                                             showSettings = false
+                                            newsFromSettings = true
                                             showNews = true
                                         },
                                     ),
@@ -745,7 +789,16 @@ class MainActivity : FragmentActivity() {
                                         slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
                                 exit = fadeOut(hainTween(HainMotion.FAST_MS)),
                             ) {
-                                PacksScreen(models, deviceRamGb(), { showPacks = false }, extras = listOf(ocrPack))
+                                PacksScreen(
+                                    models,
+                                    deviceRamGb(),
+                                    {
+                                        showPacks = false
+                                        packsAtBrains = false
+                                    },
+                                    extras = listOf(ocrPack),
+                                    startCategory = if (packsAtBrains) PackCategory.BRAINS else null,
+                                )
                             }
                         }
                     }

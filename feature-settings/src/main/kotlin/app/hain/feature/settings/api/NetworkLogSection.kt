@@ -56,19 +56,18 @@ internal enum class LogFilter(
 
 /**
  * Network log (T-069): every time Hain went online in the last 7 days — when, where to, why and how
- * much. Filter by kind, clear it, or keep full addresses.
+ * much. Filter by kind or clear it; "full addresses" sits in the developer area (T-266).
  */
 @Composable
 internal fun NetworkLogSection(
     entries: List<NetworkLogEntry>,
-    detail: Boolean,
     actions: SettingsActions,
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     val spacing = LocalHainSpacing.current
     var filter by rememberSaveable { mutableIntStateOf(0) }
-    Group(R.string.settings_log_title)
+    BasicText(stringResource(R.string.settings_log_title), style = type.body.copy(color = colors.text))
     BasicText(stringResource(R.string.settings_log_hint), style = type.label.copy(color = colors.textMuted))
     val filters = LogFilter.entries
     SegmentedControl(filters.map { stringResource(it.label) }, filter, { filter = it })
@@ -82,7 +81,6 @@ internal fun NetworkLogSection(
         }
         shown.take(MAX_ROWS).forEach { LogRow(it) }
     }
-    Toggle(R.string.settings_log_detail, R.string.settings_log_detail_hint, detail, actions.onNetworkLogDetail)
     if (entries.isNotEmpty()) {
         BasicText(
             stringResource(R.string.settings_log_clear),

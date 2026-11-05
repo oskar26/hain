@@ -13,11 +13,13 @@ import app.hain.llm.api.StopReason
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
@@ -111,7 +113,9 @@ class LlamaEngine(
         template = runCatching { NativeLlm.nativeChatTemplate(h) }.getOrNull()
         stateDir()?.let { NativeLlm.nativeSetStateDir(h, it) }
         val arch = runCatching { NativeLlm.nativeMeta(h, ARCH_KEY) }.getOrNull()
-        loadedFormat = BrainFormat.ofArchitecture(arch?.decodeToString())
+        // T-260: LFM3-Omni has the LFM3 architecture; its name tells it apart (no thinking, near-greedy)
+        val name = runCatching { NativeLlm.nativeMeta(h, NAME_KEY) }.getOrNull()
+        loadedFormat = BrainFormat.of(arch?.decodeToString(), name?.decodeToString())
         Log.i(
             TAG,
             "brain loaded in ${NativeLlm.nativeStats(h)[0].toInt()} ms, context $contextSize, " +
@@ -179,7 +183,10 @@ class LlamaEngine(
             trySend(GenerationEvent.Done(code.toStopReason(), stats))
             close()
             awaitClose { }
-        }.flowOn(dispatcher)
+        }
+            // T-264: no token may get lost; the default buffer of 64 dropped tokens when the UI lagged behind
+            .buffer(Channel.UNLIMITED)
+            .flowOn(dispatcher)
 
     override fun cancel() {
         cancelledUpTo = started
@@ -260,7 +267,12 @@ class LlamaEngine(
             ?.let { ", snapshot from disk in ${it.toInt()} ms" }
             .orEmpty()
 
-    private fun threadCount(): Int = (Runtime.getRuntime().availableProcessors() - 2).coerceIn(2, MAX_THREADS)
+    /** T-264: only the performance cores (CpuCores); logged once per load. */
+    private fun threadCount(): Int {
+        val threads = CpuCores.threads(CpuCores.read())
+        Log.i(TAG, "brain threads: $threads (performance cores)")
+        return threads
+    }
 
     private fun Int.toStopReason(): StopReason =
         when (this) {
@@ -274,7 +286,6 @@ class LlamaEngine(
     private companion object {
         const val TAG = "HainLlm"
         const val CARD_GRAMMAR = "card.gbnf"
-        const val MAX_THREADS = 6
         const val PROGRESS_STEP = 0.02f
         const val STAT_PROMPT = 1
         const val STAT_REUSED = 2
@@ -284,6 +295,7 @@ class LlamaEngine(
         const val STAT_RESTORED_MS = 6
         const val STATE_DIR = "llm-state"
         const val ARCH_KEY = "general.architecture"
+        const val NAME_KEY = "general.name"
     }
 }
 

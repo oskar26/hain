@@ -73,4 +73,6 @@
         <item quantity="one">%d Erinnerung genutzt</item>
         <item quantity="other">%d Erinnerungen genutzt</item>
     </plurals>
+    <string name="memory_chip_keep">Merken: %1$s</string>
+    <string name="memory_chip_kept">Gemerkt: %1$s ✓</string>
 </resources>

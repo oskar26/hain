@@ -1,0 +1,20 @@
+{
+  "system": "You are Hain, a friendly helper that runs fully on this phone.\n\n# Context\nNow: Sonntag, 1. November 2026, 19:40 (Europe/Berlin). Place: Köln.",
+  "tools": [],
+  "messages": [
+    {
+      "role": "user",
+      "content": "Sag Hallo."
+    },
+    {
+      "role": "assistant",
+      "content": "Hallo! 🌱"
+    },
+    {
+      "role": "user",
+      "content": "Noch mal auf Englisch, bitte."
+    }
+  ],
+  "add_generation_prompt": true,
+  "enable_thinking": false
+}

@@ -20,7 +20,10 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** T-114: background extraction with a fake brain: suggestions only, dedupe against kept facts. */
+/**
+ * T-114: background extraction with a fake brain: suggestions only, dedupe against kept facts.
+ * T-262: only the user's own statements reach the brain; pattern facts come first.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 class FactExtractorTest {
     private val prompts = ExtractionPrompts(extract = "EXTRACT", compare = "COMPARE")
@@ -56,13 +59,13 @@ class FactExtractorTest {
         runTest(UnconfinedTestDispatcher()) {
             val store = DefaultMemoryStore(InMemoryFactSource(), backgroundScope)
             val brain = FakeBrain(facts("spielt Gitarre", "Schwester heißt Rosa"))
-            val out = FactExtractor(store, brain, prompts).run(chat, chatId = 4)
+            val out = FactExtractor(store, brain, prompts, useRules = false).run(chat, chatId = 4)
             assertEquals(listOf("spielt Gitarre", "Schwester heißt Rosa"), out.suggested.map { it.text })
             assertTrue(store.facts.value.all { it.suggested && it.originChatId == 4L })
             // nothing is used in answers until the user says yes
             assertNull(store.context("Gitarre", "de"))
-            // the transcript went to the brain, Pim's lines marked as such
-            assertEquals("User: Ich spiele Gitarre und meine Schwester heißt Rosa.\nPim: Schön!", brain.asked[0].second)
+            // T-262: only the user's own statements went to the brain, Pim's answer not
+            assertEquals("User: Ich spiele Gitarre und meine Schwester heißt Rosa.", brain.asked[0].second)
         }
 
     @Test
@@ -72,7 +75,7 @@ class FactExtractorTest {
             store.remember("spielt Gitarre")
             // "spielt Gitarre" is kept already; "Spielt Gitarre!" is the same text; the brain says "same" to the rest
             val brain = FakeBrain(facts("Spielt Gitarre!", "spielt gern Gitarre"), """{"label":"same"}""")
-            val out = FactExtractor(store, brain, prompts).run(chat, null)
+            val out = FactExtractor(store, brain, prompts, useRules = false).run(chat, null)
             assertTrue(out.suggested.isEmpty())
             assertEquals(2, out.skipped)
             assertEquals(listOf("spielt Gitarre"), store.facts.value.map { it.text })
@@ -85,7 +88,8 @@ class FactExtractorTest {
             val store = DefaultMemoryStore(source, backgroundScope)
             val old = store.remember("wohnt in Köln")!!
             val brain = FakeBrain(facts("wohnt jetzt in Bonn"), """{"label":"update"}""")
-            val out = FactExtractor(store, brain, prompts).run(chat, null)
+            val moved = listOf(ChatLine(true, "Ich wohne jetzt in Bonn."))
+            val out = FactExtractor(store, brain, prompts, useRules = false).run(moved, null)
             val suggestion = out.suggested.single()
             assertEquals(old.id, suggestion.replaces)
             // the old fact is still in use while the suggestion waits
@@ -126,7 +130,8 @@ class FactExtractorTest {
             store.remember("wohnt in Köln")
             val found = facts("ist Kölnerin", "zieht nach Bonn", "hat einen Hund")
             val brain = FakeBrain(found, """{"label":"contradiction"}""")
-            val out = FactExtractor(store, brain, prompts).run(chat, null)
+            val said = listOf(ChatLine(true, "Ich bin Kölnerin, ich ziehe nach Bonn und ich habe einen Hund."))
+            val out = FactExtractor(store, brain, prompts, useRules = false).run(said, null)
             // "ist Kölnerin" ≥ 0.92 → duplicate, no question; "Bonn" 0.87 → asked; "Hund" ≤ 0 → new, no question
             assertEquals(listOf("zieht nach Bonn", "hat einen Hund"), out.suggested.map { it.text })
             assertEquals(1, brain.asked.count { it.first == "COMPARE" })
@@ -149,8 +154,10 @@ class FactExtractorTest {
 
             val store = DefaultMemoryStore(InMemoryFactSource(), backgroundScope)
             val broken = ExtractionBrain { _, _, _, _ -> null }
-            assertTrue(FactExtractor(store, broken, prompts).run(chat, null).suggested.isEmpty())
-            assertTrue(FactExtractor(store, FakeBrain("not json"), prompts).run(chat, null).suggested.isEmpty())
+            // T-262: the plain patterns work without a brain, so only the brain part is checked here
+            assertTrue(FactExtractor(store, broken, prompts, useRules = false).run(chat, null).suggested.isEmpty())
+            val notJson = FactExtractor(store, FakeBrain("not json"), prompts, useRules = false)
+            assertTrue(notJson.run(chat, null).suggested.isEmpty())
         }
 
     @Test
@@ -180,10 +187,39 @@ class FactExtractorTest {
     }
 
     @Test
-    fun theTranscriptKeepsTheLastTwelveMessages() {
-        val lines = (1..20).map { ChatLine(it % 2 == 1, "m$it") }
-        val text = FactExtractor.transcript(lines)
+    fun theTranscriptKeepsTheLastTwelveStatements() {
+        val text = FactExtractor.transcript((1..20).map { "Ich mag m$it" })
         assertEquals(12, text.lines().size)
-        assertTrue(text.startsWith("Pim: m9") || text.startsWith("User: m9"))
+        assertTrue(text.startsWith("User: Ich mag m9"))
     }
+
+    @Test
+    fun questionsAboutOthersNeverReachTheBrain() =
+        runTest(UnconfinedTestDispatcher()) {
+            val store = DefaultMemoryStore(InMemoryFactSource(), backgroundScope)
+            val brain = FakeBrain(facts("wohnt in Washington"))
+            val asked =
+                listOf(
+                    ChatLine(true, "Wo wohnt der Präsident der USA?"),
+                    ChatLine(false, "Er wohnt im Weißen Haus in Washington."),
+                )
+            assertTrue(FactExtractor(store, brain, prompts).run(asked, null).suggested.isEmpty())
+            assertTrue(brain.asked.isEmpty())
+        }
+
+    @Test
+    fun patternFactsComeFirstAndUngroundedBrainFactsAreDropped() =
+        runTest(UnconfinedTestDispatcher()) {
+            val store = DefaultMemoryStore(InMemoryFactSource(), backgroundScope)
+            // the brain repeats the pattern fact and adds one the user never said
+            val brain = FakeBrain(facts("wohnt in Köln", "Goethe schrieb den Faust"))
+            val lines =
+                listOf(
+                    ChatLine(true, "Wer hat den Faust geschrieben?"),
+                    ChatLine(false, "Goethe."),
+                    ChatLine(true, "ich bin neu nach Köln gezogen was machen"),
+                )
+            val out = FactExtractor(store, brain, prompts).run(lines, null)
+            assertEquals(listOf("wohnt in Köln"), out.suggested.map { it.text })
+        }
 }

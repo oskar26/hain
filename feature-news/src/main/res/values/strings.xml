@@ -94,4 +94,8 @@
     <string name="news_prefs_sample">This is how a paragraph looks in the reading view. Hain shows the article right in the app, without ads or trackers.</string>
     <string name="news_bigger">Bigger</string>
     <string name="news_smaller">Smaller</string>
+    <string name="news_briefing_make_now">Make it now</string>
+    <string name="news_briefing_step_feeds">Loading feeds %1$d/%2$d</string>
+    <string name="news_briefing_step_reading">Reading the articles</string>
+    <string name="news_briefing_step_summing">Summing up</string>
 </resources>

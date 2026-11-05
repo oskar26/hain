@@ -23,6 +23,10 @@ data class ToolContext(
     val here: GeoPoint? = null,
     /** Häppchen 9: long documents attached in this chat; `search_document` reads only these. */
     val documents: List<Long> = emptyList(),
+    /** T-263: where the user said in this chat they live ("ich bin nach Köln gezogen"), for weather without place. */
+    val chatPlace: String? = null,
+    /** T-263: the home place the memory keeps ("wohnt in Köln"), used when no place and no location are there. */
+    val homePlace: String? = null,
 ) {
     companion object {
         const val DEFAULT_PAGES = 3

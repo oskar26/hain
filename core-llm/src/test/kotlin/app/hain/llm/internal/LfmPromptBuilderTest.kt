@@ -37,6 +37,19 @@ class LfmPromptBuilderTest {
 
     @Test fun g06NoThink() = assertGolden("G-06_nothink")
 
+    // T-260: LFM3-Omni 2B uses this builder; the same scenarios through the Omni Jinja (thinking off)
+    @Test fun o01Plain() = assertGolden("omni/O-01_plain")
+
+    @Test fun o02System() = assertGolden("omni/O-02_system")
+
+    @Test fun o03Tools() = assertGolden("omni/O-03_tools")
+
+    @Test fun o04ToolLoop() = assertGolden("omni/O-04_toolloop")
+
+    @Test fun o05Multiturn() = assertGolden("omni/O-05_multiturn_thinking_dropped")
+
+    @Test fun o06NoThink() = assertGolden("omni/O-06_nothink")
+
     @Test
     fun noSystemTurnWithoutSystemAndTools() {
         val prompt = builder.build(null, emptyList(), listOf(ChatMessage(Role.USER, "Hi")))

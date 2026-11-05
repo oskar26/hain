@@ -125,6 +125,8 @@ internal fun SettingsPageContent(
         }
         SettingsPage.PRIVACY -> {
             Info(R.string.settings_privacy_text)
+            // T-266: three calm groups; the technical parts (own search, full addresses) are in the developer area
+            Group(R.string.settings_privacy_group_online)
             Toggle(
                 R.string.settings_offline,
                 R.string.settings_offline_hint,
@@ -141,13 +143,6 @@ internal fun SettingsPageContent(
                 ),
                 actions.onWebSearch,
             )
-            SearxSetting(settings.searxUrl, actions.onSearxUrl)
-            Toggle(
-                R.string.settings_source_icons,
-                R.string.settings_source_icons_hint,
-                settings.sourceIcons,
-                actions.onSourceIcons,
-            )
             Toggle(
                 R.string.settings_weather_location,
                 R.string.settings_weather_location_hint,
@@ -155,17 +150,36 @@ internal fun SettingsPageContent(
                 actions.onWeatherLocation,
             )
             Toggle(
+                R.string.settings_source_icons,
+                R.string.settings_source_icons_hint,
+                settings.sourceIcons,
+                actions.onSourceIcons,
+            )
+            Group(R.string.settings_privacy_group_safety)
+            Toggle(
                 R.string.settings_confirm_actions,
                 R.string.settings_confirm_actions_hint,
                 settings.confirmActions,
                 actions.onConfirmActions,
             )
             AppLockSection(settings, actions, extras.lockAvailable)
+            Group(R.string.settings_privacy_group_data)
             ExportAllSection(actions)
-            NetworkLogSection(networkLog, settings.networkLogDetail, actions)
+            NetworkLogSection(networkLog, actions)
         }
         SettingsPage.ABOUT -> AboutPage(settings, actions, extras.appInfo, extras.updateStatus)
-        SettingsPage.DEVELOPER -> DeveloperPage(settings.dev, actions, extras.devModels)
+        SettingsPage.DEVELOPER ->
+            DeveloperPage(settings.dev, actions, extras.devModels) {
+                // T-266: moved here from "Privatsphäre"
+                Group(R.string.dev_network)
+                SearxSetting(settings.searxUrl, actions.onSearxUrl)
+                Toggle(
+                    R.string.settings_log_detail,
+                    R.string.settings_log_detail_hint,
+                    settings.networkLogDetail,
+                    actions.onNetworkLogDetail,
+                )
+            }
     }
 }
 
@@ -174,7 +188,7 @@ internal fun SettingsPageContent(
  * Hain can use what you typed (only https).
  */
 @Composable
-private fun SearxSetting(
+internal fun SearxSetting(
     value: String,
     onChange: (String) -> Unit,
 ) {

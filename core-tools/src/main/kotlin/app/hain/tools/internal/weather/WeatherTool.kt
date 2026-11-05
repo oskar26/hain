@@ -42,7 +42,10 @@ class WeatherTool(
         args: Map<String, Any?>,
         ctx: ToolContext,
     ): ToolResult {
-        val place = Args.string(args, "place")?.takeUnless { HERE.matches(it.trim()) }
+        val asked = Args.string(args, "place")?.takeUnless { HERE.matches(it.trim()) }
+        // T-263: no place in the call → the place the user named in this chat ("bin nach Köln gezogen"),
+        // then the phone's location (if allowed), then the home place the memory keeps; only then ask
+        val place = asked ?: ctx.chatPlace ?: ctx.homePlace?.takeIf { ctx.here == null }
         val days = (Args.int(args, "days") ?: DEFAULT_DAYS).coerceIn(1, MAX_DAYS)
         val lang = if (ctx.lang == "de") "de" else "en"
         val hit =

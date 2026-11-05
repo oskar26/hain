@@ -60,7 +60,7 @@ class MemoryExtraction(
     private val context: Context,
     private val store: MemoryStore,
     private val llm: LlmEngine,
-    private val brainPath: () -> String?,
+    private val brainPath: suspend () -> String?,
     private val chats: ChatDao,
     private val messages: MessageDao,
 ) {

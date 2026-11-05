@@ -161,6 +161,17 @@ internal fun ModelPickerContent(
     }
 }
 
+/**
+ * T-240: the optional strong brain gets its own plain name instead of the size word; T-260: the
+ * former default brain is called what it is, so it is not mixed up with the new one.
+ */
+internal fun brainName(option: BrainOption): Int =
+    when {
+        option.strong -> R.string.chat_brain_strong
+        option.model.isLegacy -> R.string.chat_brain_legacy
+        else -> option.size.label()
+    }
+
 /** One brain: plain name, model name + size, "recommended" tag, green check on the one in use. */
 @Suppress("LongMethod") // one row: semantics, texts, tag and check
 @Composable
@@ -172,8 +183,7 @@ private fun BrainRow(
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     val spacing = LocalHainSpacing.current
-    // T-240: the optional strong brain gets its own plain name instead of the size word
-    val name = stringResource(if (option.strong) R.string.chat_brain_strong else option.size.label())
+    val name = stringResource(brainName(option))
     val size = Formatter.formatShortFileSize(LocalContext.current, option.model.totalSize)
     val detail =
         if (option.installed) {

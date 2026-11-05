@@ -72,28 +72,32 @@ object BrainChoice {
         catalog: List<ModelInfo>,
         device: DeviceProfile,
     ): ModelInfo? {
-        val brains = brains(catalog)
         // free space only matters for brains still to download, not for the recommendation itself
         val roomy = device.copy(freeBytes = Long.MAX_VALUE)
-        return brains
+        val current = brains(catalog).filterNot { it.isLegacy }
+        return current
             .filter { DeviceCheck.fit(it, roomy) == Fit.GOOD && device.ramGb >= it.recommendRamGb }
             .maxByOrNull { it.totalSize }
-            ?: brains.filter { DeviceCheck.fit(it, roomy) == Fit.GOOD }.minByOrNull { it.totalSize }
-            ?: brains.filter { DeviceCheck.fit(it, roomy) == Fit.TIGHT }.minByOrNull { it.totalSize }
+            ?: current.filter { DeviceCheck.fit(it, roomy) == Fit.GOOD }.minByOrNull { it.totalSize }
+            ?: current.filter { DeviceCheck.fit(it, roomy) == Fit.TIGHT }.minByOrNull { it.totalSize }
     }
 
     /**
      * T-240: whether a brain is shown at all. The Großes Gehirn ([ModelInfo.isStrong]) is only offered
      * where it can run (not [Fit.TOO_SMALL]) or when it is already on the phone; standard brains always.
+     * T-260: the former default brain ([ModelInfo.isLegacy]) only while it is on the phone.
      */
     fun offered(
         model: ModelInfo,
         device: DeviceProfile,
         installed: Boolean,
-    ): Boolean {
-        if (!model.isStrong || installed) return true
-        return DeviceCheck.fit(model, device.copy(freeBytes = Long.MAX_VALUE)) != Fit.TOO_SMALL
-    }
+    ): Boolean =
+        when {
+            installed -> true
+            model.isLegacy -> false
+            !model.isStrong -> true
+            else -> DeviceCheck.fit(model, device.copy(freeBytes = Long.MAX_VALUE)) != Fit.TOO_SMALL
+        }
 
     /** Menu rows: brains on the phone first (small to big), then the ones still to download. */
     fun options(
@@ -118,5 +122,47 @@ object BrainChoice {
                     fit = DeviceCheck.fit(model, device),
                 )
             }.sortedWith(compareBy<BrainOption> { !it.installed }.thenBy { it.model.totalSize })
+    }
+}
+
+/** T-260: what the switch to the new default brain still needs on this phone. */
+enum class BrainUpgrade {
+    /** Nothing to do: the default brain is in use (or no brain is on the phone yet: onboarding). */
+    NONE,
+
+    /** Chats run on the former default brain; the new one is not on the phone yet. */
+    GET_NEW,
+
+    /** The new default brain is on the phone and in use; the former one only takes space. */
+    REMOVE_OLD,
+    ;
+
+    companion object {
+        /**
+         * Pure rule: [GET_NEW] while the brain in use is a legacy one and the default is missing,
+         * [REMOVE_OLD] once the default is on the phone and no legacy brain is picked any more.
+         */
+        fun of(
+            catalog: List<ModelInfo>,
+            selectedId: String?,
+            installed: (ModelInfo) -> Boolean,
+        ): BrainUpgrade {
+            val brains = BrainChoice.brains(catalog)
+            val default = brains.firstOrNull { it.isDefault }
+            val hasLegacy = brains.any { it.isLegacy && installed(it) }
+            if (default == null || !hasLegacy) return NONE
+            val active = BrainChoice.active(catalog, selectedId, installed)
+            return when {
+                !installed(default) && active.isLegacy -> GET_NEW
+                installed(default) && !active.isLegacy -> REMOVE_OLD
+                else -> NONE
+            }
+        }
+
+        /** The legacy brains on the phone (what "remove the old brain" deletes). */
+        fun oldBrains(
+            catalog: List<ModelInfo>,
+            installed: (ModelInfo) -> Boolean,
+        ): List<ModelInfo> = BrainChoice.brains(catalog).filter { it.isLegacy && installed(it) }
     }
 }

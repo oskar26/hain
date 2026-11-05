@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -101,7 +102,8 @@ internal fun BriefingCard(
     val type = LocalHainTypography.current
     val spacing = LocalHainSpacing.current
     val briefing = state.briefing
-    if (briefing == null && !state.making) return
+    // T-265: before the first briefing the card offers to make one now
+    if (briefing == null && !state.making && !state.available) return
     Column(
         modifier
             .fillMaxWidth()
@@ -137,15 +139,10 @@ internal fun BriefingCard(
                 iconSize = 18.dp,
             )
         }
+        if (state.making) BriefingProgress(state)
         if (briefing == null) {
-            BasicText(
-                stringResource(R.string.news_briefing_making),
-                style = type.bodySmall.copy(color = colors.textMuted),
-            )
+            if (!state.making) TextAction(stringResource(R.string.news_briefing_make_now), onRemake)
             return@Column
-        }
-        if (state.making) {
-            BasicText(stringResource(R.string.news_briefing_making), style = type.label.copy(color = colors.textMuted))
         }
         val shown = if (state.expanded) briefing.points else briefing.points.take(COLLAPSED_POINTS)
         shown.forEachIndexed { i, point ->
@@ -180,6 +177,40 @@ internal fun BriefingCard(
         }
     }
 }
+
+/** T-265: the step the briefing is at ("Feeds laden 3/19", "Artikel lesen", "Zusammenfassen"), with a bar. */
+@Composable
+private fun BriefingProgress(state: BriefingState) {
+    val colors = LocalHainColors.current
+    val text =
+        when (state.step) {
+            BriefingStep.FEEDS -> stringResource(R.string.news_briefing_step_feeds, state.done, state.total)
+            BriefingStep.READING -> stringResource(R.string.news_briefing_step_reading)
+            BriefingStep.SUMMING_UP -> stringResource(R.string.news_briefing_step_summing)
+            null -> stringResource(R.string.news_briefing_making)
+        }
+    val share =
+        when (state.step) {
+            BriefingStep.FEEDS -> if (state.total > 0) FEEDS_SHARE * state.done / state.total else 0f
+            BriefingStep.READING -> FEEDS_SHARE
+            BriefingStep.SUMMING_UP -> READ_SHARE
+            null -> 0f
+        }
+    BasicText(text, style = LocalHainTypography.current.label.copy(color = colors.textMuted))
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(BAR.dp)
+            .clip(RoundedCornerShape(BAR.dp))
+            .background(colors.border),
+    ) {
+        Box(Modifier.fillMaxWidth(share).height(BAR.dp).background(colors.accent))
+    }
+}
+
+private const val FEEDS_SHARE = 0.5f
+private const val READ_SHARE = 0.65f
+private const val BAR = 3
 
 /** The big top story (T-075): the picture across the whole width, then source, headline and teaser. */
 @Composable
