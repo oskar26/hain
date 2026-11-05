@@ -1586,3 +1586,9 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - type: `fix` · size: `M` · lane: `A`
 - do: `RawToolText` erkennt rohe Werkzeugaufrufe im Fließtext (JSON, `<|tool_call|>`, Funktionsschreibweise) und entfernt sie; `AnswerParts.fenceLooseCards` – Karten nur im ```card-Block; `RememberTool.allowed` – Merken nur bei eigener Aussage oder ausdrücklicher Bitte; Nachfrage statt leerer Antwort bei verworfenem/leerem Aufruf; Merk-Regel im System-Prompt nur bei Bitte; SelfFacts „ich lerne …“; Rechner verträgt Suffix „um/bitte“.
 - check: `RawToolTextTest`, `RawToolTextEngineTest`, `AnswerPartsTest`, `RememberToolTest`, `SelfFactsTest`, `CalculatorTest`, CI
+
+### T-272 · Chat-UI: Composer-Unterkante, Aktionszeile, Versionszähler, Werkzeugschritte
+
+- type: `fix` · size: `S` · lane: `A`
+- do: Seitenfarbe blendet unter dem Eingabefeld bis zum Rand ein (kein Chat mehr unter der Navigationsleiste); Aktionszeile unter Antworten immer einzeilig (`ActionRowFit`: nur Icon-Knöpfe werden schmaler, min. 34 dp), Pfeile des Versionszählers 40 dp; „2/3“ ohne Überblendung; Werkzeugschritte einzeilig mit „…“.
+- check: `ActionRowFitTest`, Roborazzi (Aktionszeile 360 dp, Composer-Unterkante, Werkzeugschritt), CI

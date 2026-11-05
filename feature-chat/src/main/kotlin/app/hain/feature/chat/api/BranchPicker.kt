@@ -1,9 +1,5 @@
 package app.hain.feature.chat.api
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -26,17 +22,14 @@ import androidx.compose.ui.unit.dp
 import app.hain.feature.chat.R
 import app.hain.feature.chat.internal.BranchInfo
 import app.hain.ui.HainIcons
-import app.hain.ui.motion.HainMotion
-import app.hain.ui.motion.LocalReduceMotion
-import app.hain.ui.motion.hainTween
 import app.hain.ui.motion.rememberHainHaptics
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainTypography
 
 /**
  * "‹ 2/3 ›" under a message with other versions (T-057, like ChatGPT): an edit or "Nochmal" keeps
- * the old version, the arrows switch. Quiet grey; arrows are 48 dp touch targets and greyed out at
- * the ends; not usable while Pim answers ([enabled]).
+ * the old version, the arrows switch. Quiet grey; arrows are 40 dp touch targets (T-272: the row under an
+ * answer stays one line at 360 dp) and greyed out at the ends; not usable while Pim answers ([enabled]).
  */
 @Composable
 internal fun BranchPicker(
@@ -47,7 +40,6 @@ internal fun BranchPicker(
 ) {
     val colors = LocalHainColors.current
     val haptics = rememberHainHaptics()
-    val reduce = LocalReduceMotion.current
     val position = stringResource(R.string.chat_branch_position, info.index, info.count)
     Row(modifier.semantics { contentDescription = position }, verticalAlignment = Alignment.CenterVertically) {
         BranchArrow(
@@ -59,19 +51,13 @@ internal fun BranchPicker(
             haptics.tick()
             onSelect(it)
         }
-        AnimatedContent(
-            targetState = info.index,
-            transitionSpec = {
-                val spec = hainTween<Float>(HainMotion.FAST_MS, reduce)
-                fadeIn(spec).togetherWith(fadeOut(spec))
-            },
-            label = "branch-index",
-        ) { index ->
-            BasicText(
-                "$index/${info.count}",
-                style = LocalHainTypography.current.label.copy(color = colors.textMuted),
-            )
-        }
+        // T-272: plain text, no cross-fade: two numbers on top of each other ("2" over "3") looked broken
+        BasicText(
+            "${info.index}/${info.count}",
+            style = LocalHainTypography.current.label.copy(color = colors.textMuted),
+            maxLines = 1,
+            softWrap = false,
+        )
         BranchArrow(
             label = stringResource(R.string.chat_branch_next),
             target = info.nextId,
@@ -110,7 +96,7 @@ private fun BranchArrow(
     }
 }
 
-private const val TOUCH = 48
+private const val TOUCH = 40
 private const val ICON = 16
 private const val HALF_TURN = 180f
 private const val DIMMED = 0.35f

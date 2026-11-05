@@ -259,7 +259,9 @@ private fun ToolRow(step: ToolStep) {
         BasicText(
             text,
             style = LocalHainTypography.current.bodySmall.copy(color = colors.textMuted),
-            maxLines = 2,
+            // T-272: one line with "…" ("Notizen: 10 Fakten aus 6 Quellen" broke into two at 360 dp)
+            maxLines = 1,
+            softWrap = false,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )

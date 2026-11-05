@@ -83,6 +83,10 @@ internal fun ChatChrome(
 
 private enum class ChromeSlot { TOP, BOTTOM, CONTENT }
 
+/** T-272: where the page colour under the message box starts to fade in, and where it is solid. */
+private const val BOTTOM_FADE_FROM = 0.35f
+private const val BOTTOM_FADE_SOLID = 0.7f
+
 /** The frosted top band: reaches under the status bar, a hairline where it meets the chat. */
 @Composable
 internal fun ChatTopGlass(
@@ -101,10 +105,21 @@ internal fun ChatTopGlass(
  */
 @Composable
 internal fun ChatBottomArea(content: @Composable ColumnScope.() -> Unit) {
+    val page = LocalHainColors.current.bg
     Box(
         Modifier
             .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.ime.union(WindowInsets.navigationBars)),
+            // T-272 (Oskar 05.11.): the chat no longer shows through below the message box (navigation bar):
+            // the page colour fades in from the middle of the box down to the screen edge
+            .drawBehind {
+                drawRect(
+                    Brush.verticalGradient(
+                        BOTTOM_FADE_FROM to Color.Transparent,
+                        BOTTOM_FADE_SOLID to page,
+                        1f to page,
+                    ),
+                )
+            }.windowInsetsPadding(WindowInsets.ime.union(WindowInsets.navigationBars)),
         contentAlignment = Alignment.BottomCenter,
     ) {
         Column(Modifier.widthIn(max = CHAT_MAX_WIDTH).fillMaxWidth(), content = content)
