@@ -160,8 +160,8 @@ class BrainChoiceTest {
 
     private val omni = brain("omni", 1_049_617_920L, 4, isDefault = true)
     private val old = brain("lfm3", 1_049_615_680L, 4, tier = ModelInfo.TIER_LEGACY)
-    private val jan = brain("jan", 2_716_066_656L, 8, tier = ModelInfo.TIER_STRONG)
-    private val switchCatalog = listOf(omni, old, jan)
+    private val janStrong = brain("jan", 2_716_066_656L, 8, tier = ModelInfo.TIER_STRONG)
+    private val switchCatalog = listOf(omni, old, janStrong)
 
     @Test
     fun legacyBrainOnlyOfferedWhileInstalledAndNeverRecommended() {
@@ -192,6 +192,6 @@ class BrainChoiceTest {
         // the old brain picked while the new one is missing: the new one is still offered
         assertEquals(BrainUpgrade.GET_NEW, BrainUpgrade.of(switchCatalog, "lfm3") { it == old })
         // the Großes Gehirn in use: nothing to say about the standard brains
-        assertEquals(BrainUpgrade.NONE, BrainUpgrade.of(switchCatalog, "jan") { it == old || it == jan })
+        assertEquals(BrainUpgrade.NONE, BrainUpgrade.of(switchCatalog, "jan") { it == old || it == janStrong })
     }
 }
