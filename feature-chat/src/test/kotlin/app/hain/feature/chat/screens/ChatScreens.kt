@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import app.hain.common.api.AnswerMode
 import app.hain.feature.chat.api.ChatBottomArea
 import app.hain.feature.chat.api.ChatChrome
+import app.hain.feature.chat.api.ChatExtras
 import app.hain.feature.chat.api.ChatListDrawer
 import app.hain.feature.chat.api.ChatTopGlass
 import app.hain.feature.chat.api.DrawerActions
@@ -227,6 +228,8 @@ internal fun ChatFrame(
     texts: ShotTexts = ShotTexts.DE,
     /** T-235: no menu button when the chat list stays open on the left. */
     menu: Boolean = true,
+    /** T-269: e.g. the memory chips under the answer for the website showcase. */
+    extras: ChatExtras = ChatExtras(),
 ) {
     // T-230/T-232: the same frosted frame as the app (top bar and message box over the chat)
     val glass = rememberHainGlassState()
@@ -268,7 +271,7 @@ internal fun ChatFrame(
         if (state.messages.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(padding)) { Greeting(onSuggestion = {}, hour = 15, seed = 3) }
         } else {
-            MessageList(state, emptyMap(), {}, {}, { _, _ -> }, { _, _, _ -> }, chrome = padding)
+            MessageList(state, emptyMap(), {}, {}, { _, _ -> }, { _, _, _ -> }, extras = extras, chrome = padding)
         }
     }
 }

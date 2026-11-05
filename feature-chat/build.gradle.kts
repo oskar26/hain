@@ -64,6 +64,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)
+    // T-269: memory chips under an answer in the website showcase screenshots
+    testImplementation(project(":feature-memory"))
     testImplementation(libs.kotlinx.coroutines.test)
     // T-011 screenshots (only run with -Phain.screens, see .github/workflows/screens.yml)
     testImplementation(composeBom)

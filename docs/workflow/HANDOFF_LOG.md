@@ -691,3 +691,10 @@ Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen 
 
 - `hain.versionName=0.1.10.7`; versionCode = Laufnummer der CI. Kein Release, kein Tag, kein Merge.
 - Offen außerdem: Pocket TTS noch nicht im Katalog, KleidiAI aus. Gradle lokal nicht gestartet, CI ist das Gate.
+
+## 2026-11-05 · T-269 Website 0.2 · in review (PR #57) · harness: Hark · model: implementer
+- What: website EN + /de as if 0.2 were out: status marks Since 0.1 / New in 0.2 / Planned, one section with a screenshot per feature (19) + "Also in 0.2", "What comes next" from KONZEPT/ROADMAP/RELEASE_0.2_CHECKLIST (no dates), download → releases/latest, licence lines; README feature table with the same marks.
+- Files: website/src/{content.ts,App.tsx,components/*,styles.css}, website/public/screenshots/*, website/scripts/web_shots.sh, feature-chat/feature-settings/feature-news screenshot tests (web_*), README.md, docs/workflow/{TASKS,STATUS,HANDOFF_LOG}.md.
+- Checks: npm run build; CI screens + website build; local preview 1440 + 390 px, EN + DE: no overflow, no broken images.
+- Notes/risks: base is `hark/v0110-7` (#56) → rebase onto main after #56. `releases/latest` only works once a non-prerelease 0.2.0 exists (deploy only from main anyway). No shots yet for widget/quick tile/share sheet, dictation while recording, private chat bar.
+- Next: Oskar reviews; at the 0.2.0 release step merge after #56.
