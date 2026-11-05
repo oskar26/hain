@@ -262,7 +262,7 @@ abstract class WebShowcaseShots(
         shot("branches")
     }
 
-    /** The brain picker in the top bar: LFM3-Omni 2B (standard) and the optional big brain. */
+    /** The brain picker in the top bar: LFM3 1.7B (standard), the optional Omni brain and the big brain. */
     @Test
     fun brainPicker() {
         compose.setContent {
@@ -273,8 +273,8 @@ abstract class WebShowcaseShots(
                             options = {
                                 BrainChoice.options(
                                     BRAINS,
-                                    "lfm3-omni-2b-q4_0",
-                                    { it.id == "lfm3-omni-2b-q4_0" },
+                                    "lfm3-1.7b-qad-q4_0",
+                                    { it.id == "lfm3-1.7b-qad-q4_0" },
                                     DeviceProfile(8, 20_000_000_000L),
                                 )
                             },
@@ -342,7 +342,7 @@ abstract class WebShowcaseShots(
             minRamGb = minRam,
             licence = "l",
             licenceUrl = "u",
-            isDefault = id == "lfm3-omni-2b-q4_0",
+            isDefault = id == "lfm3-1.7b-qad-q4_0",
             tier = tier,
             recommendRamGb = recommendRam,
         )
@@ -350,7 +350,8 @@ abstract class WebShowcaseShots(
         /** Like the app's catalogue (core-models/src/main/assets/catalog.json). */
         val BRAINS =
             listOf(
-                brain("lfm3-omni-2b-q4_0", "LFM3-Omni 2B", 1_050_000_000L, ModelInfo.TIER_STANDARD, 4, 4),
+                brain("lfm3-1.7b-qad-q4_0", "LFM3 1.7B", 1_049_615_680L, ModelInfo.TIER_STANDARD, 4, 4),
+                brain("lfm3-omni-2b-q4_0", "LFM3-Omni 2B", 1_050_000_000L, ModelInfo.TIER_OPTIONAL, 4, 4),
                 brain("jan-v3.5-4b-q4_k_m", "Jan-v3.5 4B", 2_720_000_000L, ModelInfo.TIER_STRONG, 8, 12),
             )
     }

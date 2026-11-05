@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import app.hain.common.api.BrainChoiceStore
 import app.hain.feature.chat.api.BrainPickerState
 import app.hain.models.api.BrainChoice
-import app.hain.models.api.BrainUpgrade
 import app.hain.models.api.DeviceProfile
 import app.hain.models.api.DownloadState
 import app.hain.models.api.ModelInfo
@@ -55,22 +54,6 @@ internal class BrainPicking(
                 states.any { it is DownloadState.Installed }
             },
         ) { _, any -> any }
-
-    /**
-     * T-260: what the switch to the new default brain still needs (get it, or remove the old one),
-     * updated when a download finishes or the pick changes.
-     */
-    fun upgradeFlow(): Flow<BrainUpgrade> =
-        combine(
-            store.selectedId,
-            combine(brains.map { models.downloadState(it) }) { it.toList() },
-        ) { picked, _ -> BrainUpgrade.of(models.catalog, picked, models::isInstalled) }
-
-    /** T-260: deletes the former default brain(s); only when the new one is in use (see [BrainUpgrade]). */
-    fun removeOldBrains() {
-        if (BrainUpgrade.of(models.catalog, selectedId, models::isInstalled) != BrainUpgrade.REMOVE_OLD) return
-        BrainUpgrade.oldBrains(models.catalog, models::isInstalled).forEach(models::delete)
-    }
 
     /** Rows and actions of the menu; [onSwitch] reloads the brain in the chat. */
     fun state(

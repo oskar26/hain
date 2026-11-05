@@ -12,23 +12,25 @@ class CatalogParserTest {
         val models = CatalogParser.parse(File("src/main/assets/catalog.json").readText())
         val brains = models.filter { it.kind == "brain" && it.isDefault }
         assertEquals(1, brains.size)
-        // T-260: LFM3-Omni 2B (text GGUF Q4_0), pinned revision, sha256 checked against the download
+        // T-270: LFM3 1.7B (QAD Q4_0) is the default brain again, sha256 checked against the download
         val file = brains.single().files.single()
-        assertEquals("LFM3-Omni-2B-Q4_0.gguf", file.fileName)
-        assertEquals(1_049_617_920L, file.size)
-        assertEquals("6d2273a383b92dd7c5db0eb4c8dfeae13e805b485a6621c4b391ae179c2b5f28", file.sha256)
-        assertTrue(file.url.contains("/LiquidAI/LFM3-Omni-2B-GGUF/resolve/d508b88f08a5b4286f2d2805a6a8d69a0ff44c72/"))
+        assertEquals("LFM3-1.7B-QAD-Q4_0.gguf", file.fileName)
+        assertEquals(1_049_615_680L, file.size)
+        assertEquals("43a7d09a0e9cba91b63eb7052488b9564569bddfd65754d2e426465e572a7452", file.sha256)
         assertEquals("LFM Open License v1.0", brains.single().licence)
     }
 
     @Test
-    fun formerDefaultBrainStaysAsLegacyForPhonesThatHaveIt() {
-        // T-260: LFM3 1.7B keeps its id and file, so phones that have it keep working
+    fun omniIsAnOptionalBrainWithPinnedFile() {
+        // T-260/T-270: LFM3-Omni 2B (text GGUF Q4_0), pinned revision, offered but never the default
         val models = CatalogParser.parse(File("src/main/assets/catalog.json").readText())
-        val old = models.single { it.id == "lfm3-1.7b-qad-q4_0" }
-        assertTrue(old.isLegacy)
-        assertTrue(!old.isDefault)
-        assertEquals("LFM3-1.7B-QAD-Q4_0.gguf", old.files.single().fileName)
+        val omni = models.single { it.id == "lfm3-omni-2b-q4_0" }
+        assertTrue(omni.isOptional)
+        assertTrue(!omni.isDefault)
+        val file = omni.files.single()
+        assertEquals("LFM3-Omni-2B-Q4_0.gguf", file.fileName)
+        assertEquals("6d2273a383b92dd7c5db0eb4c8dfeae13e805b485a6621c4b391ae179c2b5f28", file.sha256)
+        assertTrue(file.url.contains("/LiquidAI/LFM3-Omni-2B-GGUF/resolve/d508b88f08a5b4286f2d2805a6a8d69a0ff44c72/"))
     }
 
     @Test

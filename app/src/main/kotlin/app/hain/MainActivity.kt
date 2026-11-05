@@ -54,7 +54,6 @@ import app.hain.entry.LaunchIntents
 import app.hain.entry.LaunchRequest
 import app.hain.entry.WidgetData
 import app.hain.entry.applyTo
-import app.hain.feature.chat.api.BrainUpgradeBanner
 import app.hain.feature.chat.api.ChatDocs
 import app.hain.feature.chat.api.ChatExtras
 import app.hain.feature.chat.api.ChatScreen
@@ -96,7 +95,6 @@ import app.hain.memory.api.MemoryStore
 import app.hain.memory.api.MemoryTurn
 import app.hain.memory.api.RememberTool
 import app.hain.memory.internal.SelfFacts
-import app.hain.models.api.BrainUpgrade
 import app.hain.models.api.DevModels
 import app.hain.models.api.DeviceCheck
 import app.hain.models.api.DeviceProfile
@@ -603,7 +601,6 @@ class MainActivity : FragmentActivity() {
                                 }
                             }
                             var updateHidden by rememberSaveable { mutableStateOf(false) }
-                            var upgradeHidden by rememberSaveable { mutableStateOf(false) }
                             val dev = settings.dev
                             ChatScreen(
                                 viewModel = chatViewModel,
@@ -639,24 +636,7 @@ class MainActivity : FragmentActivity() {
                                     ),
                                 banner = {
                                     val status = updateStatus
-                                    // T-260: switch to the new default brain (LFM3-Omni 2B), never by itself
-                                    val upgrade by
-                                        remember { brainPicking.upgradeFlow() }
-                                            .collectAsStateWithLifecycle(BrainUpgrade.NONE)
-                                    if (upgrade != BrainUpgrade.NONE && !upgradeHidden) {
-                                        BrainUpgradeBanner(
-                                            upgrade = upgrade,
-                                            onGet = {
-                                                packsAtBrains = true
-                                                showPacks = true
-                                            },
-                                            onRemoveOld = {
-                                                brainPicking.removeOldBrains()
-                                                upgradeHidden = true
-                                            },
-                                            onLater = { upgradeHidden = true },
-                                        )
-                                    } else if (status is UpdateStatus.Newer && !updateHidden) {
+                                    if (status is UpdateStatus.Newer && !updateHidden) {
                                         val uri = LocalUriHandler.current
                                         UpdateBanner(status.versionName, { uri.openUri(status.page) }, {
                                             updateHidden =

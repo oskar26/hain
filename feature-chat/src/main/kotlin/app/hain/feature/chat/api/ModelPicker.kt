@@ -162,13 +162,13 @@ internal fun ModelPickerContent(
 }
 
 /**
- * T-240: the optional strong brain gets its own plain name instead of the size word; T-260: the
- * former default brain is called what it is, so it is not mixed up with the new one.
+ * T-240: the optional strong brain gets its own plain name instead of the size word; T-270: so does
+ * the optional Omni brain, so it is not mixed up with the standard one.
  */
 internal fun brainName(option: BrainOption): Int =
     when {
         option.strong -> R.string.chat_brain_strong
-        option.model.isLegacy -> R.string.chat_brain_legacy
+        option.model.isOptional -> R.string.chat_brain_optional
         else -> option.size.label()
     }
 
