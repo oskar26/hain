@@ -487,7 +487,7 @@ private fun ActionButton(
     val colors = LocalHainColors.current
     Box(
         Modifier
-            .heightIn(min = 40.dp)
+            .heightIn(min = 48.dp) // T-254: touch target ≥ 48 dp
             .hainSurface(HainLevel.FLAT, LocalHainShapes.current.button)
             .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = LocalHainSpacing.current.md, vertical = LocalHainSpacing.current.sm),
