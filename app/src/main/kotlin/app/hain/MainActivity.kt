@@ -54,6 +54,7 @@ import app.hain.entry.LaunchIntents
 import app.hain.entry.LaunchRequest
 import app.hain.entry.WidgetData
 import app.hain.entry.applyTo
+import app.hain.feature.chat.api.BrainUpgradeBanner
 import app.hain.feature.chat.api.ChatDocs
 import app.hain.feature.chat.api.ChatExtras
 import app.hain.feature.chat.api.ChatScreen
@@ -77,6 +78,7 @@ import app.hain.feature.news.api.SharedNewsPrefs
 import app.hain.feature.onboarding.api.OnboardingScreen
 import app.hain.feature.settings.api.AppInfo
 import app.hain.feature.settings.api.ExtraPack
+import app.hain.feature.settings.api.PackCategory
 import app.hain.feature.settings.api.PacksScreen
 import app.hain.feature.settings.api.SettingsActions
 import app.hain.feature.settings.api.SettingsExtras
@@ -92,6 +94,7 @@ import app.hain.memory.api.MemoryExtraction
 import app.hain.memory.api.MemoryStore
 import app.hain.memory.api.MemoryTurn
 import app.hain.memory.api.RememberTool
+import app.hain.models.api.BrainUpgrade
 import app.hain.models.api.DevModels
 import app.hain.models.api.DeviceCheck
 import app.hain.models.api.DeviceProfile
@@ -511,6 +514,8 @@ class MainActivity : FragmentActivity() {
             current = settings
             var showSettings by rememberSaveable { mutableStateOf(false) }
             var showPacks by rememberSaveable { mutableStateOf(false) }
+            // T-260: "Laden" for a brain opens Modelle & Pakete right on the brains page
+            var packsAtBrains by rememberSaveable { mutableStateOf(false) }
             var showMemory by rememberSaveable { mutableStateOf(false) }
             var showGame by rememberSaveable { mutableStateOf(false) }
             var showNews by rememberSaveable { mutableStateOf(false) }
@@ -586,11 +591,15 @@ class MainActivity : FragmentActivity() {
                                 }
                             }
                             var updateHidden by rememberSaveable { mutableStateOf(false) }
+                            var upgradeHidden by rememberSaveable { mutableStateOf(false) }
                             val dev = settings.dev
                             ChatScreen(
                                 viewModel = chatViewModel,
                                 onOpenSettings = { showSettings = true },
-                                onGetBrain = { showPacks = true },
+                                onGetBrain = {
+                                    packsAtBrains = true
+                                    showPacks = true
+                                },
                                 answerMode = settings.answerMode,
                                 onAnswerMode = { mode ->
                                     lifecycleScope.launch { settingsRepository.setAnswerMode(mode) }
@@ -618,7 +627,24 @@ class MainActivity : FragmentActivity() {
                                     ),
                                 banner = {
                                     val status = updateStatus
-                                    if (status is UpdateStatus.Newer && !updateHidden) {
+                                    // T-260: switch to the new default brain (LFM3-Omni 2B), never by itself
+                                    val upgrade by
+                                        remember { brainPicking.upgradeFlow() }
+                                            .collectAsStateWithLifecycle(BrainUpgrade.NONE)
+                                    if (upgrade != BrainUpgrade.NONE && !upgradeHidden) {
+                                        BrainUpgradeBanner(
+                                            upgrade = upgrade,
+                                            onGet = {
+                                                packsAtBrains = true
+                                                showPacks = true
+                                            },
+                                            onRemoveOld = {
+                                                brainPicking.removeOldBrains()
+                                                upgradeHidden = true
+                                            },
+                                            onLater = { upgradeHidden = true },
+                                        )
+                                    } else if (status is UpdateStatus.Newer && !updateHidden) {
                                         val uri = LocalUriHandler.current
                                         UpdateBanner(status.versionName, { uri.openUri(status.page) }, {
                                             updateHidden =
@@ -745,7 +771,16 @@ class MainActivity : FragmentActivity() {
                                         slideInHorizontally(hainTween(HainMotion.PAGE_MS)) { it / SLIDE_DIV },
                                 exit = fadeOut(hainTween(HainMotion.FAST_MS)),
                             ) {
-                                PacksScreen(models, deviceRamGb(), { showPacks = false }, extras = listOf(ocrPack))
+                                PacksScreen(
+                                    models,
+                                    deviceRamGb(),
+                                    {
+                                        showPacks = false
+                                        packsAtBrains = false
+                                    },
+                                    extras = listOf(ocrPack),
+                                    startCategory = if (packsAtBrains) PackCategory.BRAINS else null,
+                                )
                             }
                         }
                     }

@@ -288,4 +288,10 @@
     <string name="chat_read_failed">Dein Handy hat keine Stimme für diese Sprache. Du kannst eine in den Android-Einstellungen unter Sprachausgabe laden.</string>
     <string name="chat_read_code">Codeblock übersprungen</string>
     <string name="chat_read_formula">Formel übersprungen</string>
+    <string name="chat_brain_legacy">Bisheriges Gehirn</string>
+    <string name="chat_brain_upgrade_title">Neues Gehirn für Pim</string>
+    <string name="chat_brain_upgrade_body">LFM3-Omni 2B: genauso schnell, wählt Werkzeuge klüger. Etwa 1 GB, am besten im WLAN.</string>
+    <string name="chat_brain_old_title">Pim nutzt das neue Gehirn</string>
+    <string name="chat_brain_old_body">Das bisherige Gehirn (etwa 1 GB) wird nicht mehr gebraucht.</string>
+    <string name="chat_brain_old_remove">Entfernen</string>
 </resources>

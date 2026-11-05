@@ -111,7 +111,9 @@ class LlamaEngine(
         template = runCatching { NativeLlm.nativeChatTemplate(h) }.getOrNull()
         stateDir()?.let { NativeLlm.nativeSetStateDir(h, it) }
         val arch = runCatching { NativeLlm.nativeMeta(h, ARCH_KEY) }.getOrNull()
-        loadedFormat = BrainFormat.ofArchitecture(arch?.decodeToString())
+        // T-260: LFM3-Omni has the LFM3 architecture; its name tells it apart (no thinking, near-greedy)
+        val name = runCatching { NativeLlm.nativeMeta(h, NAME_KEY) }.getOrNull()
+        loadedFormat = BrainFormat.of(arch?.decodeToString(), name?.decodeToString())
         Log.i(
             TAG,
             "brain loaded in ${NativeLlm.nativeStats(h)[0].toInt()} ms, context $contextSize, " +
@@ -284,6 +286,7 @@ class LlamaEngine(
         const val STAT_RESTORED_MS = 6
         const val STATE_DIR = "llm-state"
         const val ARCH_KEY = "general.architecture"
+        const val NAME_KEY = "general.name"
     }
 }
 

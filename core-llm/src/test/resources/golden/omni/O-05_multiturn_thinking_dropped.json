@@ -1,0 +1,28 @@
+{
+  "system": "You are Hain, a friendly helper that runs fully on this phone.\n\n# Context\nNow: Sonntag, 1. November 2026, 19:40 (Europe/Berlin). Place: Köln.",
+  "tools": [],
+  "messages": [
+    {
+      "role": "user",
+      "content": "Wie viel ist 17 * 23?"
+    },
+    {
+      "role": "assistant",
+      "content": "17 * 23 = 391."
+    },
+    {
+      "role": "user",
+      "content": "Und geteilt durch 2?"
+    },
+    {
+      "role": "assistant",
+      "content": "Das sind 195,5."
+    },
+    {
+      "role": "user",
+      "content": "Danke! Erklär mir kurz, warum."
+    }
+  ],
+  "add_generation_prompt": true,
+  "enable_thinking": false
+}

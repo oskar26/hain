@@ -163,7 +163,7 @@
     <string name="dev_intro">For trying things out. Changes apply to your next message.</string>
     <string name="dev_model">Model</string>
     <string name="dev_model_active">In use: %1$s</string>
-    <string name="dev_model_default">LFM3 1.7B (Hain brain)</string>
+    <string name="dev_model_default">Hain brain (as picked in the chat)</string>
     <string name="dev_model_back">Use the Hain brain again</string>
     <string name="dev_model_back_hint">Your own model stays on the phone.</string>
     <string name="dev_model_repo">Model from Hugging Face</string>

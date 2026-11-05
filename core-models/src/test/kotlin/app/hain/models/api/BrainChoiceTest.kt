@@ -7,12 +7,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BrainChoiceTest {
+    @Suppress("LongParameterList") // a test catalogue entry, all with defaults
     private fun brain(
         id: String,
         bytes: Long,
         minRam: Int,
         isDefault: Boolean = false,
         kind: String = "brain",
+        tier: String = ModelInfo.TIER_STANDARD,
     ) = ModelInfo(
         id = id,
         name = id.uppercase(),
@@ -22,6 +24,7 @@ class BrainChoiceTest {
         licence = "l",
         licenceUrl = "u",
         isDefault = isDefault,
+        tier = tier,
     )
 
     private val small = brain("small", 1_000_000_000L, 4, isDefault = true)
@@ -151,5 +154,44 @@ class BrainChoiceTest {
     @Test
     fun standardBrainsAreAlwaysOffered() {
         assertTrue(BrainChoice.offered(lfm, phone(1), installed = false))
+    }
+
+    // ---- T-260: LFM3-Omni 2B is the new default, LFM3 1.7B stays only where it is installed
+
+    private val omni = brain("omni", 1_049_617_920L, 4, isDefault = true)
+    private val old = brain("lfm3", 1_049_615_680L, 4, tier = ModelInfo.TIER_LEGACY)
+    private val jan = brain("jan", 2_716_066_656L, 8, tier = ModelInfo.TIER_STRONG)
+    private val switchCatalog = listOf(omni, old, jan)
+
+    @Test
+    fun legacyBrainOnlyOfferedWhileInstalledAndNeverRecommended() {
+        assertFalse(BrainChoice.offered(old, phone(12), installed = false))
+        assertTrue(BrainChoice.offered(old, phone(12), installed = true))
+        assertEquals(omni, BrainChoice.recommended(listOf(omni, old), phone(6)))
+        val rows = BrainChoice.options(switchCatalog, null, { it == old }, phone(6)).map { it.model }
+        assertTrue(old in rows)
+        assertFalse(BrainChoice.options(switchCatalog, null, { false }, phone(6)).any { it.model == old })
+    }
+
+    @Test
+    fun existingUserKeepsTheOldBrainUntilTheNewOneIsThere() {
+        assertEquals(old, BrainChoice.active(switchCatalog, null) { it == old })
+        assertEquals(BrainUpgrade.GET_NEW, BrainUpgrade.of(switchCatalog, null) { it == old })
+        // once LFM3-Omni is on the phone it is used, and the old file can go
+        assertEquals(omni, BrainChoice.active(switchCatalog, null) { it == old || it == omni })
+        assertEquals(BrainUpgrade.REMOVE_OLD, BrainUpgrade.of(switchCatalog, null) { it == old || it == omni })
+        assertEquals(listOf(old), BrainUpgrade.oldBrains(switchCatalog) { it == old || it == omni })
+    }
+
+    @Test
+    fun noUpgradeHintForNewUsersOrAnExplicitOldPick() {
+        assertEquals(BrainUpgrade.NONE, BrainUpgrade.of(switchCatalog, null) { false })
+        assertEquals(BrainUpgrade.NONE, BrainUpgrade.of(switchCatalog, null) { it == omni })
+        // picked the old brain on purpose while the new one is there: no "remove" nagging
+        assertEquals(BrainUpgrade.NONE, BrainUpgrade.of(switchCatalog, "lfm3") { it == old || it == omni })
+        // the old brain picked while the new one is missing: the new one is still offered
+        assertEquals(BrainUpgrade.GET_NEW, BrainUpgrade.of(switchCatalog, "lfm3") { it == old })
+        // the Großes Gehirn in use: nothing to say about the standard brains
+        assertEquals(BrainUpgrade.NONE, BrainUpgrade.of(switchCatalog, "jan") { it == old || it == jan })
     }
 }

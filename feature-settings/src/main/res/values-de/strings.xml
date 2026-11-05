@@ -163,7 +163,7 @@
     <string name="dev_intro">Zum Ausprobieren. Änderungen gelten ab deiner nächsten Nachricht.</string>
     <string name="dev_model">Modell</string>
     <string name="dev_model_active">Aktiv: %1$s</string>
-    <string name="dev_model_default">LFM3 1.7B (Hain-Gehirn)</string>
+    <string name="dev_model_default">Hain-Gehirn (wie im Chat gewählt)</string>
     <string name="dev_model_back">Wieder das Hain-Gehirn nutzen</string>
     <string name="dev_model_back_hint">Dein eigenes Modell bleibt auf dem Handy.</string>
     <string name="dev_model_repo">Modell von Hugging Face</string>

@@ -288,4 +288,10 @@
     <string name="chat_read_failed">Your phone has no voice for this language. You can add one in Android settings under text-to-speech.</string>
     <string name="chat_read_code">Code block skipped</string>
     <string name="chat_read_formula">Formula skipped</string>
+    <string name="chat_brain_legacy">Previous brain</string>
+    <string name="chat_brain_upgrade_title">New brain for Pim</string>
+    <string name="chat_brain_upgrade_body">LFM3-Omni 2B: as fast, picks tools more sensibly. About 1 GB, best on Wi-Fi.</string>
+    <string name="chat_brain_old_title">Pim uses the new brain</string>
+    <string name="chat_brain_old_body">The previous brain (about 1 GB) is no longer needed.</string>
+    <string name="chat_brain_old_remove">Remove</string>
 </resources>
