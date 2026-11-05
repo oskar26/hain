@@ -24,10 +24,10 @@ class DevTuningTest {
 
     @Test
     fun `developer mode off uses the brain's own sampling`() {
-        // T-241: the Großes Gehirn (Qwen format) samples as on its model card
+        // T-241: the Großes Gehirn (Jan-v3.5-4B, Qwen3 format) samples as on its model card
         val qwen = DevTuning.sampling(DevSettings(), false, 1024, 4096, BrainFormat.QWEN.chatSampling)
         assertEquals(BrainFormat.QWEN.chatSampling.copy(maxTokens = 1024), qwen)
-        assertEquals(0.95f, qwen.topP)
+        assertEquals(0.8f, qwen.topP) // Jan-v3.5-4B model card
         // developer mode still wins over the brain's defaults
         assertEquals(1.5f, DevTuning.sampling(on.copy(temperature = 1.5f), false, 1024, 4096, qwen).temperature)
     }
