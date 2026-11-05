@@ -56,6 +56,7 @@ fun NewsSettingsPage(
             .verticalScroll(rememberScrollState())
             .wrapContentWidth(Alignment.CenterHorizontally)
             .widthIn(max = MAX_READ_WIDTH.dp)
+            .fillMaxWidth()
             .padding(horizontal = spacing.lg, vertical = spacing.md),
         verticalArrangement = Arrangement.spacedBy(spacing.md),
     ) {
