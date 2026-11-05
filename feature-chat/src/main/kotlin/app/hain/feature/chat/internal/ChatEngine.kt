@@ -971,12 +971,12 @@ class ChatEngine(
             "Gründliche Recherche: Du hast bis zu einer Minute. Suche mit mehreren Anfragen, " +
                 "auch umformuliert und auf Englisch, und nutze verschiedene Seiten. Braucht die Frage mehrere " +
                 "Dinge, darfst du bis zu 3 passende Werkzeuge auf einmal aufrufen, nie eins, das nicht zur Frage " +
-                "passt. Nimm nur Fakten, die in den Ergebnissen stehen."
+                "passt. Stütze Fakten auf mindestens 2 Quellen und nimm nur Fakten, die in den Ergebnissen stehen."
         private const val THOROUGH_EN =
             "Thorough research: you have up to one minute. Search with several queries, also reworded " +
                 "and in German, and use different pages. If the question needs several things, you may call up to " +
                 "3 fitting tools at once, never one that does not fit the question. " +
-                "Use only facts that are in the results."
+                "Back facts with at least 2 sources and use only facts that are in the results."
         private const val FINAL_DE =
             "Die Recherche ist beendet. Beantworte jetzt direkt die Frage, mit dem Wichtigsten zuerst. " +
                 "Schreib nur Fakten, die in den Ergebnissen oben stehen, und setz [1], [2] hinter den Satz. " +
