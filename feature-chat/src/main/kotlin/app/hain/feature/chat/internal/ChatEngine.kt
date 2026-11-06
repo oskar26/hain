@@ -26,6 +26,7 @@ import app.hain.tools.api.NewsHeadline
 import app.hain.tools.api.RawToolText
 import app.hain.tools.api.ResearchBudget
 import app.hain.tools.api.ResearchNotes
+import app.hain.tools.api.ThinkLeak
 import app.hain.tools.api.ToolCallFixer
 import app.hain.tools.api.ToolContext
 import app.hain.tools.api.ToolGuard
@@ -775,7 +776,8 @@ class ChatEngine(
             } else {
                 RawToolText.Result(parsed.text, emptyList())
             }
-        val text = AnswerParts.fenceLooseCards(RawToolText.strip(bare.text, turn.toolNames))
+        // T-278: thinking without its tags at the start of the answer goes
+        val text = ThinkLeak.strip(AnswerParts.fenceLooseCards(RawToolText.strip(bare.text, turn.toolNames)))
         val calls = parsed.toolCalls.ifEmpty { bare.calls }
         val errors = if (bare.calls.isEmpty()) parsed.errors else emptyList()
         return parsed.copy(text = text, toolCalls = calls, errors = errors)
@@ -793,7 +795,7 @@ class ChatEngine(
         // T-271: while it streams, a call written as text is held back until it is clear what it is
         val shown =
             if (live) {
-                AnswerParts.fenceLooseCards(RawToolText.liveText(text.toString(), turn.toolNames))
+                AnswerParts.fenceLooseCards(ThinkLeak.live(RawToolText.liveText(text.toString(), turn.toolNames)))
             } else {
                 text.toString()
             }
