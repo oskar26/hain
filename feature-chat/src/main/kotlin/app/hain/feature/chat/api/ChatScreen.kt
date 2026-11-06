@@ -477,7 +477,12 @@ internal fun MessageList(
                 ),
             verticalArrangement = Arrangement.spacedBy(spacing.lg),
         ) {
-            items(state.messages, key = { it.id }) { message ->
+            // T-290: stable keys and two row kinds, so a scrolled-away answer is reused for the next answer
+            items(
+                state.messages,
+                key = { it.id },
+                contentType = { if (it.isUser) USER_ROW else ANSWER_ROW },
+            ) { message ->
                 val branch = state.branches[message.id]
                 // T-058: new messages and switched versions slide into place (only fade with reduce motion)
                 val item =
@@ -849,6 +854,8 @@ private fun EditBar(onCancel: () -> Unit) {
 }
 
 private const val OPEN_SCALE = 0.94f
+private const val USER_ROW = 0
+private const val ANSWER_ROW = 1
 private const val FOCUS_DELAY_MS = 200L
 private const val PERCENT = 100
 private const val COPIED_MS = 1500L

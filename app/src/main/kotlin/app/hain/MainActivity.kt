@@ -144,7 +144,10 @@ class MainActivity : FragmentActivity() {
 
     @Inject lateinit var networkGate: NetworkGate
 
-    @Inject lateinit var newsRepository: NewsRepository
+    // T-290: built when the news or a news tool is first used (reads the feed list from the assets), not at start
+    @Inject lateinit var newsRepositoryLazy: dagger.Lazy<NewsRepository>
+
+    private val newsRepository: NewsRepository get() = newsRepositoryLazy.get()
 
     @Inject lateinit var memory: MemoryStore
 

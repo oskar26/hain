@@ -20,6 +20,34 @@ class ChatStoreTest {
     }
 
     @Test
+    fun streamingIntoAnOlderChatMovesItToTheFrontAndKeepsTheRestInOrder() {
+        // T-290: no sort per streamed word; the changed chat goes to the front, the others keep their order
+        var now = 0L
+        val store = ChatStore { now }
+        val ids =
+            (1..5).map {
+                now = it.toLong()
+                store.create("c$it").id
+            }
+        now = 10
+        store.upsertMessage(ids[1], UiMessage(100, false, "a", streaming = true))
+        assertEquals(listOf(ids[1], ids[4], ids[3], ids[2], ids[0]), store.chats.value.map { it.id })
+        now = 11
+        store.upsertMessage(ids[1], UiMessage(100, false, "ab", streaming = true))
+        assertEquals(listOf(ids[1], ids[4], ids[3], ids[2], ids[0]), store.chats.value.map { it.id })
+        assertEquals(
+            "ab",
+            store
+                .chat(ids[1])!!
+                .messages
+                .single()
+                .text,
+        )
+        store.upsertMessage(-1, UiMessage(101, false, "nobody"))
+        assertEquals(5, store.chats.value.size)
+    }
+
+    @Test
     fun titleIsShortenedOnWordBoundary() {
         val store = ChatStore()
         assertEquals("Kurz", store.titleFrom("  Kurz "))
