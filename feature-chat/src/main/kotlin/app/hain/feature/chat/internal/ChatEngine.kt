@@ -247,11 +247,11 @@ class ChatEngine(
                     // and a line says that no more tools are used; only when the brain still calls one, the
                     // retry goes without the block.
                     val promptTools = if (final && turn.hideTools) emptyList() else schemas
+                    // after a tool run (researching) both lines: answer from the results, and no more tools
                     val closing =
-                        when {
-                            final && turn.researching -> listOf(closingLine(ctx.lang))
-                            final && round > 0 && promptTools.isNotEmpty() -> listOf(noToolsLine(ctx.lang))
-                            else -> emptyList()
+                        buildList {
+                            if (final && turn.researching) add(closingLine(ctx.lang))
+                            if (final && round > 0 && promptTools.isNotEmpty()) add(noToolsLine(ctx.lang))
                         }
                     // T-277: after a long research the thinking ran out in the closing round and the answer
                     // stayed empty: that round answers without thinking, from the notes instead of full pages
