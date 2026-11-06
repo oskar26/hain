@@ -739,7 +739,7 @@ class ChatEngine(
         apply(rest)
         val thoughtFor = if (think) (thinkingEnd ?: clock()) - start else null
         // T-277: thinking that never ended (out of tokens) is no answer, and its text is no reply
-        val unfinished = think && thinkingEnd == null && text.isEmpty() && reason != StopReason.CANCELLED
+        val unfinished = think && thinkingEnd == null && text.isEmpty() && reason == StopReason.MAX_TOKENS
         // A stopped answer keeps what was shown live: thinking stays thinking, never becomes the answer.
         val output =
             if (reason == StopReason.CANCELLED) {

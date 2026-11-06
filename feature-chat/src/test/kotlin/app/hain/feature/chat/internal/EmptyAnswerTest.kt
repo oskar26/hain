@@ -49,11 +49,11 @@ class EmptyAnswerTest {
                 ScriptedLlm(
                     listOf("plan", "</think>", call) to StopReason.END,
                     listOf("We need to answer the question about moss. The user asks …") to StopReason.MAX_TOKENS,
-                    listOf("Moose sind grüne Landpflanzen ohne echte Wurzeln [1].") to StopReason.END,
+                    listOf("Moose sind grüne Landpflanzen ohne echte Wurzeln.") to StopReason.END,
                 )
             val updates = engine(llm.fake).respond(user("Was ist Moos?"), AnswerMode.THOROUGH).toList()
             val last = updates.last() as TurnUpdate.Finished
-            assertEquals("Moose sind grüne Landpflanzen ohne echte Wurzeln [1].", last.output.text)
+            assertEquals("Moose sind grüne Landpflanzen ohne echte Wurzeln.", last.output.text)
             assertFalse(last.output.text.contains("We need"))
             // the retry is told to answer and does not think
             assertTrue(llm.fake.lastPrompt.endsWith("<think></think>"))
@@ -64,12 +64,12 @@ class EmptyAnswerTest {
     fun theClosingRoundAnswersWithoutThinking() =
         runTest {
             val replies = List(8) { listOf("plan", "</think>", call.replace("Moos", "Moos $it")) to StopReason.END }
-            val all = replies + (listOf("Moose sind Landpflanzen [1].") to StopReason.END)
+            val all = replies + (listOf("Moose sind Landpflanzen.") to StopReason.END)
             val llm = ScriptedLlm(*all.toTypedArray())
             val last =
                 engine(llm.fake).respond(user("Was ist Moos?"), AnswerMode.THOROUGH).toList().last()
                     as TurnUpdate.Finished
-            assertEquals("Moose sind Landpflanzen [1].", last.output.text)
+            assertEquals("Moose sind Landpflanzen.", last.output.text)
             assertTrue(
                 llm.fake.prompts
                     .first()
