@@ -266,6 +266,7 @@ class ChatEngine(
                             .take(budget.callsPerRound)
                             // T-267: repeat days and "15 Minuten früher" from the user's own words
                             .map { AlarmHints.fix(it, lastUser, lastAlarm) }
+                            .ifEmpty { alarmFallback(proposed, lastUser, lastAlarm, turn, final, result.reason) }
                     val noText = result.output.text.isBlank()
                     val offTopic = proposed.isNotEmpty() && calls.isEmpty() && noText
                     if (offTopic && !final && result.reason == StopReason.END) {
@@ -334,6 +335,26 @@ class ChatEngine(
                 if (active === turn) active = null
             }
         }
+
+    /**
+     * T-282 (#44): the brain called no tool at all in the first round although the user clearly asked
+     * for an alarm ("weck mich um 7", "und 15 Minuten früher"): the alarm from their own words, so
+     * there is still a confirm card. Only with the set_alarm tool, and never in place of other calls.
+     */
+    @Suppress("LongParameterList")
+    private fun alarmFallback(
+        proposed: List<ToolCall>,
+        lastUser: String,
+        lastAlarm: String?,
+        turn: Turn,
+        final: Boolean,
+        reason: StopReason,
+    ): List<ToolCall> {
+        val first = turn.entries.isEmpty()
+        val asked = SET_ALARM in turn.toolNames && proposed.isEmpty() && first && !final && reason == StopReason.END
+        if (!asked) return emptyList()
+        return listOfNotNull(AlarmHints.request(lastUser, lastAlarm))
+    }
 
     /** What one user turn collected so far across tool rounds. */
     private class Turn(
@@ -894,6 +915,8 @@ class ChatEngine(
 
     companion object {
         const val SEARCH_TOOL = "web_search"
+
+        private const val SET_ALARM = "set_alarm"
 
         /** The memory's tool (`RememberTool.NAME` in :core-memory). */
         private const val REMEMBER = "remember"

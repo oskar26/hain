@@ -44,6 +44,34 @@ class PhoneActionsTest {
             )
         }
 
+    // T-282 (#44): no set_alarm call at all, but a clear request → still a confirm card
+    @Test
+    fun aClearAlarmRequestWithoutACallStillGetsACard() =
+        runTest {
+            val llm = FakeLlm(listOf("Klar, ich wecke dich."), listOf("Dein Wecker für 6:30 ist vorbereitet."))
+            val engine = ChatEngine(llm, { "SYS" }, tools = ToolRouter(listOf(SetAlarmTool())), toolContext = { ctx })
+            val last =
+                engine
+                    .respond(listOf(ChatMessage(Role.USER, "stell mir nen wecker um halb sieben")), AnswerMode.FAST)
+                    .toList()
+                    .last() as TurnUpdate.Finished
+            assertEquals(listOf(ActionCard(alarm, ActionState.PENDING)), last.actions)
+            assertEquals("Dein Wecker für 6:30 ist vorbereitet.", last.output.text)
+        }
+
+    @Test
+    fun aPlainQuestionGetsNoCard() =
+        runTest {
+            val llm = FakeLlm(listOf("Öffne die Uhr-App und tippe auf Wecker."))
+            val engine = ChatEngine(llm, { "SYS" }, tools = ToolRouter(listOf(SetAlarmTool())), toolContext = { ctx })
+            val last =
+                engine
+                    .respond(listOf(ChatMessage(Role.USER, "Wie stelle ich einen Wecker?")), AnswerMode.FAST)
+                    .toList()
+                    .last() as TurnUpdate.Finished
+            assertTrue(last.actions.isEmpty())
+        }
+
     @Test
     fun cardsAreStoredWithTheAnswer() {
         val cards =
