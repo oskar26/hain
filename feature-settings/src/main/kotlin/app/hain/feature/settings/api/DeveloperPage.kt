@@ -244,6 +244,14 @@ private fun FileRow(
                         stringResource(R.string.dev_model_wait),
                         style = type.label.copy(color = colors.textMuted),
                     )
+                // T-287: stopped: "Laden" resumes the part file
+                is DownloadState.Paused -> {
+                    BasicText(
+                        stringResource(R.string.dev_model_loading, (s.fraction * PERCENT).toInt()),
+                        style = type.label.copy(color = colors.textMuted),
+                    )
+                    Action(R.string.dev_model_download) { scope.launch { models.download(file) } }
+                }
                 is DownloadState.Failed -> {
                     BasicText(stringResource(R.string.dev_model_failed), style = type.label.copy(color = colors.danger))
                     Action(R.string.dev_model_download) { scope.launch { models.download(file) } }

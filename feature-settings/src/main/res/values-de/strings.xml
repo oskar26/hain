@@ -66,7 +66,6 @@
     <string name="packs_download">Laden</string>
     <string name="packs_delete">Entfernen</string>
     <string name="packs_cancel">Stopp</string>
-    <string name="packs_wait">Bitte warten …</string>
     <string name="packs_loading">Lädt … %1$d%%</string>
     <string name="packs_fit_tight">Das könnte auf deinem Handy langsam sein.</string>
     <string name="packs_fit_space">Auf deinem Handy ist nicht genug Platz frei.</string>
@@ -272,4 +271,14 @@
     <string name="licences_text">Lizenztext</string>
     <string name="licences_all">Alle Lizenzen</string>
     <string name="licences_missing">Die Liste ließ sich nicht lesen.</string>
+    <string name="packs_loading_bytes">%1$d %% · %2$s von %3$s</string>
+    <string name="packs_paused">Angehalten · %1$s von %2$s</string>
+    <string name="packs_resume">Fortsetzen</string>
+    <string name="packs_discard">Verwerfen</string>
+    <string name="packs_queued">Wartet auf Internet …</string>
+    <string name="packs_verifying">Wird geprüft …</string>
+    <string name="packs_retry">Nochmal</string>
+    <string name="packs_failed_network">Keine Verbindung. Tipp auf „Nochmal“.</string>
+    <string name="packs_failed_storage">Auf deinem Handy ist nicht genug Platz frei.</string>
+    <string name="packs_failed_checksum">Die Datei kam beschädigt an. Lade sie noch einmal.</string>
 </resources>

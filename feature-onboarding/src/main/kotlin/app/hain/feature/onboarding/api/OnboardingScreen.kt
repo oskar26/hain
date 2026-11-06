@@ -170,6 +170,14 @@ private fun DownloadBlock(
                 CancelButton { models.cancelDownload(model) }
                 HainButton(stringResource(R.string.onboarding_background), onSkip, style = HainButtonStyle.GHOST)
             }
+            // T-287: stopped by you or in the notification: resume or start over
+            is DownloadState.Paused -> {
+                ProgressBar(download.fraction)
+                val done = Formatter.formatShortFileSize(context, download.downloaded)
+                BasicText(stringResource(R.string.onboarding_paused, done, size), style = muted)
+                HainButton(stringResource(R.string.onboarding_resume), start, Modifier.fillMaxWidth())
+                HainButton(stringResource(R.string.onboarding_skip), onSkip, style = HainButtonStyle.GHOST)
+            }
             DownloadState.Verifying -> {
                 ProgressBar(1f)
                 BasicText(stringResource(R.string.onboarding_verifying), style = muted)
@@ -207,5 +215,5 @@ private fun pimState(download: DownloadState): PimState =
         is DownloadState.Running, DownloadState.Queued, DownloadState.Verifying -> PimState.DOWNLOADING
         DownloadState.Installed -> PimState.CELEBRATE
         is DownloadState.Failed -> PimState.ERROR
-        DownloadState.Idle -> PimState.HAPPY
+        DownloadState.Idle, is DownloadState.Paused -> PimState.HAPPY
     }

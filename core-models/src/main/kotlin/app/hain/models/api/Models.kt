@@ -1,6 +1,7 @@
 package app.hain.models.api
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 /** One downloadable file of a model (MODELS.md, catalog.json). */
 data class ModelFile(
@@ -76,6 +77,17 @@ sealed interface DownloadState {
         val fraction: Float get() = if (total > 0) (downloaded.toDouble() / total).toFloat() else 0f
     }
 
+    /**
+     * T-287: stopped by you (in the app or in the notification) with [downloaded] bytes already on the
+     * phone: "Fortsetzen" resumes with an HTTP Range request, "Verwerfen" removes the part file.
+     */
+    data class Paused(
+        val downloaded: Long,
+        val total: Long,
+    ) : DownloadState {
+        val fraction: Float get() = if (total > 0) (downloaded.toDouble() / total).toFloat().coerceIn(0f, 1f) else 0f
+    }
+
     data object Verifying : DownloadState
 
     data object Installed : DownloadState
@@ -102,6 +114,13 @@ interface ModelRepository {
     fun packDir(model: ModelInfo): java.io.File = mainFile(model).parentFile ?: mainFile(model)
 
     fun downloadState(model: ModelInfo): Flow<DownloadState>
+
+    /**
+     * T-287: ids of every catalogue pack that is completely on the phone, again after each download,
+     * delete or stop (the "2 von 4 auf dem Handy" counts read this instead of reading the files once).
+     */
+    val installedIds: Flow<Set<String>>
+        get() = flowOf(catalog.filter(::isInstalled).map { it.id }.toSet())
 
     fun startDownload(model: ModelInfo)
 

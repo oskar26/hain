@@ -390,6 +390,15 @@ private fun PackCard(
                 below = { ProgressBar(fraction, Modifier.padding(top = LocalHainSpacing.current.sm)) },
             )
         }
+        // T-287: stopped (here or in the notification): resume where it stopped
+        is DownloadState.Paused ->
+            VoiceCard(
+                stringResource(R.string.chat_voice_pack_paused, (s.fraction * PERCENT).toInt()),
+                onClose = close,
+                below = { ProgressBar(s.fraction, Modifier.padding(top = LocalHainSpacing.current.sm)) },
+            ) {
+                CardAction(stringResource(R.string.chat_voice_pack_resume)) { ui.voice.downloadPack(pack) }
+            }
         is DownloadState.Failed ->
             VoiceCard(stringResource(R.string.chat_voice_pack_failed), onClose = close) {
                 CardAction(stringResource(R.string.chat_voice_pack_retry)) { ui.voice.downloadPack(pack) }

@@ -2,4 +2,7 @@
 <resources>
     <string name="models_download_channel">Modell-Downloads</string>
     <string name="models_downloading">%1$s wird geladen</string>
+    <string name="models_download_stop">Stopp</string>
+    <string name="models_download_progress">%1$d %% · %2$s von %3$s MB</string>
+    <string name="models_download_done">%1$s ist bereit</string>
 </resources>

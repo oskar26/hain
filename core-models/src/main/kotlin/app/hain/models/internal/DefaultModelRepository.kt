@@ -5,6 +5,7 @@ import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
@@ -13,8 +14,13 @@ import app.hain.models.api.FailReason
 import app.hain.models.api.ModelFile
 import app.hain.models.api.ModelInfo
 import app.hain.models.api.ModelRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.update
 import java.io.File
 
 /** Models live in `getExternalFilesDir("models")` (DATA.md "Files"), fallback internal storage. */
@@ -61,16 +67,45 @@ class DefaultModelRepository(
         return installed
     }
 
+    /**
+     * T-287: bumped on every start, stop and delete. Deleting a pack that has no WorkManager job (it was
+     * downloaded before this app start) emits nothing from WorkManager, so the screens never saw it go.
+     */
+    private val changes = MutableStateFlow(0)
+
+    private fun changed() = changes.update { it + 1 }
+
+    override val installedIds: Flow<Set<String>>
+        get() =
+            combine(changes, workManager.getWorkInfosByTagFlow(TAG_DOWNLOAD)) { _, _ ->
+                catalog.filter(::isInstalled).map { it.id }.toSet()
+            }.flowOn(Dispatchers.IO).distinctUntilChanged()
+
     override fun downloadState(model: ModelInfo): Flow<DownloadState> =
-        workManager.getWorkInfosForUniqueWorkFlow(workName(model)).map { infos ->
-            val info = infos.lastOrNull()
-            when {
-                isInstalled(model) -> DownloadState.Installed
-                info == null -> DownloadState.Idle
-                model.isMultiFile -> PackProgress.combine(packFiles(model, infos))
-                else -> info.toState(model)
+        combine(workManager.getWorkInfosForUniqueWorkFlow(workName(model)), changes) { infos, _ ->
+            if (model.isMultiFile) {
+                DownloadRules.pack(packFiles(model, infos), bytesOnPhone(model))
+            } else {
+                val file = model.files.first()
+                val job = infos.lastOrNull()?.toFileProgress(file.size)
+                val total = job?.let { infos.last().progress.getLong(ModelDownloadWorker.KEY_TOTAL, 0L) }
+                DownloadRules.single(
+                    installed = isInstalled(model),
+                    job = job,
+                    partBytes = partOf(model, file).length(),
+                    total = total?.takeIf { it > 0 } ?: model.totalSize,
+                )
             }
-        }
+        }.flowOn(Dispatchers.IO).distinctUntilChanged()
+
+    private fun partOf(
+        model: ModelInfo,
+        file: ModelFile,
+    ): File = fileOf(model, file).let { File(it.parentFile, it.name + ".part") }
+
+    /** T-287: bytes of a pack already on the phone (finished files and part files). */
+    private fun bytesOnPhone(model: ModelInfo): Long =
+        model.files.sumOf { f -> if (isComplete(model, f)) f.size else partOf(model, f).length() }
 
     /** T-140: the state of every file of a pack, from the job tagged with the file's index. */
     private fun packFiles(
@@ -105,28 +140,6 @@ class DefaultModelRepository(
             WorkInfo.State.CANCELLED -> FileProgress(size, FileProgress.Phase.CANCELLED)
         }
 
-    private fun WorkInfo.toState(model: ModelInfo): DownloadState =
-        when (state) {
-            WorkInfo.State.ENQUEUED, WorkInfo.State.BLOCKED -> DownloadState.Queued
-            WorkInfo.State.RUNNING ->
-                if (progress.getString(ModelDownloadWorker.KEY_PHASE) == ModelDownloadWorker.PHASE_VERIFY) {
-                    DownloadState.Verifying
-                } else {
-                    DownloadState.Running(
-                        progress.getLong(ModelDownloadWorker.KEY_DONE, 0L),
-                        progress.getLong(ModelDownloadWorker.KEY_TOTAL, model.totalSize),
-                    )
-                }
-            WorkInfo.State.SUCCEEDED -> if (isInstalled(model)) DownloadState.Installed else DownloadState.Idle
-            WorkInfo.State.FAILED ->
-                DownloadState.Failed(
-                    runCatching {
-                        FailReason.valueOf(outputData.getString(ModelDownloadWorker.KEY_FAIL).orEmpty())
-                    }.getOrDefault(FailReason.UNKNOWN),
-                )
-            WorkInfo.State.CANCELLED -> DownloadState.Idle
-        }
-
     override fun startDownload(model: ModelInfo) {
         if (model.isMultiFile) {
             startPackDownload(model)
@@ -143,9 +156,14 @@ class DefaultModelRepository(
                         ModelDownloadWorker.KEY_TARGET to mainFile(model).absolutePath,
                         ModelDownloadWorker.KEY_TITLE to model.name,
                     ),
-                ).setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                ).addTag(TAG_DOWNLOAD)
+                .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .build()
+        // KEEP keeps a queued or running job (no double download); a stopped or failed one is finished,
+        // so a new job starts and resumes the part file (T-287)
         workManager.enqueueUniqueWork(workName(model), ExistingWorkPolicy.KEEP, request)
+        changed()
     }
 
     /** T-140: the files of a pack one after another (one chain, one unique work), skipping finished ones. */
@@ -162,6 +180,7 @@ class DefaultModelRepository(
                             ModelDownloadWorker.KEY_TITLE to model.name,
                         ),
                     ).addTag(TAG_FILE + index)
+                    .addTag(TAG_DOWNLOAD)
                     .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
                     .build()
             }
@@ -169,10 +188,12 @@ class DefaultModelRepository(
         packDir(model).mkdirs()
         val first = workManager.beginUniqueWork(workName(model), ExistingWorkPolicy.KEEP, requests.first())
         requests.drop(1).fold(first) { chain, next -> chain.then(next) }.enqueue()
+        changed()
     }
 
     override fun cancelDownload(model: ModelInfo) {
         workManager.cancelUniqueWork(workName(model))
+        changed()
     }
 
     override fun delete(model: ModelInfo) {
@@ -183,6 +204,7 @@ class DefaultModelRepository(
             File(target.parentFile, target.name + ".part").delete()
         }
         if (model.isMultiFile) packDir(model).delete() // only when empty
+        changed()
     }
 
     override fun freeSpace(): Long = modelsDir.usableSpace
@@ -192,5 +214,8 @@ class DefaultModelRepository(
     private companion object {
         const val LEGACY_BRAIN_FILE = "LFM3-1.7B-Q4_K_M.gguf"
         const val TAG_FILE = "pack-file-"
+
+        /** T-287: every model download job, so [installedIds] hears when one finishes. */
+        const val TAG_DOWNLOAD = "hain-model-download"
     }
 }

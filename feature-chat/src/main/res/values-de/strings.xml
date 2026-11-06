@@ -304,4 +304,6 @@
         <item quantity="one">%1$d Werkzeug genutzt</item>
         <item quantity="other">%1$d Werkzeuge genutzt</item>
     </plurals>
+    <string name="chat_voice_pack_paused">Angehalten bei %1$d %%</string>
+    <string name="chat_voice_pack_resume">Fortsetzen</string>
 </resources>

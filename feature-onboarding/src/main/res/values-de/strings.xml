@@ -38,4 +38,6 @@
     <string name="icon_step_flat">Flach</string>
     <string name="icon_step_next">Weiter</string>
     <string name="icon_step_hint">Das neue Symbol erscheint, sobald du Hain verlässt. Der Startbildschirm braucht oft ein paar Sekunden.</string>
+    <string name="onboarding_paused">Angehalten · %1$s von %2$s</string>
+    <string name="onboarding_resume">Fortsetzen</string>
 </resources>
