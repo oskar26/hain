@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.runtime.Composable
@@ -29,7 +31,9 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -44,11 +48,21 @@ import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 import app.hain.ui.theme.hainSurface
 import com.mikepenz.markdown.compose.Markdown
+import com.mikepenz.markdown.compose.components.CurrentComponentsBridge
+import com.mikepenz.markdown.compose.components.MarkdownComponent
+import com.mikepenz.markdown.compose.components.markdownComponents
+import com.mikepenz.markdown.compose.elements.MarkdownCodeFence
 import com.mikepenz.markdown.model.DefaultMarkdownColors
 import com.mikepenz.markdown.model.DefaultMarkdownTypography
 import com.mikepenz.markdown.model.MarkdownColors
 import com.mikepenz.markdown.model.MarkdownTypography
+import com.mikepenz.markdown.model.ReferenceLinkHandlerImpl
 import com.mikepenz.markdown.model.markdownInlineContent
+import org.intellij.markdown.MarkdownTokenTypes
+import org.intellij.markdown.ast.findChildOfType
+import org.intellij.markdown.ast.getTextInNode
+import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
+import org.intellij.markdown.parser.MarkdownParser
 
 /**
  * User message: soft grey bubble on the right (DESIGN_SYSTEM.md §1). Like Gemini (T-057), a short
@@ -140,7 +154,16 @@ fun AssistantBlock(
     citations: AnswerCitations? = null,
 ) {
     val count = citations?.count ?: 0
-    val content = remember(markdown, count) { CitationMarks.toLinks(markdown, count) }
+    // T-288: formulas become readable Unicode before the renderer sees them
+    val content = remember(markdown, count) { CitationMarks.toLinks(MathText.prepare(markdown), count) }
+    // T-290: the renderer's defaults are new objects on every recomposition (a new parser, flavour and
+    // link handler), and each of them restarts the parse; kept here, an answer is parsed only when its
+    // text changed (while streaming at most every 40 ms, otherwise once)
+    val flavour = remember { GFMFlavourDescriptor() }
+    val parser = remember(flavour) { MarkdownParser(flavour) }
+    val links = remember { ReferenceLinkHandlerImpl() }
+    val components = remember { markdownComponents(codeFence = mathAwareCodeFence) }
+    val inline = markdownInlineContent(citations?.let { citationInlineContent(it) }.orEmpty())
     Column(modifier.fillMaxWidth()) {
         SelectionContainer {
             Markdown(
@@ -148,14 +171,59 @@ fun AssistantBlock(
                 colors = hainMarkdownColors(),
                 typography = hainMarkdownTypography(),
                 modifier = Modifier.fillMaxWidth(),
+                flavour = flavour,
+                parser = parser,
+                referenceLinkHandler = links,
                 retainState = true,
                 annotator = remember { citationAnnotator() },
-                inlineContent = markdownInlineContent(citations?.let { citationInlineContent(it) }.orEmpty()),
+                inlineContent = inline,
+                components = components,
             )
         }
         if (actions != null) AnswerActionRow(actions)
     }
 }
+
+/** T-288: a ```hain-math block is a centred formula; every other code block stays as the renderer draws it. */
+private val mathAwareCodeFence: MarkdownComponent = { model ->
+    val language =
+        model.node
+            .findChildOfType(MarkdownTokenTypes.FENCE_LANG)
+            ?.getTextInNode(model.content)
+            ?.toString()
+    if (language == MathText.FENCE_LANG) {
+        MarkdownCodeFence(model.content, model.node, model.typography.code) { code, _, _ -> MathBlock(code) }
+    } else {
+        CurrentComponentsBridge.codeFence(model)
+    }
+}
+
+/** T-288: a display formula: own line, centred, formula font, scrolls sideways when it is too wide. */
+@Composable
+internal fun MathBlock(formula: String) {
+    val type = LocalHainTypography.current
+    val colors = LocalHainColors.current
+    val style =
+        remember(type, colors) {
+            type.body.copy(
+                color = colors.text,
+                fontFamily = FontFamily.Serif,
+                fontSize = type.body.fontSize * MATH_SCALE,
+                textAlign = TextAlign.Center,
+            )
+        }
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = LocalHainSpacing.current.sm)
+            .horizontalScroll(rememberScrollState()),
+        contentAlignment = Alignment.Center,
+    ) {
+        BasicText(formula, style = style, modifier = Modifier.widthIn(min = 0.dp))
+    }
+}
+
+private const val MATH_SCALE = 1.1f
 
 /**
  * The quiet grey row of icons under an answer (T-057), evenly spaced and shifted so the first icon
