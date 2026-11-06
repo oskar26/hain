@@ -247,7 +247,10 @@ private fun statusLabel(
     phase: PimPhase,
 ): String? =
     when (phase) {
-        PimPhase.WAITING -> stringResource(R.string.chat_status_waiting)
+        // T-294: a long prompt shows how far the reading is
+        PimPhase.WAITING ->
+            message.reading?.let { stringResource(R.string.chat_status_reading, it) }
+                ?: stringResource(R.string.chat_status_waiting)
         PimPhase.THINKING -> stringResource(R.string.chat_thinking)
         PimPhase.TOOLS -> stringResource(R.string.chat_pim_looking)
         PimPhase.WRITING -> stringResource(R.string.chat_status_writing)

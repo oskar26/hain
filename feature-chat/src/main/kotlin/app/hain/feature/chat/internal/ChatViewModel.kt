@@ -521,10 +521,11 @@ class ChatViewModel(
                                         streaming = true,
                                         steps = update.steps,
                                         research = update.research,
+                                        reading = update.reading,
                                     )
                                 live = chatId to message
                                 val now = clock()
-                                if (now - lastShown >= streamThrottleMs) {
+                                if (now - lastShown >= streamThrottleMs || update.reading != null) {
                                     lastShown = now
                                     store.upsertMessage(chatId, message)
                                 }

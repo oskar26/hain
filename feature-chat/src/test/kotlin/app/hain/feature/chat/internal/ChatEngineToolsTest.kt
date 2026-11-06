@@ -94,6 +94,25 @@ class ChatEngineToolsTest {
             val last = engine.respond(user("Wetter?"), AnswerMode.FAST).toList().last() as TurnUpdate.Finished
             assertEquals("Fertig.", last.output.text)
             assertEquals(ResearchBudget.FAST.maxRounds, weather.calls)
+            // T-294: the tool block stays (same prompt start = read from memory), a line says "no more tools"
+            assertTrue(llm.lastPrompt.contains("<tools>"))
+            assertTrue(llm.lastPrompt.contains("Keine Werkzeuge mehr"))
+            val start = llm.prompts[0].substringBefore("im_start|>user")
+            assertTrue(llm.lastPrompt.startsWith(start))
+        }
+
+    @Test
+    fun aToolCallInTheClosingRoundIsAskedAgainWithoutTheBlock() =
+        runTest {
+            val weather = FakeWeather()
+            val first = listOf(call("weather", "place", "Köln"))
+            val second = listOf(call("weather", "place", "Bonn"))
+            val third = listOf(call("weather", "place", "Ulm"))
+            val llm = FakeLlm(first, second, third, listOf("Fertig."))
+            val engine = ChatEngine(llm, { "SYS" }, tools = ToolRouter(listOf(weather)), toolContext = { ctx })
+            val last = engine.respond(user("Wetter?"), AnswerMode.FAST).toList().last() as TurnUpdate.Finished
+            assertEquals("Fertig.", last.output.text)
+            assertEquals(ResearchBudget.FAST.maxRounds, weather.calls)
             assertFalse(llm.lastPrompt.contains("<tools>"))
         }
 

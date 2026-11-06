@@ -306,4 +306,5 @@
     </plurals>
     <string name="chat_voice_pack_paused">Paused at %1$d %%</string>
     <string name="chat_voice_pack_resume">Resume</string>
+    <string name="chat_status_reading">Pim is reading your message … %1$d %%</string>
 </resources>

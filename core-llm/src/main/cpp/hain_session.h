@@ -7,6 +7,7 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -68,6 +69,10 @@ struct Session {
     std::string stateDir;
     uint64_t modelKey = 0;
     double restoredMs = -1;  // time the last restore from disk took, -1 = none
+    // T-294: how far the reading of a prompt is (tokens read, tokens to read), for "Liest … 42 %".
+    std::function<void(int, int)> onRead;
+    size_t readBase = 0;
+    int readTotal = 0;
 };
 
 inline double nowMs() {
@@ -297,9 +302,16 @@ inline size_t restoreState(Session *s, const std::vector<llama_token> &prompt, s
 
 enum class DecodeResult { OK, CANCELLED, ERROR };
 
+#ifndef HAIN_READ_STEP
+#define HAIN_READ_STEP 256
+#endif
+constexpr size_t READ_STEP = HAIN_READ_STEP;
+
 // Decodes tokens[from, to) in batches. On a stop or error the memory goes back to a safe point.
 inline DecodeResult decodeRange(Session *s, const std::vector<llama_token> &tokens, size_t from, size_t to) {
-    const size_t nBatch = llama_n_batch(s->ctx);
+    size_t nBatch = llama_n_batch(s->ctx);
+    // T-294: a long prompt in steps of READ_STEP tokens, so the reading progress moves (same speed, host bench)
+    if (s->readTotal > (int) (2 * READ_STEP) && nBatch > READ_STEP) nBatch = READ_STEP;
     for (size_t i = from; i < to; i += nBatch) {
         if (s->cancel) return DecodeResult::CANCELLED;
         size_t n = std::min(nBatch, to - i);
@@ -312,14 +324,15 @@ inline DecodeResult decodeRange(Session *s, const std::vector<llama_token> &toke
             return rc == 2 ? DecodeResult::CANCELLED : DecodeResult::ERROR;
         }
         s->cached.insert(s->cached.end(), tokens.begin() + (long) i, tokens.begin() + (long) (i + n));
+        if (s->readTotal > 0 && s->onRead) s->onRead((int) (s->cached.size() - s->readBase), s->readTotal);
     }
     return DecodeResult::OK;
 }
 
 // Brings the memory to `prompt`, reusing what is already there (T-033) and leaving checkpoints at
 // `cuts` (token counts) for the next turn. With `checkpointEnd` the end of the prompt gets one too.
-inline DecodeResult ingestPrompt(Session *s, const std::vector<llama_token> &prompt, const std::vector<size_t> &cuts,
-                                 bool checkpointEnd) {
+inline DecodeResult ingestPromptAt(Session *s, const std::vector<llama_token> &prompt, const std::vector<size_t> &cuts,
+                                   bool checkpointEnd) {
     size_t keep = 0;
     if (s->kvReuse && s->cached.empty() && !s->stateDir.empty()) {
         // T-242: fresh memory (after loading): start from a snapshot of the prompt start if there is one
@@ -336,6 +349,9 @@ inline DecodeResult ingestPrompt(Session *s, const std::vector<llama_token> &pro
     }
     s->stats.promptTokens = (int) prompt.size();
     s->stats.reusedTokens = (int) keep;
+    s->readBase = keep;
+    s->readTotal = (int) (prompt.size() - keep);
+    if (s->onRead && s->readTotal > 0) s->onRead(0, s->readTotal);
     size_t at = keep;
     for (size_t cut : cuts) {
         if (cut <= at || cut >= prompt.size()) continue;
@@ -351,6 +367,14 @@ inline DecodeResult ingestPrompt(Session *s, const std::vector<llama_token> &pro
         saveCheckpoint(s);
         if (s->kvReuse) persistState(s);  // warm-up: the whole system turn (valid until its time moves)
     }
+    return r;
+}
+
+// The prompt read into memory (above); the reading progress ends with it.
+inline DecodeResult ingestPrompt(Session *s, const std::vector<llama_token> &prompt, const std::vector<size_t> &cuts,
+                                 bool checkpointEnd) {
+    DecodeResult r = ingestPromptAt(s, prompt, cuts, checkpointEnd);
+    s->readTotal = 0;
     return r;
 }
 

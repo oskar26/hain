@@ -35,6 +35,8 @@ data class UiMessage(
     val news: List<NewsHeadline> = emptyList(),
     /** Research clock while a thorough answer is still looking things up (T-069; not stored). */
     val research: ResearchClock? = null,
+    /** T-294: percent of the prompt read before the first word (long prompts only; not stored). */
+    val reading: Int? = null,
     /** Speed of this answer for developer mode (T-211; not stored). */
     val stats: GenerationStats? = null,
     /** Checklist ticks the user set on this answer's cards (T-131, `cards_json`, see CardState). */

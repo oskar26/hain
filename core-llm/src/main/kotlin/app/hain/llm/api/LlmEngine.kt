@@ -46,6 +46,14 @@ sealed interface GenerationEvent {
         val text: String,
     ) : GenerationEvent
 
+    /** T-294: [done] of [total] prompt tokens read so far (before the first token; only when there is reading). */
+    data class Reading(
+        val done: Int,
+        val total: Int,
+    ) : GenerationEvent {
+        val fraction: Float get() = if (total > 0) (done.toFloat() / total).coerceIn(0f, 1f) else 1f
+    }
+
     data class Done(
         val reason: StopReason,
         /** Speed of this generation (T-211, developer mode); `null` when the engine does not know. */

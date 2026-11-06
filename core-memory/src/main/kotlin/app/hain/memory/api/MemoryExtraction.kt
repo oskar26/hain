@@ -211,6 +211,7 @@ internal class LlmExtractionBrain(
             when (event) {
                 is GenerationEvent.Token -> out.append(event.text)
                 is GenerationEvent.Done -> reason = event.reason
+                is GenerationEvent.Reading -> Unit
             }
         }
         return out.toString().takeIf { reason == StopReason.END || reason == StopReason.MAX_TOKENS }
