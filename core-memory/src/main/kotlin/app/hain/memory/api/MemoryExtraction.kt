@@ -194,9 +194,6 @@ class MemoryExtractionWorker(
 
     private companion object {
         const val CHARGING_PREFIX = "memory-extract-charging-"
-    }
-
-    private companion object {
         const val WAIT_FOR_APP_MS = 5_000L
         const val POLL_MS = 50L
     }
