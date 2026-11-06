@@ -45,7 +45,7 @@ class MemoryTurnTest {
             store.remember("spielt Gitarre")
             val turn = MemoryTurn(store, backgroundScope)
             val hint = turn.hint(listOf("Hallo", "Hast du ein Rezept mit Pilzen?"), "de")!!
-            assertTrue(hint.contains("- mag keine Pilze"))
+            assertTrue(hint.contains("- Der Nutzer mag keine Pilze."))
             assertTrue(!hint.contains("Gitarre"))
             // T-271: the remember rule only when the message asks to remember something
             assertTrue(!hint.contains("remember"))
