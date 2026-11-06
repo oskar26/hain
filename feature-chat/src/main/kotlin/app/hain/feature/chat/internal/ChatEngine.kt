@@ -20,6 +20,7 @@ import app.hain.llm.internal.GgufPromptBuilder
 import app.hain.llm.internal.StreamSplitter
 import app.hain.llm.internal.ThinkingPolicy
 import app.hain.tools.api.AlarmHints
+import app.hain.tools.api.CardGuard
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.InfoCard
 import app.hain.tools.api.NewsHeadline
@@ -297,6 +298,21 @@ class ChatEngine(
                         round++
                         continue
                     }
+                    // T-293: a card in place of an answer (a checklist of questions for "Wer kann wählen?"):
+                    // once more, asking for sentences; the tools stay, so it can still look it up
+                    val cardOnly =
+                        calls.isEmpty() &&
+                            result.reason == StopReason.END &&
+                            !turn.cardRetried &&
+                            !turn.stopRequested &&
+                            !CardGuard.wanted(lastUser) &&
+                            CardGuard.replacesAnswer(result.output.text)
+                    if (cardOnly) {
+                        turn.cardRetried = true
+                        turn.add(ChatMessage(Role.SYSTEM, CardGuard.hint(ctx.lang)), round)
+                        round++
+                        continue
+                    }
                     val answered = calls.isEmpty() || roundTools.isEmpty() || result.reason != StopReason.END
                     if (router == null || answered) {
                         val earlier = turn.reasoning.toString().trim()
@@ -396,6 +412,9 @@ class ChatEngine(
 
         /** T-271: an empty answer was already asked again once. */
         var emptyRetried = false
+
+        /** T-293: a card in place of an answer was already asked again once. */
+        var cardRetried = false
         val reasoning = StringBuilder()
         var thinkingMs = 0L
         var searches = 0

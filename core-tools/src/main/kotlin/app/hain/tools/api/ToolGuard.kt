@@ -60,8 +60,15 @@ object ToolGuard {
             tool == WEATHER ->
                 "The message asks about the weather: call weather, with the place from the message, " +
                     "else from \"Place\" or \"About the user\"."
-            lang == "de" -> "Die Nachricht fragt nach Nachrichten: rufe news auf."
-            else -> "The message asks for the news: call news."
+            tool == NEWS && lang == "de" -> "Die Nachricht fragt nach Nachrichten: rufe news auf."
+            tool == NEWS -> "The message asks for the news: call news."
+            // T-293: politics and events change after the brain's training: look it up, answer in sentences
+            lang == "de" ->
+                "Die Frage ist über ein aktuelles Ereignis (Politik, Wahl, Ereignis): rufe zuerst web_search auf " +
+                    "und antworte dann in ganzen Sätzen, ohne Karte."
+            else ->
+                "The question is about a current event (politics, an election, news): call web_search first, " +
+                    "then answer in full sentences, without a card."
         }
 
     /** The line for the brain when every call of a round was left out: answer without them. */
@@ -122,6 +129,16 @@ object ToolGuard {
     /** The user plainly asks to look it up ("such im Internet", "google mal"). */
     private val LOOK_UP = Regex("such|google|internet|online|web|look (?:it )?up|search")
 
+    /** T-293: elections, offices and politics: what the brain knows about them may be out of date. */
+    internal val CURRENT_EVENTS =
+        Regex(
+            "neuwahl|\\bwahl(?:en|kampf|recht|lokal)\\b|\\w+swahl\\b|bundespräsident|bundeskanzler|" +
+                "bundestag|bundesrat|" +
+                "regierung|koalition|minister|kanzler(?:in)?\\b|abstimmung|volksentscheid|referendum|" +
+                "rücktritt|amtszeit|\\belection|\\bvote\\b|voting|president|prime minister|parliament|" +
+                "congress|resign",
+        )
+
     private val CLEAR =
         mapOf(
             WEATHER to
@@ -134,6 +151,8 @@ object ToolGuard {
                     "nachrichten|schlagzeilen|neuigkeiten|was gibt'?s neues|was gibt es neues|\\bnews\\b|headlines|" +
                         "what'?s new\\b|what is new\\b",
                 ),
+            // T-293 (Oskar 06.11. 17:04: "Neuwahl des Bundespräsidenten" → a checklist of questions, no answer)
+            SEARCH to CURRENT_EVENTS,
         )
 
     private val TOPICS =
