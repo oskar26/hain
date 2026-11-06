@@ -40,6 +40,8 @@ import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import app.hain.ui.effects.GlassEdge
 import app.hain.ui.effects.ThinkingGlowState
 import app.hain.ui.effects.chromeGlass
@@ -256,3 +258,11 @@ private fun rememberChatBackdrop(thinking: Boolean): ChatBackdropPaint {
     val glow = rememberThinkingGlow(thinking)
     return remember(glow, colors.bg, wash) { ChatBackdropPaint(glow, colors.bg, wash) }
 }
+
+/** T-234: the chat text and the message box are at most this wide on tablets, in the middle. */
+internal val CHAT_MAX_WIDTH: Dp = 720.dp
+
+/** The calm green wash behind the chat (lower part of the page). */
+private const val WASH_FROM = 0.4f
+private const val WASH_LIGHT = 0.08f
+private const val WASH_DARK = 0.1f
