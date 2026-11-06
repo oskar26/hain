@@ -9,6 +9,9 @@ data class AppInfo(
     /** Build day as yyyy-MM-dd; empty for local builds. */
     val buildDate: String = "",
 ) {
+    /** T-281: a debug build (nightly APK, version "…-debug") can only be updated by the next nightly. */
+    val nightlyOnly: Boolean get() = versionName.endsWith(DEBUG_SUFFIX)
+
     /** First 7 characters of [commit], like GitHub shows it. */
     val shortCommit: String get() = commit.take(SHORT_SHA)
 
@@ -22,5 +25,6 @@ data class AppInfo(
 
     private companion object {
         const val SHORT_SHA = 7
+        const val DEBUG_SUFFIX = "-debug"
     }
 }

@@ -107,6 +107,25 @@ abstract class SettingsStyleShots(
         captureScreenRoboImage("$OUT/styles/${name("settings_dev")}$suffix.png")
     }
 
+    /** T-283: one page for everything that goes online, main switch on and off. */
+    @Test
+    fun internetPage() {
+        render(SettingsPage.INTERNET)
+        captureScreenRoboImage("$OUT/styles/${name("settings_internet")}$suffix.png")
+    }
+
+    @Test
+    fun internetPageOff() {
+        render(SettingsPage.INTERNET, settings.copy(offlineMode = true))
+        captureScreenRoboImage("$OUT/styles/${name("settings_internet_off")}$suffix.png")
+    }
+
+    @Test
+    fun answersPage() {
+        render(SettingsPage.ANSWERS)
+        captureScreenRoboImage("$OUT/styles/${name("settings_answers")}$suffix.png")
+    }
+
     @Test
     fun lookPage() {
         render(SettingsPage.LOOK)

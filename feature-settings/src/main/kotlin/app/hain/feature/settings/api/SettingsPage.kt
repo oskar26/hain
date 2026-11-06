@@ -16,8 +16,10 @@ internal enum class SettingsPage(
 ) {
     LOOK(R.string.settings_group_look, R.string.settings_look_hint, Hain3D.PALETTE, GlowHue.PEACH),
     ANSWERS(R.string.settings_group_answers, R.string.settings_answers_hint, Hain3D.BUBBLE, GlowHue.MINT),
-    YOU(R.string.settings_group_you, R.string.settings_you_hint, Hain3D.HEART, GlowHue.ROSE),
-    PRIVACY(R.string.settings_group_privacy, R.string.settings_privacy_hint, Hain3D.SHIELD, GlowHue.SKY),
+
+    // T-283: one page for what may go online, with a main switch; "Über dich" joined "Antworten"
+    INTERNET(R.string.settings_group_internet, R.string.settings_internet_hint, Hain3D.GLOBE, GlowHue.SKY),
+    PRIVACY(R.string.settings_group_privacy, R.string.settings_privacy_hint, Hain3D.SHIELD, GlowHue.ROSE),
     ABOUT(R.string.settings_group_about, R.string.settings_about_hint, Hain3D.TREE, GlowHue.TEAL),
 
     /** Hidden until developer mode is unlocked in "Über Hain" (T-211). */

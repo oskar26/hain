@@ -15,7 +15,7 @@
     <string name="chat_retry">Nochmal fragen</string>
     <string name="chat_share">Teilen</string>
     <string name="chat_delete">Chat löschen</string>
-    <string name="chat_thought_for">Gedacht für %1$d s</string>
+    <string name="chat_thought_for">Nachgedacht · %1$d s</string>
     <string name="chat_thinking">Pim denkt nach…</string>
     <string name="chat_stopped">Gestoppt</string>
     <string name="chat_loading_brain">Das Gehirn wird geweckt…</string>
@@ -60,6 +60,8 @@
     <string name="chat_tool_search">Suche</string>
     <string name="chat_tool_read_page">Seite</string>
     <string name="chat_tool_pages">Seiten</string>
+    <!-- T-280: pages of a search are loading, their number is not known yet -->
+    <string name="chat_tool_reading_pages_any">lese Seiten…</string>
     <plurals name="chat_tool_reading_pages">
         <item quantity="one">lese %d Seite…</item>
         <item quantity="other">lese %d Seiten…</item>
@@ -212,7 +214,6 @@
     <string name="chat_status_waiting">Pim liest deine Nachricht…</string>
     <string name="chat_status_writing">Pim schreibt…</string>
     <string name="chat_status_thought">Nachgedacht</string>
-    <string name="chat_status_open_thinking">Gedanken zeigen oder verbergen</string>
     <string name="chat_pim_looking">Pim schaut nach…</string>
     <string name="chat_dev_stats">%1$s Token/s · erstes Token nach %2$s s</string>
     <string name="chat_dev_copy_debug">Debug-Infos kopieren</string>
@@ -294,4 +295,13 @@
     <string name="chat_source_chip">Quelle %1$d: %2$s</string>
     <string name="chat_sources_open">ausgeklappt</string>
     <string name="chat_sources_closed">eingeklappt</string>
+    <!-- T-280: thinking and tool steps fold into one line -->
+    <string name="chat_expand">ausklappen</string>
+    <string name="chat_collapse">einklappen</string>
+    <string name="chat_expanded">ausgeklappt</string>
+    <string name="chat_collapsed">eingeklappt</string>
+    <plurals name="chat_tools_used">
+        <item quantity="one">%1$d Werkzeug genutzt</item>
+        <item quantity="other">%1$d Werkzeuge genutzt</item>
+    </plurals>
 </resources>

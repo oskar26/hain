@@ -97,14 +97,75 @@ class UpdateRulesTest {
             assertEquals(Purpose.UPDATE, gate.asked.single().purpose)
             assertEquals(UpdateResult.UpToDate, UpdateChecker(gate).check(UpdateChannel.NIGHTLY, 412))
             assertEquals(
-                UpdateResult.Failed,
+                UpdateResult.NoRelease,
                 UpdateChecker(FakeGate { GateResponse(404, "") }).check(UpdateChannel.STABLE, 1),
             )
             assertEquals(
-                UpdateResult.Failed,
+                UpdateResult.OfflineMode,
                 UpdateChecker(FakeGate { throw OfflineException() }).check(UpdateChannel.STABLE, 1),
             )
         }
+
+    // T-281: Oskar 06.11. – "du bist nicht online", although the phone was online
+    @Test
+    fun `online but no stable release yet is no offline message`() =
+        runTest {
+            val gate = FakeGate { GateResponse(404, "Not Found") }
+            assertEquals(UpdateResult.NoRelease, UpdateChecker(gate).check(UpdateChannel.STABLE, 235))
+            assertEquals(1, gate.asked.size)
+        }
+
+    @Test
+    fun `a broken version json is no release, not offline`() =
+        runTest {
+            val gate = FakeGate { GateResponse(200, "<html>sign in to wifi</html>") }
+            assertEquals(UpdateResult.NoRelease, UpdateChecker(gate).check(UpdateChannel.NIGHTLY, 1))
+        }
+
+    @Test
+    fun `github busy is retried with a pause, then unreachable`() =
+        runTest {
+            val waits = mutableListOf<Long>()
+            val gate = FakeGate { GateResponse(503, "") }
+            val result = UpdateChecker(gate, pause = { waits += it }).check(UpdateChannel.NIGHTLY, 1)
+            assertEquals(UpdateResult.Unreachable, result)
+            assertEquals(3, gate.asked.size)
+            assertEquals(UpdateRules.BACKOFF_MS, waits)
+        }
+
+    @Test
+    fun `a second try that works gives the answer`() =
+        runTest {
+            var n = 0
+            val gate =
+                FakeGate {
+                    n++
+                    if (n == 1) throw java.net.SocketTimeoutException("slow") else GateResponse(200, sample)
+                }
+            val result = UpdateChecker(gate, pause = {}).check(UpdateChannel.NIGHTLY, 400)
+            assertTrue(result is UpdateResult.Newer)
+        }
+
+    @Test
+    fun `no network is offline, a network error while online is unreachable`() =
+        runTest {
+            val dead = FakeGate { throw java.net.UnknownHostException("github.com") }
+            assertEquals(
+                UpdateResult.Offline,
+                UpdateChecker(dead, online = { false }, pause = {}).check(UpdateChannel.NIGHTLY, 1),
+            )
+            assertEquals(
+                UpdateResult.Unreachable,
+                UpdateChecker(dead, online = { true }, pause = {}).check(UpdateChannel.NIGHTLY, 1),
+            )
+        }
+
+    @Test
+    fun `a debug build always asks the nightly`() {
+        assertEquals(UpdateChannel.NIGHTLY, UpdateRules.channelFor(UpdateChannel.STABLE, debugBuild = true))
+        assertEquals(UpdateChannel.STABLE, UpdateRules.channelFor(UpdateChannel.STABLE, debugBuild = false))
+        assertEquals(UpdateChannel.NIGHTLY, UpdateRules.channelFor(UpdateChannel.NIGHTLY, debugBuild = false))
+    }
 
     private class FakeGate(
         val answer: () -> GateResponse,

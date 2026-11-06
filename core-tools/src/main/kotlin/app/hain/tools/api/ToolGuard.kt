@@ -30,6 +30,7 @@ object ToolGuard {
         val weatherSearch = tool == SEARCH && query != null && TOPICS.getValue(WEATHER).containsMatchIn(normal(query))
         val topic = TOPICS[if (weatherSearch) WEATHER else tool]
         val last = userMessages.lastOrNull()?.let(::normal)
+        if (tool in LOOKUPS && last != null && ownKnowledge(last)) return false
         // "und morgen?" after "Wie wird das Wetter in Köln?"
         val before = userMessages.dropLast(1).lastOrNull()?.let(::normal)
         return topic == null ||
@@ -69,6 +70,14 @@ object ToolGuard {
         lang: String,
     ): String {
         val names = tools.distinct().joinToString(", ")
+        // T-279: a dropped search must not be told to search again
+        if (tools.isNotEmpty() && tools.all { it in LOOKUPS }) {
+            return if (lang == "de") {
+                "Die Frage braucht keine Suche. Antworte direkt aus deinem Wissen, ohne Werkzeug."
+            } else {
+                "The question needs no search. Answer directly from what you know, without a tool."
+            }
+        }
         return if (lang == "de") {
             "Die Frage braucht $names nicht. Antworte aus deinem Wissen. Nur wenn dir etwas Wichtiges fehlt, " +
                 "nimm web_search mit Ort und Thema."
@@ -89,11 +98,29 @@ object ToolGuard {
             "Do not save anything and use no tool. Answer the user now, directly, in plain text."
         }
 
+    /** [OWN] ask without a plain "look it up" (T-279). */
+    private fun ownKnowledge(text: String) = OWN.containsMatchIn(text) && !LOOK_UP.containsMatchIn(text)
+
     private fun normal(text: String) = text.lowercase(Locale.GERMAN)
 
     private fun words(text: String) = text.split(SPACE).count { it.isNotBlank() }
 
     private val SPACE = Regex("\\s+")
+
+    /** T-279: tools that look something up; [OWN] asks never need them unless the user asks to look it up. */
+    private val LOOKUPS = setOf(SEARCH, "wikipedia")
+
+    /**
+     * T-279 (host m2 "Gib mir 3 Vokabeln für heute" → web_search): words, translations, rhymes and jokes
+     * come from the brain's own knowledge.
+     */
+    private val OWN =
+        Regex(
+            "vokabel|übersetz|gedicht|reim|witz|zungenbrecher|vocab|translat|poem|rhyme|joke|tongue twister",
+        )
+
+    /** The user plainly asks to look it up ("such im Internet", "google mal"). */
+    private val LOOK_UP = Regex("such|google|internet|online|web|look (?:it )?up|search")
 
     private val CLEAR =
         mapOf(

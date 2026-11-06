@@ -47,4 +47,37 @@ class AlarmHintsTest {
         assertSame(timer, AlarmHints.fix(timer, "15 Minuten früher", "07:00"))
         assertEquals("07:00", AlarmHints.lastTime(listOf(alarm("time" to "07:00"), timer)))
     }
+
+    // T-282 (#44): the brain called no set_alarm at all
+    @Test
+    fun aClearAlarmRequestBecomesACallFromTheWords() {
+        val halfSeven = AlarmHints.request("stell mir nen wecker um halb sieben", null)
+        assertEquals(mapOf("time" to "06:30"), halfSeven?.arguments)
+        assertEquals(mapOf("time" to "07:00"), AlarmHints.request("weck mich morgen um 7", null)?.arguments)
+        assertEquals(mapOf("time" to "06:45"), AlarmHints.request("set an alarm for 6:45am", null)?.arguments)
+        assertEquals("set_alarm", AlarmHints.request("Kannst du mich um 6 Uhr wecken?", null)?.name)
+        assertEquals(
+            mapOf("time" to "08:00", "days" to "6,7"),
+            AlarmHints.request("Weck mich jeden Samstag und Sonntag um 8", null)?.arguments,
+        )
+    }
+
+    @Test
+    fun aFollowUpMovesTheLastAlarm() {
+        assertEquals(mapOf("time" to "06:45"), AlarmHints.request("und 15 Minuten früher", "07:00")?.arguments)
+        assertEquals(
+            mapOf("time" to "07:30"),
+            AlarmHints.request("stell den Wecker eine halbe Stunde später", "07:00")?.arguments,
+        )
+        assertNull(AlarmHints.request("und 15 Minuten früher", null))
+    }
+
+    @Test
+    fun noRequestNoCall() {
+        assertNull(AlarmHints.request("Wie stelle ich einen Wecker auf dem Handy?", null))
+        assertNull(AlarmHints.request("lösch den Wecker um 7", null))
+        assertNull(AlarmHints.request("weck mich bald", null))
+        assertNull(AlarmHints.request("stell einen Timer auf 10 Minuten", null))
+        assertNull(AlarmHints.request("Was ist um 7 im Fernsehen?", null))
+    }
 }

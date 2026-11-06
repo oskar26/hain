@@ -712,3 +712,18 @@ Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen 
 | T-276 | review | `check_strings.py`, CI | – |
 
 - Basis main 0a44391 (#56–#58). `hain.versionName=0.1.10.8`; versionCode = Laufnummer der CI. Kein Release, kein Tag, kein Merge. Gradle lokal nicht gestartet, CI ist das Gate.
+
+## 2026-11-06 · 0.1.10.9 – leere Antworten, Denk-Leaks, Einklappen, Update-Suche, Wecker, Internet-Seite, Gedächtnis · review · harness: Hark · model: Hark · branch `hark/v0110-9` (PR #60)
+
+| task | status | check result | open issues |
+|---|---|---|---|
+| T-277 | review | `EmptyAnswerTest`; Host-Test LFM3 | Gerätetest Recherche |
+| T-278 | review | `ThinkLeakTest` | – |
+| T-279 | review | `MemoryBlockTest`, `MemoryStoreTest`, `ToolGuardTest`; Host-Test LFM3 m1/m2 | Wirkung mit echtem Gedächtnis am Gerät |
+| T-280 | review | Roborazzi `steps_*` | Animation am Gerät |
+| T-281 | review | `UpdateRulesTest` | – |
+| T-282 | review | `AlarmHintsTest`, `PhoneActionsTest` | – |
+| T-283 | review | `check_strings.py`, Roborazzi `lichtung_settings_internet*`, `web_settings_internet_*` | – |
+| T-284 | review | `check_strings.py`, CI | – |
+
+- `hain.versionName=0.1.10.9`; versionCode = Laufnummer der CI. Kein Release, kein Tag, kein Merge. Gradle lokal nicht gestartet, CI ist das Gate. Host-Zahlen vorher/nachher im PR-Text.

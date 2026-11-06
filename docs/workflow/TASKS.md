@@ -1616,3 +1616,53 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - type: `docs` · size: `XS` · lane: `B`
 - do: `hain.versionName=0.1.10.8`, README (Tabelle, „Neu in 0.1.10.8“, Modell-Tabelle), Website EN + /de (Gehirn-Abschnitt, Lizenzen), LICENSES, MODELS, STATUS, TASKS, HANDOFF_LOG, PR-Text.
 - check: `tools/check_strings.py`, Website-Build, CI
+
+## 0.1.10.9 (`hark/v0110-9`, Draft-PR #60)
+
+### T-277 · Keine leere Antwort nach langer Recherche
+
+- type: `fix` · size: `M` · lane: `A`
+- do: Schlussrunde der Recherche ohne Denken und aus den Notizen; nur Denken, das die Tokens aufbraucht, zählt als „keine Antwort“ und bekommt einen Versuch ohne Denken; nie eine leere Blase; `hain.versionName=0.1.10.9`.
+- check: `EmptyAnswerTest`, CI
+
+### T-278 · Denken ohne Tags im Antworttext
+
+- type: `fix` · size: `S` · lane: `A`
+- do: `ThinkLeak` entfernt Denk-Absätze ohne `<think>` („We need to answer …“, „The user asks …“) live und am Ende; nur Denken → neuer Versuch.
+- check: `ThinkLeakTest`, CI
+
+### T-279 · Gedächtnis im Prompt als klare Sätze, weniger unnötige Suche
+
+- type: `fix` · size: `S` · lane: `A`
+- do: `MemoryBlock.of`: Kopf „Das weißt du über den Nutzer:“ / „What you know about the user:“, je Erinnerung ein Satz („- Der Nutzer lernt Spanisch.“, Präfix nur bei Verbformen, nicht bei „ich …“ oder Nomen), Schlusssatz „Beachte das bei deiner Antwort, auch bei der Wahl der Sprache, des Orts und der Beispiele.“ (EN entsprechend), ohne Datum. `ToolGuard`: `web_search`/`wikipedia` fallen bei Vokabeln, Übersetzungen, Gedichten, Reimen, Witzen weg, außer der Nutzer bittet ums Nachschlagen; Hinweis nach verworfener Suche „Antworte direkt aus deinem Wissen“ statt „nimm web_search“.
+- check: `MemoryBlockTest`, `MemoryStoreTest`, `ToolGuardTest`, Host-Test LFM3 (`hain_host.py`, HH_V9=1), CI
+
+### T-280 · Denken und Werkzeuge einklappen
+
+- type: `feat` · size: `M` · lane: `A`
+- do: Unter der Antwort eine Zeile „Nachgedacht · 4 s ›“ und „3 Werkzeuge genutzt ›“, Tipp klappt weich auf (ohne Animation bei „Bewegung reduzieren“); während der Arbeit live der aktuelle Schritt, danach eingeklappt; Zustand je Nachricht; TalkBack „ausklappen/einklappen“.
+- check: `StepsFold`-Tests, Roborazzi `StepsFoldScreens` (`steps_*`), CI
+
+### T-281 · Update-Suche sagt, was los ist
+
+- type: `fix` · size: `S` · lane: `A`
+- do: Offline-Modus / kein Internet / GitHub antwortet nicht (3 Versuche mit Pause) / noch keine Version in diesem Kanal / aktuell statt „Bist du online?“; Debug-Build sucht immer die nächste Nightly.
+- check: `UpdateRulesTest`, CI
+
+### T-282 · Wecker ohne `set_alarm`-Aufruf (#44)
+
+- type: `fix` · size: `S` · lane: `A`
+- do: Klare Wecker-Bitte ohne Werkzeugaufruf bekommt trotzdem die Bestätigungskarte (Zeit aus den Worten: „halb sieben“, „um 7“, „6:45am“, Wiederholtage; „15 Minuten früher“ auf den letzten Wecker); Fragen und Löschen bleiben ohne.
+- check: `AlarmHintsTest`, `PhoneActionsTest`, CI
+
+### T-283 · Einstellungen: eine Internet-Seite
+
+- type: `feat` · size: `M` · lane: `A`
+- do: Seite „Internet“ mit Hauptschalter „Internet für Pim“ und klarer Liste, was online darf (Websuche, Standort fürs Wetter, Seiten-Icons, tägliche Update-Suche, Nachschlagen nur auf Frage, Modelle nur auf Tipp) + Netzwerk-Log; „Über dich“ unter „Antworten & du“; Privatsphäre nur Sicherheit und Daten; kürzere Untertitel; technische Netzwerk-Details im Entwickler-Bereich (kein „Erweitert“-Menü). EN + DE.
+- check: `check_strings.py`, Roborazzi `lichtung_settings_internet*`, `web_settings_internet_*`, CI
+
+### T-284 · Doku 0.1.10.9
+
+- type: `docs` · size: `XS` · lane: `B`
+- do: README („Neu in 0.1.10.9“, NetworkGate-Absatz, 0.2.0 ohne festes Datum), Website EN + /de (Einklappen, Internet-Seite, Screenshot `settings_internet`), STATUS, TASKS, HANDOFF_LOG, PR-Text mit Testanleitung.
+- check: `tools/check_strings.py`, Website-Build, CI

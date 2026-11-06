@@ -33,6 +33,41 @@ object AlarmHints {
         return if (args == call.arguments) call else call.copy(arguments = args)
     }
 
+    /**
+     * T-282 (#44): the alarm the user clearly asked for when the brain called no `set_alarm` at all —
+     * "stell mir nen Wecker um halb sieben", "weck mich morgen um 7", "set an alarm for 6:45am", or a
+     * follow-up "und 15 Minuten früher" after an alarm in this chat ([previousTime]). It only becomes
+     * a confirm card; nothing is set before the tap. `null` when the message is no such request
+     * (a question about alarms, deleting one, no time).
+     */
+    @Suppress("ReturnCount")
+    fun request(
+        message: String,
+        previousTime: String?,
+    ): ToolCall? {
+        val t = message.lowercase(Locale.GERMAN)
+        if (NOT_A_REQUEST.containsMatchIn(t)) return null
+        val shift = shiftMinutes(t)
+        val time =
+            when {
+                shift != null && previousTime != null && followUp(t) -> shifted(previousTime, shift)
+                ASKS.containsMatchIn(t) -> clockOf(t)
+                else -> null
+            } ?: return null
+        val args = linkedMapOf<String, Any?>("time" to time)
+        days(message)?.let { args["days"] = it }
+        return ToolCall(FALLBACK_ID, ALARM, args)
+    }
+
+    private fun followUp(text: String) = text.length <= FOLLOW_UP_CHARS || ASKS.containsMatchIn(text)
+
+    /** "halb sieben" → "06:30", "um 7" → "07:00", "6:45am" → "06:45"; number words count too. */
+    private fun clockOf(text: String): String? {
+        val digits = NUMBER_WORD.replace(text) { m -> (NUMBERS.indexOf(m.value) + 1).toString() }
+        val clock = TimeParser.clock(digits) ?: return null
+        return "%02d:%02d".format(Locale.ROOT, clock.hour, clock.minute)
+    }
+
     /** The time of the newest `set_alarm` call in [calls] (oldest first), or `null`. */
     fun lastTime(calls: List<ToolCall>): String? =
         calls
@@ -102,5 +137,23 @@ object AlarmHints {
                 "(minuten|minute|min|stunden|stunde|hours|hour|minutes|mins)\\.?\\s*(früher|eher|später|earlier|later)",
         )
     private val EARLIER = Regex("früher|eher|earlier")
+    private const val FALLBACK_ID = "alarm_from_words"
+
+    /** A follow-up like "und 15 Minuten früher" is short; a long message is something else. */
+    private const val FOLLOW_UP_CHARS = 60
+    private val ASKS =
+        Regex(
+            "(?<!\\p{L})(?:weck(?:e|t)?\\s+mich|wecker|wecken|wake\\s+me|alarm)(?!\\p{L})",
+        )
+    private val NOT_A_REQUEST =
+        Regex(
+            "(?<!\\p{L})(?:lösch\\w*|entfern\\w*|ausschalten|abstellen|deaktivier\\w*|cancel|delete|remove|" +
+                "wie\\s+(?:stelle|kann|geht)|how\\s+(?:do|can)|welche\\s+wecker|timer)(?!\\p{L})",
+        )
+
+    /** Clock words 1 to 12 ("halb sieben"), in order. */
+    private val NUMBERS =
+        listOf("eins", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun", "zehn", "elf", "zwölf")
+    private val NUMBER_WORD = Regex("(?<!\\p{L})(?:" + NUMBERS.joinToString("|") + ")(?!\\p{L})")
     private val DIGITS = Regex("\\d+")
 }

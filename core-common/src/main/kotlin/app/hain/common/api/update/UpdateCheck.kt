@@ -5,7 +5,9 @@ import app.hain.common.api.UpdateChannel
 import app.hain.common.api.UpdateCheck
 import app.hain.common.api.net.GateRequest
 import app.hain.common.api.net.NetworkGate
+import app.hain.common.api.net.OfflineException
 import app.hain.common.api.net.Purpose
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -38,8 +40,23 @@ sealed interface UpdateResult {
 
     data object UpToDate : UpdateResult
 
-    /** No answer, offline mode, or no readable `version.json` (e.g. no tagged release yet). */
-    data object Failed : UpdateResult
+    /**
+     * T-281: what went wrong, said plainly. Before, every failure was "Bist du online?" — also when
+     * the phone was online and there simply was no release for the channel yet (Oskar 06.11.).
+     */
+    sealed interface Failed : UpdateResult
+
+    /** Hain's own offline mode is on. */
+    data object OfflineMode : Failed
+
+    /** The phone has no internet (no network, or the name could not be looked up). */
+    data object Offline : Failed
+
+    /** Online, but GitHub did not answer in time, refused (rate limit) or had an error, also after retries. */
+    data object Unreachable : Failed
+
+    /** GitHub answered, but this channel has no release with a readable `version.json` yet. */
+    data object NoRelease : Failed
 }
 
 /** Pure rules of the update check (unit-tested). Hain never installs anything by itself. */
@@ -83,6 +100,26 @@ object UpdateRules {
             UpdateChannel.NIGHTLY -> "$REPO/releases/download/nightly/version.json"
         }
 
+    /**
+     * T-281: the channel that is really asked. A debug build (`.debug`, the nightly APK) can only be
+     * updated by the next nightly, so it always asks the nightly; a release build asks its setting.
+     */
+    fun channelFor(
+        setting: UpdateChannel,
+        debugBuild: Boolean,
+    ): UpdateChannel = if (debugBuild) UpdateChannel.NIGHTLY else setting
+
+    /** Waits before the 2nd and 3rd try (T-281). */
+    val BACKOFF_MS = listOf(FIRST_PAUSE_MS, SECOND_PAUSE_MS)
+    private const val FIRST_PAUSE_MS = 1_000L
+    private const val SECOND_PAUSE_MS = 3_000L
+
+    private const val HTTP_NOT_FOUND = 404
+    private const val HTTP_GONE = 410
+
+    /** A missing release for the channel (no tagged release yet, or the asset is gone). */
+    fun missing(code: Int): Boolean = code == HTTP_NOT_FOUND || code == HTTP_GONE
+
     /** The release page the banner opens (only after a tap). */
     fun releasePage(channel: UpdateChannel): String =
         when (channel) {
@@ -111,29 +148,62 @@ object UpdateRules {
         (this[key] as? JsonPrimitive)?.takeIf { !it.isString }?.let { it.intOrNull ?: it.longOrNull?.toInt() }
 }
 
-/** Asks GitHub for the newest build, through the [NetworkGate] (purpose UPDATE, in the network log). */
+/**
+ * Asks GitHub for the newest build, through the [NetworkGate] (purpose UPDATE, in the network log).
+ * T-281: tells offline mode, no internet, GitHub not reachable and "no release yet" apart, and tries
+ * up to three times with a pause when GitHub does not answer. [online] is the phone's own view
+ * (a network with internet, not necessarily validated); [pause] is swapped in tests.
+ */
 class UpdateChecker(
     private val gate: NetworkGate,
+    private val online: () -> Boolean = { true },
+    private val pause: suspend (Long) -> Unit = { delay(it) },
 ) {
-    @Suppress("ReturnCount", "SwallowedException") // every failure is simply "could not check"
     suspend fun check(
+        channel: UpdateChannel,
+        ownVersionCode: Int,
+    ): UpdateResult {
+        var last: UpdateResult = UpdateResult.Unreachable
+        for (attempt in 0..UpdateRules.BACKOFF_MS.size) {
+            if (attempt > 0) pause(UpdateRules.BACKOFF_MS[attempt - 1])
+            last = once(channel, ownVersionCode)
+            if (last != UpdateResult.Unreachable) return last
+        }
+        return last
+    }
+
+    @Suppress("ReturnCount", "SwallowedException") // one early return per kind of answer
+    private suspend fun once(
         channel: UpdateChannel,
         ownVersionCode: Int,
     ): UpdateResult {
         val response =
             try {
                 gate.fetch(GateRequest(UpdateRules.versionUrl(channel), Purpose.UPDATE))
+            } catch (e: OfflineException) {
+                return UpdateResult.OfflineMode
             } catch (e: IOException) {
-                return UpdateResult.Failed
+                return if (online()) UpdateResult.Unreachable else UpdateResult.Offline
             } catch (e: IllegalArgumentException) {
-                return UpdateResult.Failed
+                return UpdateResult.NoRelease
             }
-        if (!response.ok) return UpdateResult.Failed
-        val release = UpdateRules.parse(response.body) ?: return UpdateResult.Failed
-        return if (UpdateRules.isNewer(release, ownVersionCode)) {
-            UpdateResult.Newer(release, UpdateRules.releasePage(channel))
-        } else {
-            UpdateResult.UpToDate
+        return when {
+            UpdateRules.missing(response.code) -> UpdateResult.NoRelease
+            // rate limit, server error, a captive portal page: online, but no answer from GitHub
+            !response.ok -> UpdateResult.Unreachable
+            else -> verdict(UpdateRules.parse(response.body), channel, ownVersionCode)
         }
     }
+
+    private fun verdict(
+        release: ReleaseInfo?,
+        channel: UpdateChannel,
+        ownVersionCode: Int,
+    ): UpdateResult =
+        when {
+            release == null -> UpdateResult.NoRelease
+            UpdateRules.isNewer(release, ownVersionCode) ->
+                UpdateResult.Newer(release, UpdateRules.releasePage(channel))
+            else -> UpdateResult.UpToDate
+        }
 }

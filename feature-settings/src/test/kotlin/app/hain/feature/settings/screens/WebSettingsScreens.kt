@@ -86,11 +86,11 @@ abstract class WebSettingsShots(
         }
     }
 
-    /** T-266: privacy in groups (going online, safety, your data). */
+    /** T-283: the Internet page – one main switch, what may go online, the network log. */
     @Test
-    fun privacy() {
-        compose.setContent { Frame { SettingsBody(HainSettings(), actions, startPage = SettingsPage.PRIVACY) } }
-        shot("settings_privacy")
+    fun internet() {
+        compose.setContent { Frame { SettingsBody(HainSettings(), actions, startPage = SettingsPage.INTERNET) } }
+        shot("settings_internet")
     }
 
     @Test
