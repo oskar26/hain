@@ -32,7 +32,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,19 +48,12 @@ import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 import app.hain.ui.theme.hainSurface
 import com.mikepenz.markdown.compose.Markdown
-import com.mikepenz.markdown.compose.components.CurrentComponentsBridge
-import com.mikepenz.markdown.compose.components.MarkdownComponent
-import com.mikepenz.markdown.compose.components.markdownComponents
-import com.mikepenz.markdown.compose.elements.MarkdownCodeFence
 import com.mikepenz.markdown.model.DefaultMarkdownColors
 import com.mikepenz.markdown.model.DefaultMarkdownTypography
 import com.mikepenz.markdown.model.MarkdownColors
 import com.mikepenz.markdown.model.MarkdownTypography
 import com.mikepenz.markdown.model.ReferenceLinkHandlerImpl
 import com.mikepenz.markdown.model.markdownInlineContent
-import org.intellij.markdown.MarkdownTokenTypes
-import org.intellij.markdown.ast.findChildOfType
-import org.intellij.markdown.ast.getTextInNode
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.parser.MarkdownParser
 
@@ -162,7 +155,9 @@ fun AssistantBlock(
     val flavour = remember { GFMFlavourDescriptor() }
     val parser = remember(flavour) { MarkdownParser(flavour) }
     val links = remember { ReferenceLinkHandlerImpl() }
-    val components = remember { markdownComponents(codeFence = mathAwareCodeFence) }
+    // T-298: headings with air above, code blocks with language, copy button and sideways scroll
+    val components = remember { hainMarkdownComponents() }
+    val padding = hainMarkdownPadding()
     val inline = markdownInlineContent(citations?.let { citationInlineContent(it) }.orEmpty())
     Column(modifier.fillMaxWidth()) {
         SelectionContainer {
@@ -171,6 +166,7 @@ fun AssistantBlock(
                 colors = hainMarkdownColors(),
                 typography = hainMarkdownTypography(),
                 modifier = Modifier.fillMaxWidth(),
+                padding = padding,
                 flavour = flavour,
                 parser = parser,
                 referenceLinkHandler = links,
@@ -181,20 +177,6 @@ fun AssistantBlock(
             )
         }
         if (actions != null) AnswerActionRow(actions)
-    }
-}
-
-/** T-288: a ```hain-math block is a centred formula; every other code block stays as the renderer draws it. */
-private val mathAwareCodeFence: MarkdownComponent = { model ->
-    val language =
-        model.node
-            .findChildOfType(MarkdownTokenTypes.FENCE_LANG)
-            ?.getTextInNode(model.content)
-            ?.toString()
-    if (language == MathText.FENCE_LANG) {
-        MarkdownCodeFence(model.content, model.node, model.typography.code) { code, _, _ -> MathBlock(code) }
-    } else {
-        CurrentComponentsBridge.codeFence(model)
     }
 }
 
@@ -390,17 +372,19 @@ fun hainMarkdownTypography(): MarkdownTypography {
     val c = LocalHainColors.current
     return remember(t, c) {
         val body = t.body.copy(color = c.text)
+        // T-298: six clearly different heading levels (H1 no longer the big display size inside a chat)
+        val h = headingStyles(t, c.text, c.textMuted)
         DefaultMarkdownTypography(
-            h1 = t.display.copy(color = c.text),
-            h2 = t.title.copy(color = c.text),
-            h3 = t.title.copy(color = c.text),
-            h4 = body.copy(fontWeight = FontWeight.SemiBold),
-            h5 = body.copy(fontWeight = FontWeight.SemiBold),
-            h6 = body.copy(fontWeight = FontWeight.SemiBold),
+            h1 = h[0],
+            h2 = h[1],
+            h3 = h[2],
+            h4 = h[3],
+            h5 = h[4],
+            h6 = h[5],
             text = body,
             code = t.code.copy(color = c.text),
             inlineCode = t.code.copy(color = c.text),
-            quote = body.copy(color = c.textMuted),
+            quote = body.copy(color = c.textMuted, fontStyle = FontStyle.Italic),
             paragraph = body,
             ordered = body,
             bullet = body,

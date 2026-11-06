@@ -307,4 +307,7 @@
     <string name="chat_voice_pack_paused">Angehalten bei %1$d %%</string>
     <string name="chat_voice_pack_resume">Fortsetzen</string>
     <string name="chat_status_reading">Pim liest deine Nachricht … %1$d %%</string>
+    <string name="chat_md_code">Code</string>
+    <string name="chat_md_task_done">Erledigt</string>
+    <string name="chat_md_task_open">Offen</string>
 </resources>

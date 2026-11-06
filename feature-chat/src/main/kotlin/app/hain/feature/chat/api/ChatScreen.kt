@@ -79,6 +79,8 @@ import app.hain.ui.HainIcons
 import app.hain.ui.LocalExternalLaunch
 import app.hain.ui.components.Composer
 import app.hain.ui.components.HainIconButton
+import app.hain.ui.components.LocalMarkdownLabels
+import app.hain.ui.components.MarkdownLabels
 import app.hain.ui.components.MessageAction
 import app.hain.ui.components.MessageActionKind
 import app.hain.ui.components.ProgressBar
@@ -333,7 +335,20 @@ fun ChatScreen(
                     val ratings by viewModel.ratings.collectAsStateWithLifecycle()
                     // T-131: checklist ticks are saved, card buttons can ask the next question
                     val cards = remember(viewModel) { CardHandler(viewModel::updateCards, viewModel::ask) }
-                    CompositionLocalProvider(LocalCardHandler provides cards, LocalChatVoice provides voice) {
+                    // T-298: the words of code blocks and task lists in answers
+                    val mdLabels =
+                        MarkdownLabels(
+                            code = stringResource(R.string.chat_md_code),
+                            copy = stringResource(R.string.chat_copy),
+                            copied = stringResource(R.string.chat_copied),
+                            taskDone = stringResource(R.string.chat_md_task_done),
+                            taskOpen = stringResource(R.string.chat_md_task_open),
+                        )
+                    CompositionLocalProvider(
+                        LocalCardHandler provides cards,
+                        LocalChatVoice provides voice,
+                        LocalMarkdownLabels provides mdLabels,
+                    ) {
                         MessageList(
                             state,
                             ratings = ratings,
