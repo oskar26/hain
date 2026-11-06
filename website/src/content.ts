@@ -20,7 +20,7 @@ export const LINKS = {
 /**
  * T-269: where a feature stands, the same marks as the feature table in the root README.md.
  * - `since01`: already in the 0.1 test versions (state of 0.1.3.1, 04.11.2026)
- * - `new`:     added on the way to 0.2 (0.1.4 – 0.1.10.8)
+ * - `new`:     added on the way to 0.2 (0.1.4 – 0.1.10.9)
  * - `planned`: in the concept (docs/concept/KONZEPT.md) or ROADMAP.md, not in the app yet
  */
 export type Status = 'new' | 'since01' | 'planned'
@@ -133,7 +133,7 @@ export const COPY: Record<Lang, Copy> = {
         {
           id: 'tools', icon: 'search', status: 'since01', shot: 'tools',
           title: 'Pim looks it up',
-          text: 'Weather from Open-Meteo, Wikipedia in German and English and a web search without account or API key. Each step shows under the answer, with the sources. New in 0.2: weather and Wikipedia cards, site icons at the sources, and tools only come up when your question asks for them.',
+          text: 'Weather from Open-Meteo, Wikipedia in German and English and a web search without account or API key. Each step shows under the answer, folded into one quiet line (“3 tools used”) that opens with a tap, with the sources. New in 0.2: weather and Wikipedia cards, site icons at the sources, and tools only come up when your question asks for them.',
           shotAlt: 'Answer with weather card, steps and sources',
         },
         {
@@ -193,7 +193,7 @@ export const COPY: Record<Lang, Copy> = {
         {
           id: 'privacy', icon: 'shield', status: 'new', shot: 'settings_internet',
           title: 'Private chat, app lock, network log',
-          text: 'A private chat is never saved and gone when you leave it. Lock Hain with fingerprint or PIN and block screenshots. Every request to the internet is listed, and one switch turns all of it off. The network log has been there since 0.1; the rest is new.',
+          text: 'A private chat is never saved and gone when you leave it. Lock Hain with fingerprint or PIN and block screenshots. Every request to the internet is listed, and one switch on the Internet page turns all of it off. The network log has been there since 0.1; the rest is new.',
           shotAlt: 'The Internet page: one main switch and what may go online',
         },
         {
@@ -432,7 +432,7 @@ export const COPY: Record<Lang, Copy> = {
         {
           id: 'tools', icon: 'search', status: 'since01', shot: 'tools',
           title: 'Pim schaut nach',
-          text: 'Wetter von Open-Meteo, Wikipedia auf Deutsch und Englisch und eine Websuche ohne Konto und ohne API-Schlüssel. Jeder Schritt steht unter der Antwort, mit den Quellen. Neu in 0.2: Wetter- und Wikipedia-Karten, Website-Symbole an den Quellen, und Werkzeuge kommen nur, wenn deine Frage danach fragt.',
+          text: 'Wetter von Open-Meteo, Wikipedia auf Deutsch und Englisch und eine Websuche ohne Konto und ohne API-Schlüssel. Jeder Schritt steht unter der Antwort, eingeklappt zu einer ruhigen Zeile („3 Werkzeuge genutzt“), die ein Tipp öffnet, mit den Quellen. Neu in 0.2: Wetter- und Wikipedia-Karten, Website-Symbole an den Quellen, und Werkzeuge kommen nur, wenn deine Frage danach fragt.',
           shotAlt: 'Antwort mit Wetterkarte, Schritten und Quellen',
         },
         {
@@ -492,7 +492,7 @@ export const COPY: Record<Lang, Copy> = {
         {
           id: 'privacy', icon: 'shield', status: 'new', shot: 'settings_internet',
           title: 'Privater Chat, App-Sperre, Netzwerk-Log',
-          text: 'Ein privater Chat wird nie gespeichert und ist beim Verlassen weg. Hain mit Fingerabdruck oder PIN sperren und Bildschirmfotos verhindern. Jede Anfrage ins Internet wird aufgelistet, ein Schalter macht alles aus. Das Netzwerk-Log gibt es seit 0.1, der Rest ist neu.',
+          text: 'Ein privater Chat wird nie gespeichert und ist beim Verlassen weg. Hain mit Fingerabdruck oder PIN sperren und Bildschirmfotos verhindern. Jede Anfrage ins Internet wird aufgelistet, ein Schalter auf der Seite Internet macht alles aus. Das Netzwerk-Log gibt es seit 0.1, der Rest ist neu.',
           shotAlt: 'Die Internet-Seite: ein Hauptschalter und was ins Internet darf',
         },
         {

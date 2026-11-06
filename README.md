@@ -75,7 +75,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 
 ## Features
 
-**Since 0.1** = already in the 0.1 test versions (0.1.3.1) · **New in 0.2** = added on the way to 0.2 (0.1.4 – 0.1.10.8) · **Planned** = in the [concept](docs/concept/KONZEPT.md) or [roadmap](docs/workflow/ROADMAP.md), not in the app yet. Same marks as on the [website](https://oskar26.github.io/hain/).
+**Since 0.1** = already in the 0.1 test versions (0.1.3.1) · **New in 0.2** = added on the way to 0.2 (0.1.4 – 0.1.10.9) · **Planned** = in the [concept](docs/concept/KONZEPT.md) or [roadmap](docs/workflow/ROADMAP.md), not in the app yet. Same marks as on the [website](https://oskar26.github.io/hain/).
 
 | Area | What Hain does | Status |
 |---|---|---|
@@ -117,6 +117,13 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Version 0.1.10.9 – no empty answers, tidier chat and settings, honest update check.**
+  - **No more empty answers after a long research.** With LFM3, Pim used to think so long in the last step of a thorough research that no answer was left. Now the last step answers without thinking and from the notes, and if an answer still comes back empty Pim asks once more – you never see an empty bubble. Thinking that slips into the answer without its tags (“We need to answer …”) is removed.
+  - **Thinking and tools fold away.** Under an answer, the thinking is one line (“Thought · 4 s ›”) and the tools are one line (“3 tools used ›”); a tap opens them with a soft animation (none with *reduce motion*). While Pim works you see the current step live, afterwards it folds away by itself. TalkBack says “expand” / “collapse”.
+  - **Alarms always get a card.** If you clearly ask for an alarm (“stell mir nen Wecker um halb sieben”, “und 15 Minuten früher”) and the brain forgets the tool, Hain still prepares the confirm card from your words.
+  - **Update check says what is going on:** offline mode, no internet, GitHub not answering (Hain tries three times), no version in this channel yet, or up to date – no more “Are you online?” when you are. A test build (debug) always looks for the next nightly.
+  - **Settings, tidier:** a new **Internet** page with one main switch and a plain list of what may go online (web search, weather location, site icons, update check; weather, Wikipedia and news only when you ask, models only when you tap); “About you” is now part of **Answers & you**; shorter subtitles. Technical network settings stay in the developer area.
+  - **Memory:** what Pim knows about you is now written as plain sentences in his instructions (“The user learns Spanish.”), so he uses it for the language, the place and the examples. Vocabulary, translations, poems and jokes no longer start a web search unless you ask him to look something up.
 - **Version 0.1.10.8 – LFM3 is the standard brain again, no tool code in answers, sources as chips.**
   - **LFM3 1.7B is the standard brain again** and thinks out loud when a question needs it. **LFM3-Omni 2B** stays as an optional brain under **Models & packs** and in the brain menu (never recommended or picked by itself); the switch hint and the "legacy" label are gone. With Omni the thinking menu says honestly that Fast and Thorough only differ in research.
   - **No tool code in answers.** Raw tool calls the brain writes into its text (JSON, `<|tool_call|>`, `calculate(…)`) are removed; cards only appear from a real card block. Pim saves to memory only what you said about yourself or asked him to remember, and asks back instead of leaving an empty answer.
@@ -260,7 +267,7 @@ flowchart LR
     Gate -.-> Web((🌐 Internet))
 ```
 
-Everything inside the phone works offline. Hain goes online only to download knowledge packs, or later when you ask for something from the internet (like the weather or a web search). All of that will go through **one gate, the NetworkGate**, which shows you where each request went. *(The tools and the NetworkGate are planned for 0.2.0, see [Features](#features).)*
+Everything inside the phone works offline. Hain goes online only to download packs you pick, or when you ask for something from the internet (like the weather or a web search). All of that goes through **one gate, the NetworkGate**, which lists where each request went. **Settings → Internet** has one main switch and a plain list of what may go online.
 
 ## Knowledge packs
 
@@ -310,7 +317,7 @@ Details: [docs/specs/ARCHITECTURE.md](docs/specs/ARCHITECTURE.md).
 | Version | What | When |
 |---|---|---|
 | nightly | Every merge to `main`, for testers | ongoing |
-| **0.2.0** | First version for friends: chat that stays on your phone, settings, knowledge packs, tools (calculator, weather, Wikipedia, web search, timer), news, memory, private chats | **planned for 6 Nov 2026** |
+| **0.2.0** | First version for friends: chat that stays on your phone, settings, knowledge packs, tools (calculator, weather, Wikipedia, web search, timer), news, memory, private chats | **soon, no fixed date** |
 | 1.0 | Everything in the [concept](docs/concept/KONZEPT.md): tables and forms in documents, questions about photos, voice, mini-apps "forest", F-Droid | 2027, no fixed date |
 
 Dates are goals, not promises. The detailed plan is in [docs/workflow/ROADMAP.md](docs/workflow/ROADMAP.md), the current state in [docs/workflow/STATUS.md](docs/workflow/STATUS.md).
@@ -398,7 +405,7 @@ Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Ger
 
 **Installieren:** Auf dem Handy die [Nightly-Seite](https://github.com/oskar26/hain/releases/tag/nightly) öffnen, `hain-debug.apk` laden, beim Öffnen „Unbekannte Apps installieren“ für den Browser erlauben, installieren. Beim ersten Start lädt Pim das Gehirn (ca. 1 GB, am besten im WLAN) – das kannst du auch überspringen und später im Chat nachholen. Updates einfach drüber installieren, Chats und Gehirn bleiben erhalten.
 
-**Stand:** Hain ist noch in Entwicklung (Alpha). Version 0.2.0 für Freundinnen und Freunde ist für den 6. November 2026 geplant, Version 1.0 für 2027. Beim Programmieren helfen KI-Agenten, jede Änderung wird aber von einem Menschen geprüft. Die KI in der App kann sich irren, prüf wichtige Antworten lieber nach. Mitmachen: Fehler und Wünsche einfach als [Issue](https://github.com/oskar26/hain/issues) melden, siehe [CONTRIBUTING.md](CONTRIBUTING.md).
+**Stand:** Hain ist noch in Entwicklung (Alpha). Version 0.2.0 für Freundinnen und Freunde kommt bald, ohne festes Datum, Version 1.0 für 2027. Beim Programmieren helfen KI-Agenten, jede Änderung wird aber von einem Menschen geprüft. Die KI in der App kann sich irren, prüf wichtige Antworten lieber nach. Mitmachen: Fehler und Wünsche einfach als [Issue](https://github.com/oskar26/hain/issues) melden, siehe [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Licence
 
