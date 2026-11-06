@@ -21,6 +21,17 @@ class ToolGuardTest {
     }
 
     @Test
+    fun ownKnowledgeAsksNeedNoLookup() {
+        assertFalse(ToolGuard.fits("web_search", listOf("Gib mir 3 Vokabeln für heute")))
+        assertFalse(ToolGuard.fits("wikipedia", listOf("Übersetze „Guten Morgen“ ins Spanische")))
+        assertFalse(ToolGuard.fits("web_search", listOf("tell me a joke")))
+        assertTrue(ToolGuard.fits("web_search", listOf("Such im Internet nach spanischen Vokabel-Apps")))
+        assertTrue(ToolGuard.fits("calculate", listOf("Gib mir 3 Vokabeln für heute")))
+        assertFalse(ToolGuard.hint(listOf("web_search"), "de").contains("nimm web_search"))
+        assertTrue(ToolGuard.hint(listOf("weather"), "de").contains("nimm web_search"))
+    }
+
+    @Test
     fun askedForWeatherOrNews() {
         assertTrue(ToolGuard.fits("weather", listOf("Wie wird das Wetter morgen in Köln?")))
         assertTrue(ToolGuard.fits("weather", listOf("brauch ich heute nen Regenschirm")))

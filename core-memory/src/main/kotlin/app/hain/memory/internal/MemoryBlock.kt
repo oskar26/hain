@@ -1,27 +1,40 @@
 package app.hain.memory.internal
 
 import app.hain.memory.api.MemoryFact
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 /** The memory lines for the prompt (MEMORY.md §3.4), in the prompt's language. */
 object MemoryBlock {
-    /** [notes] are the user's own topic notes (label, note) for the topics of [facts] (7b, "Themen"). */
+    /**
+     * T-279 (host test, LFM3 m2 "Gib mir 3 Vokabeln" with "lernt Spanisch"): a head, one full sentence per
+     * fact ("- Der Nutzer lernt Spanisch."), the topic notes, then one line to use it for language, place and
+     * examples. [notes] are the user's own topic notes (label, note) for the topics of [facts] (7b, "Themen").
+     */
     fun of(
         facts: List<MemoryFact>,
         lang: String,
-        zone: ZoneId = ZoneId.systemDefault(),
         notes: List<Pair<String, String>> = emptyList(),
     ): String {
-        val head = if (lang == "de") HEAD_DE else HEAD_EN
-        val lines =
-            facts.joinToString("\n") { fact ->
-                "- ${fact.text} (${DAY.format(Instant.ofEpochMilli(fact.createdAt).atZone(zone))})"
-            }
+        val de = lang == "de"
+        val lines = facts.joinToString("\n") { "- " + sentence(it.text, de) }
         val noteLines =
             notes.joinToString("") { (label, note) -> "\n$label: " + note.replace(SPACES, " ").take(NOTE_CHARS) }
-        return "$head\n$lines$noteLines"
+        return "${if (de) HEAD_DE else HEAD_EN}\n$lines$noteLines\n${if (de) TAIL_DE else TAIL_EN}"
+    }
+
+    /**
+     * A fact as a sentence: "lernt Spanisch" → "Der Nutzer lernt Spanisch.", while the user's own words
+     * ("ich mag keine Pilze") and nouns ("Lieblingsfarbe: Blau") only get a capital and a full stop.
+     */
+    fun sentence(
+        text: String,
+        de: Boolean,
+    ): String {
+        val t = text.trim().trimEnd('.', ' ')
+        if (t.isEmpty()) return t
+        val first = t.substringBefore(' ').lowercase()
+        val verb = t[0].isLowerCase() && first !in OWN_WORDS
+        val body = if (verb) (if (de) "Der Nutzer " else "The user ") + t else t.replaceFirstChar { it.uppercase() }
+        return if (body.last() in END) body else "$body."
     }
 
     /** Prompt name of a topic (its title is the category key, e.g. `person`). */
@@ -78,13 +91,20 @@ object MemoryBlock {
             "If the user asks you to remember something, call remember."
         }
 
-    private val DAY = DateTimeFormatter.ISO_LOCAL_DATE
+    /** First words that are the user's own ("ich", "mein") or no verb: these facts get no "Der Nutzer". */
+    private val OWN_WORDS =
+        setOf("ich", "mein", "meine", "meinen", "meiner", "meinem", "mir", "mich", "i", "i'm", "my", "me", "mine")
+
+    private val END = setOf('.', '!', '?', '…')
     private val SPACES = Regex("\\s+")
 
     /** A topic note in the prompt is cut (the memory has ≤ 600 tokens in all, MEMORY.md §1). */
     private const val NOTE_CHARS = 300
 
-    // the facts are often the user's own words ("ich keine Pilze mag"), so "ich" means the user
-    private const val HEAD_DE = "Das hat der Nutzer dir über sich gesagt (nur nutzen, wenn es zur Frage passt):"
-    private const val HEAD_EN = "What the user told you about themselves (use it only when it fits the question):"
+    private const val HEAD_DE = "Das weißt du über den Nutzer:"
+    private const val HEAD_EN = "What you know about the user:"
+    private const val TAIL_DE =
+        "Beachte das bei deiner Antwort, auch bei der Wahl der Sprache, des Orts und der Beispiele."
+    private const val TAIL_EN =
+        "Keep it in mind for your answer, also for the language, the place and the examples."
 }
