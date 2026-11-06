@@ -75,7 +75,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 
 ## Features
 
-**Since 0.1** = already in the 0.1 test versions (0.1.3.1) · **New in 0.2** = added on the way to 0.2 (0.1.4 – 0.1.10.9) · **Planned** = in the [concept](docs/concept/KONZEPT.md) or [roadmap](docs/workflow/ROADMAP.md), not in the app yet. Same marks as on the [website](https://oskar26.github.io/hain/).
+**Since 0.1** = already in the 0.1 test versions (0.1.3.1) · **New in 0.2** = added on the way to 0.2 (0.1.4 – 0.1.10.10) · **Planned** = in the [concept](docs/concept/KONZEPT.md) or [roadmap](docs/workflow/ROADMAP.md), not in the app yet. Same marks as on the [website](https://oskar26.github.io/hain/).
 
 | Area | What Hain does | Status |
 |---|---|---|
@@ -94,6 +94,7 @@ Pim is a small mint-green sprout and your guide in Hain. He shows you around in 
 | 🎮 Secret | Hold Pim on the start page for 5 seconds without letting go … (hint: 2048) | Since 0.1 |
 | 🪟 Frosted glass | Top bar and message box float as frosted glass over the chat, which scrolls under them; ⋯ menus, long-press menus, the thinking picker, the ↓ button and the side panel too (Android 12+, a calm solid surface on older phones and in battery saver). One Pim status shows waiting, thinking, looking up and writing | New in 0.2 |
 | ℹ️ About Hain | Pim, version (with build number and commit), website, code on GitHub, licence and open-source licences – links open only after your tap | New in 0.2 |
+| 📜 Open-source licences | About Hain → Open-source licences: Hain itself (GPL-3.0, link to the code), then every library, AI model, font, icon set and engine part Hain uses, with version, licence and project link. A tap shows the full licence text – read from the app, also offline. A check in CI makes sure no dependency is missing | New in 0.2 |
 | 🔄 Update check | Optional: once a day at start Hain asks GitHub if a newer version is out (stable or nightly) and shows a calm hint that opens the release page. Off until you say yes, nothing is installed by itself, the request shows in the network log | New in 0.2 |
 | 🛠️ Developer mode | Hidden: tap the version in "About Hain" 7 times. Own GGUF model from Hugging Face (size, RAM hint, download with progress), sampling, context size, thinking, own system prompt, tokens per second under answers | New in 0.2 |
 | ✏️ Chat extras | Automatic chat titles; tap your own message to edit or copy it. Chat list: small glass menu at each chat (pin, rename, delete), smooth drawer | Since 0.1 |
@@ -117,6 +118,8 @@ The live state is in [docs/workflow/STATUS.md](docs/workflow/STATUS.md), the pla
 
 ### New in the latest test build
 
+- **Version 0.1.10.10 – open-source licences in the app.**
+  - **Settings → About Hain → Open-source licences** is now a page of its own instead of a link: Hain itself (GPL-3.0) on top, then libraries, AI models (LFM3 1.7B and LFM3-Omni 2B under the LFM Open License v1.0, Jan-v3.5-4B under Apache-2.0, Moonshine, PP-OCRv5), fonts (Hanken Grotesk, OFL), icons (Lucide, ISC), the engine (llama.cpp, SQLCipher, ONNX Runtime, zstd) and content (Wikipedia packs, German word list). Each row shows name, version and licence; a tap opens the full licence text, offline. The globe opens the project page, only after your tap.
 - **Version 0.1.10.9 – no empty answers, tidier chat and settings, honest update check.**
   - **No more empty answers after a long research.** With LFM3, Pim used to think so long in the last step of a thorough research that no answer was left. Now the last step answers without thinking and from the notes, and if an answer still comes back empty Pim asks once more – you never see an empty bubble. Thinking that slips into the answer without its tags (“We need to answer …”) is removed.
   - **Thinking and tools fold away.** Under an answer, the thinking is one line (“Thought · 4 s ›”) and the tools are one line (“3 tools used ›”); a tap opens them with a soft animation (none with *reduce motion*). While Pim works you see the current step live, afterwards it folds away by itself. TalkBack says “expand” / “collapse”.
@@ -409,7 +412,7 @@ Hain ist ein privater KI-Assistent fürs Android-Handy, der komplett auf dem Ger
 
 ## Licence
 
-[GPL-3.0](LICENSE). Model weights are not bundled and keep their own licences (e.g. LFM Open License v1.0 for LFM3 and LFM3-Omni-2B, Apache-2.0 for the optional Jan-v3.5-4B).
+[GPL-3.0](LICENSE). Model weights are not bundled and keep their own licences (e.g. LFM Open License v1.0 for LFM3 and LFM3-Omni-2B, Apache-2.0 for the optional Jan-v3.5-4B). The app lists every component with its licence text under Settings → About Hain → Open-source licences (source: [tools/licenses/oss.toml](tools/licenses/oss.toml), checked in CI).
 
 ## Name & Pim / Trademarks
 
