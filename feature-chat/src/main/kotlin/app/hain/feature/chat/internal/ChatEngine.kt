@@ -237,8 +237,12 @@ class ChatEngine(
                     turn.textStarted = false
                     val roundTools = if (final) emptyList() else schemas
                     val closing = if (final && turn.researching) listOf(closingLine(ctx.lang)) else emptyList()
-                    val messages = base + turn.promptMessages(round) + closing
-                    val result = generateRound(system, roundTools, messages, history, thinking, turn)
+                    // T-277: after a long research the thinking ran out in the closing round and the answer
+                    // stayed empty: that round answers without thinking, from the notes instead of full pages
+                    val notesOnly = final && turn.researching && round >= 2
+                    val messages = base + turn.promptMessages(round, notesOnly) + closing
+                    val result =
+                        generateRound(system, roundTools, messages, history, thinking, turn, think = thinking && !final)
                     turn.thinkingMs += result.thinkingMs ?: 0L
                     // stopped or out of time while the brain was still choosing tools: answer with what is there
                     if (!final && result.reason == StopReason.CANCELLED && turn.cut) {
@@ -281,7 +285,9 @@ class ChatEngine(
                         continue
                     }
                     // T-271: an empty answer (only tool syntax, or nothing) gets one more try with a plain hint
-                    val empty = noText && calls.isEmpty() && result.reason == StopReason.END && !turn.stopRequested
+                    // T-277: also when it ran out of tokens (thinking that never ended), the retry has no thinking
+                    val ended = result.reason == StopReason.END || result.reason == StopReason.MAX_TOKENS
+                    val empty = noText && calls.isEmpty() && ended && !turn.stopRequested
                     if (empty && !turn.emptyRetried) {
                         turn.emptyRetried = true
                         turn.toolsOff = true
@@ -297,9 +303,14 @@ class ChatEngine(
                                 .joinToString("\n\n")
                                 .ifBlank { null }
                         // T-220: no [1] without a source, no tool talk, no "Fakt:" label
+                        // T-277: never an empty bubble; a short line instead when even the retry said nothing
+                        val text =
+                            cleaned(result.output.text, turn).ifBlank {
+                                if (result.reason == StopReason.CANCELLED) "" else emptyAnswer(ctx.lang)
+                            }
                         emit(
                             TurnUpdate.Finished(
-                                result.output.copy(reasoning = reasoning, text = cleaned(result.output.text, turn)),
+                                result.output.copy(reasoning = reasoning, text = text),
                                 result.reason,
                                 if (thinking) turn.thinkingMs else null,
                                 turn.steps.toList(),
@@ -396,9 +407,13 @@ class ChatEngine(
         }
 
         /** Messages for round [round]: results of the last round in full, older ones as notes. */
-        fun promptMessages(round: Int): List<ChatMessage> =
+        fun promptMessages(
+            round: Int,
+            notesOnly: Boolean = false,
+        ): List<ChatMessage> =
             entries.map { e ->
-                if (e.compact != null && e.round < round - 1) e.message.copy(content = e.compact) else e.message
+                val old = e.round < round - 1 || notesOnly
+                if (e.compact != null && old) e.message.copy(content = e.compact) else e.message
             }
 
         /** Number of the source [url] (its chip), adding it when new. */
@@ -634,6 +649,8 @@ class ChatEngine(
         history: List<ChatMessage>,
         thinking: Boolean,
         turn: Turn,
+        /** T-277: whether this round thinks; [thinking] is the turn's (what the chat shows). */
+        think: Boolean = thinking,
     ): RoundResult {
         val prompt =
             builder().build(
@@ -641,11 +658,11 @@ class ChatEngine(
                 tools = roundTools,
                 history = messages,
                 addGenerationPrompt = true,
-                enableThinking = thinking,
+                enableThinking = think,
             )
-        val params = DevTuning.sampling(turn.dev, thinking, MAX_TOKENS, MAX_TOKENS_THINKING, llm.format.chatSampling)
+        val params = DevTuning.sampling(turn.dev, think, MAX_TOKENS, MAX_TOKENS_THINKING, llm.format.chatSampling)
         val checkpoints = checkpointsFor(prompt, system, history, roundTools)
-        val splitter = StreamSplitter(thinkingEnabled = thinking)
+        val splitter = StreamSplitter(thinkingEnabled = think)
         val reasoning = StringBuilder()
         val text = StringBuilder()
         val start = clock()
@@ -666,11 +683,11 @@ class ChatEngine(
                 when (d) {
                     is UiDelta.Reasoning -> reasoning.append(d.text)
                     is UiDelta.Text -> {
-                        if (thinking && thinkingEnd == null) thinkingEnd = clock()
+                        if (think && thinkingEnd == null) thinkingEnd = clock()
                         text.append(d.text)
                     }
                     is UiDelta.ToolCallStarted -> {
-                        if (thinking && thinkingEnd == null) thinkingEnd = clock()
+                        if (think && thinkingEnd == null) thinkingEnd = clock()
                         val name = d.name ?: ""
                         pending = ToolStep(name, null, StepState.RUNNING, tools?.isOnline(name) == true)
                     }
@@ -719,13 +736,21 @@ class ChatEngine(
         if (mayCut && turn.cut && reason != StopReason.END) reason = StopReason.CANCELLED
         val (rest, parsed) = splitter.finish()
         apply(rest)
-        val thoughtFor = if (thinking) (thinkingEnd ?: clock()) - start else null
+        val thoughtFor = if (think) (thinkingEnd ?: clock()) - start else null
+        // T-277: thinking that never ended (out of tokens) is no answer, and its text is no reply
+        val unfinished = think && thinkingEnd == null && text.isEmpty() && reason != StopReason.CANCELLED
         // A stopped answer keeps what was shown live: thinking stays thinking, never becomes the answer.
         val output =
             if (reason == StopReason.CANCELLED) {
                 parsed.copy(
                     reasoning = reasoning.toString().ifBlank { null },
                     text = text.toString(),
+                    toolCalls = emptyList(),
+                )
+            } else if (unfinished) {
+                parsed.copy(
+                    reasoning = (reasoning.ifBlank { parsed.text }).toString().trim().ifBlank { null },
+                    text = "",
                     toolCalls = emptyList(),
                 )
             } else {
@@ -956,6 +981,14 @@ class ChatEngine(
                 lang == "de" -> THOROUGH_DE
                 else -> THOROUGH_EN
             }
+
+        /** T-277: what the bubble says when the brain gave no answer even on the retry. */
+        internal fun emptyAnswer(lang: String): String = if (lang == "de") EMPTY_DE else EMPTY_EN
+
+        private const val EMPTY_DE =
+            "Dazu habe ich gerade keine Antwort zusammenbekommen. Frag gern noch einmal, vielleicht etwas anders."
+        private const val EMPTY_EN =
+            "I could not put an answer together this time. Feel free to ask again, maybe a little differently."
 
         /** Last line before the answer once tools are over. */
         internal fun finalHint(lang: String): String = if (lang == "de") FINAL_DE else FINAL_EN

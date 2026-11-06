@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.flow
 internal class FakeLlm(
     vararg replies: List<String>?,
     private val end: StopReason = StopReason.END,
+    /** T-277: the stop reason of each reply in turn; [end] after the list. */
+    private val ends: List<StopReason> = emptyList(),
 ) : LlmEngine {
     private val queue = ArrayDeque(replies.toList())
     val prompts = mutableListOf<String>()
@@ -55,13 +57,14 @@ internal class FakeLlm(
         this.checkpoints += checkpoints
         lastParams = params
         val chunks = if (queue.isEmpty()) listOf("ok") else queue.removeFirst()
+        val reason = ends.getOrElse(prompts.size - 1) { end }
         return flow {
             if (chunks == null) {
                 emit(GenerationEvent.Token("Ich denke"))
                 awaitCancellation()
             }
             chunks.forEach { emit(GenerationEvent.Token(it)) }
-            emit(GenerationEvent.Done(end))
+            emit(GenerationEvent.Done(reason))
         }
     }
 
