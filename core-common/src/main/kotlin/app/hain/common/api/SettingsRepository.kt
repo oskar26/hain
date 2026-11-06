@@ -1,23 +1,40 @@
 package app.hain.common.api
 
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import java.io.IOException
 
 /** Reads and writes the settings in a DataStore (T-100). Unknown stored values fall back to the default. */
 @Suppress("TooManyFunctions") // one setter per setting
 class SettingsRepository(
     private val store: DataStore<Preferences>,
 ) {
+    // T-291: a broken or unreadable file (disk full, cut off while writing) gives the defaults instead
+    // of crashing every screen that reads it; a write that fails is dropped (the old value stays)
+    private val safeData: Flow<Preferences> =
+        store.data.catch { e -> if (e is IOException) emit(emptyPreferences()) else throw e }
+
+    private suspend fun save(change: (MutablePreferences) -> Unit) {
+        try {
+            store.edit(change)
+        } catch (ignored: IOException) {
+            // nothing to show: the switch simply stays as it was
+        }
+    }
+
     val settings: Flow<HainSettings> =
-        store.data.map { p ->
+        safeData.map { p ->
             HainSettings(
                 theme = p[THEME].toEnum(ThemeChoice.SYSTEM),
                 readableFont = p[READABLE_FONT] ?: false,
@@ -71,21 +88,21 @@ class SettingsRepository(
     }
 
     suspend fun setUpdateCheck(value: UpdateCheck) =
-        store.edit {
+        save {
             it[UPDATE_CHECK] = value.name
             it[UPDATE_ASKED] = true
         }
 
-    suspend fun setUpdateChannel(value: UpdateChannel) = store.edit { it[UPDATE_CHANNEL] = value.name }
+    suspend fun setUpdateChannel(value: UpdateChannel) = save { it[UPDATE_CHANNEL] = value.name }
 
     /** The one-time card was answered with "Nein danke". */
-    suspend fun dismissUpdateQuestion() = store.edit { it[UPDATE_ASKED] = true }
+    suspend fun dismissUpdateQuestion() = save { it[UPDATE_ASKED] = true }
 
-    suspend fun setLastUpdateCheck(at: Long) = store.edit { it[LAST_UPDATE_CHECK] = at }
+    suspend fun setLastUpdateCheck(at: Long) = save { it[LAST_UPDATE_CHECK] = at }
 
     /** Writes all developer values at once (T-211). */
     suspend fun setDev(value: DevSettings) =
-        store.edit {
+        save {
             it[DEV_ENABLED] = value.enabled
             it[DEV_TEMPERATURE] = value.temperature
             it[DEV_TOP_K] = value.topK
@@ -104,47 +121,47 @@ class SettingsRepository(
             it[DEV_MODEL_NAME] = value.customModelName
         }
 
-    suspend fun setTheme(value: ThemeChoice) = store.edit { it[THEME] = value.name }
+    suspend fun setTheme(value: ThemeChoice) = save { it[THEME] = value.name }
 
-    suspend fun setReadableFont(value: Boolean) = store.edit { it[READABLE_FONT] = value }
+    suspend fun setReadableFont(value: Boolean) = save { it[READABLE_FONT] = value }
 
-    suspend fun setReduceMotion(value: Boolean) = store.edit { it[REDUCE_MOTION] = value }
+    suspend fun setReduceMotion(value: Boolean) = save { it[REDUCE_MOTION] = value }
 
-    suspend fun setAnswerLanguage(value: AnswerLanguage) = store.edit { it[ANSWER_LANGUAGE] = value.name }
+    suspend fun setAnswerLanguage(value: AnswerLanguage) = save { it[ANSWER_LANGUAGE] = value.name }
 
-    suspend fun setAnswerMode(value: AnswerMode) = store.edit { it[ANSWER_MODE] = value.name }
+    suspend fun setAnswerMode(value: AnswerMode) = save { it[ANSWER_MODE] = value.name }
 
-    suspend fun setAboutMe(value: String) = store.edit { it[ABOUT_ME] = value }
+    suspend fun setAboutMe(value: String) = save { it[ABOUT_ME] = value }
 
-    suspend fun setStyle(value: String) = store.edit { it[STYLE] = value }
+    suspend fun setStyle(value: String) = save { it[STYLE] = value }
 
-    suspend fun setOfflineMode(value: Boolean) = store.edit { it[OFFLINE_MODE] = value }
+    suspend fun setOfflineMode(value: Boolean) = save { it[OFFLINE_MODE] = value }
 
-    suspend fun setNetworkLogDetail(value: Boolean) = store.edit { it[NETWORK_LOG_DETAIL] = value }
+    suspend fun setNetworkLogDetail(value: Boolean) = save { it[NETWORK_LOG_DETAIL] = value }
 
-    suspend fun setSearxUrl(value: String) = store.edit { it[SEARXNG_URL] = value.trim() }
+    suspend fun setSearxUrl(value: String) = save { it[SEARXNG_URL] = value.trim() }
 
-    suspend fun setConfirmActions(value: Boolean) = store.edit { it[CONFIRM_ACTIONS] = value }
+    suspend fun setConfirmActions(value: Boolean) = save { it[CONFIRM_ACTIONS] = value }
 
-    suspend fun setWebSearch(value: WebSearch) = store.edit { it[WEB_SEARCH] = value.name }
+    suspend fun setWebSearch(value: WebSearch) = save { it[WEB_SEARCH] = value.name }
 
-    suspend fun setWeatherLocation(value: Boolean) = store.edit { it[WEATHER_LOCATION] = value }
+    suspend fun setWeatherLocation(value: Boolean) = save { it[WEATHER_LOCATION] = value }
 
-    suspend fun setSourceIcons(value: Boolean) = store.edit { it[SOURCE_ICONS] = value }
+    suspend fun setSourceIcons(value: Boolean) = save { it[SOURCE_ICONS] = value }
 
-    suspend fun setHaptics(value: HapticStrength) = store.edit { it[HAPTICS] = value.name }
+    suspend fun setHaptics(value: HapticStrength) = save { it[HAPTICS] = value.name }
 
-    suspend fun setAppIcon(value: AppIcon) = store.edit { it[APP_ICON] = value.name }
+    suspend fun setAppIcon(value: AppIcon) = save { it[APP_ICON] = value.name }
 
-    suspend fun setAppLock(value: Boolean) = store.edit { it[APP_LOCK] = value }
+    suspend fun setAppLock(value: Boolean) = save { it[APP_LOCK] = value }
 
-    suspend fun setLockDelay(value: LockDelay) = store.edit { it[APP_LOCK_DELAY] = value.name }
+    suspend fun setLockDelay(value: LockDelay) = save { it[APP_LOCK_DELAY] = value.name }
 
-    suspend fun setBlockScreenshots(value: Boolean) = store.edit { it[BLOCK_SCREENSHOTS] = value }
+    suspend fun setBlockScreenshots(value: Boolean) = save { it[BLOCK_SCREENSHOTS] = value }
 
     /** Keeps the higher of the stored and the new 2048 score. */
     suspend fun recordGame2048(score: Int) {
-        store.edit { if (score > (it[GAME_2048_BEST] ?: 0)) it[GAME_2048_BEST] = score }
+        save { if (score > (it[GAME_2048_BEST] ?: 0)) it[GAME_2048_BEST] = score }
     }
 
     /**
@@ -154,7 +171,7 @@ class SettingsRepository(
      * screenshot block stay too (T-056): a reset must never open a locked Hain.
      */
     suspend fun reset() =
-        store.edit {
+        save {
             val best = it[GAME_2048_BEST]
             val icon = it[APP_ICON]
             val kept =

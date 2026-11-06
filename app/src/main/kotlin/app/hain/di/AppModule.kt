@@ -2,7 +2,9 @@ package app.hain.di
 
 import android.content.Context
 import android.util.Log
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.emptyPreferences
 import app.hain.common.api.BrainChoiceStore
 import app.hain.common.api.HainSettings
 import app.hain.common.api.SettingsRepository
@@ -69,6 +71,8 @@ object AppModule {
     ): SettingsRepository =
         SettingsRepository(
             PreferenceDataStoreFactory.create(
+                // T-291: a corrupt file starts over with the defaults instead of failing every read
+                corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
                 scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
                 produceFile = { File(context.filesDir, "datastore/settings.preferences_pb") },
             ),
@@ -82,6 +86,8 @@ object AppModule {
     ): BrainChoiceStore =
         BrainChoiceStore(
             PreferenceDataStoreFactory.create(
+                // T-291: a corrupt file starts over with the defaults instead of failing every read
+                corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
                 scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
                 produceFile = { File(context.filesDir, "datastore/brain.preferences_pb") },
             ),

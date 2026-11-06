@@ -1,5 +1,6 @@
 package app.hain.feature.chat.internal
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.hain.docs.api.DocAttachment
@@ -9,6 +10,7 @@ import app.hain.llm.api.ChatMessage
 import app.hain.llm.api.EngineState
 import app.hain.llm.api.LlmEngine
 import app.hain.llm.api.StopReason
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -140,11 +142,7 @@ class ChatViewModel(
                 installed.value = has
                 if (has) {
                     local.update { if (it.error == ChatError.NO_BRAIN) it.copy(error = null) else it }
-                    if (llm.load(modelPath(), contextSize())) {
-                        engine.warmUp()
-                    } else {
-                        local.update { it.copy(error = ChatError.MODEL_LOAD) }
-                    }
+                    if (!loadAndWarm()) local.update { it.copy(error = ChatError.MODEL_LOAD) }
                 }
             }
         }
@@ -159,12 +157,38 @@ class ChatViewModel(
         if (!installed.value) return
         viewModelScope.launch {
             local.update { if (it.error == ChatError.MODEL_LOAD) it.copy(error = null) else it }
-            if (llm.load(modelPath(), contextSize())) {
+            if (!loadAndWarm()) local.update { it.copy(error = ChatError.MODEL_LOAD) }
+        }
+    }
+
+    /**
+     * Loads the brain and reads the system prompt ahead; `false` when it did not load. T-291: a failed
+     * warm-up (only a speed-up) is logged and never closes the app.
+     */
+    private suspend fun loadAndWarm(): Boolean {
+        val loaded =
+            try {
+                llm.load(modelPath(), contextSize())
+            } catch (e: CancellationException) {
+                throw e
+            } catch (
+                @Suppress("TooGenericExceptionCaught") e: Exception,
+            ) {
+                logFailure("Brain did not load", e)
+                false
+            }
+        if (loaded) {
+            try {
                 engine.warmUp()
-            } else {
-                local.update { it.copy(error = ChatError.MODEL_LOAD) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (
+                @Suppress("TooGenericExceptionCaught") e: Exception,
+            ) {
+                logFailure("Warm-up failed", e)
             }
         }
+        return loaded
     }
 
     /** Thumb per answer id; read by the action row under each answer. */
@@ -476,7 +500,7 @@ class ChatViewModel(
     }
 
     /** Answers the newest message; with [replacing] the answer becomes a new version of that one. */
-    @Suppress("LongMethod") // placeholder, history, stream, finish: one answer
+    @Suppress("LongMethod", "CyclomaticComplexMethod") // placeholder, history, stream, finish, failure: one answer
     private fun answer(
         chatId: Long,
         replacing: Long? = null,
@@ -536,6 +560,12 @@ class ChatViewModel(
                             }
                         }
                     }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (
+                    @Suppress("TooGenericExceptionCaught") e: Exception,
+                ) {
+                    failAnswer(chatId, answerId, turn, e)
                 } finally {
                     if (generation == turn) {
                         live = null
@@ -548,6 +578,26 @@ class ChatViewModel(
                     if (local.value.queue.isEmpty()) maybeTitle(chatId) else sendQueued()
                 }
             }
+    }
+
+    /**
+     * T-291: a tool, a document or the brain threw: the answer keeps what is there, marked as failed, with
+     * the error line above the box, instead of the app closing.
+     */
+    private fun failAnswer(
+        chatId: Long,
+        answerId: Long,
+        turn: Int,
+        e: Exception,
+    ) {
+        logFailure("Answer failed", e)
+        val shown = live?.takeIf { it.first == chatId }?.second
+        val base = shown ?: UiMessage(answerId, isUser = false, text = "")
+        store.upsertMessage(
+            chatId,
+            base.copy(streaming = false, failed = base.text.isBlank(), reading = null, research = null),
+        )
+        if (generation == turn) local.update { it.copy(error = ChatError.GENERATION) }
     }
 
     /**
@@ -624,3 +674,11 @@ class ChatViewModel(
 }
 
 private fun List<UiMessage>.toPromptHistory(): List<ChatMessage> = PromptHistory.of(this)
+
+/** T-291: logcat line for a failure that was caught; never fails itself (plain JVM tests have no Log). */
+private fun logFailure(
+    what: String,
+    e: Throwable,
+) {
+    runCatching { Log.w("Hain", what, e) }
+}

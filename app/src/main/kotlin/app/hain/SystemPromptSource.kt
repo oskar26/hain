@@ -13,6 +13,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Fills `assets/prompts/system_full.<de|en>.txt` for each turn (LLM.md §9). The prompt is written in the
@@ -28,8 +29,9 @@ class SystemPromptSource(
      */
     private val profile: () -> List<String> = { emptyList() },
 ) {
-    private val templates = mutableMapOf<ReplyLanguage, String>()
-    private val toolTexts = mutableMapOf<ReplyLanguage, PromptTemplates>()
+    // T-291: read from the chat (IO) and the warm-up at the same time, so a thread-safe map
+    private val templates = ConcurrentHashMap<ReplyLanguage, String>()
+    private val toolTexts = ConcurrentHashMap<ReplyLanguage, PromptTemplates>()
 
     /** Tool rules, examples and the turn nudge from `assets/prompts/tools.<de|en>.txt` (4d, T-184). */
     private fun tools(language: ReplyLanguage): PromptTemplates =
