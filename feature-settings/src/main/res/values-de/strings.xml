@@ -130,7 +130,7 @@
     <string name="about_built">Gebaut am %1$s</string>
     <string name="about_licence">Lizenz</string>
     <string name="about_open_source">Open-Source-Lizenzen</string>
-    <string name="about_open_source_hint">Bibliotheken, auf denen Hain aufbaut</string>
+    <string name="about_open_source_hint">Bibliotheken, KI-Modelle und Schriften in Hain</string>
     <string name="about_dev_already">Der Entwicklermodus ist schon an.</string>
     <string name="about_dev_unlocked">Der Entwicklermodus ist an. Du findest ihn in den Einstellungen.</string>
     <string name="about_dev_off">Entwicklermodus ausschalten</string>
@@ -256,4 +256,20 @@
     <string name="settings_internet_updates">Nach Updates suchen</string>
     <string name="settings_internet_updates_hint">Einmal am Tag fragt Hain bei GitHub nach einer neuen Version.</string>
     <string name="settings_answers_group_you">Über dich</string>
+    <!-- T-285: Open-Source-Lizenzen (Über Hain → Open-Source-Lizenzen), offline aus der APK -->
+    <string name="licences_hint">Worauf Hain aufbaut – jede Lizenz auch offline zum Nachlesen.</string>
+    <string name="licences_intro">Hain selbst ist freie Software unter der GPL-3.0. Es baut auf der Arbeit dieser Open-Source-Projekte auf – danke!</string>
+    <string name="licences_group_libraries">Bibliotheken</string>
+    <string name="licences_group_models">KI-Modelle</string>
+    <string name="licences_group_fonts">Schriften</string>
+    <string name="licences_group_icons">Icons</string>
+    <string name="licences_group_engine">Engine</string>
+    <string name="licences_group_content">Inhalte</string>
+    <string name="licences_models_note">Werden nur geladen, wenn du sie auswählst – nicht Teil der App.</string>
+    <string name="licences_show_text">Lizenztext zeigen</string>
+    <string name="licences_open_project">Projektseite von %1$s öffnen</string>
+    <string name="licences_project_page">Projektseite</string>
+    <string name="licences_text">Lizenztext</string>
+    <string name="licences_all">Alle Lizenzen</string>
+    <string name="licences_missing">Die Liste ließ sich nicht lesen.</string>
 </resources>

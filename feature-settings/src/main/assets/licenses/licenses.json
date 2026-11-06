@@ -1,0 +1,440 @@
+{
+ "app": {
+  "name": "Hain",
+  "licence": "GPL-3.0",
+  "url": "https://github.com/oskar26/hain",
+  "texts": [
+   "gpl-3.0.txt"
+  ]
+ },
+ "groups": [
+  {
+   "id": "libraries",
+   "entries": [
+    {
+     "name": "AndroidX Activity",
+     "version": "1.13.0",
+     "licence": "Apache-2.0",
+     "url": "https://developer.android.com/jetpack/androidx/releases/activity",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "AndroidX Biometric",
+     "version": "1.1.0",
+     "licence": "Apache-2.0",
+     "url": "https://developer.android.com/jetpack/androidx/releases/biometric",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "AndroidX Core",
+     "version": "1.18.0",
+     "licence": "Apache-2.0",
+     "url": "https://developer.android.com/jetpack/androidx/releases/core",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "AndroidX DataStore",
+     "version": "1.1.7",
+     "licence": "Apache-2.0",
+     "url": "https://developer.android.com/jetpack/androidx/releases/datastore",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "AndroidX Fragment",
+     "version": "1.8.9",
+     "licence": "Apache-2.0",
+     "url": "https://developer.android.com/jetpack/androidx/releases/fragment",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "AndroidX Glance",
+     "version": "1.1.1",
+     "licence": "Apache-2.0",
+     "url": "https://developer.android.com/jetpack/androidx/releases/glance",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "AndroidX Lifecycle",
+     "version": "2.10.0",
+     "licence": "Apache-2.0",
+     "url": "https://developer.android.com/jetpack/androidx/releases/lifecycle",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "AndroidX ProfileInstaller",
+     "version": "1.4.1",
+     "licence": "Apache-2.0",
+     "url": "https://developer.android.com/jetpack/androidx/releases/profileinstaller",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "AndroidX Room",
+     "version": "2.7.2",
+     "licence": "Apache-2.0",
+     "url": "https://developer.android.com/jetpack/androidx/releases/room",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "AndroidX SQLite",
+     "version": "2.5.2",
+     "licence": "Apache-2.0",
+     "url": "https://developer.android.com/jetpack/androidx/releases/sqlite",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "AndroidX WorkManager",
+     "version": "2.12.0",
+     "licence": "Apache-2.0",
+     "url": "https://developer.android.com/jetpack/androidx/releases/work",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "Backdrop",
+     "version": "2.0.0-alpha03",
+     "licence": "Apache-2.0",
+     "url": "https://github.com/Kyant0/AndroidLiquidGlass",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "Capsule",
+     "version": "2.1.3",
+     "licence": "Apache-2.0",
+     "url": "https://github.com/Kyant0/Capsule",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "Coil",
+     "version": "3.4.0",
+     "licence": "Apache-2.0",
+     "url": "https://coil-kt.github.io/coil/",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "Compose Unstyled",
+     "version": "2.6.0",
+     "licence": "MIT",
+     "url": "https://github.com/composablehorizons/compose-unstyled",
+     "texts": [
+      "mit-compose-unstyled.txt"
+     ]
+    },
+    {
+     "name": "compose-shimmer",
+     "version": "1.3.2",
+     "licence": "Apache-2.0",
+     "url": "https://github.com/valentinilk/compose-shimmer",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "Haze",
+     "version": "1.7.0",
+     "licence": "Apache-2.0",
+     "url": "https://github.com/chrisbanes/haze",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "Hilt (Dagger)",
+     "version": "2.60.1",
+     "licence": "Apache-2.0",
+     "url": "https://dagger.dev/hilt/",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "Jetpack Compose (UI, Foundation)",
+     "version": "2026.03.01",
+     "licence": "Apache-2.0",
+     "url": "https://developer.android.com/jetpack/compose",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "Konfetti",
+     "version": "2.0.5",
+     "licence": "ISC",
+     "url": "https://github.com/DanielMartinus/Konfetti",
+     "texts": [
+      "isc-konfetti.txt"
+     ]
+    },
+    {
+     "name": "Kotlin standard library",
+     "version": "2.1.20",
+     "licence": "Apache-2.0",
+     "url": "https://kotlinlang.org",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "kotlinx.coroutines",
+     "version": "1.10.2",
+     "licence": "Apache-2.0",
+     "url": "https://github.com/Kotlin/kotlinx.coroutines",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "kotlinx.serialization",
+     "version": "1.8.1",
+     "licence": "Apache-2.0",
+     "url": "https://github.com/Kotlin/kotlinx.serialization",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "Lottie for Compose",
+     "version": "6.7.1",
+     "licence": "Apache-2.0",
+     "url": "https://github.com/airbnb/lottie-android",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "Multiplatform Markdown Renderer (with Highlights)",
+     "version": "0.41.0",
+     "licence": "Apache-2.0",
+     "url": "https://github.com/mikepenz/multiplatform-markdown-renderer",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "PdfBox-Android",
+     "version": "2.0.27.0",
+     "licence": "Apache-2.0",
+     "url": "https://github.com/TomRoush/PdfBox-Android",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "models",
+   "entries": [
+    {
+     "name": "Jan-v3.5-4B",
+     "version": "Q4_K_M · rev 2b0fcab",
+     "licence": "Apache-2.0",
+     "url": "https://huggingface.co/janhq/Jan-v3.5-4B-gguf",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    },
+    {
+     "name": "LFM2.5-Embedding-350M",
+     "version": "Q4_0",
+     "licence": "LFM Open License v1.0",
+     "url": "https://huggingface.co/LiquidAI/LFM2.5-Embedding-350M-GGUF",
+     "texts": [
+      "lfm-1.0.txt"
+     ]
+    },
+    {
+     "name": "LFM3-1.7B",
+     "version": "Q4_0 (QAD)",
+     "licence": "LFM Open License v1.0",
+     "url": "https://huggingface.co/LiquidAI/LFM3-1.7B-GGUF",
+     "texts": [
+      "lfm-1.0.txt"
+     ]
+    },
+    {
+     "name": "LFM3-Omni-2B",
+     "version": "Q4_0 · rev d508b88",
+     "licence": "LFM Open License v1.0",
+     "url": "https://huggingface.co/LiquidAI/LFM3-Omni-2B-GGUF",
+     "texts": [
+      "lfm-1.0.txt"
+     ]
+    },
+    {
+     "name": "Moonshine Streaming Small (Deutsch, English)",
+     "version": "ONNX int8",
+     "licence": "MIT",
+     "url": "https://github.com/moonshine-ai/moonshine",
+     "texts": [
+      "mit-moonshine.txt"
+     ]
+    },
+    {
+     "name": "PP-OCRv5 (mobile, Latin)",
+     "version": "ONNX",
+     "licence": "Apache-2.0",
+     "url": "https://github.com/PaddlePaddle/PaddleOCR",
+     "texts": [
+      "apache-2.0.txt"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "fonts",
+   "entries": [
+    {
+     "name": "Atkinson Hyperlegible",
+     "version": "1.006",
+     "licence": "OFL-1.1",
+     "url": "https://github.com/googlefonts/atkinson-hyperlegible",
+     "texts": [
+      "ofl-atkinson-hyperlegible.txt"
+     ]
+    },
+    {
+     "name": "Hanken Grotesk",
+     "version": "3.014",
+     "licence": "OFL-1.1",
+     "url": "https://github.com/marcologous/hanken-grotesk",
+     "texts": [
+      "ofl-hanken-grotesk.txt"
+     ]
+    },
+    {
+     "name": "JetBrains Mono",
+     "version": "2.304",
+     "licence": "OFL-1.1",
+     "url": "https://github.com/JetBrains/JetBrainsMono",
+     "texts": [
+      "ofl-jetbrains-mono.txt"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "icons",
+   "entries": [
+    {
+     "name": "Lucide",
+     "version": "",
+     "licence": "ISC",
+     "url": "https://lucide.dev",
+     "texts": [
+      "isc-lucide.txt"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "engine",
+   "entries": [
+    {
+     "name": "llama.cpp / ggml",
+     "version": "b11963",
+     "licence": "MIT",
+     "url": "https://github.com/ggml-org/llama.cpp",
+     "texts": [
+      "mit-llama.cpp.txt"
+     ]
+    },
+    {
+     "name": "ONNX Runtime",
+     "version": "1.28.0",
+     "licence": "MIT",
+     "url": "https://onnxruntime.ai",
+     "texts": [
+      "mit-onnxruntime.txt"
+     ]
+    },
+    {
+     "name": "SQLCipher for Android",
+     "version": "4.10.0",
+     "licence": "BSD-3-Clause",
+     "url": "https://www.zetetic.net/sqlcipher/",
+     "texts": [
+      "bsd-sqlcipher-android.txt",
+      "bsd-sqlcipher.txt"
+     ]
+    },
+    {
+     "name": "SQLite",
+     "version": "",
+     "licence": "Public domain",
+     "url": "https://sqlite.org",
+     "texts": [
+      "sqlite-public-domain.txt"
+     ]
+    },
+    {
+     "name": "Zstandard",
+     "version": "1.5.7",
+     "licence": "BSD-3-Clause",
+     "url": "https://github.com/facebook/zstd",
+     "texts": [
+      "bsd-3-zstd.txt"
+     ]
+    },
+    {
+     "name": "zstd-jni",
+     "version": "1.5.7-12",
+     "licence": "BSD-2-Clause",
+     "url": "https://github.com/luben/zstd-jni",
+     "texts": [
+      "bsd-2-zstd-jni.txt"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "content",
+   "entries": [
+    {
+     "name": "German word list (igerman98, FrequencyWords)",
+     "version": "",
+     "licence": "GPL-3.0 / CC BY-SA 4.0",
+     "url": "https://www.j3e.de/ispell/igerman98/",
+     "texts": [
+      "de-words-sources.txt"
+     ]
+    },
+    {
+     "name": "Wikipedia (Kiwix knowledge packs)",
+     "version": "",
+     "licence": "CC BY-SA 4.0",
+     "url": "https://www.kiwix.org",
+     "texts": [
+      "wikipedia-kiwix.txt",
+      "cc-by-sa-4.0.txt"
+     ]
+    }
+   ]
+  }
+ ]
+}

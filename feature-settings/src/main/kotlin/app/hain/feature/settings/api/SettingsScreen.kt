@@ -81,11 +81,31 @@ internal fun SettingsBody(
     networkLog: List<NetworkLogEntry> = emptyList(),
     startPage: SettingsPage? = null,
     extras: SettingsExtras = SettingsExtras(),
+    /** T-285: a licence text open right away (screenshots). */
+    startLicence: String? = null,
 ) {
     var page by rememberSaveable { mutableStateOf(startPage) }
+    var licence by rememberSaveable { mutableStateOf(startLicence) }
     // T-235: from 840 dp on list and page sit side by side; the first group is open right away
     val wide = currentHainWindowSize().isExpanded
-    BackHandler { if (page != null && !wide) page = null else actions.onBack() }
+    val nav =
+        SubNav(licence, { licence = it }) {
+            licence = null
+            page = it
+        }
+    // T-285: back closes an open licence text first, then leads from a sub page to its parent
+    val back = {
+        val parent = page?.parent
+        when {
+            parent != null -> {
+                licence = null
+                page = parent
+            }
+            page != null && !wide -> page = null
+            else -> actions.onBack()
+        }
+    }
+    BackHandler(onBack = back)
     val current = page
     Column(
         modifier
@@ -95,7 +115,7 @@ internal fun SettingsBody(
             .navigationBarsPadding(),
     ) {
         if (wide) {
-            SettingsListDetail(current ?: SettingsPage.LOOK, { page = it }, settings, actions, networkLog, extras)
+            SettingsListDetail(current ?: SettingsPage.LOOK, nav, settings, actions, networkLog, extras, back)
         } else {
             TopBar(
                 title = stringResource(current?.title ?: R.string.settings_title),
@@ -103,7 +123,7 @@ internal fun SettingsBody(
                     HainIconButton(
                         if (current == null) HainIcons.close else HainIcons.back,
                         stringResource(R.string.settings_back),
-                        { if (current != null) page = null else actions.onBack() },
+                        back,
                     )
                 },
             )
@@ -117,7 +137,7 @@ internal fun SettingsBody(
                 if (current == null) {
                     Hub(actions, devMode = settings.dev.enabled) { page = it }
                 } else {
-                    PageBody(current, settings, actions, networkLog, extras)
+                    PageBody(current, settings, actions, networkLog, extras, nav)
                 }
                 Spacer(Modifier.height(LocalHainSpacing.current.xl))
             }
@@ -133,11 +153,12 @@ internal fun SettingsBody(
 @Composable
 private fun SettingsListDetail(
     page: SettingsPage,
-    onPage: (SettingsPage) -> Unit,
+    nav: SubNav,
     settings: HainSettings,
     actions: SettingsActions,
     networkLog: List<NetworkLogEntry>,
     extras: SettingsExtras,
+    back: () -> Unit,
 ) {
     val spacing = LocalHainSpacing.current
     Row(Modifier.fillMaxSize()) {
@@ -153,13 +174,21 @@ private fun SettingsListDetail(
                     .padding(horizontal = spacing.lg),
                 verticalArrangement = Arrangement.spacedBy(spacing.md),
             ) {
-                Hub(actions, devMode = settings.dev.enabled, selected = page, open = onPage)
+                // T-285: a sub page marks the group it belongs to
+                Hub(actions, devMode = settings.dev.enabled, selected = page.parent ?: page, open = nav.goTo)
                 Spacer(Modifier.height(spacing.xl))
             }
         }
         HainPaneDivider()
         Column(Modifier.weight(1f).fillMaxHeight()) {
-            TopBar(title = stringResource(page.title))
+            TopBar(
+                title = stringResource(page.title),
+                leading = {
+                    if (page.parent != null) {
+                        HainIconButton(HainIcons.back, stringResource(R.string.settings_back), back)
+                    }
+                },
+            )
             Column(
                 Modifier
                     .weight(1f)
@@ -172,7 +201,7 @@ private fun SettingsListDetail(
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(spacing.md),
             ) {
-                PageBody(page, settings, actions, networkLog, extras)
+                PageBody(page, settings, actions, networkLog, extras, nav)
                 Spacer(Modifier.height(spacing.xl))
             }
         }
@@ -180,6 +209,7 @@ private fun SettingsListDetail(
 }
 
 /** Header and the one glass tile of a settings page (T-011, T-214). */
+@Suppress("LongParameterList") // the same optional extras as [SettingsBody], plus the T-285 sub page
 @Composable
 private fun PageBody(
     page: SettingsPage,
@@ -187,6 +217,7 @@ private fun PageBody(
     actions: SettingsActions,
     networkLog: List<NetworkLogEntry>,
     extras: SettingsExtras,
+    nav: SubNav,
 ) {
     // T-214: "Über Hain" has its own centred header with Pim
     if (page != SettingsPage.ABOUT) PageHeader(page)
@@ -199,7 +230,7 @@ private fun PageBody(
         // T-266: 16 dp between the rows of a page (was 12)
         verticalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.lg),
     ) {
-        SettingsPageContent(page, settings, actions, networkLog, extras)
+        SettingsPageContent(page, settings, actions, networkLog, extras, nav)
     }
 }
 

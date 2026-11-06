@@ -1,6 +1,6 @@
 # LICENSES.md — dependencies and model licences
 
-App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** it is added. "verify" = must be checked against the official page by the task that adds it.
+App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** it is added, and an entry in `tools/licenses/oss.toml` (shown in the app under Settings → Über Hain → Open-source-Lizenzen; `python3 tools/licenses/gen_licenses.py --check` in CI fails when a runtime dependency, model or font is missing there, T-285). "verify" = must be checked against the official page by the task that adds it.
 
 | Component | Licence | Status |
 |---|---|---|
@@ -45,6 +45,9 @@ App licence: GPL-3.0 (ADR-13). Every new dependency/model gets a row **before** 
 | SQLCipher Community | BSD-style | ok |
 | sqlite-vec | MIT/Apache-2.0 | ok |
 | Room, Compose, Hilt, WorkManager | Apache-2.0 | ok |
+| AndroidX Core, AndroidX Activity, AndroidX Lifecycle (core-ktx, activity-compose, lifecycle-runtime/-viewmodel) | Apache-2.0 | ok |
+| Kotlin standard library, kotlinx.coroutines | Apache-2.0 | ok |
+| SQLite (inside SQLCipher) | public domain | ok |
 | Room 2.7.2 (runtime, ktx, compiler via KSP) + androidx.sqlite 2.5.2 | Apache-2.0 | ok (T-020) |
 | net.zetetic:sqlcipher-android 4.10.0 | BSD-style (zetetic.net/sqlcipher/license) | ok (T-020, encrypted `hain.db`) |
 | androidx.biometric 1.1.0 (+ androidx.fragment-ktx 1.8.9; pulls androidx.appcompat 1.2.0 at runtime) | Apache-2.0 | ok (T-056, app lock with BiometricPrompt + device PIN; no Play Services) |

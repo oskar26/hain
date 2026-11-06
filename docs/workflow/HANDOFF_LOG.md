@@ -727,3 +727,15 @@ Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen 
 | T-284 | review | `check_strings.py`, CI | – |
 
 - `hain.versionName=0.1.10.9`; versionCode = Laufnummer der CI. Kein Release, kein Tag, kein Merge. Gradle lokal nicht gestartet, CI ist das Gate. Host-Zahlen vorher/nachher im PR-Text.
+
+## 2026-11-06 · 0.1.10.10 – Open-Source-Lizenzen in den Einstellungen · review · harness: Hark · model: Hark · branch `hark/v0110-10` (PR #61)
+
+| task | status | check result | open issues |
+|---|---|---|---|
+| T-285 | review | `OssLicensesTest`, `gen_licenses.py --check` (44 Einträge, 20 Texte), `check_strings.py`, Roborazzi `lichtung_settings_licences*`, `lichtung_settings_licence_text*` | transitive Abhängigkeiten nicht einzeln gelistet; Lucide-Version unbekannt |
+| T-286 | review | `check_strings.py`, CI | – |
+
+- Basis main dbf038f (#60 gemergt). `hain.versionName=0.1.10.10`; versionCode = Laufnummer der CI. Kein Release, kein Tag, kein Merge. Gradle lokal nicht gestartet, CI ist das Gate.
+- Lizenztexte einmalig aus den Projekt-Repos geholt (llama.cpp am Pin 39febd2 = b11963, ONNX Runtime v1.28.0, zstd v1.5.7, LFM-Lizenz von Hugging Face, OFL der Schriften, CC BY-SA 4.0 legalcode) und in `tools/licenses/texts/` eingecheckt; die App liest nur Assets.
+- Außerhalb der `files`-Liste angefasst: `.github/workflows/ci.yml` (Schritt „Open-source licences check“), `gradle.properties` (Version), `feature-settings/build.gradle.kts` (kotlinx-serialization-json, schon im Projekt).
+

@@ -1666,3 +1666,17 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - type: `docs` · size: `XS` · lane: `B`
 - do: README („Neu in 0.1.10.9“, NetworkGate-Absatz, 0.2.0 ohne festes Datum), Website EN + /de (Einklappen, Internet-Seite, Screenshot `settings_internet`), STATUS, TASKS, HANDOFF_LOG, PR-Text mit Testanleitung.
 - check: `tools/check_strings.py`, Website-Build, CI
+
+## 0.1.10.10 (`hark/v0110-10`, Draft-PR #61, Basis main dbf038f)
+
+### T-285 · Open-Source-Lizenzen in den Einstellungen
+
+- type: `feat` · size: `M` · lane: `B`
+- do: Einstellungen → Über Hain → „Open-Source-Lizenzen“ als eigene Seite (Lichtung, `SettingsPage.LICENCES` mit `parent = ABOUT`, nicht auf dem Hub): oben Hain selbst (GPL-3.0, Link zum Repo), dann Bibliotheken, KI-Modelle, Schriften, Icons, Engine, Inhalte; je Zeile Name, Version, Lizenz, Globus = Projektseite (nur nach Tipp); Tipp zeigt den vollen Lizenztext offline aus `feature-settings/src/main/assets/licenses/`. Quelle `tools/licenses/oss.toml` + `libs.versions.toml` + `catalog.json`, Generator `tools/licenses/gen_licenses.py` (keine Library, kein Netz zur Laufzeit), CI-Schritt `--check` (jede Runtime-Abhängigkeit, jedes Katalog-Modell, jede Schrift hat einen Eintrag; LICENSES.md-Zeile vorhanden; llama.cpp-Pin passt; Assets aktuell). EN + DE, TalkBack-Labels. `hain.versionName=0.1.10.10`.
+- check: `OssLicensesTest`, `gen_licenses.py --check`, `check_strings.py`, Roborazzi `lichtung_settings_licences*`, `lichtung_settings_licence_text*`, CI
+
+### T-286 · Doku 0.1.10.10
+
+- type: `docs` · size: `XS` · lane: `B`
+- do: README (Tabelle, „Neu in 0.1.10.10“, Lizenz-Absatz), Website EN + /de (Karte „Open-Source-Lizenzen“, FAQ), LICENSES.md (neue Zeilen + Hinweis auf oss.toml), STATUS, TASKS, HANDOFF_LOG, PR-Text mit Testanleitung.
+- check: `tools/check_strings.py`, CI

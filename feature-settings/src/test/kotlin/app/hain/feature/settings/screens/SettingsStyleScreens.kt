@@ -70,12 +70,13 @@ abstract class SettingsStyleShots(
         page: SettingsPage?,
         values: HainSettings = settings,
         extras: SettingsExtras = SettingsExtras(),
+        licence: String? = null,
     ) {
         compose.setContent {
             HainTheme(darkTheme = dark) {
                 CompositionLocalProvider(LocalReduceMotion provides true) {
                     Box(Modifier.fillMaxSize().background(LocalHainColors.current.bg)) {
-                        SettingsBody(values, actions, startPage = page, extras = extras)
+                        SettingsBody(values, actions, startPage = page, extras = extras, startLicence = licence)
                     }
                 }
             }
@@ -124,6 +125,19 @@ abstract class SettingsStyleShots(
     fun answersPage() {
         render(SettingsPage.ANSWERS)
         captureScreenRoboImage("$OUT/styles/${name("settings_answers")}$suffix.png")
+    }
+
+    /** T-285: the open-source licences, list and one full text. */
+    @Test
+    fun licencesPage() {
+        render(SettingsPage.LICENCES, extras = SettingsExtras(AppInfo("0.1.10.10", 1, "", "")))
+        captureScreenRoboImage("$OUT/styles/${name("settings_licences")}$suffix.png")
+    }
+
+    @Test
+    fun licenceText() {
+        render(SettingsPage.LICENCES, licence = "engine/llama.cpp / ggml")
+        captureScreenRoboImage("$OUT/styles/${name("settings_licence_text")}$suffix.png")
     }
 
     @Test

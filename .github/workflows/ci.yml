@@ -40,6 +40,11 @@ jobs:
       - name: String parity check (DE/EN)
         run: python3 tools/check_strings.py
 
+      # T-285: every runtime dependency, model and font has an entry on the open-source licences page,
+      # and the assets in feature-settings are what tools/licenses/gen_licenses.py writes
+      - name: Open-source licences check
+        run: python3 tools/licenses/gen_licenses.py --check
+
       # Room writes core-data/schemas/<version>.json while compiling; kept so the file can be committed.
       - name: Upload Room schemas
         if: always()
