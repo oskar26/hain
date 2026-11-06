@@ -55,7 +55,7 @@ internal fun tapsLeft(taps: Int): Int? = (DEV_TAPS - taps).takeIf { taps >= DEV_
 /**
  * "Über Hain" (T-214): Pim and the version in a centred header, then rows with an icon for the
  * website, GitHub, the version (tap 7× → developer mode, T-211), the licence and the open-source
- * licences, then the update check (T-212).
+ * licences (their own page since T-285), then the update check (T-212).
  */
 @Suppress("LongMethod") // header, link rows and the update block form one page
 @Composable
@@ -64,6 +64,8 @@ internal fun AboutPage(
     actions: SettingsActions,
     info: AppInfo,
     update: UpdateStatus,
+    /** T-285: opens the open-source licences inside the app. */
+    onLicences: () -> Unit = {},
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
@@ -142,9 +144,8 @@ internal fun AboutPage(
         HainIcons.document,
         stringResource(R.string.about_open_source),
         stringResource(R.string.about_open_source_hint),
-    ) {
-        uri.openUri(OPEN_SOURCE)
-    }
+        onClick = onLicences,
+    )
     UpdateBlock(settings, actions, update, nightlyOnly = info.nightlyOnly)
     if (settings.dev.enabled) {
         Link(R.string.about_dev_off, R.string.about_dev_off_hint) { actions.onDev(settings.dev.copy(enabled = false)) }
@@ -258,7 +259,6 @@ private fun AboutRow(
 private const val WEBSITE = "https://oskar26.github.io/hain/"
 private const val GITHUB = "https://github.com/oskar26/hain"
 private const val LICENCE = "https://github.com/oskar26/hain/blob/main/LICENSE"
-private const val OPEN_SOURCE = "https://github.com/oskar26/hain/blob/main/docs/specs/LICENSES.md"
 private const val HEADER_PIM = 72
 private const val HINT_FROM = 3
 private const val HINT_MS = 1_600L

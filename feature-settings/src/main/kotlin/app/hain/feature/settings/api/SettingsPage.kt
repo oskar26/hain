@@ -24,4 +24,11 @@ internal enum class SettingsPage(
 
     /** Hidden until developer mode is unlocked in "Über Hain" (T-211). */
     DEVELOPER(R.string.settings_group_dev, R.string.settings_dev_hint, Hain3D.BOLT, GlowHue.LILAC),
+
+    /** T-285: the open-source licences, one level below "Über Hain" (not on the hub). */
+    LICENCES(R.string.about_open_source, R.string.licences_hint, Hain3D.DOCUMENT, GlowHue.TEAL),
+    ;
+
+    /** The page "back" leads to instead of the hub; the hub marks it on wide windows (T-285). */
+    val parent: SettingsPage? get() = if (this == LICENCES) ABOUT else null
 }

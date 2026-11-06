@@ -130,7 +130,7 @@
     <string name="about_built">Built on %1$s</string>
     <string name="about_licence">Licence</string>
     <string name="about_open_source">Open-source licences</string>
-    <string name="about_open_source_hint">Libraries Hain is built on</string>
+    <string name="about_open_source_hint">Libraries, AI models and fonts Hain uses</string>
     <string name="about_dev_already">Developer mode is already on.</string>
     <string name="about_dev_unlocked">Developer mode is on. You find it in the settings.</string>
     <string name="about_dev_off">Turn off developer mode</string>
@@ -256,4 +256,20 @@
     <string name="settings_internet_updates">Check for updates</string>
     <string name="settings_internet_updates_hint">Once a day Hain asks GitHub for a new version.</string>
     <string name="settings_answers_group_you">About you</string>
+    <!-- T-285: open-source licences (Über Hain → Open-source licences), read offline from the APK -->
+    <string name="licences_hint">What Hain is built on, with every licence to read offline.</string>
+    <string name="licences_intro">Hain itself is free software under the GPL-3.0. It is built on the work of these open-source projects – thank you!</string>
+    <string name="licences_group_libraries">Libraries</string>
+    <string name="licences_group_models">AI models</string>
+    <string name="licences_group_fonts">Fonts</string>
+    <string name="licences_group_icons">Icons</string>
+    <string name="licences_group_engine">Engine</string>
+    <string name="licences_group_content">Content</string>
+    <string name="licences_models_note">Downloaded only when you pick them, not part of the app.</string>
+    <string name="licences_show_text">show licence text</string>
+    <string name="licences_open_project">Open the project page of %1$s</string>
+    <string name="licences_project_page">Project page</string>
+    <string name="licences_text">Licence text</string>
+    <string name="licences_all">All licences</string>
+    <string name="licences_missing">The list could not be read.</string>
 </resources>

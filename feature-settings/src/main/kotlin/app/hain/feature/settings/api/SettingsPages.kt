@@ -25,7 +25,7 @@ import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
 
 /** Content of one settings sub page. */
-@Suppress("LongMethod") // one `when`, one short column per page
+@Suppress("LongMethod", "LongParameterList") // one `when`, one short column per page; T-285 sub page
 @Composable
 internal fun SettingsPageContent(
     page: SettingsPage,
@@ -33,6 +33,7 @@ internal fun SettingsPageContent(
     actions: SettingsActions,
     networkLog: List<NetworkLogEntry> = emptyList(),
     extras: SettingsExtras = SettingsExtras(),
+    nav: SubNav = SubNav(),
 ) {
     when (page) {
         SettingsPage.LOOK -> {
@@ -136,7 +137,9 @@ internal fun SettingsPageContent(
             Group(R.string.settings_privacy_group_data)
             ExportAllSection(actions)
         }
-        SettingsPage.ABOUT -> AboutPage(settings, actions, extras.appInfo, extras.updateStatus)
+        SettingsPage.ABOUT ->
+            AboutPage(settings, actions, extras.appInfo, extras.updateStatus) { nav.goTo(SettingsPage.LICENCES) }
+        SettingsPage.LICENCES -> LicencesPage(extras.appInfo, nav)
         SettingsPage.DEVELOPER ->
             DeveloperPage(settings.dev, actions, extras.devModels) {
                 // T-266: moved here from "Privatsphäre"

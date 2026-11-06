@@ -1,0 +1,474 @@
+# Open-source licences shown in Settings → Über Hain → Open-source-Lizenzen (T-285).
+#
+# This file is the source; tools/licenses/gen_licenses.py turns it into
+# feature-settings/src/main/assets/licenses/licenses.json and copies the licence texts from
+# tools/licenses/texts/ next to it. Run it after every dependency, model, font or icon change:
+#
+#     python3 tools/licenses/gen_licenses.py          # write the assets
+#     python3 tools/licenses/gen_licenses.py --check  # CI: nothing missing, assets up to date
+#
+# Each [[entry]]:
+#   group    libraries | models | fonts | icons | engine | content (order of the page)
+#   name     shown as is
+#   version  literal, or "toml:<key>" (gradle/libs.versions.toml [versions])
+#   licence  licence name as shown
+#   url      project page (opened in the browser only after a tap)
+#   texts    files in tools/licenses/texts/, shown one after the other
+#   md       a word that must appear in docs/specs/LICENSES.md (every component has a row there)
+#   gradle   aliases of gradle/libs.versions.toml this entry covers (runtime dependencies)
+#   catalog  ids of core-models/src/main/assets/catalog.json this entry covers
+#   fonts    file name prefixes in core-ui/src/main/res/font/ this entry covers
+#   submodule + sha: the pinned submodule must still be at this commit (else update version)
+
+[app]
+name = "Hain"
+licence = "GPL-3.0"
+url = "https://github.com/oskar26/hain"
+texts = ["gpl-3.0.txt"]
+
+# ---------------------------------------------------------------- libraries
+
+[[entry]]
+group = "libraries"
+name = "Jetpack Compose (UI, Foundation)"
+version = "toml:androidxComposeBom"
+licence = "Apache-2.0"
+url = "https://developer.android.com/jetpack/compose"
+texts = ["apache-2.0.txt"]
+md = "Compose"
+gradle = ["androidx-compose-bom", "androidx-compose-ui", "androidx-compose-foundation", "androidx-compose-ui-tooling-preview"]
+
+[[entry]]
+group = "libraries"
+name = "AndroidX Core"
+version = "toml:androidxCore"
+licence = "Apache-2.0"
+url = "https://developer.android.com/jetpack/androidx/releases/core"
+texts = ["apache-2.0.txt"]
+md = "AndroidX Core"
+gradle = ["androidx-core-ktx"]
+
+[[entry]]
+group = "libraries"
+name = "AndroidX Activity"
+version = "toml:androidxActivity"
+licence = "Apache-2.0"
+url = "https://developer.android.com/jetpack/androidx/releases/activity"
+texts = ["apache-2.0.txt"]
+md = "AndroidX Activity"
+gradle = ["androidx-activity-compose"]
+
+[[entry]]
+group = "libraries"
+name = "AndroidX Lifecycle"
+version = "toml:androidxLifecycle"
+licence = "Apache-2.0"
+url = "https://developer.android.com/jetpack/androidx/releases/lifecycle"
+texts = ["apache-2.0.txt"]
+md = "AndroidX Lifecycle"
+gradle = ["androidx-lifecycle-runtime-compose", "androidx-lifecycle-viewmodel-compose", "androidx-lifecycle-runtime-ktx"]
+
+[[entry]]
+group = "libraries"
+name = "AndroidX Room"
+version = "toml:room"
+licence = "Apache-2.0"
+url = "https://developer.android.com/jetpack/androidx/releases/room"
+texts = ["apache-2.0.txt"]
+md = "Room"
+gradle = ["room-runtime", "room-ktx"]
+
+[[entry]]
+group = "libraries"
+name = "AndroidX SQLite"
+version = "toml:androidxSqlite"
+licence = "Apache-2.0"
+url = "https://developer.android.com/jetpack/androidx/releases/sqlite"
+texts = ["apache-2.0.txt"]
+md = "androidx.sqlite"
+gradle = ["androidx-sqlite"]
+
+[[entry]]
+group = "libraries"
+name = "AndroidX WorkManager"
+version = "toml:androidxWork"
+licence = "Apache-2.0"
+url = "https://developer.android.com/jetpack/androidx/releases/work"
+texts = ["apache-2.0.txt"]
+md = "androidx.work"
+gradle = ["androidx-work-runtime-ktx"]
+
+[[entry]]
+group = "libraries"
+name = "AndroidX DataStore"
+version = "toml:datastore"
+licence = "Apache-2.0"
+url = "https://developer.android.com/jetpack/androidx/releases/datastore"
+texts = ["apache-2.0.txt"]
+md = "DataStore"
+gradle = ["androidx-datastore-preferences"]
+
+[[entry]]
+group = "libraries"
+name = "AndroidX Glance"
+version = "toml:glance"
+licence = "Apache-2.0"
+url = "https://developer.android.com/jetpack/androidx/releases/glance"
+texts = ["apache-2.0.txt"]
+md = "Glance"
+gradle = ["androidx-glance-appwidget"]
+
+[[entry]]
+group = "libraries"
+name = "AndroidX Biometric"
+version = "toml:biometric"
+licence = "Apache-2.0"
+url = "https://developer.android.com/jetpack/androidx/releases/biometric"
+texts = ["apache-2.0.txt"]
+md = "androidx.biometric"
+gradle = ["androidx-biometric"]
+
+[[entry]]
+group = "libraries"
+name = "AndroidX Fragment"
+version = "toml:fragment"
+licence = "Apache-2.0"
+url = "https://developer.android.com/jetpack/androidx/releases/fragment"
+texts = ["apache-2.0.txt"]
+md = "androidx.fragment"
+gradle = ["androidx-fragment"]
+
+[[entry]]
+group = "libraries"
+name = "AndroidX ProfileInstaller"
+version = "toml:profileinstaller"
+licence = "Apache-2.0"
+url = "https://developer.android.com/jetpack/androidx/releases/profileinstaller"
+texts = ["apache-2.0.txt"]
+md = "androidx.profileinstaller"
+gradle = ["androidx-profileinstaller"]
+
+[[entry]]
+group = "libraries"
+name = "Kotlin standard library"
+version = "toml:kotlin"
+licence = "Apache-2.0"
+url = "https://kotlinlang.org"
+texts = ["apache-2.0.txt"]
+md = "Kotlin standard library"
+
+[[entry]]
+group = "libraries"
+name = "kotlinx.coroutines"
+version = "toml:coroutines"
+licence = "Apache-2.0"
+url = "https://github.com/Kotlin/kotlinx.coroutines"
+texts = ["apache-2.0.txt"]
+md = "kotlinx.coroutines"
+gradle = ["kotlinx-coroutines-core", "kotlinx-coroutines-android"]
+
+[[entry]]
+group = "libraries"
+name = "kotlinx.serialization"
+version = "toml:kotlinxSerialization"
+licence = "Apache-2.0"
+url = "https://github.com/Kotlin/kotlinx.serialization"
+texts = ["apache-2.0.txt"]
+md = "kotlinx.serialization"
+gradle = ["kotlinx-serialization-json"]
+
+[[entry]]
+group = "libraries"
+name = "Hilt (Dagger)"
+version = "toml:hilt"
+licence = "Apache-2.0"
+url = "https://dagger.dev/hilt/"
+texts = ["apache-2.0.txt"]
+md = "Hilt"
+gradle = ["hilt-android"]
+
+[[entry]]
+group = "libraries"
+name = "Compose Unstyled"
+version = "toml:compose-unstyled"
+licence = "MIT"
+url = "https://github.com/composablehorizons/compose-unstyled"
+texts = ["mit-compose-unstyled.txt"]
+md = "Compose Unstyled"
+gradle = ["compose-unstyled"]
+
+[[entry]]
+group = "libraries"
+name = "Haze"
+version = "toml:haze"
+licence = "Apache-2.0"
+url = "https://github.com/chrisbanes/haze"
+texts = ["apache-2.0.txt"]
+md = "Haze"
+gradle = ["haze"]
+
+[[entry]]
+group = "libraries"
+name = "Capsule"
+version = "toml:capsule"
+licence = "Apache-2.0"
+url = "https://github.com/Kyant0/Capsule"
+texts = ["apache-2.0.txt"]
+md = "Capsule"
+gradle = ["capsule"]
+
+[[entry]]
+group = "libraries"
+name = "Backdrop"
+version = "toml:backdrop"
+licence = "Apache-2.0"
+url = "https://github.com/Kyant0/AndroidLiquidGlass"
+texts = ["apache-2.0.txt"]
+md = "Backdrop"
+gradle = ["backdrop"]
+
+[[entry]]
+group = "libraries"
+name = "compose-shimmer"
+version = "toml:shimmer"
+licence = "Apache-2.0"
+url = "https://github.com/valentinilk/compose-shimmer"
+texts = ["apache-2.0.txt"]
+md = "compose-shimmer"
+gradle = ["compose-shimmer"]
+
+[[entry]]
+group = "libraries"
+name = "Multiplatform Markdown Renderer (with Highlights)"
+version = "toml:markdownRenderer"
+licence = "Apache-2.0"
+url = "https://github.com/mikepenz/multiplatform-markdown-renderer"
+texts = ["apache-2.0.txt"]
+md = "multiplatform-markdown-renderer"
+gradle = ["markdown-renderer-core", "markdown-renderer-code"]
+
+[[entry]]
+group = "libraries"
+name = "Coil"
+version = "toml:coil"
+licence = "Apache-2.0"
+url = "https://coil-kt.github.io/coil/"
+texts = ["apache-2.0.txt"]
+md = "Coil"
+gradle = ["coil-compose"]
+
+[[entry]]
+group = "libraries"
+name = "Lottie for Compose"
+version = "toml:lottie"
+licence = "Apache-2.0"
+url = "https://github.com/airbnb/lottie-android"
+texts = ["apache-2.0.txt"]
+md = "Lottie"
+gradle = ["lottie-compose"]
+
+[[entry]]
+group = "libraries"
+name = "Konfetti"
+version = "toml:konfetti"
+licence = "ISC"
+url = "https://github.com/DanielMartinus/Konfetti"
+texts = ["isc-konfetti.txt"]
+md = "Konfetti"
+gradle = ["konfetti-compose"]
+
+[[entry]]
+group = "libraries"
+name = "PdfBox-Android"
+version = "toml:pdfboxAndroid"
+licence = "Apache-2.0"
+url = "https://github.com/TomRoush/PdfBox-Android"
+texts = ["apache-2.0.txt"]
+md = "pdfbox-android"
+gradle = ["pdfbox-android"]
+
+# ---------------------------------------------------------------- models (downloaded on request)
+
+[[entry]]
+group = "models"
+name = "LFM3-1.7B"
+version = "Q4_0 (QAD)"
+licence = "LFM Open License v1.0"
+url = "https://huggingface.co/LiquidAI/LFM3-1.7B-GGUF"
+texts = ["lfm-1.0.txt"]
+md = "LFM3-1.7B"
+catalog = ["lfm3-1.7b-qad-q4_0"]
+
+[[entry]]
+group = "models"
+name = "LFM3-Omni-2B"
+version = "Q4_0 · rev d508b88"
+licence = "LFM Open License v1.0"
+url = "https://huggingface.co/LiquidAI/LFM3-Omni-2B-GGUF"
+texts = ["lfm-1.0.txt"]
+md = "LFM3-Omni-2B"
+catalog = ["lfm3-omni-2b-q4_0"]
+
+[[entry]]
+group = "models"
+name = "Jan-v3.5-4B"
+version = "Q4_K_M · rev 2b0fcab"
+licence = "Apache-2.0"
+url = "https://huggingface.co/janhq/Jan-v3.5-4B-gguf"
+texts = ["apache-2.0.txt"]
+md = "Jan-v3.5-4B"
+catalog = ["jan-v3.5-4b-q4_k_m"]
+
+[[entry]]
+group = "models"
+name = "LFM2.5-Embedding-350M"
+version = "Q4_0"
+licence = "LFM Open License v1.0"
+url = "https://huggingface.co/LiquidAI/LFM2.5-Embedding-350M-GGUF"
+texts = ["lfm-1.0.txt"]
+md = "LFM2.5-Embedding-350M"
+catalog = ["lfm2.5-embedding-350m-q4_0"]
+
+[[entry]]
+group = "models"
+name = "Moonshine Streaming Small (Deutsch, English)"
+version = "ONNX int8"
+licence = "MIT"
+url = "https://github.com/moonshine-ai/moonshine"
+texts = ["mit-moonshine.txt"]
+md = "Moonshine"
+catalog = ["moonshine-small-de", "moonshine-small-en"]
+
+[[entry]]
+group = "models"
+name = "PP-OCRv5 (mobile, Latin)"
+version = "ONNX"
+licence = "Apache-2.0"
+url = "https://github.com/PaddlePaddle/PaddleOCR"
+texts = ["apache-2.0.txt"]
+md = "PP-OCRv5"
+
+# ---------------------------------------------------------------- fonts
+
+[[entry]]
+group = "fonts"
+name = "Hanken Grotesk"
+version = "3.014"
+licence = "OFL-1.1"
+url = "https://github.com/marcologous/hanken-grotesk"
+texts = ["ofl-hanken-grotesk.txt"]
+md = "Hanken Grotesk"
+fonts = ["hankengrotesk_"]
+
+[[entry]]
+group = "fonts"
+name = "Atkinson Hyperlegible"
+version = "1.006"
+licence = "OFL-1.1"
+url = "https://github.com/googlefonts/atkinson-hyperlegible"
+texts = ["ofl-atkinson-hyperlegible.txt"]
+md = "Atkinson Hyperlegible"
+fonts = ["atkinsonhyperlegible_"]
+
+[[entry]]
+group = "fonts"
+name = "JetBrains Mono"
+version = "2.304"
+licence = "OFL-1.1"
+url = "https://github.com/JetBrains/JetBrainsMono"
+texts = ["ofl-jetbrains-mono.txt"]
+md = "JetBrains Mono"
+fonts = ["jetbrainsmono_"]
+
+# ---------------------------------------------------------------- icons
+
+[[entry]]
+group = "icons"
+name = "Lucide"
+version = ""
+licence = "ISC"
+url = "https://lucide.dev"
+texts = ["isc-lucide.txt"]
+md = "Lucide"
+
+# ---------------------------------------------------------------- engine
+
+[[entry]]
+group = "engine"
+name = "llama.cpp / ggml"
+version = "b11963"
+licence = "MIT"
+url = "https://github.com/ggml-org/llama.cpp"
+texts = ["mit-llama.cpp.txt"]
+md = "llama.cpp"
+submodule = "third_party/llama.cpp"
+sha = "39febd2adb947b70da35e95f9351b3bf58ad170a"
+
+[[entry]]
+group = "engine"
+name = "SQLCipher for Android"
+version = "toml:sqlcipher"
+licence = "BSD-3-Clause"
+url = "https://www.zetetic.net/sqlcipher/"
+texts = ["bsd-sqlcipher-android.txt", "bsd-sqlcipher.txt"]
+md = "sqlcipher-android"
+gradle = ["sqlcipher-android"]
+
+[[entry]]
+group = "engine"
+name = "SQLite"
+version = ""
+licence = "Public domain"
+url = "https://sqlite.org"
+texts = ["sqlite-public-domain.txt"]
+md = "SQLite"
+
+[[entry]]
+group = "engine"
+name = "ONNX Runtime"
+version = "toml:onnxruntime"
+licence = "MIT"
+url = "https://onnxruntime.ai"
+texts = ["mit-onnxruntime.txt"]
+md = "ONNX Runtime"
+gradle = ["onnxruntime-android"]
+
+[[entry]]
+group = "engine"
+name = "zstd-jni"
+version = "toml:zstdJni"
+licence = "BSD-2-Clause"
+url = "https://github.com/luben/zstd-jni"
+texts = ["bsd-2-zstd-jni.txt"]
+md = "zstd-jni"
+gradle = ["zstd-jni"]
+
+[[entry]]
+group = "engine"
+name = "Zstandard"
+version = "1.5.7"
+licence = "BSD-3-Clause"
+url = "https://github.com/facebook/zstd"
+texts = ["bsd-3-zstd.txt"]
+md = "zstd itself"
+
+# ---------------------------------------------------------------- content
+
+[[entry]]
+group = "content"
+name = "Wikipedia (Kiwix knowledge packs)"
+version = ""
+licence = "CC BY-SA 4.0"
+url = "https://www.kiwix.org"
+texts = ["wikipedia-kiwix.txt", "cc-by-sa-4.0.txt"]
+md = "Wikipedia texts"
+catalog = ["wikipedia-de-top-mini", "wikipedia-en-top-mini", "wikipedia-en-top1m-mini", "wikipedia-de-all-mini"]
+
+[[entry]]
+group = "content"
+name = "German word list (igerman98, FrequencyWords)"
+version = ""
+licence = "GPL-3.0 / CC BY-SA 4.0"
+url = "https://www.j3e.de/ispell/igerman98/"
+texts = ["de-words-sources.txt"]
+md = "igerman98"

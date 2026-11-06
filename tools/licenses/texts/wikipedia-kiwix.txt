@@ -1,0 +1,10 @@
+Wikipedia knowledge packs
+
+The offline Wikipedia packs ("mini" ZIM files) hold texts written by the authors of
+Wikipedia (https://www.wikipedia.org). They are packaged by Kiwix / openZIM
+(https://www.kiwix.org) and downloaded only when you ask for them; they are not part of
+the app.
+
+The texts are licensed under the Creative Commons Attribution-ShareAlike 4.0
+International licence (CC BY-SA 4.0). Each article's history and authors can be found
+on its page on Wikipedia. The full licence text follows.
