@@ -150,7 +150,11 @@
     <string name="about_check_now">Check now</string>
     <string name="about_update_checking">Checking…</string>
     <string name="about_update_latest">You have the newest version.</string>
-    <string name="about_update_failed">Could not check. Are you online?</string>
+    <string name="about_update_offline_mode">Offline mode is on. Turn it off to check.</string>
+    <string name="about_update_offline">No internet right now.</string>
+    <string name="about_update_unreachable">GitHub is not answering right now. Hain tried three times – try again later.</string>
+    <string name="about_update_no_release">There is no version in this channel yet.</string>
+    <string name="about_update_nightly_only">This test version only takes the next nightly build.</string>
     <string name="update_banner">New version %1$s available</string>
     <string name="update_banner_open">Open</string>
     <string name="update_banner_close">Hide</string>

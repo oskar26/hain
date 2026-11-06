@@ -146,7 +146,7 @@ internal fun AboutPage(
     ) {
         uri.openUri(OPEN_SOURCE)
     }
-    UpdateBlock(settings, actions, update)
+    UpdateBlock(settings, actions, update, nightlyOnly = info.nightlyOnly)
     if (settings.dev.enabled) {
         Link(R.string.about_dev_off, R.string.about_dev_off_hint) { actions.onDev(settings.dev.copy(enabled = false)) }
     }
@@ -159,6 +159,7 @@ private fun UpdateBlock(
     settings: HainSettings,
     actions: SettingsActions,
     update: UpdateStatus,
+    nightlyOnly: Boolean = false,
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
@@ -170,15 +171,20 @@ private fun UpdateBlock(
         listOf(UpdateCheck.OFF to R.string.about_update_off, UpdateCheck.DAILY to R.string.about_update_daily),
         actions.onUpdateCheck,
     )
-    Choice(
-        R.string.about_update_channel,
-        settings.updateChannel,
-        listOf(
-            UpdateChannel.STABLE to R.string.about_channel_stable,
-            UpdateChannel.NIGHTLY to R.string.about_channel_nightly,
-        ),
-        actions.onUpdateChannel,
-    )
+    // T-281: a debug build only takes the next nightly, so it has no channel to choose
+    if (nightlyOnly) {
+        Info(R.string.about_update_nightly_only)
+    } else {
+        Choice(
+            R.string.about_update_channel,
+            settings.updateChannel,
+            listOf(
+                UpdateChannel.STABLE to R.string.about_channel_stable,
+                UpdateChannel.NIGHTLY to R.string.about_channel_nightly,
+            ),
+            actions.onUpdateChannel,
+        )
+    }
     Info(R.string.about_update_privacy)
     Row(verticalAlignment = Alignment.CenterVertically) {
         BasicText(
@@ -198,7 +204,7 @@ private fun UpdateBlock(
                 UpdateStatus.Idle -> null to colors.textMuted
                 UpdateStatus.Checking -> stringResource(R.string.about_update_checking) to colors.textMuted
                 UpdateStatus.UpToDate -> stringResource(R.string.about_update_latest) to colors.textMuted
-                UpdateStatus.Failed -> stringResource(R.string.about_update_failed) to colors.danger
+                is UpdateStatus.Failed -> stringResource(failedText(update.why)) to colors.danger
                 is UpdateStatus.Newer -> stringResource(R.string.update_banner, update.versionName) to colors.accent
             }
         if (text != null) {
@@ -215,6 +221,15 @@ private fun UpdateBlock(
         }
     }
 }
+
+/** T-281: what went wrong, plainly ("Gerade kein Internet", "GitHub antwortet gerade nicht", …). */
+private fun failedText(why: UpdateStatus.Why): Int =
+    when (why) {
+        UpdateStatus.Why.OFFLINE_MODE -> R.string.about_update_offline_mode
+        UpdateStatus.Why.OFFLINE -> R.string.about_update_offline
+        UpdateStatus.Why.UNREACHABLE -> R.string.about_update_unreachable
+        UpdateStatus.Why.NO_RELEASE -> R.string.about_update_no_release
+    }
 
 /** One row of "Über Hain": icon, title, a quiet second line, the whole row tappable. */
 @Composable

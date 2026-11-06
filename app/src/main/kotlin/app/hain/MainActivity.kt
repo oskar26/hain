@@ -2,6 +2,8 @@ package app.hain
 
 import android.Manifest
 import android.app.LocaleManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -301,15 +303,28 @@ class MainActivity : FragmentActivity() {
         if (updateStatus == UpdateStatus.Checking) return
         updateStatus = UpdateStatus.Checking
         lifecycleScope.launch {
-            val result = UpdateChecker(networkGate).check(current.updateChannel, BuildConfig.VERSION_CODE)
+            // T-281: the phone's own view of the internet, and a debug build always asks the nightly
+            val debugBuild = BuildConfig.APPLICATION_ID.endsWith(".debug")
+            val channel = UpdateRules.channelFor(current.updateChannel, debugBuild)
+            val result = UpdateChecker(networkGate, online = ::hasInternet).check(channel, BuildConfig.VERSION_CODE)
             settingsRepository.setLastUpdateCheck(System.currentTimeMillis())
             updateStatus =
                 when (result) {
                     is UpdateResult.Newer -> UpdateStatus.Newer(result.release.versionName, result.page)
                     UpdateResult.UpToDate -> UpdateStatus.UpToDate
-                    UpdateResult.Failed -> UpdateStatus.Failed
+                    UpdateResult.OfflineMode -> UpdateStatus.Failed(UpdateStatus.Why.OFFLINE_MODE)
+                    UpdateResult.Offline -> UpdateStatus.Failed(UpdateStatus.Why.OFFLINE)
+                    UpdateResult.Unreachable -> UpdateStatus.Failed(UpdateStatus.Why.UNREACHABLE)
+                    UpdateResult.NoRelease -> UpdateStatus.Failed(UpdateStatus.Why.NO_RELEASE)
                 }
         }
+    }
+
+    /** A network that offers internet (not necessarily validated: a slow check must not count as offline). */
+    private fun hasInternet(): Boolean {
+        val cm = getSystemService(ConnectivityManager::class.java)
+        val caps = cm?.getNetworkCapabilities(cm.activeNetwork)
+        return cm == null || caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
     }
 
     /** T-211: the own GGUF of developer mode when it is in use and on the phone, else `null`. */

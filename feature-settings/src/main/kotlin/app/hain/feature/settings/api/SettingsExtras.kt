@@ -16,7 +16,12 @@ sealed interface UpdateStatus {
         val page: String,
     ) : UpdateStatus
 
-    data object Failed : UpdateStatus
+    /** T-281: the check did not work, and [why] says plainly what it was. */
+    data class Failed(
+        val why: Why,
+    ) : UpdateStatus
+
+    enum class Why { OFFLINE_MODE, OFFLINE, UNREACHABLE, NO_RELEASE }
 }
 
 /** What the settings show beyond the stored values: build facts, update state, own models. */
