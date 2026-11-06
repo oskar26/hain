@@ -5,12 +5,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -125,7 +128,15 @@ internal fun ChatTopGlass(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
-        Modifier.fillMaxWidth().chromeGlass(glass, edge = GlassEdge.BOTTOM).statusBarsPadding(),
+        // T-289: also clear of the camera cut-out (landscape) and a side navigation bar
+        Modifier
+            .fillMaxWidth()
+            .chromeGlass(glass, edge = GlassEdge.BOTTOM)
+            .windowInsetsPadding(
+                WindowInsets.statusBars
+                    .union(WindowInsets.displayCutout.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
+                    .union(WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal)),
+            ),
         content = content,
     )
 }
@@ -159,7 +170,11 @@ internal fun ChatBottomArea(content: @Composable ColumnScope.() -> Unit) {
                     ),
                     blendMode = BlendMode.DstIn,
                 )
-            }.windowInsetsPadding(WindowInsets.ime.union(WindowInsets.navigationBars)),
+            }.windowInsetsPadding(
+                WindowInsets.ime
+                    .union(WindowInsets.navigationBars)
+                    .union(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)),
+            ),
         contentAlignment = Alignment.BottomCenter,
     ) {
         Column(Modifier.widthIn(max = CHAT_MAX_WIDTH).fillMaxWidth(), content = content)

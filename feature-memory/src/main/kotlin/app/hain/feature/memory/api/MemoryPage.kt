@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
@@ -166,7 +166,8 @@ fun MemoryPage(
     val shown = if (tab in tabs) tab else MemoryTab.FACTS
     BackHandler(onBack = actions.onBack)
     Box(modifier.fillMaxSize().background(colors.bg)) {
-        Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+        // T-289: status/navigation bars, camera cut-out and keyboard
+        Column(Modifier.fillMaxSize().safeDrawingPadding()) {
             TopBar(
                 title = stringResource(R.string.memory_title),
                 leading = { HainIconButton(HainIcons.back, stringResource(R.string.memory_back), actions.onBack) },

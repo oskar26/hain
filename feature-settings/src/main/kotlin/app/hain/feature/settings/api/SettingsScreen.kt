@@ -14,10 +14,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -112,8 +111,8 @@ internal fun SettingsBody(
         modifier
             .fillMaxSize()
             .background(LocalHainColors.current.bg)
-            .statusBarsPadding()
-            .navigationBarsPadding(),
+            // T-289: status/navigation bars, camera cut-out and keyboard
+            .safeDrawingPadding(),
     ) {
         if (wide) {
             SettingsListDetail(current ?: SettingsPage.LOOK, nav, settings, actions, networkLog, extras, back)
