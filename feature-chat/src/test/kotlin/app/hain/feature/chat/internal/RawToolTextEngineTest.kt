@@ -127,10 +127,26 @@ class RawToolTextEngineTest {
                     toolContext = { ctx },
                     mayRemember = { _, _ -> false },
                 )
-            val updates = engine.respond(user("Bastelidee mit Altpapier"), AnswerMode.AUTO).toList()
+            // T-293: a list asked for (else the card alone would be asked again for an answer)
+            val updates = engine.respond(user("Liste für eine Bastelidee mit Altpapier"), AnswerMode.AUTO).toList()
             val last = updates.last() as TurnUpdate.Finished
             assertEquals(0, remember.runs.size)
             assertTrue(last.output.text, last.output.text.startsWith("```card\nCard title=\"Altpapier\""))
             assertFalse(last.output.text.contains("remember"))
+        }
+
+    @Test
+    fun aChecklistOfQuestionsIsAskedAgainForAnAnswer() =
+        runTest {
+            // T-293: Oskar's screenshot 06.11. 17:04
+            val card =
+                "```card\nCard title=\"Bundespräsidentenwahl\"\nChecklist\n- Wer kann wählen?\n" +
+                    "- Wie läuft die Wahl ab?\n```"
+            val answer = "Den Bundespräsidenten wählt die Bundesversammlung, nicht das Volk direkt."
+            val llm = FakeLlm(listOf(card), listOf(answer))
+            val engine = ChatEngine(llm, { "SYS" }, tools = ToolRouter(emptyList()), toolContext = { ctx })
+            val question = "Was hat es mit der Neuwahl des Bundespräsidenten auf sich? Wer kann eigentlich wählen?"
+            val last = engine.respond(user(question), AnswerMode.AUTO).toList().last() as TurnUpdate.Finished
+            assertEquals(answer, last.output.text)
         }
 }

@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions") // the developer page and its small rows
+
 package app.hain.feature.settings.api
 
 import androidx.compose.foundation.clickable
@@ -36,6 +38,7 @@ import app.hain.models.api.Fit
 import app.hain.models.api.GgufFile
 import app.hain.models.api.HfListing
 import app.hain.models.api.HuggingFace
+import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
@@ -56,7 +59,6 @@ internal fun parseNumber(text: String): Float? = text.trim().replace(',', '.').t
  * Settings → Entwickler (T-211): own model from Hugging Face, sampling, thinking, own system prompt
  * and the speed display. Every change is saved at once and used from the next message on.
  */
-@Suppress("LongMethod") // one column of developer settings
 @Composable
 internal fun DeveloperPage(
     dev: DevSettings,
@@ -64,11 +66,28 @@ internal fun DeveloperPage(
     devModels: DevModels?,
     /** T-266: the technical privacy parts (own search, full addresses in the network log). */
     network: @Composable () -> Unit = {},
+    /** T-292: the page's glow colour for its section cards. */
+    hue: GlowHue = GlowHue.LILAC,
 ) {
     val set = actions.onDev
     Info(R.string.dev_intro)
-    ModelSection(dev, set, devModels)
-    Group(R.string.dev_sampling)
+    // T-292: one section card per block, like the other settings pages
+    SettingsSection(R.string.dev_model, hue, 0) { ModelSection(dev, set, devModels) }
+    SettingsSection(R.string.dev_sampling, hue, 1) { SamplingSection(dev, set) }
+    SettingsSection(R.string.dev_thinking, hue, 2) { ThinkingSection(dev, set) }
+    SettingsSection(R.string.dev_network, hue, NETWORK_BLOCK) { network() }
+    SettingsSection(R.string.dev_more, hue, MORE_BLOCK) {
+        Link(R.string.dev_reset, R.string.dev_reset_hint) { set(dev.resetTuning()) }
+        Link(R.string.about_dev_off, R.string.about_dev_off_hint) { set(dev.copy(enabled = false)) }
+    }
+}
+
+/** Sampling: temperature, top-k/-p, min-p, repeat penalty, context, max tokens and seed. */
+@Composable
+private fun SamplingSection(
+    dev: DevSettings,
+    set: (DevSettings) -> Unit,
+) {
     NumberSetting(R.string.dev_temperature, R.string.dev_temperature_hint, dev.temperature) {
         set(dev.copy(temperature = it))
     }
@@ -94,7 +113,14 @@ internal fun DeveloperPage(
     NumberSetting(R.string.dev_seed, R.string.dev_seed_hint, dev.seed.toFloat(), whole = true) {
         set(dev.copy(seed = it.toInt()))
     }
-    Group(R.string.dev_thinking)
+}
+
+/** Thinking, own system prompt and the speed display. */
+@Composable
+private fun ThinkingSection(
+    dev: DevSettings,
+    set: (DevSettings) -> Unit,
+) {
     Choice(
         R.string.dev_thinking_mode,
         dev.thinking,
@@ -118,10 +144,6 @@ internal fun DeveloperPage(
         set(dev.copy(systemPrompt = it))
     }
     Toggle(R.string.dev_stats, R.string.dev_stats_hint, dev.showStats) { set(dev.copy(showStats = it)) }
-    network()
-    Group(R.string.dev_more)
-    Link(R.string.dev_reset, R.string.dev_reset_hint) { set(dev.resetTuning()) }
-    Link(R.string.about_dev_off, R.string.about_dev_off_hint) { set(dev.copy(enabled = false)) }
 }
 
 /** Own model: which one runs, a field for a Hugging Face repo or link, and its .gguf files. */
@@ -134,7 +156,6 @@ private fun ModelSection(
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     val scope = rememberCoroutineScope()
-    Group(R.string.dev_model)
     BasicText(
         stringResource(
             R.string.dev_model_active,
@@ -244,6 +265,14 @@ private fun FileRow(
                         stringResource(R.string.dev_model_wait),
                         style = type.label.copy(color = colors.textMuted),
                     )
+                // T-287: stopped: "Laden" resumes the part file
+                is DownloadState.Paused -> {
+                    BasicText(
+                        stringResource(R.string.dev_model_loading, (s.fraction * PERCENT).toInt()),
+                        style = type.label.copy(color = colors.textMuted),
+                    )
+                    Action(R.string.dev_model_download) { scope.launch { models.download(file) } }
+                }
                 is DownloadState.Failed -> {
                     BasicText(stringResource(R.string.dev_model_failed), style = type.label.copy(color = colors.danger))
                     Action(R.string.dev_model_download) { scope.launch { models.download(file) } }
@@ -345,3 +374,6 @@ private const val CONTEXT_WARN = 4096
 private const val FIELD_WIDTH = 96
 private const val GB = 1_000_000_000L
 private const val MB = 1_000_000L
+
+private const val NETWORK_BLOCK = 3
+private const val MORE_BLOCK = 4

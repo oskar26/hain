@@ -143,7 +143,8 @@ class ResearchLoopTest {
             val last = engine.respond(user("Recherchier x"), AnswerMode.THOROUGH).toList().last() as TurnUpdate.Finished
             assertEquals("Antwort.", last.output.text)
             assertEquals(2, llm.prompts.size)
-            assertFalse(llm.lastPrompt.contains("<tools>"))
+            // T-294: the tool block stays in the closing round, so the prompt is read from memory
+            assertTrue(llm.lastPrompt.contains("<tools>"))
             assertTrue(llm.lastPrompt.contains("Die Recherche ist beendet"))
             assertEquals(1, tool.calls)
         }
@@ -170,7 +171,7 @@ class ResearchLoopTest {
             assertEquals(true, stopped)
             assertEquals("Mit dem, was ich habe: …", last.output.text)
             assertEquals(2, llm.prompts.size)
-            assertFalse(llm.lastPrompt.contains("<tools>"))
+            assertTrue(llm.lastPrompt.contains("<tools>"))
             assertFalse(engine.stopResearch())
         }
 

@@ -9,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -24,11 +25,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -50,6 +60,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -79,6 +90,8 @@ import app.hain.ui.HainIcons
 import app.hain.ui.LocalExternalLaunch
 import app.hain.ui.components.Composer
 import app.hain.ui.components.HainIconButton
+import app.hain.ui.components.LocalMarkdownLabels
+import app.hain.ui.components.MarkdownLabels
 import app.hain.ui.components.MessageAction
 import app.hain.ui.components.MessageActionKind
 import app.hain.ui.components.ProgressBar
@@ -101,6 +114,7 @@ import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
+import app.hain.voice.api.DictationState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -286,34 +300,72 @@ fun ChatScreen(
                             )
                         }
                     }
-                    Composer(
-                        text = state.input,
-                        onTextChange = viewModel::onInputChange,
-                        placeholder = stringResource(R.string.chat_placeholder),
-                        isGenerating = state.isGenerating,
-                        onSend = {
-                            haptics.send()
-                            if (!state.isGenerating) sendTick++
-                            viewModel.send()
+                    // T-296: while Pim listens (tap mode) the message box morphs into the dictation pill
+                    val dictation =
+                        voiceUi
+                            ?.voice
+                            ?.dictation
+                            ?.state
+                            ?.collectAsStateWithLifecycle()
+                    val recording = dictation?.value as? DictationState.Recording
+                    val pill = recording != null && voiceUi?.holding == false
+                    val reduce = LocalReduceMotion.current
+                    AnimatedContent(
+                        targetState = pill,
+                        transitionSpec = {
+                            val enter = fadeIn(hainTween(HainMotion.BASE_MS, reduce))
+                            val exit = fadeOut(hainTween(HainMotion.FAST_MS, reduce))
+                            (enter togetherWith exit).using(
+                                SizeTransform(clip = false) { _, _ -> hainTween(HainMotion.BASE_MS, reduce) },
+                            )
                         },
-                        canQueue = state.editingId == null,
-                        queueLabel = stringResource(R.string.chat_send_queue),
-                        focusRequester = composerFocus,
-                        onStop = viewModel::stop,
-                        sendLabel = stringResource(R.string.chat_send),
-                        stopLabel = stringResource(R.string.chat_stop),
-                        enabled = state.engineAvailable,
-                        modifier = Modifier.padding(LocalHainSpacing.current.md),
-                        // T-084: the thinking level lives inside the message box (brain + popover)
-                        leading = {
-                            if (docs != null) {
-                                AttachButton(onFile = { picker.launch(DOC_TYPES) }, onLibrary = { showFiles = true })
-                            }
-                            ThinkingPicker(answerMode, onAnswerMode, canThink = state.brainThinks)
-                        },
-                        trailing = { voiceUi?.let { MicButton(it, enabled = !state.isGenerating) } },
-                        glass = chrome,
-                    )
+                        contentAlignment = Alignment.BottomCenter,
+                        label = "composer-pill",
+                    ) { showPill ->
+                        val rec = dictation?.value as? DictationState.Recording
+                        if (showPill && rec != null && voiceUi != null) {
+                            DictationPill(
+                                rec,
+                                onCancel = voiceUi::cancel,
+                                onDone = voiceUi::finish,
+                                modifier = Modifier.padding(LocalHainSpacing.current.md),
+                            )
+                        } else {
+                            Composer(
+                                text = state.input,
+                                onTextChange = viewModel::onInputChange,
+                                placeholder = stringResource(R.string.chat_placeholder),
+                                isGenerating = state.isGenerating,
+                                onSend = {
+                                    haptics.send()
+                                    if (!state.isGenerating) sendTick++
+                                    viewModel.send()
+                                },
+                                canQueue = state.editingId == null,
+                                queueLabel = stringResource(R.string.chat_send_queue),
+                                focusRequester = composerFocus,
+                                onStop = viewModel::stop,
+                                sendLabel = stringResource(R.string.chat_send),
+                                stopLabel = stringResource(R.string.chat_stop),
+                                enabled = state.engineAvailable,
+                                modifier = Modifier.padding(LocalHainSpacing.current.md),
+                                // T-296: after a dictation the send button takes over with a short pulse
+                                sendModifier = Modifier.dictationHandoff(voiceUi?.handoff ?: 0),
+                                // T-084: the thinking level lives inside the message box (brain + popover)
+                                leading = {
+                                    if (docs != null) {
+                                        AttachButton(
+                                            onFile = { picker.launch(DOC_TYPES) },
+                                            onLibrary = { showFiles = true },
+                                        )
+                                    }
+                                    ThinkingPicker(answerMode, onAnswerMode, canThink = state.brainThinks)
+                                },
+                                trailing = { voiceUi?.let { MicButton(it, enabled = !state.isGenerating) } },
+                                glass = chrome,
+                            )
+                        }
+                    }
                 }
             },
         ) { chromePadding ->
@@ -333,7 +385,20 @@ fun ChatScreen(
                     val ratings by viewModel.ratings.collectAsStateWithLifecycle()
                     // T-131: checklist ticks are saved, card buttons can ask the next question
                     val cards = remember(viewModel) { CardHandler(viewModel::updateCards, viewModel::ask) }
-                    CompositionLocalProvider(LocalCardHandler provides cards, LocalChatVoice provides voice) {
+                    // T-298: the words of code blocks and task lists in answers
+                    val mdLabels =
+                        MarkdownLabels(
+                            code = stringResource(R.string.chat_md_code),
+                            copy = stringResource(R.string.chat_copy),
+                            copied = stringResource(R.string.chat_copied),
+                            taskDone = stringResource(R.string.chat_md_task_done),
+                            taskOpen = stringResource(R.string.chat_md_task_open),
+                        )
+                    CompositionLocalProvider(
+                        LocalCardHandler provides cards,
+                        LocalChatVoice provides voice,
+                        LocalMarkdownLabels provides mdLabels,
+                    ) {
                         MessageList(
                             state,
                             ratings = ratings,
@@ -465,19 +530,31 @@ internal fun MessageList(
         val reduce = LocalReduceMotion.current
         // T-234: on tablets the chat text is at most CHAT_MAX_WIDTH wide, in the middle
         val side = maxOf(spacing.lg, (maxWidth - CHAT_MAX_WIDTH) / 2)
+        // T-289: in landscape the camera cut-out and a side navigation bar never cover the messages
+        val dir = LocalLayoutDirection.current
+        val safe =
+            WindowInsets.displayCutout
+                .union(WindowInsets.navigationBars)
+                .only(WindowInsetsSides.Horizontal)
+                .asPaddingValues()
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize().hainGlassSource(glass),
             contentPadding =
                 PaddingValues(
-                    start = side,
-                    end = side,
+                    start = maxOf(side, spacing.lg + safe.calculateStartPadding(dir)),
+                    end = maxOf(side, spacing.lg + safe.calculateEndPadding(dir)),
                     top = chrome.calculateTopPadding() + spacing.md,
                     bottom = chrome.calculateBottomPadding() + spacing.sm,
                 ),
             verticalArrangement = Arrangement.spacedBy(spacing.lg),
         ) {
-            items(state.messages, key = { it.id }) { message ->
+            // T-290: stable keys and two row kinds, so a scrolled-away answer is reused for the next answer
+            items(
+                state.messages,
+                key = { it.id },
+                contentType = { if (it.isUser) USER_ROW else ANSWER_ROW },
+            ) { message ->
                 val branch = state.branches[message.id]
                 // T-058: new messages and switched versions slide into place (only fade with reduce motion)
                 val item =
@@ -849,6 +926,8 @@ private fun EditBar(onCancel: () -> Unit) {
 }
 
 private const val OPEN_SCALE = 0.94f
+private const val USER_ROW = 0
+private const val ANSWER_ROW = 1
 private const val FOCUS_DELAY_MS = 200L
 private const val PERCENT = 100
 private const val COPIED_MS = 1500L

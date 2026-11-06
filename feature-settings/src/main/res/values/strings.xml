@@ -66,7 +66,6 @@
     <string name="packs_download">Load</string>
     <string name="packs_delete">Remove</string>
     <string name="packs_cancel">Stop</string>
-    <string name="packs_wait">Please wait…</string>
     <string name="packs_loading">Loading… %1$d%%</string>
     <string name="packs_fit_tight">This might be slow on your phone.</string>
     <string name="packs_fit_space">Not enough free space on your phone.</string>
@@ -135,6 +134,7 @@
     <string name="about_dev_unlocked">Developer mode is on. You find it in the settings.</string>
     <string name="about_dev_off">Turn off developer mode</string>
     <string name="about_dev_off_hint">Hain uses its normal settings again.</string>
+    <string name="about_group_app">App and project</string>
     <string name="about_updates">Updates</string>
     <string name="about_update_channel">Channel</string>
     <string name="about_channel_stable">Stable</string>
@@ -272,4 +272,18 @@
     <string name="licences_text">Licence text</string>
     <string name="licences_all">All licences</string>
     <string name="licences_missing">The list could not be read.</string>
+    <string name="packs_loading_bytes">%1$d %% · %2$s of %3$s</string>
+    <string name="packs_paused">Paused · %1$s of %2$s</string>
+    <string name="packs_resume">Resume</string>
+    <string name="packs_discard">Discard</string>
+    <string name="packs_queued">Waiting for the internet …</string>
+    <string name="packs_verifying">Checking …</string>
+    <string name="packs_retry">Try again</string>
+    <string name="packs_failed_network">No connection. Tap “Try again”.</string>
+    <string name="packs_failed_storage">Not enough space on your phone.</string>
+    <string name="packs_failed_checksum">The file arrived damaged. Load it again.</string>
+    <!-- T-292: section headings -->
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_section_feel">Feel and motion</string>
+    <string name="settings_section_answer_style">Language and way of answering</string>
 </resources>

@@ -170,15 +170,26 @@ class LlamaEngine(
                     params.grammar,
                     // T-133 cards only in free text; a whole-answer grammar (T-114 memory JSON) wins
                     if (params.grammar == null) cardGrammar else null,
-                ) { bytes ->
-                    if (first) {
-                        first = false
-                        firstAt = SystemClock.elapsedRealtime() - askedAt
-                        Log.i(TAG, "first token after $firstAt ms")
-                    }
-                    trySend(GenerationEvent.Token(bytes.decodeToString()))
-                    me > cancelledUpTo && !isClosedForSend
-                }
+                    object : TokenCallback {
+                        override fun onToken(bytes: ByteArray): Boolean {
+                            if (first) {
+                                first = false
+                                firstAt = SystemClock.elapsedRealtime() - askedAt
+                                Log.i(TAG, "first token after $firstAt ms")
+                            }
+                            trySend(GenerationEvent.Token(bytes.decodeToString()))
+                            return me > cancelledUpTo && !isClosedForSend
+                        }
+
+                        // T-294: "Liest deine Nachricht … 42 %" while a long prompt is read
+                        override fun onRead(
+                            done: Int,
+                            total: Int,
+                        ) {
+                            trySend(GenerationEvent.Reading(done, total))
+                        }
+                    },
+                )
             val stats = logStats(h, firstAt)
             trySend(GenerationEvent.Done(code.toStopReason(), stats))
             close()

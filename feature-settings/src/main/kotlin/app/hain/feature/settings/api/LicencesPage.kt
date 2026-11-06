@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,6 +33,8 @@ import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * T-285: "Open-Source-Lizenzen" below "Über Hain". On top Hain itself (GPL-3.0, link to the code),
@@ -125,7 +129,8 @@ private fun LicenceText(
     val type = LocalHainTypography.current
     val spacing = LocalHainSpacing.current
     val uri = LocalUriHandler.current
-    val text = remember(entry) { OssLicenses.text(assets, entry) }
+    // T-290: a licence text (the GPL is 35 kB) is read and reflowed off the main thread
+    val text by produceState("", entry) { value = withContext(Dispatchers.IO) { OssLicenses.text(assets, entry) } }
     Row(
         Modifier
             .clip(LocalHainShapes.current.row)

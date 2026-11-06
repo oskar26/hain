@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.runtime.Composable
@@ -29,7 +31,9 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -48,7 +52,10 @@ import com.mikepenz.markdown.model.DefaultMarkdownColors
 import com.mikepenz.markdown.model.DefaultMarkdownTypography
 import com.mikepenz.markdown.model.MarkdownColors
 import com.mikepenz.markdown.model.MarkdownTypography
+import com.mikepenz.markdown.model.ReferenceLinkHandlerImpl
 import com.mikepenz.markdown.model.markdownInlineContent
+import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
+import org.intellij.markdown.parser.MarkdownParser
 
 /**
  * User message: soft grey bubble on the right (DESIGN_SYSTEM.md §1). Like Gemini (T-057), a short
@@ -140,7 +147,18 @@ fun AssistantBlock(
     citations: AnswerCitations? = null,
 ) {
     val count = citations?.count ?: 0
-    val content = remember(markdown, count) { CitationMarks.toLinks(markdown, count) }
+    // T-288: formulas become readable Unicode before the renderer sees them
+    val content = remember(markdown, count) { CitationMarks.toLinks(MathText.prepare(markdown), count) }
+    // T-290: the renderer's defaults are new objects on every recomposition (a new parser, flavour and
+    // link handler), and each of them restarts the parse; kept here, an answer is parsed only when its
+    // text changed (while streaming at most every 40 ms, otherwise once)
+    val flavour = remember { GFMFlavourDescriptor() }
+    val parser = remember(flavour) { MarkdownParser(flavour) }
+    val links = remember { ReferenceLinkHandlerImpl() }
+    // T-298: headings with air above, code blocks with language, copy button and sideways scroll
+    val components = remember { hainMarkdownComponents() }
+    val padding = hainMarkdownPadding()
+    val inline = markdownInlineContent(citations?.let { citationInlineContent(it) }.orEmpty())
     Column(modifier.fillMaxWidth()) {
         SelectionContainer {
             Markdown(
@@ -148,14 +166,46 @@ fun AssistantBlock(
                 colors = hainMarkdownColors(),
                 typography = hainMarkdownTypography(),
                 modifier = Modifier.fillMaxWidth(),
+                padding = padding,
+                flavour = flavour,
+                parser = parser,
+                referenceLinkHandler = links,
                 retainState = true,
                 annotator = remember { citationAnnotator() },
-                inlineContent = markdownInlineContent(citations?.let { citationInlineContent(it) }.orEmpty()),
+                inlineContent = inline,
+                components = components,
             )
         }
         if (actions != null) AnswerActionRow(actions)
     }
 }
+
+/** T-288: a display formula: own line, centred, formula font, scrolls sideways when it is too wide. */
+@Composable
+internal fun MathBlock(formula: String) {
+    val type = LocalHainTypography.current
+    val colors = LocalHainColors.current
+    val style =
+        remember(type, colors) {
+            type.body.copy(
+                color = colors.text,
+                fontFamily = FontFamily.Serif,
+                fontSize = type.body.fontSize * MATH_SCALE,
+                textAlign = TextAlign.Center,
+            )
+        }
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = LocalHainSpacing.current.sm)
+            .horizontalScroll(rememberScrollState()),
+        contentAlignment = Alignment.Center,
+    ) {
+        BasicText(formula, style = style, modifier = Modifier.widthIn(min = 0.dp))
+    }
+}
+
+private const val MATH_SCALE = 1.1f
 
 /**
  * The quiet grey row of icons under an answer (T-057), evenly spaced and shifted so the first icon
@@ -322,17 +372,19 @@ fun hainMarkdownTypography(): MarkdownTypography {
     val c = LocalHainColors.current
     return remember(t, c) {
         val body = t.body.copy(color = c.text)
+        // T-298: six clearly different heading levels (H1 no longer the big display size inside a chat)
+        val h = headingStyles(t, c.text, c.textMuted)
         DefaultMarkdownTypography(
-            h1 = t.display.copy(color = c.text),
-            h2 = t.title.copy(color = c.text),
-            h3 = t.title.copy(color = c.text),
-            h4 = body.copy(fontWeight = FontWeight.SemiBold),
-            h5 = body.copy(fontWeight = FontWeight.SemiBold),
-            h6 = body.copy(fontWeight = FontWeight.SemiBold),
+            h1 = h[0],
+            h2 = h[1],
+            h3 = h[2],
+            h4 = h[3],
+            h5 = h[4],
+            h6 = h[5],
             text = body,
             code = t.code.copy(color = c.text),
             inlineCode = t.code.copy(color = c.text),
-            quote = body.copy(color = c.textMuted),
+            quote = body.copy(color = c.textMuted, fontStyle = FontStyle.Italic),
             paragraph = body,
             ordered = body,
             bullet = body,

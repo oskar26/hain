@@ -1,38 +1,56 @@
 package app.hain.feature.chat.api
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.hain.ui.effects.GlassEdge
-import app.hain.ui.effects.ThinkingGlow
+import app.hain.ui.effects.ThinkingGlowState
 import app.hain.ui.effects.chromeGlass
+import app.hain.ui.effects.drawThinkingGlow
 import app.hain.ui.effects.hainGlassSource
+import app.hain.ui.effects.rememberThinkingGlow
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
@@ -57,6 +75,22 @@ internal fun ChatChrome(
     bottom: @Composable () -> Unit,
     content: @Composable (PaddingValues) -> Unit,
 ) {
+    // T-295: one glow for the whole screen, painted by the backdrop and again (same pixels) by the band
+    // under the message box, so it reaches the bottom edge without a white strip
+    val backdrop = rememberChatBackdrop(thinking)
+    CompositionLocalProvider(LocalChatBackdrop provides backdrop) {
+        ChromeLayout(glass, modifier.onGloballyPositioned { backdrop.place(it) }, top, bottom, content)
+    }
+}
+
+@Composable
+private fun ChromeLayout(
+    glass: HazeState,
+    modifier: Modifier,
+    top: @Composable () -> Unit,
+    bottom: @Composable () -> Unit,
+    content: @Composable (PaddingValues) -> Unit,
+) {
     SubcomposeLayout(modifier.fillMaxSize()) { constraints ->
         val loose = constraints.copy(minWidth = 0, minHeight = 0)
         val wide = loose.copy(minWidth = constraints.maxWidth)
@@ -68,7 +102,7 @@ internal fun ChatChrome(
         val body =
             subcompose(ChromeSlot.CONTENT) {
                 Box(Modifier.fillMaxSize().hainGlassSource(glass)) {
-                    ChatBackdrop(thinking)
+                    ChatBackdrop()
                     content(padding)
                 }
             }.map { it.measure(constraints) }
@@ -94,7 +128,15 @@ internal fun ChatTopGlass(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
-        Modifier.fillMaxWidth().chromeGlass(glass, edge = GlassEdge.BOTTOM).statusBarsPadding(),
+        // T-289: also clear of the camera cut-out (landscape) and a side navigation bar
+        Modifier
+            .fillMaxWidth()
+            .chromeGlass(glass, edge = GlassEdge.BOTTOM)
+            .windowInsetsPadding(
+                WindowInsets.statusBars
+                    .union(WindowInsets.displayCutout.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
+                    .union(WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal)),
+            ),
         content = content,
     )
 }
@@ -105,21 +147,34 @@ internal fun ChatTopGlass(
  */
 @Composable
 internal fun ChatBottomArea(content: @Composable ColumnScope.() -> Unit) {
+    val backdrop = LocalChatBackdrop.current
     val page = LocalHainColors.current.bg
+    val top = remember { mutableFloatStateOf(0f) }
     Box(
         Modifier
             .fillMaxWidth()
+            .onGloballyPositioned { top.floatValue = it.positionInRoot().y }
             // T-272 (Oskar 05.11.): the chat no longer shows through below the message box (navigation bar):
-            // the page colour fades in from the middle of the box down to the screen edge
+            // the page fades in from the middle of the box down to the screen edge. T-295: it is the same
+            // page as behind the chat (colour, green light, thinking glow in screen coordinates), so the
+            // glow runs on behind the box and the navigation bar instead of ending in a white strip.
+            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
             .drawBehind {
+                backdrop?.draw(this, top.floatValue) ?: drawRect(page)
                 drawRect(
                     Brush.verticalGradient(
+                        0f to Color.Transparent,
                         BOTTOM_FADE_FROM to Color.Transparent,
-                        BOTTOM_FADE_SOLID to page,
-                        1f to page,
+                        BOTTOM_FADE_SOLID to Color.Black,
+                        1f to Color.Black,
                     ),
+                    blendMode = BlendMode.DstIn,
                 )
-            }.windowInsetsPadding(WindowInsets.ime.union(WindowInsets.navigationBars)),
+            }.windowInsetsPadding(
+                WindowInsets.ime
+                    .union(WindowInsets.navigationBars)
+                    .union(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)),
+            ),
         contentAlignment = Alignment.BottomCenter,
     ) {
         Column(Modifier.widthIn(max = CHAT_MAX_WIDTH).fillMaxWidth(), content = content)
@@ -156,26 +211,73 @@ internal fun ChatBottomCard(
  * Static, so it costs nothing and stays with "reduce motion".
  */
 @Composable
-internal fun ChatBackdrop(thinking: Boolean) {
-    val colors = LocalHainColors.current
-    val wash = colors.accent.copy(alpha = if (isHainDark()) WASH_DARK else WASH_LIGHT)
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(colors.bg)
-            .drawBehind {
-                drawRect(Brush.verticalGradient(0f to Color.Transparent, WASH_FROM to Color.Transparent, 1f to wash))
-            },
-    )
-    ThinkingGlow(visible = thinking, modifier = Modifier.fillMaxSize())
+internal fun ChatBackdrop() {
+    val backdrop = LocalChatBackdrop.current
+    val page = LocalHainColors.current.bg
+    Box(Modifier.fillMaxSize().drawBehind { backdrop?.draw(this, rootTop = null) ?: drawRect(page) })
 }
 
 /**
- * T-234 (Android large-screen guidelines, iPad readable width): the chat text and the message box
- * are at most this wide and sit in the middle on tablets and in landscape.
+ * T-295: the chat's page (colour, faint green light, thinking glow) in screen coordinates, so every layer
+ * that paints a part of it (behind the chat, under the message box) matches the others exactly.
  */
+@Stable
+internal class ChatBackdropPaint(
+    private val glow: ThinkingGlowState,
+    private val bg: Color,
+    private val wash: Color,
+) {
+    private val height = mutableFloatStateOf(0f)
+    private val origin = mutableFloatStateOf(0f)
+
+    fun place(coordinates: LayoutCoordinates) {
+        height.floatValue = coordinates.size.height.toFloat()
+        origin.floatValue = coordinates.positionInRoot().y
+    }
+
+    /**
+     * Paints the part of the page that falls into [scope], whose top is at [rootTop] on the screen
+     * (`null` = the layer is the whole chat).
+     */
+    fun draw(
+        scope: DrawScope,
+        rootTop: Float?,
+    ) = with(scope) {
+        val full = height.floatValue.takeIf { it > 0f } ?: size.height
+        val top = rootTop?.let { (it - origin.floatValue).coerceAtLeast(0f) } ?: 0f
+        drawRect(bg)
+        clipRect(0f, 0f, size.width, size.height) {
+            translate(top = -top) {
+                drawRect(
+                    Brush.verticalGradient(
+                        0f to Color.Transparent,
+                        WASH_FROM to Color.Transparent,
+                        1f to wash,
+                        endY = full,
+                    ),
+                    size = Size(size.width, full),
+                )
+            }
+        }
+        drawThinkingGlow(glow, full, top)
+    }
+}
+
+/** The page of the [ChatChrome] around; `null` outside one (previews, tests): then only the page colour. */
+internal val LocalChatBackdrop = staticCompositionLocalOf<ChatBackdropPaint?> { null }
+
+@Composable
+private fun rememberChatBackdrop(thinking: Boolean): ChatBackdropPaint {
+    val colors = LocalHainColors.current
+    val wash = colors.accent.copy(alpha = if (isHainDark()) WASH_DARK else WASH_LIGHT)
+    val glow = rememberThinkingGlow(thinking)
+    return remember(glow, colors.bg, wash) { ChatBackdropPaint(glow, colors.bg, wash) }
+}
+
+/** T-234: the chat text and the message box are at most this wide on tablets, in the middle. */
 internal val CHAT_MAX_WIDTH: Dp = 720.dp
 
+/** The calm green wash behind the chat (lower part of the page). */
 private const val WASH_FROM = 0.4f
 private const val WASH_LIGHT = 0.08f
 private const val WASH_DARK = 0.1f

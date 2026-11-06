@@ -304,4 +304,10 @@
         <item quantity="one">%1$d tool used</item>
         <item quantity="other">%1$d tools used</item>
     </plurals>
+    <string name="chat_voice_pack_paused">Paused at %1$d %%</string>
+    <string name="chat_voice_pack_resume">Resume</string>
+    <string name="chat_status_reading">Pim is reading your message … %1$d %%</string>
+    <string name="chat_md_code">Code</string>
+    <string name="chat_md_task_done">Done</string>
+    <string name="chat_md_task_open">Open</string>
 </resources>

@@ -2,7 +2,12 @@
 
 package app.hain.feature.settings.api
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -14,15 +19,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
@@ -37,15 +42,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.hain.feature.settings.R
 import app.hain.models.api.BrainChoice
 import app.hain.models.api.DeviceCheck
 import app.hain.models.api.DeviceProfile
 import app.hain.models.api.DownloadState
+import app.hain.models.api.FailReason
 import app.hain.models.api.Fit
 import app.hain.models.api.ModelInfo
 import app.hain.models.api.ModelRepository
@@ -53,6 +61,7 @@ import app.hain.ui.HainIcons
 import app.hain.ui.components.Hain3D
 import app.hain.ui.components.Hain3DIcon
 import app.hain.ui.components.HainIconButton
+import app.hain.ui.components.ProgressBar
 import app.hain.ui.components.TopBar
 import app.hain.ui.layout.HainColumns
 import app.hain.ui.layout.HainGrid
@@ -154,15 +163,20 @@ fun PacksScreen(
     val reduce = LocalReduceMotion.current
     var category by rememberSaveable { mutableStateOf(startCategory) }
     BackHandler { if (category != null) category = null else onBack() }
-    val device = DeviceProfile(ramGb, models.freeSpace())
+    val device = remember(ramGb) { DeviceProfile(ramGb, models.freeSpace()) }
+    // T-287: what is on the phone, again after every download, stop and delete (was read once)
+    val installedFlow = remember(models) { models.installedIds }
+    val installed by installedFlow.collectAsStateWithLifecycle(emptySet())
+    // T-287: Android 13+ asks once for notifications, so the download shows its progress when Hain is closed
+    val download = rememberDownloadStarter(models)
     // T-251: two columns of tiles on wide windows (tablet landscape, open foldable)
     val columns = HainColumns.count(currentHainWindowSize())
     Column(
         modifier
             .fillMaxSize()
             .background(LocalHainColors.current.bg)
-            .statusBarsPadding()
-            .navigationBarsPadding(),
+            // T-289: status/navigation bars, camera cut-out and keyboard
+            .safeDrawingPadding(),
     ) {
         val open = category
         TopBar(
@@ -194,9 +208,9 @@ fun PacksScreen(
                     verticalArrangement = Arrangement.spacedBy(spacing.md),
                 ) {
                     if (page == null) {
-                        PacksHub(models, device, extras, columns) { category = it }
+                        PacksHub(models, device, installed, extras, columns) { category = it }
                     } else {
-                        CategoryPage(page, models, device, extras, columns)
+                        CategoryPage(page, models, PackContext(device, installed, download), extras, columns)
                     }
                     Spacer(Modifier.height(spacing.xl))
                 }
@@ -205,10 +219,12 @@ fun PacksScreen(
     }
 }
 
+@Suppress("LongParameterList") // the page's data and the open callback
 @Composable
 private fun PacksHub(
     models: ModelRepository,
     device: DeviceProfile,
+    installedIds: Set<String>,
     extras: List<ExtraPack>,
     columns: Int,
     open: (PackCategory) -> Unit,
@@ -218,8 +234,8 @@ private fun PacksHub(
         style = LocalHainTypography.current.bodySmall.copy(color = LocalHainColors.current.textMuted),
     )
     HainGrid(PackCategory.entries, columns, LocalHainSpacing.current.md) { cat, cell ->
-        val packs = offeredPacks(models, cat, device)
-        val installed = packs.count { models.isInstalled(it) }
+        val packs = offeredPacks(models, cat, device, installedIds)
+        val installed = packs.count { it.id in installedIds }
         val count = packs.size + extras.count { it.kind.category == cat }
         CategoryTile(cat, installed, count, cell) { open(cat) }
     }
@@ -268,20 +284,20 @@ private fun CategoryTile(
 private fun CategoryPage(
     cat: PackCategory,
     models: ModelRepository,
-    device: DeviceProfile,
+    context: PackContext,
     extras: List<ExtraPack>,
     columns: Int,
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     BasicText(stringResource(categoryIntro(cat)), style = type.bodySmall.copy(color = colors.textMuted))
-    val packs = offeredPacks(models, cat, device)
+    val packs = offeredPacks(models, cat, context.device, context.installed)
     val extra = extras.filter { it.kind.category == cat }
     // T-251: catalogue packs and the extra packs share one grid
     val tiles: List<Any> = packs + extra
     HainGrid(tiles, columns, LocalHainSpacing.current.md) { tile, cell ->
         when (tile) {
-            is ModelInfo -> PackRow(tile, models, device, cell)
+            is ModelInfo -> PackRow(tile, models, context, cell)
             is ExtraPack -> ExtraPackRow(tile, cell)
         }
     }
@@ -323,50 +339,119 @@ private fun InfoTile(
     }
 }
 
+/** What every pack row needs from the page (T-287). */
+private class PackContext(
+    val device: DeviceProfile,
+    val installed: Set<String>,
+    val download: (ModelInfo) -> Unit,
+)
+
 @Composable
 private fun PackRow(
     pack: ModelInfo,
     models: ModelRepository,
-    device: DeviceProfile,
+    context: PackContext,
     modifier: Modifier = Modifier,
 ) {
-    val colors = LocalHainColors.current
-    val type = LocalHainTypography.current
     val flow = remember(pack.id) { models.downloadState(pack) }
     val state by flow.collectAsStateWithLifecycle(DownloadState.Idle)
-    val installed = state is DownloadState.Installed || models.isInstalled(pack)
-    val fit = DeviceCheck.fit(pack, device)
+    val fit = DeviceCheck.fit(pack, context.device)
     PackTile(
         icon = PackCategory.of(pack).icon,
         hue = PackCategory.of(pack).hue,
         title = packTitle(pack),
         size = pack.totalSize,
         description = packDescription(pack)?.let { stringResource(it) },
-        warning = fitText(fit)?.let { stringResource(it) },
+        warning = fitText(fit)?.takeIf { state !is DownloadState.Installed }?.let { stringResource(it) },
         modifier = modifier,
+        progress = PackStatus.fraction(state),
     ) {
-        val running = state as? DownloadState.Running
-        when {
-            installed -> {
-                BasicText(stringResource(R.string.packs_installed), style = type.label.copy(color = colors.accent))
-                if (!pack.isDefault) ActionButton(R.string.packs_delete) { models.delete(pack) }
-            }
-            running != null -> {
-                BasicText(
-                    stringResource(R.string.packs_loading, (running.fraction * PERCENT).toInt()),
-                    style = type.label.copy(color = colors.text),
+        PackActions(pack, state, fit, models, context.download)
+    }
+}
+
+/** T-287: status line and buttons of one pack for every download state. */
+@Suppress("LongMethod") // one branch per state
+@Composable
+private fun RowScope.PackActions(
+    pack: ModelInfo,
+    state: DownloadState,
+    fit: Fit,
+    models: ModelRepository,
+    download: (ModelInfo) -> Unit,
+) {
+    val colors = LocalHainColors.current
+    val type = LocalHainTypography.current
+    val status = type.label.copy(color = colors.text)
+    val muted = type.label.copy(color = colors.textMuted)
+    val statusModifier = Modifier.weight(1f, fill = false)
+    when (state) {
+        DownloadState.Installed -> {
+            BasicText(stringResource(R.string.packs_installed), statusModifier, type.label.copy(color = colors.accent))
+            if (!pack.isDefault) ActionButton(R.string.packs_delete) { models.delete(pack) }
+        }
+        is DownloadState.Running -> {
+            val line =
+                stringResource(
+                    R.string.packs_loading_bytes,
+                    PackStatus.percent(state.fraction),
+                    sizeText(state.downloaded),
+                    sizeText(state.total),
                 )
-                ActionButton(R.string.packs_cancel) { models.cancelDownload(pack) }
-            }
-            state is DownloadState.Queued || state is DownloadState.Verifying ->
-                BasicText(stringResource(R.string.packs_wait), style = type.label.copy(color = colors.textMuted))
-            fit == Fit.TOO_SMALL || fit == Fit.NO_SPACE -> Unit
-            else -> {
-                if (state is DownloadState.Failed) {
-                    BasicText(stringResource(R.string.packs_failed), style = type.label.copy(color = colors.danger))
-                }
-                ActionButton(R.string.packs_download) { models.startDownload(pack) }
-            }
+            BasicText(line, statusModifier, status)
+            ActionButton(R.string.packs_cancel) { models.cancelDownload(pack) }
+        }
+        is DownloadState.Paused -> {
+            val line = stringResource(R.string.packs_paused, sizeText(state.downloaded), sizeText(state.total))
+            BasicText(line, statusModifier, muted)
+            ActionButton(R.string.packs_resume) { download(pack) }
+            ActionButton(R.string.packs_discard) { models.delete(pack) }
+        }
+        DownloadState.Queued -> {
+            BasicText(stringResource(R.string.packs_queued), statusModifier, muted)
+            ActionButton(R.string.packs_cancel) { models.cancelDownload(pack) }
+        }
+        DownloadState.Verifying -> BasicText(stringResource(R.string.packs_verifying), statusModifier, muted)
+        is DownloadState.Failed -> {
+            BasicText(stringResource(failText(state)), statusModifier, type.label.copy(color = colors.danger))
+            if (fit != Fit.TOO_SMALL) ActionButton(R.string.packs_retry) { download(pack) }
+        }
+        DownloadState.Idle ->
+            if (fit != Fit.TOO_SMALL && fit != Fit.NO_SPACE) ActionButton(R.string.packs_download) { download(pack) }
+    }
+}
+
+private fun failText(state: DownloadState.Failed): Int =
+    when (state.reason) {
+        FailReason.NETWORK -> R.string.packs_failed_network
+        FailReason.STORAGE -> R.string.packs_failed_storage
+        FailReason.CHECKSUM -> R.string.packs_failed_checksum
+        FailReason.UNKNOWN -> R.string.packs_failed
+    }
+
+/**
+ * T-287: starts a download; on Android 13+ asks once for notifications first (the progress then shows
+ * in the notification shade while Hain is closed). A "no" still downloads, only without the note.
+ */
+@Composable
+private fun rememberDownloadStarter(models: ModelRepository): (ModelInfo) -> Unit {
+    val context = LocalContext.current
+    var waiting by remember { mutableStateOf<ModelInfo?>(null) }
+    val ask =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+            waiting?.let(models::startDownload)
+            waiting = null
+        }
+    return { pack ->
+        val needsAsk =
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+                PackageManager.PERMISSION_GRANTED
+        if (needsAsk) {
+            waiting = pack
+            ask.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            models.startDownload(pack)
         }
     }
 }
@@ -415,7 +500,8 @@ private fun PackTile(
     description: String? = null,
     warning: String? = null,
     modifier: Modifier = Modifier,
-    actions: @Composable () -> Unit,
+    progress: Float? = null,
+    actions: @Composable RowScope.() -> Unit,
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
@@ -436,11 +522,13 @@ private fun PackTile(
         }
         description?.let { BasicText(it, style = type.bodySmall.copy(color = colors.textMuted)) }
         warning?.let { BasicText(it, style = type.label.copy(color = colors.danger)) }
+        progress?.let { ProgressBar(fraction = it, modifier = Modifier.fillMaxWidth()) }
         Row(
-            Modifier.heightIn(min = 48.dp),
+            Modifier.fillMaxWidth().heightIn(min = 48.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(spacing.md),
-        ) { actions() }
+            content = actions,
+        )
     }
 }
 
@@ -507,7 +595,22 @@ private fun offeredPacks(
     models: ModelRepository,
     cat: PackCategory,
     device: DeviceProfile,
+    installed: Set<String>,
 ): List<ModelInfo> {
     val inCategory = models.catalog.filter { PackCategory.of(it) == cat }
-    return inCategory.filter { BrainChoice.offered(it, device, models.isInstalled(it)) }
+    return inCategory.filter { BrainChoice.offered(it, device, it.id in installed) }
+}
+
+/** T-287: progress bar and percent of a pack's download state. Pure, tested. */
+internal object PackStatus {
+    /** 0..1 while something loads or is paused, `null` when no bar should show. */
+    fun fraction(state: DownloadState): Float? =
+        when (state) {
+            is DownloadState.Running -> state.fraction.coerceIn(0f, 1f)
+            is DownloadState.Paused -> state.fraction
+            DownloadState.Verifying -> 1f
+            else -> null
+        }
+
+    fun percent(fraction: Float): Int = (fraction.coerceIn(0f, 1f) * PERCENT).toInt()
 }

@@ -38,4 +38,6 @@
     <string name="icon_step_flat">Flat</string>
     <string name="icon_step_next">Next</string>
     <string name="icon_step_hint">The new icon shows up once you leave Hain. Your home screen may need a few seconds.</string>
+    <string name="onboarding_paused">Paused · %1$s of %2$s</string>
+    <string name="onboarding_resume">Resume</string>
 </resources>

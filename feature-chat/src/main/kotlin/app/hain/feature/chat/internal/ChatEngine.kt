@@ -20,6 +20,7 @@ import app.hain.llm.internal.GgufPromptBuilder
 import app.hain.llm.internal.StreamSplitter
 import app.hain.llm.internal.ThinkingPolicy
 import app.hain.tools.api.AlarmHints
+import app.hain.tools.api.CardGuard
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.InfoCard
 import app.hain.tools.api.NewsHeadline
@@ -70,6 +71,8 @@ sealed interface TurnUpdate {
         val steps: List<ToolStep> = emptyList(),
         /** Running research clock (Gründlich, T-069); `null` = no time display. */
         val research: ResearchClock? = null,
+        /** T-294: percent of a long prompt read so far; `null` = not reading (or too short to show). */
+        val reading: Int? = null,
     ) : TurnUpdate
 
     data class Finished(
@@ -112,7 +115,7 @@ data class ResearchClock(
  * after the history, right before the answer. It is never stored, so the cached start and the
  * checkpoint at the end of the history stay valid.
  */
-@Suppress("LongParameterList", "TooManyFunctions") // test hooks; one function per step of a turn
+@Suppress("LongParameterList", "TooManyFunctions", "LargeClass") // test hooks; one function per step of a turn
 class ChatEngine(
     private val llm: LlmEngine,
     private val systemPrompt: (atMillis: Long) -> String,
@@ -237,13 +240,33 @@ class ChatEngine(
                     turn.finalRound = final
                     turn.textStarted = false
                     val roundTools = if (final) emptyList() else schemas
-                    val closing = if (final && turn.researching) listOf(closingLine(ctx.lang)) else emptyList()
+                    // T-294 (Oskar 06.11.: Jan "liest" fast eine Minute): the tool block is the start of the
+                    // prompt (Qwen: first thing in the system turn; LFM: end of the system turn, before the chat).
+                    // Dropping it in the closing round changed the prompt from there on, so the whole chat was
+                    // read again for every answer after a tool. It now stays in the prompt (calls are ignored),
+                    // and a line says that no more tools are used; only when the brain still calls one, the
+                    // retry goes without the block.
+                    val promptTools = if (final && turn.hideTools) emptyList() else schemas
+                    // after a tool run (researching) both lines: answer from the results, and no more tools
+                    val closing =
+                        buildList {
+                            if (final && turn.researching) add(closingLine(ctx.lang))
+                            if (final && round > 0 && promptTools.isNotEmpty()) add(noToolsLine(ctx.lang))
+                        }
                     // T-277: after a long research the thinking ran out in the closing round and the answer
                     // stayed empty: that round answers without thinking, from the notes instead of full pages
                     val notesOnly = final && turn.researching && round >= 2
                     val messages = base + turn.promptMessages(round, notesOnly) + closing
                     val result =
-                        generateRound(system, roundTools, messages, history, thinking, turn, think = thinking && !final)
+                        generateRound(
+                            system,
+                            RoundTools(promptTools, roundTools),
+                            messages,
+                            history,
+                            thinking,
+                            turn,
+                            think = thinking && !final,
+                        )
                     turn.thinkingMs += result.thinkingMs ?: 0L
                     // stopped or out of time while the brain was still choosing tools: answer with what is there
                     if (!final && result.reason == StopReason.CANCELLED && turn.cut) {
@@ -286,6 +309,13 @@ class ChatEngine(
                         round++
                         continue
                     }
+                    // T-294: the closing round still saw the tools and called one instead of answering: once
+                    // more without the tool block (the old way, slower but sure)
+                    val calledAnyway = final && noText && proposed.isNotEmpty()
+                    if (calledAnyway && promptTools.isNotEmpty() && !turn.hideTools) {
+                        turn.hideTools = true
+                        continue
+                    }
                     // T-271: an empty answer (only tool syntax, or nothing) gets one more try with a plain hint
                     // T-277: also when it ran out of tokens (thinking that never ended), the retry has no thinking
                     val ended = result.reason == StopReason.END || result.reason == StopReason.MAX_TOKENS
@@ -294,6 +324,21 @@ class ChatEngine(
                         turn.emptyRetried = true
                         turn.toolsOff = true
                         turn.add(ChatMessage(Role.SYSTEM, ToolGuard.answerHint(ctx.lang)), round)
+                        round++
+                        continue
+                    }
+                    // T-293: a card in place of an answer (a checklist of questions for "Wer kann wählen?"):
+                    // once more, asking for sentences; the tools stay, so it can still look it up
+                    val cardOnly =
+                        calls.isEmpty() &&
+                            result.reason == StopReason.END &&
+                            !turn.cardRetried &&
+                            !turn.stopRequested &&
+                            !CardGuard.wanted(lastUser) &&
+                            CardGuard.replacesAnswer(result.output.text)
+                    if (cardOnly) {
+                        turn.cardRetried = true
+                        turn.add(ChatMessage(Role.SYSTEM, CardGuard.hint(ctx.lang)), round)
                         round++
                         continue
                     }
@@ -396,6 +441,12 @@ class ChatEngine(
 
         /** T-271: an empty answer was already asked again once. */
         var emptyRetried = false
+
+        /** T-293: a card in place of an answer was already asked again once. */
+        var cardRetried = false
+
+        /** T-294: the closing round goes without the tool block (it called a tool although told not to). */
+        var hideTools = false
         val reasoning = StringBuilder()
         var thinkingMs = 0L
         var searches = 0
@@ -666,7 +717,7 @@ class ChatEngine(
     @Suppress("LongParameterList", "CyclomaticComplexMethod", "LongMethod") // one generation needs all of these
     private suspend fun FlowCollector<TurnUpdate>.generateRound(
         system: String,
-        roundTools: List<ToolSchema>,
+        toolSet: RoundTools,
         messages: List<ChatMessage>,
         history: List<ChatMessage>,
         thinking: Boolean,
@@ -674,16 +725,17 @@ class ChatEngine(
         /** T-277: whether this round thinks; [thinking] is the turn's (what the chat shows). */
         think: Boolean = thinking,
     ): RoundResult {
+        val roundTools = toolSet.allowed
         val prompt =
             builder().build(
                 system = system,
-                tools = roundTools,
+                tools = toolSet.shown,
                 history = messages,
                 addGenerationPrompt = true,
                 enableThinking = think,
             )
         val params = DevTuning.sampling(turn.dev, think, MAX_TOKENS, MAX_TOKENS_THINKING, llm.format.chatSampling)
-        val checkpoints = checkpointsFor(prompt, system, history, roundTools)
+        val checkpoints = checkpointsFor(prompt, system, history, toolSet.shown)
         val splitter = StreamSplitter(thinkingEnabled = think)
         val reasoning = StringBuilder()
         val text = StringBuilder()
@@ -748,6 +800,22 @@ class ChatEngine(
                         reason = event.reason
                         stats = event.stats
                     }
+                    // T-294: a long prompt (Großes Gehirn, a new chat): "Liest deine Nachricht … 42 %"
+                    is GenerationEvent.Reading ->
+                        if (event.total >= READING_MIN_TOKENS && text.isEmpty()) {
+                            val steps = turn.steps + listOfNotNull(pending)
+                            val percent = (event.fraction * PERCENT).toInt()
+                            emit(
+                                TurnUpdate.Streaming(
+                                    (earlier + reasoning).trim(),
+                                    "",
+                                    thinking,
+                                    steps,
+                                    clockOf(turn),
+                                    reading = percent.takeIf { event.done < event.total },
+                                ),
+                            )
+                        }
                 }
             }
         if (unshown) {
@@ -869,6 +937,7 @@ class ChatEngine(
             when (event) {
                 is GenerationEvent.Token -> out.append(event.text)
                 is GenerationEvent.Done -> reason = event.reason
+                is GenerationEvent.Reading -> Unit
             }
         }
         if (reason != StopReason.END && reason != StopReason.MAX_TOKENS) return null
@@ -1020,8 +1089,23 @@ class ChatEngine(
 
         private fun closingLine(lang: String) = ChatMessage(Role.SYSTEM, finalHint(lang))
 
+        /** T-294: the tools stay in the prompt (for the cache), but this round answers without them. */
+        internal fun noToolsLine(lang: String) =
+            ChatMessage(
+                Role.SYSTEM,
+                if (lang == "de") {
+                    "Keine Werkzeuge mehr. Antworte jetzt direkt aus den Ergebnissen oben."
+                } else {
+                    "No more tools. Answer now, directly from the results above."
+                },
+            )
+
         /** T-264: at most one live update per 40 ms (25 a second), enough for smooth text. */
         internal const val STREAM_MS = 40L
+
+        /** T-294: from this many tokens to read, the status shows the reading progress. */
+        internal const val READING_MIN_TOKENS = 256
+        private const val PERCENT = 100
 
         // T-275: answer the question itself; no talk about sources, searches or contradictions, only facts
         // the results back up
@@ -1101,3 +1185,9 @@ class ChatEngine(
         }
     }
 }
+
+/** T-294: the tools written into the prompt ([shown], kept for the cache) and the ones a call may use ([allowed]). */
+internal data class RoundTools(
+    val shown: List<ToolSchema>,
+    val allowed: List<ToolSchema>,
+)

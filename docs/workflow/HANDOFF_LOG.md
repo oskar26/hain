@@ -739,3 +739,23 @@ Neu aufgesetzt: Der erste Lauf verlor seinen Worktree (/tmp-Reset); übernommen 
 - Lizenztexte einmalig aus den Projekt-Repos geholt (llama.cpp am Pin 39febd2 = b11963, ONNX Runtime v1.28.0, zstd v1.5.7, LFM-Lizenz von Hugging Face, OFL der Schriften, CC BY-SA 4.0 legalcode) und in `tools/licenses/texts/` eingecheckt; die App liest nur Assets.
 - Außerhalb der `files`-Liste angefasst: `.github/workflows/ci.yml` (Schritt „Open-source licences check“), `gradle.properties` (Version), `feature-settings/build.gradle.kts` (kotlinx-serialization-json, schon im Projekt).
 
+## 2026-11-06 · 0.1.10.11 – Markdown, Diktat-Pille, Downloads, Tempo · review · harness: Hark · model: Hark · branch `hark/v0110-11` (PR #62)
+
+| task | status | check result | open issues |
+|---|---|---|---|
+| T-287 | review | Unit-Tests core-models, CI | Gerätetest Hintergrund-Download |
+| T-288 | review | `MathTextTest` | – |
+| T-289 | review | Codereview, Kompilat | Gerätetest Querformat/Aussparung, Schrift 1,3 bei 320 dp |
+| T-290 | review | Benchmarks; Fix zweites `companion object` (CI-Kompilierfehler d5a4995) | – |
+| T-291 | review | Unit-Tests | – |
+| T-292 | review | `check_strings.py`, Roborazzi Einstellungen | – |
+| T-293 | review | Unit-Tests | – |
+| T-294 | review | `ChatEngineToolsTest` (Fix Schlusszeile nach Werkzeug) | Tempo auf dem Gerät messen |
+| T-295 | review | Fix verlorene Konstanten in `ChatChrome` | – |
+| T-296 | review | `DictationPillTest` | Gerätetest mit echtem Mikro |
+| T-297 | review | `check_strings.py` | – |
+| T-298 | review | `MarkdownPartsTest`, Roborazzi `markdown_all_light/dark` | – |
+
+- Lokal: Gradle kompiliert alle Module; JVM-Tests lokal per JUnitCore (aarch64-Sandbox: kein aapt2/Robolectric-nativ, daher Robolectric-/R-Tests nur in CI). CI ist das Gate.
+- Hinweis: Im Repo sind einige `*/build/`-Ausgaben eingecheckt; lokale Builds verändern sie – nie mit `git add -A` committen.
+

@@ -47,3 +47,40 @@ internal object PackProgress {
     private fun FileProgress.Phase.pending(): Boolean =
         this == FileProgress.Phase.QUEUED || this == FileProgress.Phase.RUNNING || this == FileProgress.Phase.NONE
 }
+
+/**
+ * T-287: the state of one download from what WorkManager says ([job], `null` = no job) and what lies
+ * on the phone. A stopped job (or one that never ran in this app start) with a `.part` file is
+ * [DownloadState.Paused], not "Laden" again as if nothing had happened. Pure, tested.
+ */
+internal object DownloadRules {
+    fun single(
+        installed: Boolean,
+        job: FileProgress?,
+        partBytes: Long,
+        total: Long,
+    ): DownloadState =
+        when {
+            installed -> DownloadState.Installed
+            job?.phase == FileProgress.Phase.QUEUED -> DownloadState.Queued
+            job?.phase == FileProgress.Phase.RUNNING -> DownloadState.Running(job.done, total)
+            job?.phase == FileProgress.Phase.VERIFYING -> DownloadState.Verifying
+            job?.phase == FileProgress.Phase.FAILED -> DownloadState.Failed(job.fail ?: FailReason.UNKNOWN)
+            partBytes > 0 -> DownloadState.Paused(partBytes.coerceAtMost(total.coerceAtLeast(partBytes)), total)
+            else -> DownloadState.Idle
+        }
+
+    /** A pack: like [PackProgress.combine], but bytes already on the phone without a job mean "angehalten". */
+    fun pack(
+        files: List<FileProgress>,
+        bytesOnPhone: Long,
+    ): DownloadState {
+        val state = PackProgress.combine(files)
+        val total = files.sumOf { it.size }
+        return if (state == DownloadState.Idle && bytesOnPhone > 0) {
+            DownloadState.Paused(bytesOnPhone.coerceAtMost(total.coerceAtLeast(bytesOnPhone)), total)
+        } else {
+            state
+        }
+    }
+}

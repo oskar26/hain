@@ -32,6 +32,8 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.TimeUnit
 
 /** When the background extraction may use the brain (MEMORY.md §2.3: on the charger or battery > 30 %). */
@@ -168,7 +170,12 @@ class MemoryExtractionWorker(
 ) : CoroutineWorker(context, params) {
     @Suppress("ReturnCount")
     override suspend fun doWork(): Result {
-        val extraction = MemoryExtraction.current ?: return Result.success()
+        // T-290: the app sets it up on a background thread at start; a worker that woke the app waits a moment
+        val extraction =
+            withTimeoutOrNull(WAIT_FOR_APP_MS) {
+                while (MemoryExtraction.current == null) delay(POLL_MS)
+                MemoryExtraction.current
+            } ?: return Result.success()
         val chatId = inputData.getLong(MemoryExtraction.KEY_CHAT, -1L)
         if (chatId < 0) return Result.success()
         if (!extraction.run(chatId)) {
@@ -187,6 +194,8 @@ class MemoryExtractionWorker(
 
     private companion object {
         const val CHARGING_PREFIX = "memory-extract-charging-"
+        const val WAIT_FOR_APP_MS = 5_000L
+        const val POLL_MS = 50L
     }
 }
 
@@ -211,6 +220,7 @@ internal class LlmExtractionBrain(
             when (event) {
                 is GenerationEvent.Token -> out.append(event.text)
                 is GenerationEvent.Done -> reason = event.reason
+                is GenerationEvent.Reading -> Unit
             }
         }
         return out.toString().takeIf { reason == StopReason.END || reason == StopReason.MAX_TOKENS }

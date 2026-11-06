@@ -14,10 +14,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -39,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.hain.common.api.HainSettings
 import app.hain.common.api.net.NetworkLogEntry
@@ -111,8 +111,8 @@ internal fun SettingsBody(
         modifier
             .fillMaxSize()
             .background(LocalHainColors.current.bg)
-            .statusBarsPadding()
-            .navigationBarsPadding(),
+            // T-289: status/navigation bars, camera cut-out and keyboard
+            .safeDrawingPadding(),
     ) {
         if (wide) {
             SettingsListDetail(current ?: SettingsPage.LOOK, nav, settings, actions, networkLog, extras, back)
@@ -221,6 +221,16 @@ private fun PageBody(
 ) {
     // T-214: "Über Hain" has its own centred header with Pim
     if (page != SettingsPage.ABOUT) PageHeader(page)
+    if (page.sectioned) {
+        // T-292: blocks with headings, each on its own card, with more air between them
+        Column(
+            Modifier.fillMaxWidth().padding(top = LocalHainSpacing.current.sm),
+            verticalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.xl),
+        ) {
+            SettingsPageContent(page, settings, actions, networkLog, extras, nav)
+        }
+        return
+    }
     // the whole page sits on one glass tile lit from above in the group's colour (T-011)
     Column(
         Modifier
@@ -318,7 +328,13 @@ private fun Tile(
         Hain3DIcon(icon, size = 40.dp)
         Column(Modifier.weight(1f)) {
             BasicText(stringResource(title), style = type.button.copy(color = colors.text))
-            BasicText(stringResource(hint), style = type.bodySmall.copy(color = colors.textMuted))
+            // T-292: the reason line under a group stays short (at most two lines)
+            BasicText(
+                stringResource(hint),
+                style = type.bodySmall.copy(color = colors.textMuted),
+                maxLines = HINT_LINES,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
         Image(
             HainIcons.chevronRight,

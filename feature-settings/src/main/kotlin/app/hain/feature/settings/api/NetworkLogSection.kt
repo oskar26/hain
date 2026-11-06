@@ -62,17 +62,19 @@ internal enum class LogFilter(
 internal fun NetworkLogSection(
     entries: List<NetworkLogEntry>,
     actions: SettingsActions,
+    /** T-292: inside a section card the card already has the heading and the frame. */
+    inSection: Boolean = false,
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     val spacing = LocalHainSpacing.current
     var filter by rememberSaveable { mutableIntStateOf(0) }
-    BasicText(stringResource(R.string.settings_log_title), style = type.body.copy(color = colors.text))
+    if (!inSection) BasicText(stringResource(R.string.settings_log_title), style = type.body.copy(color = colors.text))
     BasicText(stringResource(R.string.settings_log_hint), style = type.label.copy(color = colors.textMuted))
     val filters = LogFilter.entries
     SegmentedControl(filters.map { stringResource(it.label) }, filter, { filter = it })
     val shown = entries.filter { filters[filter].matches(it) }
-    HainCard {
+    val rows: @Composable () -> Unit = {
         if (shown.isEmpty()) {
             BasicText(
                 stringResource(R.string.settings_log_empty),
@@ -80,6 +82,11 @@ internal fun NetworkLogSection(
             )
         }
         shown.take(MAX_ROWS).forEach { LogRow(it) }
+    }
+    if (inSection) {
+        Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) { rows() }
+    } else {
+        HainCard { rows() }
     }
     if (entries.isNotEmpty()) {
         BasicText(

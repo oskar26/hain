@@ -1,8 +1,14 @@
 package app.hain.llm.internal
 
 /** Receives generated text from the native loop in complete UTF-8 chunks. Return `false` to stop. */
-fun interface TokenCallback {
+interface TokenCallback {
     fun onToken(bytes: ByteArray): Boolean
+
+    /** T-294: [done] of [total] prompt tokens read (called from the native loop while it reads). */
+    fun onRead(
+        done: Int,
+        total: Int,
+    )
 }
 
 /** Receives the model loading progress (0..1). Return `false` to abort loading. */

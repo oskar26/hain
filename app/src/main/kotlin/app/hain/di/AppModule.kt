@@ -2,17 +2,24 @@ package app.hain.di
 
 import android.content.Context
 import android.util.Log
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.emptyPreferences
 import app.hain.common.api.BrainChoiceStore
 import app.hain.common.api.HainSettings
 import app.hain.common.api.SettingsRepository
 import app.hain.common.api.net.NetworkGate
 import app.hain.common.api.net.NetworkGates
+import app.hain.common.api.net.NetworkLogEntry
+import app.hain.common.api.net.NetworkLogStore
 import app.hain.data.HainDatabase
 import app.hain.data.KeystoreKeyProvider
 import app.hain.data.RoomNetworkLogStore
+import app.hain.feature.chat.internal.Chat
+import app.hain.feature.chat.internal.ChatPersistence
 import app.hain.feature.chat.internal.ChatStore
 import app.hain.feature.chat.internal.RoomChatPersistence
+import app.hain.feature.chat.internal.UiMessage
 import app.hain.llm.api.LlmEngine
 import app.hain.llm.api.TextEmbedder
 import app.hain.llm.internal.LlamaEmbedder
@@ -64,6 +71,8 @@ object AppModule {
     ): SettingsRepository =
         SettingsRepository(
             PreferenceDataStoreFactory.create(
+                // T-291: a corrupt file starts over with the defaults instead of failing every read
+                corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
                 scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
                 produceFile = { File(context.filesDir, "datastore/settings.preferences_pb") },
             ),
@@ -77,6 +86,8 @@ object AppModule {
     ): BrainChoiceStore =
         BrainChoiceStore(
             PreferenceDataStoreFactory.create(
+                // T-291: a corrupt file starts over with the defaults instead of failing every read
+                corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
                 scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
                 produceFile = { File(context.filesDir, "datastore/brain.preferences_pb") },
             ),
@@ -97,7 +108,8 @@ object AppModule {
         return HttpNetworkGate(
             offline = { current.get().offlineMode },
             detailedLog = { current.get().networkLogDetail },
-            store = database.db?.let { RoomNetworkLogStore(it.networkLog()) },
+            // T-290: the database opens on first use (off the main thread), not while the gate is built
+            store = DeferredNetworkLogStore { database.db?.let { RoomNetworkLogStore(it.networkLog()) } },
         ).also { NetworkGates.current = it } // 3b-2: the brain download worker logs through it too
     }
 
@@ -125,19 +137,19 @@ object AppModule {
     fun databaseHolder(
         @ApplicationContext context: Context,
     ): DatabaseHolder =
-        DatabaseHolder(
+        DatabaseHolder {
             runCatching { HainDatabase.open(context, KeystoreKeyProvider(context)) }
                 .onFailure { Log.e("Hain", "Chat database unavailable, chats stay in memory", it) }
-                .getOrNull(),
-        )
+                .getOrNull()
+        }
 
     /** Chats survive app restarts in the encrypted database; if it cannot open, chats stay in memory. */
     @Provides
     @Singleton
     fun chatStore(database: DatabaseHolder): ChatStore {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        val persistence =
-            database.db?.let { RoomChatPersistence(it) }
+        // T-290: opened on the store's IO scope at the first read, not on the main thread at app start
+        val persistence = DeferredChatPersistence { database.db?.let { RoomChatPersistence(it) } }
         return ChatStore(persistence = persistence, scope = scope)
     }
 
@@ -180,7 +192,67 @@ object AppModule {
 
 private const val STANDARD_FEEDS = "news/standard_feeds.json"
 
-/** Wraps the database so Hilt can hand out a missing one. */
+/**
+ * Wraps the database so Hilt can hand out a missing one. T-290: opened on first use (loading SQLCipher
+ * and unwrapping the key in the Keystore cost tens of milliseconds), see [HainApp] which opens it early
+ * on a background thread.
+ */
 class DatabaseHolder(
-    val db: HainDatabase?,
-)
+    open: () -> HainDatabase?,
+) {
+    val db: HainDatabase? by lazy(LazyThreadSafetyMode.SYNCHRONIZED, open)
+}
+
+/** T-290: a [ChatPersistence] that opens the real one at its first call (on the caller's IO thread). */
+internal class DeferredChatPersistence(
+    open: () -> ChatPersistence?,
+) : ChatPersistence {
+    private val real by lazy(LazyThreadSafetyMode.SYNCHRONIZED, open)
+
+    override suspend fun load(): List<Chat> = real?.load().orEmpty()
+
+    override suspend fun maxId(): Long = real?.maxId() ?: 0L
+
+    override suspend fun saveChat(chat: Chat) {
+        real?.saveChat(chat)
+    }
+
+    override suspend fun saveMessage(
+        chatId: Long,
+        message: UiMessage,
+        updatedAt: Long,
+    ) {
+        real?.saveMessage(chatId, message, updatedAt)
+    }
+
+    override suspend fun deleteMessage(id: Long) {
+        real?.deleteMessage(id)
+    }
+
+    override suspend fun deleteChat(id: Long) {
+        real?.deleteChat(id)
+    }
+
+    override suspend fun search(query: String): Set<Long> = real?.search(query).orEmpty()
+}
+
+/** T-290: the network log in the database, opened at the first entry instead of while the gate is built. */
+internal class DeferredNetworkLogStore(
+    open: () -> NetworkLogStore?,
+) : NetworkLogStore {
+    private val real by lazy(LazyThreadSafetyMode.SYNCHRONIZED, open)
+
+    override suspend fun load(since: Long): List<NetworkLogEntry> = real?.load(since).orEmpty()
+
+    override suspend fun append(entry: NetworkLogEntry) {
+        real?.append(entry)
+    }
+
+    override suspend fun prune(before: Long) {
+        real?.prune(before)
+    }
+
+    override suspend fun clear() {
+        real?.clear()
+    }
+}

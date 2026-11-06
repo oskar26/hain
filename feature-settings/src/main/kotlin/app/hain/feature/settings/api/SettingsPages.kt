@@ -1,6 +1,8 @@
 package app.hain.feature.settings.api
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -37,113 +39,128 @@ internal fun SettingsPageContent(
 ) {
     when (page) {
         SettingsPage.LOOK -> {
-            Choice(
-                R.string.settings_theme,
-                settings.theme,
-                listOf(
-                    ThemeChoice.SYSTEM to R.string.settings_theme_system,
-                    ThemeChoice.LIGHT to R.string.settings_theme_light,
-                    ThemeChoice.DARK to R.string.settings_theme_dark,
-                ),
-                actions.onTheme,
-            )
-            // T-103: launcher icon "Pim im Wald", 3D or flat
-            BasicText(
-                stringResource(R.string.settings_app_icon),
-                style = LocalHainTypography.current.body.copy(color = LocalHainColors.current.text),
-            )
-            AppIconPicker(
-                flat = settings.appIcon == AppIcon.FLAT,
-                label3d = stringResource(R.string.settings_app_icon_3d),
-                labelFlat = stringResource(R.string.settings_app_icon_flat),
-                onSelect = { flat -> actions.onAppIcon(if (flat) AppIcon.FLAT else AppIcon.THREE_D) },
-            )
-            Info(R.string.settings_app_icon_hint)
-            Choice(
-                R.string.settings_haptics,
-                settings.haptics,
-                listOf(
-                    HapticStrength.OFF to R.string.settings_haptics_off,
-                    HapticStrength.SUBTLE to R.string.settings_haptics_subtle,
-                    HapticStrength.NORMAL to R.string.settings_haptics_normal,
-                    HapticStrength.STRONG to R.string.settings_haptics_strong,
-                ),
-                actions.onHaptics,
-            )
-            Info(R.string.settings_haptics_hint)
-            Toggle(
-                R.string.settings_readable,
-                R.string.settings_readable_hint,
-                settings.readableFont,
-                actions.onReadableFont,
-            )
-            Toggle(
-                R.string.settings_reduce_motion,
-                R.string.settings_reduce_motion_hint,
-                settings.reduceMotion,
-                actions.onReduceMotion,
-            )
+            // T-292: blocks with a heading each instead of one long column
+            SettingsSection(R.string.settings_section_appearance, page.hue, 0) {
+                Choice(
+                    R.string.settings_theme,
+                    settings.theme,
+                    listOf(
+                        ThemeChoice.SYSTEM to R.string.settings_theme_system,
+                        ThemeChoice.LIGHT to R.string.settings_theme_light,
+                        ThemeChoice.DARK to R.string.settings_theme_dark,
+                    ),
+                    actions.onTheme,
+                )
+                // T-103: launcher icon "Pim im Wald", 3D or flat
+                Column(verticalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.sm)) {
+                    BasicText(
+                        stringResource(R.string.settings_app_icon),
+                        style = LocalHainTypography.current.body.copy(color = LocalHainColors.current.text),
+                    )
+                    AppIconPicker(
+                        flat = settings.appIcon == AppIcon.FLAT,
+                        label3d = stringResource(R.string.settings_app_icon_3d),
+                        labelFlat = stringResource(R.string.settings_app_icon_flat),
+                        onSelect = { flat -> actions.onAppIcon(if (flat) AppIcon.FLAT else AppIcon.THREE_D) },
+                    )
+                    Info(R.string.settings_app_icon_hint)
+                }
+            }
+            SettingsSection(R.string.settings_section_feel, page.hue, 1) {
+                Column(verticalArrangement = Arrangement.spacedBy(LocalHainSpacing.current.sm)) {
+                    Choice(
+                        R.string.settings_haptics,
+                        settings.haptics,
+                        listOf(
+                            HapticStrength.OFF to R.string.settings_haptics_off,
+                            HapticStrength.SUBTLE to R.string.settings_haptics_subtle,
+                            HapticStrength.NORMAL to R.string.settings_haptics_normal,
+                            HapticStrength.STRONG to R.string.settings_haptics_strong,
+                        ),
+                        actions.onHaptics,
+                    )
+                    Info(R.string.settings_haptics_hint)
+                }
+                Toggle(
+                    R.string.settings_readable,
+                    R.string.settings_readable_hint,
+                    settings.readableFont,
+                    actions.onReadableFont,
+                )
+                Toggle(
+                    R.string.settings_reduce_motion,
+                    R.string.settings_reduce_motion_hint,
+                    settings.reduceMotion,
+                    actions.onReduceMotion,
+                )
+            }
         }
         SettingsPage.ANSWERS -> {
-            Choice(
-                R.string.settings_answer_language,
-                settings.answerLanguage,
-                listOf(
-                    AnswerLanguage.AUTO to R.string.settings_lang_auto,
-                    AnswerLanguage.DE to R.string.settings_lang_de,
-                    AnswerLanguage.EN to R.string.settings_lang_en,
-                ),
-                actions.onAnswerLanguage,
-            )
-            Choice(
-                R.string.settings_answer_mode,
-                settings.answerMode,
-                listOf(
-                    AnswerMode.AUTO to R.string.settings_mode_auto,
-                    AnswerMode.FAST to R.string.settings_mode_fast,
-                    AnswerMode.THOROUGH to R.string.settings_mode_thorough,
-                ),
-                actions.onAnswerMode,
-            )
+            SettingsSection(R.string.settings_section_answer_style, page.hue, 0) {
+                Choice(
+                    R.string.settings_answer_language,
+                    settings.answerLanguage,
+                    listOf(
+                        AnswerLanguage.AUTO to R.string.settings_lang_auto,
+                        AnswerLanguage.DE to R.string.settings_lang_de,
+                        AnswerLanguage.EN to R.string.settings_lang_en,
+                    ),
+                    actions.onAnswerLanguage,
+                )
+                Choice(
+                    R.string.settings_answer_mode,
+                    settings.answerMode,
+                    listOf(
+                        AnswerMode.AUTO to R.string.settings_mode_auto,
+                        AnswerMode.FAST to R.string.settings_mode_fast,
+                        AnswerMode.THOROUGH to R.string.settings_mode_thorough,
+                    ),
+                    actions.onAnswerMode,
+                )
+            }
             // T-283: "Über dich" is part of this page (one level less)
-            Group(R.string.settings_answers_group_you)
-            TextSetting(
-                R.string.settings_about_me,
-                R.string.settings_about_me_hint,
-                settings.aboutMe,
-                actions.onAboutMe,
-            )
-            TextSetting(R.string.settings_style, R.string.settings_style_hint, settings.style, actions.onStyle)
+            SettingsSection(R.string.settings_answers_group_you, page.hue, 1) {
+                TextSetting(
+                    R.string.settings_about_me,
+                    R.string.settings_about_me_hint,
+                    settings.aboutMe,
+                    actions.onAboutMe,
+                )
+                TextSetting(R.string.settings_style, R.string.settings_style_hint, settings.style, actions.onStyle)
+            }
             BasicText(
                 stringResource(R.string.settings_reset),
                 style = LocalHainTypography.current.bodySmall.copy(color = LocalHainColors.current.accent),
                 modifier =
                     Modifier
                         .clickable(onClick = actions.onReset)
-                        .padding(vertical = LocalHainSpacing.current.md),
+                        .padding(vertical = LocalHainSpacing.current.md, horizontal = LocalHainSpacing.current.sm),
             )
         }
-        SettingsPage.INTERNET -> InternetPage(settings, actions, networkLog)
+        SettingsPage.INTERNET -> InternetPage(settings, actions, networkLog, page.hue)
         SettingsPage.PRIVACY -> {
             Info(R.string.settings_privacy_text)
-            Group(R.string.settings_privacy_group_safety)
-            Toggle(
-                R.string.settings_confirm_actions,
-                R.string.settings_confirm_actions_hint,
-                settings.confirmActions,
-                actions.onConfirmActions,
-            )
-            AppLockSection(settings, actions, extras.lockAvailable)
-            Group(R.string.settings_privacy_group_data)
-            ExportAllSection(actions)
+            SettingsSection(R.string.settings_privacy_group_safety, page.hue, 0) {
+                Toggle(
+                    R.string.settings_confirm_actions,
+                    R.string.settings_confirm_actions_hint,
+                    settings.confirmActions,
+                    actions.onConfirmActions,
+                )
+            }
+            SettingsSection(R.string.settings_lock_title, page.hue, 1) {
+                AppLockSection(settings, actions, extras.lockAvailable)
+            }
+            SettingsSection(R.string.settings_privacy_group_data, page.hue, 2) { ExportAllSection(actions) }
         }
         SettingsPage.ABOUT ->
-            AboutPage(settings, actions, extras.appInfo, extras.updateStatus) { nav.goTo(SettingsPage.LICENCES) }
+            AboutPage(settings, actions, extras.appInfo, extras.updateStatus, page.hue) {
+                nav.goTo(SettingsPage.LICENCES)
+            }
         SettingsPage.LICENCES -> LicencesPage(extras.appInfo, nav)
         SettingsPage.DEVELOPER ->
-            DeveloperPage(settings.dev, actions, extras.devModels) {
+            DeveloperPage(settings.dev, actions, extras.devModels, hue = page.hue, network = {
                 // T-266: moved here from "Privatsphäre"
-                Group(R.string.dev_network)
                 SearxSetting(settings.searxUrl, actions.onSearxUrl)
                 Toggle(
                     R.string.settings_log_detail,
@@ -151,7 +168,7 @@ internal fun SettingsPageContent(
                     settings.networkLogDetail,
                     actions.onNetworkLogDetail,
                 )
-            }
+            })
     }
 }
 

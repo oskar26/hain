@@ -14,6 +14,7 @@ import app.hain.common.api.UpdateCheck
 import app.hain.common.api.WebSearch
 import app.hain.common.api.net.NetworkLogEntry
 import app.hain.feature.settings.R
+import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
@@ -30,14 +31,28 @@ internal fun InternetPage(
     settings: HainSettings,
     actions: SettingsActions,
     networkLog: List<NetworkLogEntry>,
+    hue: GlowHue = GlowHue.SKY,
 ) {
     val online = !settings.offlineMode
-    Toggle(
-        R.string.settings_internet_main,
-        R.string.settings_internet_main_hint,
-        online,
-    ) { actions.onOfflineMode(!it) }
-    Group(R.string.settings_internet_allowed)
+    // T-292: main switch, what may go online and the log as three section cards
+    SettingsSection(null, hue, 0) {
+        Toggle(
+            R.string.settings_internet_main,
+            R.string.settings_internet_main_hint,
+            online,
+        ) { actions.onOfflineMode(!it) }
+    }
+    SettingsSection(R.string.settings_internet_allowed, hue, 1) { AllowedList(settings, actions, online) }
+    SettingsSection(R.string.settings_log_title, hue, 2) { NetworkLogSection(networkLog, actions, inSection = true) }
+}
+
+/** What may go online; dimmed (still readable) while the main switch is off. */
+@Composable
+private fun AllowedList(
+    settings: HainSettings,
+    actions: SettingsActions,
+    online: Boolean,
+) {
     if (!online) Info(R.string.settings_internet_paused)
     Column(
         Modifier.fillMaxWidth().alpha(if (online) 1f else PAUSED_ALPHA),
@@ -73,7 +88,6 @@ internal fun InternetPage(
         ) { actions.onUpdateCheck(if (it) UpdateCheck.DAILY else UpdateCheck.OFF) }
         Fact(R.string.settings_internet_models, R.string.settings_internet_models_hint)
     }
-    NetworkLogSection(networkLog, actions)
 }
 
 /** A line that only says how something behaves (no switch): title and a short second line. */

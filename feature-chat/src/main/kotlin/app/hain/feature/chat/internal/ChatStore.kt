@@ -35,6 +35,8 @@ data class UiMessage(
     val news: List<NewsHeadline> = emptyList(),
     /** Research clock while a thorough answer is still looking things up (T-069; not stored). */
     val research: ResearchClock? = null,
+    /** T-294: percent of the prompt read before the first word (long prompts only; not stored). */
+    val reading: Int? = null,
     /** Speed of this answer for developer mode (T-211; not stored). */
     val stats: GenerationStats? = null,
     /** Checklist ticks the user set on this answer's cards (T-131, `cards_json`, see CardState). */
@@ -164,32 +166,32 @@ class ChatStore(
         val now = clock()
         var stored = message
         mutableChats.update { list ->
-            list
-                .map { chat ->
-                    if (chat.id != chatId) {
-                        chat
-                    } else {
-                        val old = chat.all.firstOrNull { it.id == message.id }
-                        if (old != null) {
-                            // updates (streaming, finished, a card tap) keep the message's place in the tree
-                            stored =
-                                message.copy(
-                                    parentId = message.parentId ?: old.parentId,
-                                    selectedAt = message.selectedAt ?: old.selectedAt,
-                                )
-                            chat.copy(
-                                messages = chat.messages.map { if (it.id == message.id) stored else it },
-                                hidden = chat.hidden.map { if (it.id == message.id) stored else it },
-                                updatedAt = now,
-                            )
-                        } else {
-                            // a new message follows the newest one shown
-                            val parent = message.parentId ?: chat.messages.lastOrNull()?.id ?: Branches.ROOT
-                            stored = message.copy(parentId = parent)
-                            chat.withAll(chat.all + stored).copy(updatedAt = now)
-                        }
-                    }
-                }.sortedByDescending { it.updatedAt }
+            val index = list.indexOfFirst { it.id == chatId }
+            if (index < 0) return@update list
+            val chat = list[index]
+            val old = chat.all.firstOrNull { it.id == message.id }
+            val changed =
+                if (old != null) {
+                    // updates (streaming, finished, a card tap) keep the message's place in the tree
+                    stored =
+                        message.copy(
+                            parentId = message.parentId ?: old.parentId,
+                            selectedAt = message.selectedAt ?: old.selectedAt,
+                        )
+                    chat.copy(
+                        messages = chat.messages.replacing(message.id, stored),
+                        hidden = chat.hidden.replacing(message.id, stored),
+                        updatedAt = now,
+                    )
+                } else {
+                    // a new message follows the newest one shown
+                    val parent = message.parentId ?: chat.messages.lastOrNull()?.id ?: Branches.ROOT
+                    stored = message.copy(parentId = parent)
+                    chat.withAll(chat.all + stored).copy(updatedAt = now)
+                }
+            // T-290: the chat just changed, so it is the newest: it goes to the front instead of sorting the
+            // whole list again on every streamed word (the list is kept sorted, newest first)
+            list.movedToFront(index, changed)
         }
         val saved = stored
         if (!saved.streaming) writeFor(chatId) { it.saveMessage(chatId, saved, now) }
@@ -330,4 +332,25 @@ class ChatStore(
         const val MAX_TITLE = 40
         const val MAX_RENAME = 80
     }
+}
+
+/** T-290: [items] with the one with [id] replaced by [item]; the same list when none has that id. */
+private fun List<UiMessage>.replacing(
+    id: Long,
+    item: UiMessage,
+): List<UiMessage> {
+    val index = indexOfFirst { it.id == id }
+    if (index < 0) return this
+    return toMutableList().also { it[index] = item }
+}
+
+/** T-290: this list with [item] in place of the element at [index], moved to the front. */
+internal fun <T> List<T>.movedToFront(
+    index: Int,
+    item: T,
+): List<T> {
+    val out = ArrayList<T>(size)
+    out.add(item)
+    for (i in indices) if (i != index) out.add(this[i])
+    return out
 }

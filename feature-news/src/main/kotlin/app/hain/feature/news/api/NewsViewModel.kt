@@ -8,6 +8,7 @@ import app.hain.tools.internal.news.NewsItem
 import app.hain.tools.internal.news.NewsMode
 import app.hain.tools.internal.news.NewsRepository
 import app.hain.tools.internal.news.NewsSnapshot
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 
 /** Why adding an own feed did not work (shown under the address field). */
 enum class AddFeedError { NOT_A_FEED, DUPLICATE, FULL, OFFLINE, FAILED }
@@ -86,8 +88,23 @@ class NewsViewModel(
         val ask: AskState? = null,
     )
 
-    private val work: CoroutineScope = scope ?: viewModelScope
     private val local = MutableStateFlow(Local(briefing = BriefingState(available = briefings != null)))
+
+    // T-291: a feed, an article page or the brain that throws (a parser bug, a full disk) ends that one job:
+    // spinners stop, an open article or question shows "failed", and the app stays open
+    private val failed =
+        CoroutineExceptionHandler { _, _ ->
+            local.update { l ->
+                l.copy(
+                    refreshing = false,
+                    adding = false,
+                    briefing = l.briefing.copy(making = false, step = null),
+                    open = l.open?.let { if (it.result == null) it.copy(result = ReaderResult.Failed) else it },
+                    ask = l.ask?.let { if (it.result == null) it.copy(result = AskResult.Failed) else it },
+                )
+            }
+        }
+    private val work: CoroutineScope = (scope ?: viewModelScope) + failed
     private val mutableState = MutableStateFlow(NewsUiState())
     private var askJob: Job? = null
     private var openJob: Job? = null
@@ -98,7 +115,8 @@ class NewsViewModel(
             combine(repository.state, local, prefsStore.prefs) { s, l, p ->
                 NewsUiState(
                     mode = s.mode,
-                    items = NewsRepository.mixed(repository.items(s)),
+                    // T-291: the list keys are feed + guid; a feed that repeats an entry would crash the list
+                    items = NewsRepository.mixed(repository.items(s)).distinctBy { it.feedId to it.guid },
                     ownFeeds = s.ownFeeds,
                     broken = repository.brokenOwnFeeds(s),
                     refreshing = l.refreshing,

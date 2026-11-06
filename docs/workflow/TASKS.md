@@ -1680,3 +1680,77 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - type: `docs` · size: `XS` · lane: `B`
 - do: README (Tabelle, „Neu in 0.1.10.10“, Lizenz-Absatz), Website EN + /de (Karte „Open-Source-Lizenzen“, FAQ), LICENSES.md (neue Zeilen + Hinweis auf oss.toml), STATUS, TASKS, HANDOFF_LOG, PR-Text mit Testanleitung.
 - check: `tools/check_strings.py`, CI
+
+## 0.1.10.11 (`hark/v0110-11`, Draft-PR #62, Basis main 46df74b)
+
+### T-287 · Downloads: Modelle-Seite aktuell, Fortsetzen, Hintergrund
+
+- type: `feat` · size: `M` · lane: `A`
+- do: `installedIds` + `downloadState` reagieren auf Start/Stopp/Löschen; gestoppter Download = „Angehalten · x von y“ mit Fortsetzen/Verwerfen (Teildatei bleibt, HTTP-Range, 416 = ganz); Stopp auch beim Warten aufs Internet; Download läuft mit geschlossener App weiter (expedited Foreground-Worker `dataSync`, Fortschritt + Stopp + „ist bereit“ in der Benachrichtigung, POST_NOTIFICATIONS vor dem ersten Download). `hain.versionName=0.1.10.11`.
+- check: Unit-Tests core-models, CI
+
+### T-288 · Formeln in Antworten lesbar
+
+- type: `feat` · size: `M` · lane: `A`
+- do: `$…$`, `$$…$$`, `\(…\)`, `\[…\]` außerhalb von Code → Unicode (`MathText`), Anzeige-Formeln als zentrierter Formelblock (```hain-math), Preise mit $ bleiben Text; Parser/Flavour/Link-Handler gemerkt.
+- check: `MathTextTest`, CI
+
+### T-289 · Insets und Überlappungen
+
+- type: `fix` · size: `S` · lane: `A`
+- do: Codereview IME, Navigationsleiste, Kopfzeilen, Schrift 1,3, 320 dp, Querformat. Fixes: Chat-Kopfzeile und Bereich unter dem Nachrichtenfeld auch frei von Kamera-Aussparung und seitlicher Navigationsleiste; Nachrichtenliste mit seitlichem Abstand für Aussparung/Navigationsleiste; Einstellungen, Modelle & Pakete, Gedächtnis, Meine Dateien und Seitenleiste mit `safeDrawingPadding` (Status-/Navigationsleiste, Aussparung, Tastatur). „Nach unten“-Knopf unverändert.
+- check: Roborazzi-Screens, CI; Gerätetest Querformat offen
+
+### T-290 · Tempo
+
+- type: `perf` · size: `M` · lane: `A`
+- do: ChatStore sortiert nicht mehr bei jedem gestreamten Update; verschlüsselte DB beim ersten Gebrauch im Hintergrund statt auf dem Main-Thread; News-Repository lazy; Lizenztexte off-main; Chat-Zeilen mit contentType. Fix: zwei `companion object` im `MemoryExtractionWorker` zusammengeführt (CI-Kompilierfehler auf d5a4995).
+- check: Benchmarks, CI
+
+### T-291 · Absturzrisiken
+
+- type: `fix` · size: `S` · lane: `A`
+- do: DataStores überstehen kaputte Dateien und fehlgeschlagene Schreibvorgänge; Werkzeug-/Dokument-/Gehirnfehler enden als fehlgeschlagene Antwort; News-Jobs mit Ausnahme stoppen Spinner; doppelte Feed-Einträge crashen die Liste nicht mehr.
+- check: Unit-Tests, CI
+
+### T-292 · Einstellungen in klaren Blöcken
+
+- type: `feat` · size: `M` · lane: `A`
+- do: `SettingsSection`-Karten (Überschrift am Rand, eigene ruhige Glaskarte, 24 dp Abstand, gestaffelter Einstieg) für Aussehen, Antworten, Privatsphäre (Teil 1) und Internet, Über Hain, Entwickler (Teil 2); Netzwerk-Log in der Karte ohne zweite Karte; Hinweise max. zwei Zeilen. EN + DE.
+- check: `check_strings.py`, Roborazzi Einstellungen, CI
+
+### T-293 · Keine Checkliste statt Antwort
+
+- type: `fix` · size: `S` · lane: `A`
+- do: `CardGuard`: ungefragte Karte ohne Text oder Checkliste aus Fragen → eine Runde mit Bitte um Sätze; Politik/Wahlen schubsen `web_search`.
+- check: Unit-Tests, CI
+
+### T-294 · Jan schneller nach einem Werkzeug + Lese-Fortschritt
+
+- type: `perf` · size: `S` · lane: `A`
+- do: Werkzeugblock bleibt in der Schlussrunde (gleicher Prompt-Anfang); Lese-Fortschritt aus nativ („Pim liest deine Nachricht … 42 %“).
+- check: Unit-Tests, CI
+
+### T-295 · Denk-Glühen bis zum Rand + staggeredEnter
+
+- type: `feat` · size: `S` · lane: `A`
+- do: ein Glühzustand in Bildschirmkoordinaten, läuft hinter Nachrichtenfeld und Navigationsleiste weiter; weichere Verläufe; Modifier `staggeredEnter`.
+- check: Roborazzi, CI
+
+### T-296 · Diktat-Pille nach Grok-Vorbild
+
+- type: `feat` · size: `M` · lane: `A`
+- do: Beim Diktat (Tipp-Modus) morpht das Nachrichtenfeld zur Pille (`DictationPill`): weicher Verlauf Mint → Hain-Grün, links × Abbrechen, Mitte gepunktete Linie mit abgerundeten senkrechten Balken nach echtem Mikro-Pegel (Mitte am höchsten, `pillBarHeights`), rechts runder dunkler ✓. Halten-Modus behält das Feld bis zum Loslassen. Danach zurück ins Feld mit Text, Senden-Knopf pulsiert einmal (`dictationHandoff`). Weniger Bewegung: Balken fest, nur Deckkraft.
+- check: `DictationPillTest`, CI; Gerätetest offen
+
+### T-297 · Doku 0.1.10.11
+
+- type: `docs` · size: `XS` · lane: `B`
+- do: README (Tabelle, „Neu in 0.1.10.11“), Website EN + /de (Diktat-Text, Karten „Schön gesetzte Antworten“, „Downloads laufen weiter“), TASKS, STATUS, HANDOFF_LOG.
+- check: `check_strings.py`, CI
+
+### T-298 · Markdown vollständig
+
+- type: `feat` · size: `M` · lane: `A`
+- do: Überschriften H1–H6 klar gestuft mit Luft darüber; Code-Blöcke mit Sprache, Kopieren-Knopf (48 dp) und Seitwärts-Scroll; Aufgabenlisten mit echten Kästchen (TalkBack „Erledigt/Offen“); Zitat kursiv; Abstände für Blöcke/Listen; `MarkdownShowcase` mit allen Elementen. EN + DE (`chat_md_*`).
+- check: `MarkdownPartsTest`, Roborazzi `markdown_all_light/dark`, CI

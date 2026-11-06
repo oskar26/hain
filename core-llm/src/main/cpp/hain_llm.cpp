@@ -211,6 +211,12 @@ Java_app_hain_llm_internal_NativeLlm_nativeGenerate(JNIEnv *env, jobject, jlong 
         env->ReleaseStringUTFChars(cardGrammar, g);
     }
     jmethodID onToken = env->GetMethodID(env->GetObjectClass(cb), "onToken", "([B)Z");
+    // T-294: reading progress of the prompt ("Liest deine Nachricht … 42 %")
+    jmethodID onRead = env->GetMethodID(env->GetObjectClass(cb), "onRead", "(II)V");
+    if (onRead == nullptr) env->ExceptionClear();
+    s->onRead = [&](int done, int total) {
+        if (onRead != nullptr && !env->ExceptionCheck()) env->CallVoidMethod(cb, onRead, done, total);
+    };
     auto emit = [&](const char *data, size_t n) -> bool {
         jbyteArray bytes = env->NewByteArray((jsize) n);
         env->SetByteArrayRegion(bytes, 0, (jsize) n, reinterpret_cast<const jbyte *>(data));
@@ -218,8 +224,11 @@ Java_app_hain_llm_internal_NativeLlm_nativeGenerate(JNIEnv *env, jobject, jlong 
         env->DeleteLocalRef(bytes);
         return keepGoing == JNI_TRUE && !env->ExceptionCheck();
     };
-    return hain::generate(s, bytesOf(env, promptUtf8), intsOf(env, cutBytes), p.data(), (int) nParams,
-                          cgrammar.empty() ? nullptr : cgrammar.c_str(), ccard.empty() ? nullptr : ccard.c_str(), emit);
+    const int rc = hain::generate(s, bytesOf(env, promptUtf8), intsOf(env, cutBytes), p.data(), (int) nParams,
+                                  cgrammar.empty() ? nullptr : cgrammar.c_str(),
+                                  ccard.empty() ? nullptr : ccard.c_str(), emit);
+    s->onRead = nullptr;
+    return rc;
 }
 
 // T-241: one GGUF metadata value (e.g. general.architecture) as UTF-8 bytes, or null.

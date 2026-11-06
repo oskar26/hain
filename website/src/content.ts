@@ -20,7 +20,7 @@ export const LINKS = {
 /**
  * T-269: where a feature stands, the same marks as the feature table in the root README.md.
  * - `since01`: already in the 0.1 test versions (state of 0.1.3.1, 04.11.2026)
- * - `new`:     added on the way to 0.2 (0.1.4 – 0.1.10.10)
+ * - `new`:     added on the way to 0.2 (0.1.4 – 0.1.10.11)
  * - `planned`: in the concept (docs/concept/KONZEPT.md) or ROADMAP.md, not in the app yet
  */
 export type Status = 'new' | 'since01' | 'planned'
@@ -205,7 +205,7 @@ export const COPY: Record<Lang, Copy> = {
         {
           id: 'voice', icon: 'mic', status: 'new', shot: 'packs_voice',
           title: 'Speak instead of typing',
-          text: 'Tap or hold the mic and speak; dictation runs fully on your phone (German and English, a small pack per language). Pim can read answers aloud, for now with your phone’s own voice.',
+          text: 'Tap or hold the mic and speak; while Pim listens, the message box turns into a soft green bar whose lines move with your voice. Dictation runs fully on your phone (German and English, a small pack per language). Pim can read answers aloud, for now with your phone’s own voice.',
           shotAlt: 'Dictation packs for German and English and the read-aloud note',
         },
         {
@@ -228,6 +228,8 @@ export const COPY: Record<Lang, Copy> = {
         { icon: 'languages', status: 'since01', title: 'Speaks your language', text: 'Pim answers in the language you write in, or always in German or English.' },
         { icon: 'update', status: 'new', title: 'Update check (optional)', text: 'Off until you say yes. Then Hain asks GitHub once a day for a new version and shows a calm hint. Nothing installs by itself.' },
         { icon: 'gauge', status: 'new', title: 'Quicker start', text: 'Pim’s fixed instructions are kept after the first read, so the first answer after opening Hain comes sooner.' },
+        { icon: 'file', status: 'new', title: 'Formatted answers', text: 'Headings, lists, task lists, quotes, tables you can scroll sideways, code blocks with their language and a copy button, and maths formulas as readable text instead of raw LaTeX.' },
+        { icon: 'package', status: 'new', title: 'Downloads that keep going', text: 'Packs keep downloading when you close Hain, with progress in the notification. Pause and resume later; Hain picks up where it stopped.' },
         { icon: 'code', status: 'new', title: 'Developer mode', text: 'Hidden for tinkerers: tap the version 7 times. Try your own GGUF model, tune sampling, see tokens per second.' },
         { icon: 'file', status: 'new', title: 'Open-source licences', text: 'Settings → About Hain lists every library, AI model, font and icon set Hain uses, with version and licence. A tap shows the full licence text, right in the app and offline.' },
         { icon: 'sprout', status: 'since01', title: 'A secret', text: 'Hold Pim on the start page for 5 seconds … (hint: 2048).' },
@@ -505,7 +507,7 @@ export const COPY: Record<Lang, Copy> = {
         {
           id: 'voice', icon: 'mic', status: 'new', shot: 'packs_voice',
           title: 'Sprechen statt tippen',
-          text: 'Mikro tippen oder halten und sprechen; das Diktat läuft komplett auf deinem Handy (Deutsch und Englisch, ein kleines Paket pro Sprache). Pim kann Antworten vorlesen, vorerst mit der Stimme deines Handys.',
+          text: 'Mikro tippen oder halten und sprechen; während Pim zuhört, wird das Nachrichtenfeld zu einer sanft grünen Leiste, deren Balken sich mit deiner Stimme bewegen. Das Diktat läuft komplett auf deinem Handy (Deutsch und Englisch, ein kleines Paket pro Sprache). Pim kann Antworten vorlesen, vorerst mit der Stimme deines Handys.',
           shotAlt: 'Diktat-Pakete für Deutsch und Englisch und der Hinweis zum Vorlesen',
         },
         {
@@ -528,6 +530,8 @@ export const COPY: Record<Lang, Copy> = {
         { icon: 'languages', status: 'since01', title: 'Spricht deine Sprache', text: 'Pim antwortet in der Sprache, in der du schreibst, oder immer auf Deutsch oder Englisch.' },
         { icon: 'update', status: 'new', title: 'Update-Prüfung (freiwillig)', text: 'Aus, bis du Ja sagst. Dann fragt Hain einmal am Tag bei GitHub nach einer neuen Version und zeigt einen ruhigen Hinweis. Nichts installiert sich von selbst.' },
         { icon: 'gauge', status: 'new', title: 'Schnellerer Start', text: 'Pims feste Anweisungen werden nach dem ersten Lesen behalten, dadurch kommt die erste Antwort nach dem Öffnen früher.' },
+        { icon: 'file', status: 'new', title: 'Schön gesetzte Antworten', text: 'Überschriften, Listen, Aufgabenlisten, Zitate, Tabellen zum Seitwärtswischen, Code-Blöcke mit Sprache und Kopieren-Knopf und Formeln als lesbarer Text statt rohem LaTeX.' },
+        { icon: 'package', status: 'new', title: 'Downloads laufen weiter', text: 'Pakete laden weiter, wenn du Hain schließt, mit Fortschritt in der Benachrichtigung. Anhalten und später fortsetzen; Hain macht dort weiter, wo es aufgehört hat.' },
         { icon: 'code', status: 'new', title: 'Entwicklermodus', text: 'Versteckt für Bastler: 7× auf die Version tippen. Eigene GGUF-Modelle ausprobieren, Sampling einstellen, Token pro Sekunde sehen.' },
         { icon: 'file', status: 'new', title: 'Open-Source-Lizenzen', text: 'Unter Einstellungen → Über Hain stehen alle Bibliotheken, KI-Modelle, Schriften und Icons, die Hain nutzt, mit Version und Lizenz. Ein Tipp zeigt den vollen Lizenztext – direkt in der App, auch offline.' },
         { icon: 'sprout', status: 'since01', title: 'Ein Geheimnis', text: 'Halte Pim auf der Startseite 5 Sekunden lang … (Tipp: 2048).' },

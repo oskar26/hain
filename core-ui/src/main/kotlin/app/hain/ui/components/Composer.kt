@@ -65,6 +65,8 @@ fun Composer(
     trailing: @Composable RowScope.() -> Unit = {},
     /** T-232: the chat behind the box; with it the box is frosted glass over the chat. */
     glass: HazeState? = null,
+    /** T-296: extra modifier of the send button (the pulse after a dictation). */
+    sendModifier: Modifier = Modifier,
 ) {
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
@@ -143,6 +145,7 @@ fun Composer(
                         contentDescription = sendLabel,
                         onClick = onSend,
                         enabled = enabled && text.isNotBlank(),
+                        modifier = sendModifier,
                     )
                 }
             }
