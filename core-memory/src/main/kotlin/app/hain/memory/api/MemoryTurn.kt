@@ -100,7 +100,10 @@ class MemoryTurn(
         suggestFrom(last, turn)
         val context = store.recall(last, lang, clock())
         record(turn) { it.copy(used = context?.used.orEmpty()) }
-        return listOfNotNull(context?.block, MemoryBlock.toolRule(lang)).joinToString("\n")
+        // T-271: the remember rule only when the message asks to remember something; on every turn it made
+        // the small brain answer "Lerntipps für Mathe" with `remember "…"` instead of the tips
+        val rule = MemoryBlock.toolRule(lang).takeIf { RememberTool.asks(last) }
+        return listOfNotNull(context?.block, rule).joinToString("\n").ifBlank { null }
     }
 
     /**

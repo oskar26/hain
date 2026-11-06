@@ -47,8 +47,13 @@ class MemoryTurnTest {
             val hint = turn.hint(listOf("Hallo", "Hast du ein Rezept mit Pilzen?"), "de")!!
             assertTrue(hint.contains("- mag keine Pilze"))
             assertTrue(!hint.contains("Gitarre"))
-            assertTrue(hint.endsWith("rufe remember."))
-            assertEquals("If the user asks you to remember something, call remember.", turn.hint(listOf("Hi"), "en"))
+            // T-271: the remember rule only when the message asks to remember something
+            assertTrue(!hint.contains("remember"))
+            assertNull(turn.hint(listOf("Hi"), "en"))
+            assertEquals(
+                "If the user asks you to remember something, call remember.",
+                turn.hint(listOf("Could you keep in mind my exam dates?"), "en"),
+            )
         }
 
     @Test

@@ -53,7 +53,7 @@
     <string name="packs_wiki_en_1m">Wikipedia Englisch · 1 Million Artikel</string>
     <string name="packs_wiki_top_desc">Die Einleitungen der meistgelesenen Artikel, offline. Klein und gut zum Anfangen; ohne Paket fragt Pim Wikipedia online.</string>
     <string name="packs_wiki_big_desc">Die Einleitung fast jedes Artikels. Groß – nur sinnvoll, wenn du oft offline bist; am besten im WLAN laden.</string>
-    <string name="packs_brain_desc">Das Standard-Gehirn (LFM3-Omni 2B): schnell, gutes Deutsch, nutzt Werkzeuge. Für fast jedes Handy die beste Wahl.</string>
+    <string name="packs_brain_desc">Das Standard-Gehirn (LFM3 1,7B): schnell, gutes Deutsch, nutzt Werkzeuge und kann laut nachdenken (Gründlich). Für fast jedes Handy die beste Wahl.</string>
     <string name="packs_brain_strong_desc">Großes Gehirn (Jan 4B) für Handys ab 8 GB RAM: wählt Werkzeuge genauer und schreibt besseres Deutsch, antwortet aber deutlich langsamer und braucht viel Platz. Lohnt sich, wenn dir Qualität wichtiger ist als Tempo.</string>
     <string name="packs_stt_desc">Diktieren mit Moonshine, komplett offline. Lohnt sich, wenn du oft sprichst statt tippst; sonst reicht die Spracheingabe deiner Tastatur.</string>
     <string name="packs_ocr_title">Texterkennung</string>
@@ -245,5 +245,5 @@
     <string name="settings_privacy_group_data">Deine Daten</string>
     <string name="dev_network">Netzwerk &amp; Suche</string>
     <string name="dev_more">Mehr</string>
-    <string name="packs_brain_legacy_desc">Das bisherige Gehirn (LFM3 1,7B). Das Standard-Gehirn antwortet meist besser; behalte es nur, wenn dir seine Antworten lieber sind. Löschen gibt Platz frei.</string>
+    <string name="packs_brain_optional_desc">Optional (LFM3-Omni 2B): denkt nicht laut nach, ruft weniger unnötige Werkzeuge auf; Bild und Ton kommen später. Empfohlen bleibt das Standard-Gehirn.</string>
 </resources>

@@ -78,6 +78,17 @@ object ToolGuard {
         }
     }
 
+    /**
+     * T-271: the brain wrote only a call that was dropped (`remember` for a topic question) or nothing
+     * at all: one line so the next try answers the user in plain words.
+     */
+    fun answerHint(lang: String): String =
+        if (lang == "de") {
+            "Nichts merken und kein Werkzeug. Antworte jetzt direkt dem Nutzer, in normalem Text."
+        } else {
+            "Do not save anything and use no tool. Answer the user now, directly, in plain text."
+        }
+
     private fun normal(text: String) = text.lowercase(Locale.GERMAN)
 
     private fun words(text: String) = text.split(SPACE).count { it.isNotBlank() }

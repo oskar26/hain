@@ -53,7 +53,7 @@
     <string name="packs_wiki_en_1m">Wikipedia English · 1 million articles</string>
     <string name="packs_wiki_top_desc">The intros of the most read articles, offline. Small and good to start with; without a pack Pim asks Wikipedia online.</string>
     <string name="packs_wiki_big_desc">The intro of almost every article. Big – only worth it if you are often offline; best over Wi-Fi.</string>
-    <string name="packs_brain_desc">The standard brain (LFM3-Omni 2B): quick, good German, uses tools. The best choice for almost every phone.</string>
+    <string name="packs_brain_desc">The standard brain (LFM3 1.7B): fast, good German, uses tools and can think out loud (Gründlich). The best choice for almost every phone.</string>
     <string name="packs_brain_strong_desc">Big brain (Jan 4B) for phones with 8 GB of RAM or more: picks tools more carefully and writes better German, but answers clearly more slowly and needs a lot of space. Worth it when quality matters more to you than speed.</string>
     <string name="packs_stt_desc">Dictation with Moonshine, fully offline. Worth it if you often speak instead of typing; otherwise your keyboard\'s voice input is enough.</string>
     <string name="packs_ocr_title">Text recognition</string>
@@ -245,5 +245,5 @@
     <string name="settings_privacy_group_data">Your data</string>
     <string name="dev_network">Network &amp; search</string>
     <string name="dev_more">More</string>
-    <string name="packs_brain_legacy_desc">The previous brain (LFM3 1.7B). The standard brain usually answers better; keep this one only if you prefer its answers. Deleting it frees space.</string>
+    <string name="packs_brain_optional_desc">Optional (LFM3-Omni 2B): does not think out loud, calls fewer unneeded tools; pictures and sound come later. The standard brain stays the recommended one.</string>
 </resources>

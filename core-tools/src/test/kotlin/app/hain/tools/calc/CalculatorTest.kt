@@ -6,6 +6,7 @@ import app.hain.tools.internal.calc.CalculatorTool
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CalculatorTest {
@@ -101,5 +102,14 @@ class CalculatorTest {
         assertEquals("12% * 250 = 30", CalculatorTool.directAnswer("what is 12 percent of 250", "en"))
         assertEquals("2^10 = 1024", CalculatorTool.directAnswer("whats 2^10", "en"))
         assertEquals("17 * 23", CalculatorTool.spoken("Was ist 17 mal 23?"))
+    }
+
+    @Test
+    fun conversionWithTheUmOfUmrechnen() {
+        // T-271: Oskar's device test, "Rechne 2,5 Meilen in km um" (the brain wrote 2.5 * 1609.34 as text)
+        assertEquals("2,5 meilen in km", CalculatorTool.spoken("Rechne 2,5 Meilen in km um"))
+        val answer = CalculatorTool.directAnswer("Rechne 2,5 Meilen in km um", "de")
+        assertTrue(answer, answer!!.contains("4,02"))
+        assertTrue(answer.contains("km"))
     }
 }

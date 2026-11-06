@@ -1,6 +1,7 @@
 package app.hain.memory.api
 
 import app.hain.llm.api.ToolSchema
+import app.hain.memory.internal.SelfFacts
 import app.hain.tools.api.Tool
 import app.hain.tools.api.ToolContext
 import app.hain.tools.api.ToolResult
@@ -27,8 +28,9 @@ class RememberTool(
         ToolSchema(
             name = NAME,
             description =
-                "Save one lasting fact about the user when they ask you to remember it, " +
-                    "as a short sentence in their language, e.g. 'mag keine Pilze'.",
+                "Only when the user asks you to remember something about themselves: save that one fact, " +
+                    "short, in their language, e.g. 'mag keine Pilze'. Never for questions, tips or topics. " +
+                    "Afterwards still answer the user.",
             parameters =
                 buildJsonObject {
                     put("type", "object")
@@ -93,6 +95,30 @@ class RememberTool(
 
     companion object {
         const val NAME = "remember"
+
+        /**
+         * T-271: whether a `remember` call for [fact] may run for the user's [message]. Only when the
+         * user asks to remember ("merk dir", "vergiss nicht", "remember") or says [fact] about
+         * themselves; a self statement the rules already turn into the chip "Merken: …" is left to
+         * that chip (the user decides). Topic questions ("Lerntipps für Mathe") never save anything.
+         */
+        fun allowed(
+            message: String,
+            fact: String,
+        ): Boolean {
+            if (asks(message)) return true
+            val own = SelfFacts.selfSentences(listOf(message))
+            return own.isNotEmpty() && SelfFacts.ruleFacts(listOf(message)).isEmpty() && SelfFacts.grounded(fact, own)
+        }
+
+        /** T-271: the user asks to remember something ("merk dir", "vergiss nicht", "remember"). */
+        fun asks(message: String): Boolean = ASK.containsMatchIn(message)
+
+        private val ASK =
+            Regex(
+                "(?iu)\\b(?:merk(?:e|st)?\\s+dir|merken|vergiss\\s+(?:es\\s+)?(?:bitte\\s+)?nicht|notier|speicher|" +
+                    "remember|don['’]?t\\s+forget|keep\\s+in\\s+mind|save\\s+that)",
+            )
         private const val PRIVATE_NOTE = "Private: the user confirms it under Settings → Memory first."
     }
 }

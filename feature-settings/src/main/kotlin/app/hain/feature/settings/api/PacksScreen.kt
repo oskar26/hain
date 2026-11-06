@@ -462,7 +462,7 @@ private fun packDescription(pack: ModelInfo): Int? =
         pack.kind == ModelInfo.KIND_KNOWLEDGE -> R.string.packs_wiki_big_desc
         // T-261: one or two honest sentences per pack: what it brings and when it is worth it
         pack.kind == ModelInfo.KIND_BRAIN && pack.isStrong -> R.string.packs_brain_strong_desc
-        pack.kind == ModelInfo.KIND_BRAIN && pack.isLegacy -> R.string.packs_brain_legacy_desc
+        pack.kind == ModelInfo.KIND_BRAIN && pack.isOptional -> R.string.packs_brain_optional_desc
         pack.kind == ModelInfo.KIND_BRAIN -> R.string.packs_brain_desc
         pack.kind == "stt" -> R.string.packs_stt_desc
         else -> null

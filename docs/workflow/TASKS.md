@@ -1572,3 +1572,47 @@ Status values: `todo` · `doing (<model>)` · `review` · `done` · `blocked: <w
 - do: Website EN + /de, als wäre 0.2 veröffentlicht: Status „Seit 0.1 / Neu in 0.2 / Geplant“ statt „Schon da / Kommt bald“ (Seit 0.1 = Stand 0.1.3.1), Hero „Version 0.2“ + Download `releases/latest` + Installationshinweis, ein Abschnitt pro Funktion mit Screenshot (19), „Außerdem in 0.2“, „Was noch kommt“ aus KONZEPT.md / ROADMAP.md / RELEASE_0.2_CHECKLIST.md (ohne Termine), Lizenzen GPL-3.0 + LFM Open License v1.0 + Apache-2.0. Neue Screenshot-Tests `WebShowcaseScreens`, `WebSettingsScreens`, `NewsScreens.web*` (DE + EN, hell + dunkel), `website/scripts/web_shots.sh`. README-Feature-Tabelle mit denselben Kennzeichen.
 - offen: kein Screenshot für Widget/Schnellkachel/Teilen, Diktat im Aufnahmezustand und privaten Chat (nur Text bzw. Einstellungsseite).
 - check: Website-Build, Screens (CI)
+
+## 0.1.10.8 (`hark/v0110-7b`, Basis main 0a44391)
+
+### T-270 · LFM3-1.7B wieder Standard, Omni optional
+
+- type: `feat` · size: `S` · lane: `A`
+- do: LFM3 1.7B (QAD Q4_0) ist wieder das Standard-Gehirn; LFM3-Omni 2B wird `tier: optional` (unter Modelle & Pakete und im Gehirn-Menü immer angeboten, nie empfohlen oder selbst gewählt). Upgrade-Banner und „Legacy“-Kennzeichen entfernt, ehrlicher Pakettext.
+- check: `BrainChoiceTest`, `CatalogParserTest`, CI
+
+### T-271 · Werkzeug-Leaks im Antworttext
+
+- type: `fix` · size: `M` · lane: `A`
+- do: `RawToolText` erkennt rohe Werkzeugaufrufe im Fließtext (JSON, `<|tool_call|>`, Funktionsschreibweise) und entfernt sie; `AnswerParts.fenceLooseCards` – Karten nur im ```card-Block; `RememberTool.allowed` – Merken nur bei eigener Aussage oder ausdrücklicher Bitte; Nachfrage statt leerer Antwort bei verworfenem/leerem Aufruf; Merk-Regel im System-Prompt nur bei Bitte; SelfFacts „ich lerne …“; Rechner verträgt Suffix „um/bitte“.
+- check: `RawToolTextTest`, `RawToolTextEngineTest`, `AnswerPartsTest`, `RememberToolTest`, `SelfFactsTest`, `CalculatorTest`, CI
+
+### T-272 · Chat-UI: Composer-Unterkante, Aktionszeile, Versionszähler, Werkzeugschritte
+
+- type: `fix` · size: `S` · lane: `A`
+- do: Seitenfarbe blendet unter dem Eingabefeld bis zum Rand ein (kein Chat mehr unter der Navigationsleiste); Aktionszeile unter Antworten immer einzeilig (`ActionRowFit`: nur Icon-Knöpfe werden schmaler, min. 34 dp), Pfeile des Versionszählers 40 dp; „2/3“ ohne Überblendung; Werkzeugschritte einzeilig mit „…“.
+- check: `ActionRowFitTest`, Roborazzi (Aktionszeile 360 dp, Composer-Unterkante, Werkzeugschritt), CI
+
+### T-273 · Denk-Auswahl ehrlich je Gehirn
+
+- type: `fix` · size: `XS` · lane: `A`
+- do: `ChatUiState.brainThinks` aus `BrainFormat.mayThink`; ThinkingPicker zeigt bei Gehirnen ohne lautes Denken (LFM3-Omni) Untertitel, die nur den Recherche-Unterschied nennen (EN + DE).
+- check: `tools/check_strings.py`, CI
+
+### T-274 · Quellen-Design: Chips im Text, kompakte Quellenzeile
+
+- type: `feat` · size: `M` · lane: `A`
+- do: Keine „[1]“ mehr im Fließtext: `CitationMarks.toLinks` macht aus gültigen Markern Links, `AssistantBlock` zeichnet sie als kleine hochgestellte runde Chips (Hain-Grün `accentSoft`/`accent`, Zahl), Tipp öffnet die Quelle (TalkBack: „Quelle 1: Titel“). Quellen unter der Antwort als eine Zeile mit übereinanderliegenden Favicons + „3 Quellen“, ausklappbar zur Liste (Nummer, Icon, Titel, Seite). Kopieren/Teilen/Vorlesen ohne Marker (`CitationMarks.strip`). EN + DE.
+- check: `CitationMarksTest`, Roborazzi `SourceRowScreens` (Chips hell/dunkel 360 dp, Liste offen), CI
+
+### T-275 · Recherche-Prompts ohne Meta-Rede
+
+- type: `fix` · size: `XS` · lane: `A`
+- do: `THOROUGH_*`/`FINAL_*` (DE + EN): Frage direkt beantworten, Wichtigstes zuerst, nur Fakten aus den Ergebnissen mit [1], keine Rede über Suche/Quellen/Widersprüche; fehlt etwas, kurz sagen was.
+- check: `ResearchPromptTest`, `ResearchLoopTest`, CI
+
+### T-276 · Doku + Version 0.1.10.8
+
+- type: `docs` · size: `XS` · lane: `B`
+- do: `hain.versionName=0.1.10.8`, README (Tabelle, „Neu in 0.1.10.8“, Modell-Tabelle), Website EN + /de (Gehirn-Abschnitt, Lizenzen), LICENSES, MODELS, STATUS, TASKS, HANDOFF_LOG, PR-Text.
+- check: `tools/check_strings.py`, Website-Build, CI

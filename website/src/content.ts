@@ -20,7 +20,7 @@ export const LINKS = {
 /**
  * T-269: where a feature stands, the same marks as the feature table in the root README.md.
  * - `since01`: already in the 0.1 test versions (state of 0.1.3.1, 04.11.2026)
- * - `new`:     added on the way to 0.2 (0.1.4 – 0.1.10.7)
+ * - `new`:     added on the way to 0.2 (0.1.4 – 0.1.10.8)
  * - `planned`: in the concept (docs/concept/KONZEPT.md) or ROADMAP.md, not in the app yet
  */
 export type Status = 'new' | 'since01' | 'planned'
@@ -127,8 +127,8 @@ export const COPY: Record<Lang, Copy> = {
         {
           id: 'brain', icon: 'cpu', status: 'new', shot: 'packs_brains',
           title: 'Choose the brain',
-          text: 'The standard brain is LFM3-Omni 2B (about 1 GB). Phones with 8 GB of memory or more can add the optional big brain Jan-v3.5 4B (2.7 GB): it picks tools more reliably but answers clearly slower. Each brain says plainly what it is good at; switch any time with a tap on “Hain” at the top of the chat.',
-          shotAlt: 'Models & packs, Brains: LFM3-Omni 2B and Jan-v3.5 4B, each with a short assessment',
+          text: 'The standard brain is LFM3 1.7B (about 1 GB), which thinks out loud when a question needs it. LFM3-Omni 2B (also about 1 GB) is optional: it does not think out loud and calls fewer unneeded tools. Phones with 8 GB of memory or more can add the optional big brain Jan-v3.5 4B (2.7 GB): it picks tools more reliably but answers clearly slower. Each brain says plainly what it is good at; switch any time with a tap on “Hain” at the top of the chat.',
+          shotAlt: 'Models & packs, Brains: LFM3 1.7B, LFM3-Omni 2B and Jan-v3.5 4B, each with a short assessment',
         },
         {
           id: 'tools', icon: 'search', status: 'since01', shot: 'tools',
@@ -332,7 +332,7 @@ export const COPY: Record<Lang, Copy> = {
         { q: 'Does Hain need the internet?', a: 'Only once to download the brain (about 1 GB). After that, chatting works offline. Hain only goes online when you ask for something from the web, like the weather or a search, and it shows you where the request goes.' },
         { q: 'Which phone do I need?', a: 'An Android phone with Android 10 or newer and at least 4 GB of RAM; 6 GB or more is recommended, 8 GB or more for the optional big brain. The newer your phone, the faster Hain answers. iPhones are not supported.' },
         { q: 'What does it cost?', a: 'Nothing. Hain is free and has no ads. The app is open source under the GPL-3.0 licence.' },
-        { q: 'Which licences do the brains have?', a: 'The standard brain LFM3-Omni 2B is under the LFM Open License v1.0, the optional big brain Jan-v3.5 4B under Apache-2.0. Wikipedia packs are CC BY-SA 4.0. Details are in the app under Settings → About Hain and in the repository.' },
+        { q: 'Which licences do the brains have?', a: 'The standard brain LFM3 1.7B and the optional LFM3-Omni 2B are under the LFM Open License v1.0, the optional big brain Jan-v3.5 4B under Apache-2.0. Wikipedia packs are CC BY-SA 4.0. Details are in the app under Settings → About Hain and in the repository.' },
         { q: 'How do I update Hain?', a: 'Download the newest APK from the same download page and install it over the old one; your chats stay. If you like, Hain can check once a day whether a new version is out (off until you say yes).' },
         { q: 'Can the AI make mistakes?', a: 'Yes. Like every AI, Hain can be wrong, make things up or sound more sure than it is. Please check important answers, especially about health, money or law. Hain does not replace a doctor, a lawyer or therapy.' },
         { q: 'Is Hain made with AI?', a: 'Partly. Hain is made by one person, Oskar, together with AI coding agents. Every change is checked, tested and merged by a human.' },
@@ -356,7 +356,7 @@ export const COPY: Record<Lang, Copy> = {
       tagline: 'Your AI. Your phone. Nobody else.',
       source: 'Source code',
       license: 'App licence: GPL-3.0',
-      models: 'Brains: LFM Open License v1.0 (LFM3-Omni 2B), Apache-2.0 (Jan-v3.5 4B)',
+      models: 'Brains: LFM Open License v1.0 (LFM3 1.7B, LFM3-Omni 2B), Apache-2.0 (Jan-v3.5 4B)',
       imprint: 'Imprint',
       imprintNote: 'Imprint coming soon',
       noCookies: 'This website uses no cookies and no tracking.',
@@ -426,8 +426,8 @@ export const COPY: Record<Lang, Copy> = {
         {
           id: 'brain', icon: 'cpu', status: 'new', shot: 'packs_brains',
           title: 'Gehirn wählen',
-          text: 'Standard ist LFM3-Omni 2B (etwa 1 GB). Handys ab 8 GB Arbeitsspeicher können dazu das freiwillige große Gehirn Jan-v3.5 4B laden (2,7 GB): Es wählt Werkzeuge zuverlässiger, antwortet aber deutlich langsamer. Jedes Gehirn sagt ehrlich, was es gut kann; wechseln kannst du jederzeit mit einem Tipp auf „Hain“ oben im Chat.',
-          shotAlt: 'Modelle & Pakete, Gehirne: LFM3-Omni 2B und Jan-v3.5 4B, jeweils mit kurzer Einschätzung',
+          text: 'Standard ist LFM3 1.7B (etwa 1 GB), das bei schwierigen Fragen laut nachdenkt. LFM3-Omni 2B (auch etwa 1 GB) gibt es freiwillig: Es denkt nicht laut nach und ruft seltener unnötige Werkzeuge auf. Handys ab 8 GB Arbeitsspeicher können dazu das freiwillige große Gehirn Jan-v3.5 4B laden (2,7 GB): Es wählt Werkzeuge zuverlässiger, antwortet aber deutlich langsamer. Jedes Gehirn sagt ehrlich, was es gut kann; wechseln kannst du jederzeit mit einem Tipp auf „Hain“ oben im Chat.',
+          shotAlt: 'Modelle & Pakete, Gehirne: LFM3 1.7B, LFM3-Omni 2B und Jan-v3.5 4B, jeweils mit kurzer Einschätzung',
         },
         {
           id: 'tools', icon: 'search', status: 'since01', shot: 'tools',
@@ -631,7 +631,7 @@ export const COPY: Record<Lang, Copy> = {
         { q: 'Braucht Hain Internet?', a: 'Nur einmal, um das Gehirn zu laden (etwa 1 GB). Danach klappt das Chatten offline. Ins Internet geht Hain nur, wenn du etwas aus dem Netz willst, zum Beispiel das Wetter oder eine Suche, und zeigt dir, wohin die Anfrage geht.' },
         { q: 'Welches Handy brauche ich?', a: 'Ein Android-Handy mit Android 10 oder neuer und mindestens 4 GB Arbeitsspeicher; empfohlen sind 6 GB oder mehr, für das freiwillige große Gehirn 8 GB oder mehr. Je neuer das Handy, desto schneller antwortet Hain. iPhones werden nicht unterstützt.' },
         { q: 'Was kostet Hain?', a: 'Nichts. Hain ist kostenlos und ohne Werbung. Die App ist Open Source unter der Lizenz GPL-3.0.' },
-        { q: 'Welche Lizenzen haben die Gehirne?', a: 'Das Standard-Gehirn LFM3-Omni 2B steht unter der LFM Open License v1.0, das freiwillige große Gehirn Jan-v3.5 4B unter Apache-2.0. Die Wikipedia-Pakete sind CC BY-SA 4.0. Details stehen in der App unter Einstellungen → Über Hain und im Repository.' },
+        { q: 'Welche Lizenzen haben die Gehirne?', a: 'Das Standard-Gehirn LFM3 1.7B und das freiwillige LFM3-Omni 2B stehen unter der LFM Open License v1.0, das freiwillige große Gehirn Jan-v3.5 4B unter Apache-2.0. Die Wikipedia-Pakete sind CC BY-SA 4.0. Details stehen in der App unter Einstellungen → Über Hain und im Repository.' },
         { q: 'Wie bekomme ich Updates?', a: 'Lade die neueste APK von derselben Download-Seite und installiere sie über die alte; deine Chats bleiben. Wenn du willst, prüft Hain einmal am Tag, ob es eine neue Version gibt (aus, bis du Ja sagst).' },
         { q: 'Kann sich die KI irren?', a: 'Ja. Wie jede KI kann Hain sich irren, etwas erfinden oder sicherer klingen, als es ist. Prüf wichtige Antworten lieber nach, besonders bei Gesundheit, Geld und Recht. Hain ersetzt keine Ärztin, keinen Anwalt und keine Therapie.' },
         { q: 'Wird Hain mit KI gemacht?', a: 'Teilweise. Hain wird von einer Person, Oskar, zusammen mit KI-Agenten entwickelt. Jede Änderung wird von einem Menschen geprüft, getestet und übernommen.' },
@@ -655,7 +655,7 @@ export const COPY: Record<Lang, Copy> = {
       tagline: 'Deine KI. Dein Handy. Sonst niemand.',
       source: 'Quellcode',
       license: 'App-Lizenz: GPL-3.0',
-      models: 'Gehirne: LFM Open License v1.0 (LFM3-Omni 2B), Apache-2.0 (Jan-v3.5 4B)',
+      models: 'Gehirne: LFM Open License v1.0 (LFM3 1.7B, LFM3-Omni 2B), Apache-2.0 (Jan-v3.5 4B)',
       imprint: 'Impressum',
       imprintNote: 'Impressum folgt',
       noCookies: 'Diese Website nutzt keine Cookies und kein Tracking.',

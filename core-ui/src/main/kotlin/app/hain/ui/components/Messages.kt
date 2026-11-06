@@ -9,7 +9,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +25,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -48,6 +48,7 @@ import com.mikepenz.markdown.model.DefaultMarkdownColors
 import com.mikepenz.markdown.model.DefaultMarkdownTypography
 import com.mikepenz.markdown.model.MarkdownColors
 import com.mikepenz.markdown.model.MarkdownTypography
+import com.mikepenz.markdown.model.markdownInlineContent
 
 /**
  * User message: soft grey bubble on the right (DESIGN_SYSTEM.md §1). Like Gemini (T-057), a short
@@ -127,21 +128,29 @@ fun UserBubble(
     }
 }
 
-/** Assistant answer: plain markdown text without bubble, the action row (T-057) below when finished. */
+/**
+ * Assistant answer: plain markdown text without bubble, the action row (T-057) below when finished.
+ * T-274: with [citations], every "[1]" in the text is a small raised green chip (see [AnswerCitations]).
+ */
 @Composable
 fun AssistantBlock(
     markdown: String,
     modifier: Modifier = Modifier,
     actions: (@Composable () -> Unit)? = null,
+    citations: AnswerCitations? = null,
 ) {
+    val count = citations?.count ?: 0
+    val content = remember(markdown, count) { CitationMarks.toLinks(markdown, count) }
     Column(modifier.fillMaxWidth()) {
         SelectionContainer {
             Markdown(
-                content = markdown,
+                content = content,
                 colors = hainMarkdownColors(),
                 typography = hainMarkdownTypography(),
                 modifier = Modifier.fillMaxWidth(),
                 retainState = true,
+                annotator = remember { citationAnnotator() },
+                inlineContent = markdownInlineContent(citations?.let { citationInlineContent(it) }.orEmpty()),
             )
         }
         if (actions != null) AnswerActionRow(actions)
@@ -154,11 +163,56 @@ fun AssistantBlock(
  */
 @Composable
 fun AnswerActionRow(actions: @Composable () -> Unit) {
-    // T-236: on a narrow phone "‹ 2/3 ›" + six icons wrap onto a second line instead of being cut off
-    FlowRow(
-        Modifier.padding(top = LocalHainSpacing.current.xs).offset(x = -ICON_INSET.dp),
-        horizontalArrangement = Arrangement.spacedBy(ACTION_GAP.dp),
-    ) { actions() }
+    // T-272 (Oskar 05.11., 360 dp): always one line. When "‹ 2/3 ›" + six icons do not fit, the icon
+    // buttons (and only they) get narrower, down to MIN_ACTION_TOUCH; the icons themselves stay 18 dp.
+    Layout(
+        content = actions,
+        modifier = Modifier.padding(top = LocalHainSpacing.current.xs).offset(x = -ICON_INSET.dp),
+    ) { measurables, constraints ->
+        val loose = constraints.copy(minWidth = 0)
+        val natural = measurables.map { it.maxIntrinsicWidth(constraints.maxHeight.coerceAtLeast(0)) }
+        val room = constraints.maxWidth + ICON_INSET.dp.roundToPx()
+        val widths = ActionRowFit.widths(natural, room, MIN_ACTION_TOUCH.dp.roundToPx())
+        val placeables =
+            measurables.mapIndexed {
+                i,
+                m,
+                ->
+                m.measure(loose.copy(maxWidth = widths[i], minWidth = widths[i].coerceAtMost(natural[i])))
+            }
+        val height = placeables.maxOfOrNull { it.height } ?: 0
+        layout(placeables.sumOf { it.width }.coerceAtMost(room), height) {
+            var x = 0
+            placeables.forEach { p ->
+                p.place(x, (height - p.height) / 2)
+                x += p.width
+            }
+        }
+    }
+}
+
+/** T-272: how wide each part of the action row may be so the whole row stays on one line. Pure, tested. */
+object ActionRowFit {
+    /**
+     * [natural] widths of the parts; parts that look like icon buttons (between [minTouch] and 56 dp
+     * in px terms, i.e. not the "‹ 2/3 ›" picker) shrink evenly until the row fits [available], never
+     * below [minTouch]. If it still does not fit, the row is as narrow as it can be.
+     */
+    @Suppress("ReturnCount") // fits already / nothing to shrink / shrunk
+    fun widths(
+        natural: List<Int>,
+        available: Int,
+        minTouch: Int,
+    ): List<Int> {
+        val total = natural.sum()
+        if (total <= available) return natural
+        val maxIcon = minTouch * ICON_PART_MAX / MIN_ACTION_TOUCH
+        val icons = natural.indices.filter { natural[it] in minTouch..maxIcon }
+        if (icons.isEmpty()) return natural
+        val fixed = total - icons.sumOf { natural[it] }
+        val each = ((available - fixed) / icons.size).coerceAtLeast(minTouch)
+        return natural.mapIndexed { i, w -> if (i in icons) minOf(w, each) else w }
+    }
 }
 
 /** Collapsed thinking ("Gedacht für 4 s"); tap to expand. */
@@ -238,6 +292,12 @@ enum class MessageActionKind { COPY, SHARE, THUMB_UP, THUMB_DOWN, SPEAK, RETRY, 
 private const val ACTION_ICON = 18
 private const val ICON_INSET = (ICON_BUTTON_TOUCH - ACTION_ICON) / 2
 private const val ACTION_GAP = 0
+
+/** T-272: the narrowest an action button gets on a full row (the icon is 18 dp). */
+private const val MIN_ACTION_TOUCH = 34
+
+/** Parts up to this wide (in dp, scaled like [MIN_ACTION_TOUCH]) count as icon buttons. */
+private const val ICON_PART_MAX = 56
 private const val BUBBLE_FRACTION = 0.85f
 private const val BUBBLE_MAX = 560
 private const val COLLAPSED_LINES = 14

@@ -2,36 +2,9 @@
   "version": 1,
   "models": [
     {
-      "id": "lfm3-omni-2b-q4_0",
-      "name": "LFM3-Omni 2B",
-      "kind": "brain",
-      "lang": [
-        "de",
-        "en",
-        "fr",
-        "es",
-        "it",
-        "pt",
-        "nl",
-        "pl"
-      ],
-      "files": [
-        {
-          "url": "https://huggingface.co/LiquidAI/LFM3-Omni-2B-GGUF/resolve/d508b88f08a5b4286f2d2805a6a8d69a0ff44c72/LFM3-Omni-2B-Q4_0.gguf",
-          "sha256": "6d2273a383b92dd7c5db0eb4c8dfeae13e805b485a6621c4b391ae179c2b5f28",
-          "size": 1049617920
-        }
-      ],
-      "min_ram_gb": 4,
-      "licence": "LFM Open License v1.0",
-      "licence_url": "https://huggingface.co/LiquidAI/LFM3-Omni-2B-GGUF/blob/d508b88f08a5b4286f2d2805a6a8d69a0ff44c72/LICENSE",
-      "default": true
-    },
-    {
       "id": "lfm3-1.7b-qad-q4_0",
       "name": "LFM3 1.7B",
       "kind": "brain",
-      "tier": "legacy",
       "lang": [
         "de",
         "en",
@@ -52,6 +25,33 @@
       "min_ram_gb": 4,
       "licence": "LFM Open License v1.0",
       "licence_url": "https://huggingface.co/LiquidAI/LFM3-1.7B-GGUF/blob/main/LICENSE",
+      "default": true
+    },
+    {
+      "id": "lfm3-omni-2b-q4_0",
+      "name": "LFM3-Omni 2B",
+      "kind": "brain",
+      "tier": "optional",
+      "lang": [
+        "de",
+        "en",
+        "fr",
+        "es",
+        "it",
+        "pt",
+        "nl",
+        "pl"
+      ],
+      "files": [
+        {
+          "url": "https://huggingface.co/LiquidAI/LFM3-Omni-2B-GGUF/resolve/d508b88f08a5b4286f2d2805a6a8d69a0ff44c72/LFM3-Omni-2B-Q4_0.gguf",
+          "sha256": "6d2273a383b92dd7c5db0eb4c8dfeae13e805b485a6621c4b391ae179c2b5f28",
+          "size": 1049617920
+        }
+      ],
+      "min_ram_gb": 4,
+      "licence": "LFM Open License v1.0",
+      "licence_url": "https://huggingface.co/LiquidAI/LFM3-Omni-2B-GGUF/blob/d508b88f08a5b4286f2d2805a6a8d69a0ff44c72/LICENSE",
       "default": false
     },
     {
@@ -194,7 +194,9 @@
       "id": "wikipedia-de-top-mini",
       "name": "Wikipedia Deutsch · Top",
       "kind": "knowledge",
-      "lang": ["de"],
+      "lang": [
+        "de"
+      ],
       "files": [
         {
           "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_de_top_mini_2026-10.zim",
@@ -210,7 +212,9 @@
       "id": "wikipedia-en-top-mini",
       "name": "Wikipedia English · Top",
       "kind": "knowledge",
-      "lang": ["en"],
+      "lang": [
+        "en"
+      ],
       "files": [
         {
           "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_en_top_mini_2026-09.zim",
@@ -226,7 +230,9 @@
       "id": "wikipedia-en-top1m-mini",
       "name": "Wikipedia English · 1 million",
       "kind": "knowledge",
-      "lang": ["en"],
+      "lang": [
+        "en"
+      ],
       "files": [
         {
           "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_en_top1m_mini_2026-04.zim",
@@ -242,7 +248,9 @@
       "id": "wikipedia-de-all-mini",
       "name": "Wikipedia Deutsch · alle",
       "kind": "knowledge",
-      "lang": ["de"],
+      "lang": [
+        "de"
+      ],
       "files": [
         {
           "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_de_all_mini_2026-10.zim",

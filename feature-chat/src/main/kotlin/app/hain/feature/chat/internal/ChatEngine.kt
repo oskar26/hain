@@ -1,5 +1,6 @@
 package app.hain.feature.chat.internal
 
+import app.hain.cards.api.AnswerParts
 import app.hain.common.api.DevSettings
 import app.hain.llm.api.ChatMessage
 import app.hain.llm.api.DevTuning
@@ -22,6 +23,7 @@ import app.hain.tools.api.AlarmHints
 import app.hain.tools.api.HainTools
 import app.hain.tools.api.InfoCard
 import app.hain.tools.api.NewsHeadline
+import app.hain.tools.api.RawToolText
 import app.hain.tools.api.ResearchBudget
 import app.hain.tools.api.ResearchNotes
 import app.hain.tools.api.ToolCallFixer
@@ -131,6 +133,11 @@ class ChatEngine(
     private val memoryHint: (suspend (userMessages: List<String>) -> String?)? = null,
     /** T-263: where the user said in this chat they live ("bin nach Köln gezogen"), for weather without place. */
     private val placeOf: (userMessages: List<String>) -> String? = { null },
+    /**
+     * T-271: whether a `remember` call for the fact may run for the user's message (the app asks
+     * [app.hain.memory.api.RememberTool.allowed]); a dropped call is never the answer.
+     */
+    private val mayRemember: (message: String, fact: String) -> Boolean = { _, _ -> true },
 ) {
     private val ggufBuilder = GgufPromptBuilder(llm::applyTemplate)
 
@@ -216,7 +223,7 @@ class ChatEngine(
                     ?: asked?.let { ToolGuard.nudge(it, ctx.lang) }
             val hints = listOfNotNull(researchHint, followUp).joinToString(" ").ifBlank { null }
             val base = withLanguageHint(history, lastUser, hints)
-            val turn = Turn(budget, lastUser, dev)
+            val turn = Turn(budget, lastUser, dev, schemas.map { it.name }.toSet())
             active = turn
             try {
                 var round = 0
@@ -249,19 +256,36 @@ class ChatEngine(
                     val calls =
                         proposed
                             .filter { ToolGuard.fits(it.name, userMessages, it.arguments["query"]?.toString()) }
+                            // T-271: remember only for the user's own statements or when asked to
+                            .filter { call -> call.name != REMEMBER || mayRemember(lastUser, factOf(call)) }
                             .take(budget.callsPerRound)
                             // T-267: repeat days and "15 Minuten früher" from the user's own words
                             .map { AlarmHints.fix(it, lastUser, lastAlarm) }
-                    val offTopic = proposed.isNotEmpty() && calls.isEmpty()
+                    val noText = result.output.text.isBlank()
+                    val offTopic = proposed.isNotEmpty() && calls.isEmpty() && noText
                     if (offTopic && !final && result.reason == StopReason.END) {
                         // every call was off topic: once a hint to answer without them, then no tools at all
                         if (turn.guardHinted) {
                             turn.toolsOff = true
                         } else {
                             turn.guardHinted = true
-                            val hint = ToolGuard.hint(proposed.map { it.name }, ctx.lang)
+                            val hint =
+                                if (proposed.all { it.name == REMEMBER }) {
+                                    ToolGuard.answerHint(ctx.lang)
+                                } else {
+                                    ToolGuard.hint(proposed.map { it.name }, ctx.lang)
+                                }
                             turn.add(ChatMessage(Role.SYSTEM, hint), round)
                         }
+                        round++
+                        continue
+                    }
+                    // T-271: an empty answer (only tool syntax, or nothing) gets one more try with a plain hint
+                    val empty = noText && calls.isEmpty() && result.reason == StopReason.END && !turn.stopRequested
+                    if (empty && !turn.emptyRetried) {
+                        turn.emptyRetried = true
+                        turn.toolsOff = true
+                        turn.add(ChatMessage(Role.SYSTEM, ToolGuard.answerHint(ctx.lang)), round)
                         round++
                         continue
                     }
@@ -304,6 +328,8 @@ class ChatEngine(
         val budget: ResearchBudget,
         val question: String,
         val dev: DevSettings = DevSettings(),
+        /** T-271: the tools of this turn, whose call syntax never reaches the chat. */
+        val toolNames: Set<String> = emptySet(),
     ) {
         /** One message of the research; [compact] replaces it once a newer round exists (T-069). */
         class Entry(
@@ -334,6 +360,9 @@ class ChatEngine(
 
         /** T-263: it called off-topic tools again: the next round has none. */
         var toolsOff = false
+
+        /** T-271: an empty answer was already asked again once. */
+        var emptyRetried = false
         val reasoning = StringBuilder()
         var thinkingMs = 0L
         var searches = 0
@@ -668,7 +697,8 @@ class ChatEngine(
                         val due = now - shownAt >= STREAM_MS || text.isNotEmpty() != shownText || steps != shownSteps
                         if (due) {
                             val shown = (earlier + reasoning).trim()
-                            emit(TurnUpdate.Streaming(shown, cleaned(text, turn), thinking, steps, clockOf(turn)))
+                            val live = cleaned(text, turn, live = true)
+                            emit(TurnUpdate.Streaming(shown, live, thinking, steps, clockOf(turn)))
                             shownAt = now
                             shownText = text.isNotEmpty()
                             shownSteps = steps
@@ -684,7 +714,7 @@ class ChatEngine(
         if (unshown) {
             val steps = turn.steps + listOfNotNull(pending)
             val shown = (earlier + reasoning).trim()
-            emit(TurnUpdate.Streaming(shown, cleaned(text, turn), thinking, steps, clockOf(turn)))
+            emit(TurnUpdate.Streaming(shown, cleaned(text, turn, live = true), thinking, steps, clockOf(turn)))
         }
         if (mayCut && turn.cut && reason != StopReason.END) reason = StopReason.CANCELLED
         val (rest, parsed) = splitter.finish()
@@ -699,9 +729,31 @@ class ChatEngine(
                     toolCalls = emptyList(),
                 )
             } else {
-                parsed
+                repaired(parsed, roundTools, turn)
             }
         return RoundResult(output, reason, thoughtFor, stats)
+    }
+
+    /**
+     * T-271: a call written as plain text (`remember "…"`, a bare `{"expression": …}`) becomes a real
+     * call when the round offers that tool; leftover tool syntax goes, and a card written without its
+     * fence gets one. Nothing of the call syntax is ever shown.
+     */
+    private fun repaired(
+        parsed: ParsedOutput,
+        roundTools: List<ToolSchema>,
+        turn: Turn,
+    ): ParsedOutput {
+        val bare =
+            if (parsed.toolCalls.isEmpty()) {
+                RawToolText.extract(parsed.text, roundTools)
+            } else {
+                RawToolText.Result(parsed.text, emptyList())
+            }
+        val text = AnswerParts.fenceLooseCards(RawToolText.strip(bare.text, turn.toolNames))
+        val calls = parsed.toolCalls.ifEmpty { bare.calls }
+        val errors = if (bare.calls.isEmpty()) parsed.errors else emptyList()
+        return parsed.copy(text = text, toolCalls = calls, errors = errors)
     }
 
     /**
@@ -711,8 +763,16 @@ class ChatEngine(
     private fun cleaned(
         text: CharSequence,
         turn: Turn,
+        live: Boolean = false,
     ): String {
-        val clean = CitationCleaner.clean(text.toString(), turn.sources.size)
+        // T-271: while it streams, a call written as text is held back until it is clear what it is
+        val shown =
+            if (live) {
+                AnswerParts.fenceLooseCards(RawToolText.liveText(text.toString(), turn.toolNames))
+            } else {
+                text.toString()
+            }
+        val clean = CitationCleaner.clean(shown, turn.sources.size)
         return if (turn.actions.isEmpty()) clean else ActionWording.clean(clean)
     }
 
@@ -808,6 +868,11 @@ class ChatEngine(
     companion object {
         const val SEARCH_TOOL = "web_search"
 
+        /** The memory's tool (`RememberTool.NAME` in :core-memory). */
+        private const val REMEMBER = "remember"
+
+        private fun factOf(call: ToolCall): String = call.arguments["text"]?.toString().orEmpty()
+
         /** Timeline line for the pages read after a search; its detail is the number of pages. */
         const val READ_STEP = "read_pages"
 
@@ -900,22 +965,27 @@ class ChatEngine(
         /** T-264: at most one live update per 40 ms (25 a second), enough for smooth text. */
         internal const val STREAM_MS = 40L
 
+        // T-275: answer the question itself; no talk about sources, searches or contradictions, only facts
+        // the results back up
         private const val THOROUGH_DE =
             "Gründliche Recherche: Du hast bis zu einer Minute. Suche mit mehreren Anfragen, " +
                 "auch umformuliert und auf Englisch, und nutze verschiedene Seiten. Braucht die Frage mehrere " +
                 "Dinge, darfst du bis zu 3 passende Werkzeuge auf einmal aufrufen, nie eins, das nicht zur Frage " +
-                "passt. Stütze Fakten auf mindestens 2 Quellen und nenne Widersprüche."
+                "passt. Stütze Fakten auf mindestens 2 Quellen und nimm nur Fakten, die in den Ergebnissen stehen."
         private const val THOROUGH_EN =
             "Thorough research: you have up to one minute. Search with several queries, also reworded " +
                 "and in German, and use different pages. If the question needs several things, you may call up to " +
                 "3 fitting tools at once, never one that does not fit the question. " +
-                "Back facts with at least 2 sources and point out contradictions."
+                "Back facts with at least 2 sources and use only facts that are in the results."
         private const val FINAL_DE =
-            "Die Recherche ist beendet. Antworte jetzt nur aus den Ergebnissen oben, nenne die Quellen " +
-                "als [1], [2] und sag, wenn Quellen sich widersprechen."
+            "Die Recherche ist beendet. Beantworte jetzt direkt die Frage, mit dem Wichtigsten zuerst. " +
+                "Schreib nur Fakten, die in den Ergebnissen oben stehen, und setz [1], [2] hinter den Satz. " +
+                "Schreib nichts über die Suche, die Quellen oder Widersprüche; fehlt etwas, sag kurz, was."
         private const val FINAL_EN =
-            "The research is over. Answer now only from the results above, cite the sources as [1], [2] " +
-                "and say when sources contradict each other."
+            "The research is over. Now answer the question directly, the most important part first. " +
+                "Write only facts that are in the results above and put [1], [2] after the sentence. " +
+                "Do not write about the search, the sources or contradictions; " +
+                "if something is missing, say briefly what."
 
         private val DETAIL_KEYS =
             listOf("place", "topic", "expression", "query", "url", "time", "title", "destination")

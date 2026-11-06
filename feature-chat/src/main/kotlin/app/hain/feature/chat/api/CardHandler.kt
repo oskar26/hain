@@ -1,18 +1,26 @@
 package app.hain.feature.chat.api
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import app.hain.cards.api.AnswerPart
 import app.hain.cards.api.AnswerParts
 import app.hain.cards.api.CardRenderer
 import app.hain.cards.api.CardState
+import app.hain.feature.chat.R
 import app.hain.feature.chat.internal.UiMessage
 import app.hain.ui.components.AnswerActionRow
+import app.hain.ui.components.AnswerCitations
 import app.hain.ui.components.AssistantBlock
+import app.hain.ui.components.CitationMarks
 
 /**
  * What card taps do in the chat (T-131): [onCardsChange] saves the checklist ticks of an answer
@@ -37,8 +45,22 @@ internal fun AnswerBody(
     actions: (@Composable () -> Unit)?,
 ) {
     val parts = remember(message.text, message.streaming) { AnswerParts.split(message.text, message.streaming) }
+    // T-274: "[1]" in the text → small raised chip, tap opens that source
+    val context = LocalContext.current
+    val sources = message.sources
+    val label = stringResource(R.string.chat_source_chip)
+    val citations =
+        AnswerCitations(
+            count = sources.size,
+            onTap = { n -> sources.getOrNull(n - 1)?.let { openSource(context, it.url) } },
+            label = { n -> label.format(n, sources.getOrNull(n - 1)?.title.orEmpty()) },
+        )
     if (parts.none { it is AnswerPart.Card }) {
-        AssistantBlock(markdown = message.text, actions = actions)
+        AssistantBlock(
+            markdown = message.text,
+            actions = actions,
+            citations = citations,
+        )
         return
     }
     val handler = LocalCardHandler.current
@@ -46,7 +68,11 @@ internal fun AnswerBody(
     Column(Modifier.fillMaxWidth()) {
         parts.forEach { part ->
             when (part) {
-                is AnswerPart.Text -> AssistantBlock(markdown = part.markdown)
+                is AnswerPart.Text ->
+                    AssistantBlock(
+                        markdown = part.markdown,
+                        citations = citations,
+                    )
                 is AnswerPart.Card ->
                     CardRenderer(
                         part.card,
@@ -62,8 +88,19 @@ internal fun AnswerBody(
     }
 }
 
-/** The answer as plain text for copy and share: cards become readable lines with the user's ticks. */
+/**
+ * The answer as plain text for copy, share and read aloud: cards become readable lines with the user's
+ * ticks; T-274: without the "[1]" markers (the sources are listed under the answer).
+ */
 internal fun UiMessage.plainAnswer(): String {
-    if (!text.contains("```")) return text
-    return AnswerParts.plainText(text, CardState.decode(cardState))
+    val plain = if (!text.contains("```")) text else AnswerParts.plainText(text, CardState.decode(cardState))
+    return CitationMarks.strip(plain)
+}
+
+/** Opens a source page in the browser; nothing happens when no app can open it. */
+internal fun openSource(
+    context: Context,
+    url: String,
+) {
+    runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
 }
