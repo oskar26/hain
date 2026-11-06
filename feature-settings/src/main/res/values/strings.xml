@@ -134,6 +134,7 @@
     <string name="about_dev_unlocked">Developer mode is on. You find it in the settings.</string>
     <string name="about_dev_off">Turn off developer mode</string>
     <string name="about_dev_off_hint">Hain uses its normal settings again.</string>
+    <string name="about_group_app">App and project</string>
     <string name="about_updates">Updates</string>
     <string name="about_update_channel">Channel</string>
     <string name="about_channel_stable">Stable</string>

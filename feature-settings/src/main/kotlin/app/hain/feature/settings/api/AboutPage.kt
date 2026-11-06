@@ -40,6 +40,7 @@ import app.hain.ui.motion.hainTween
 import app.hain.ui.motion.rememberHainHaptics
 import app.hain.ui.pim.LivePim
 import app.hain.ui.pim.PimState
+import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
@@ -57,13 +58,15 @@ internal fun tapsLeft(taps: Int): Int? = (DEV_TAPS - taps).takeIf { taps >= DEV_
  * website, GitHub, the version (tap 7× → developer mode, T-211), the licence and the open-source
  * licences (their own page since T-285), then the update check (T-212).
  */
-@Suppress("LongMethod") // header, link rows and the update block form one page
+@Suppress("LongMethod", "LongParameterList") // header, link rows and the update block form one page
 @Composable
 internal fun AboutPage(
     settings: HainSettings,
     actions: SettingsActions,
     info: AppInfo,
     update: UpdateStatus,
+    /** T-292: the page's glow colour for its section cards. */
+    hue: GlowHue = GlowHue.TEAL,
     /** T-285: opens the open-source licences inside the app. */
     onLicences: () -> Unit = {},
 ) {
@@ -86,69 +89,78 @@ internal fun AboutPage(
             modifier = Modifier.padding(top = spacing.xs),
         )
     }
-    AboutRow(HainIcons.globe, stringResource(R.string.about_website), "oskar26.github.io/hain") {
-        uri.openUri(WEBSITE)
-    }
-    AboutRow(HainIcons.github, stringResource(R.string.about_github), "github.com/oskar26/hain") {
-        uri.openUri(GITHUB)
-    }
-    // T-211: tap 7× to unlock developer mode
-    var taps by remember { mutableIntStateOf(0) }
-    var hint by remember { mutableStateOf<String?>(null) }
-    val already = stringResource(R.string.about_dev_already)
-    val unlocked = stringResource(R.string.about_dev_unlocked)
-    val left = tapsLeft(taps)?.let { pluralStringResource(R.plurals.about_dev_taps_left, it, it) }
-    LaunchedEffect(left) { if (left != null) hint = left }
-    LaunchedEffect(hint) {
-        if (hint != null) {
-            delay(HINT_MS)
-            hint = null
+    // T-292: links and version in one section card, updates in a second (developer mode in a third)
+    SettingsSection(R.string.about_group_app, hue, 0) {
+        AboutRow(HainIcons.globe, stringResource(R.string.about_website), "oskar26.github.io/hain") {
+            uri.openUri(WEBSITE)
         }
-    }
-    AboutRow(HainIcons.tag, stringResource(R.string.about_version), info.versionLine()) {
-        if (settings.dev.enabled) {
-            hint = already
-            return@AboutRow
+        AboutRow(HainIcons.github, stringResource(R.string.about_github), "github.com/oskar26/hain") {
+            uri.openUri(GITHUB)
         }
-        taps++
-        if (taps >= DEV_TAPS) {
-            taps = 0
-            haptics.confirm()
-            hint = unlocked
-            actions.onDev(settings.dev.copy(enabled = true))
-        } else {
-            haptics.tick()
+        // T-211: tap 7× to unlock developer mode
+        var taps by remember { mutableIntStateOf(0) }
+        var hint by remember { mutableStateOf<String?>(null) }
+        val already = stringResource(R.string.about_dev_already)
+        val unlocked = stringResource(R.string.about_dev_unlocked)
+        val left = tapsLeft(taps)?.let { pluralStringResource(R.plurals.about_dev_taps_left, it, it) }
+        LaunchedEffect(left) { if (left != null) hint = left }
+        LaunchedEffect(hint) {
+            if (hint != null) {
+                delay(HINT_MS)
+                hint = null
+            }
         }
-    }
-    val reduce = LocalReduceMotion.current
-    AnimatedVisibility(
-        hint != null,
-        enter = fadeIn(hainTween(HainMotion.FAST_MS, reduce)),
-        exit = fadeOut(hainTween(HainMotion.PAGE_MS, reduce)),
-    ) {
-        BasicText(
-            hint.orEmpty(),
-            style = type.label.copy(color = colors.accent),
-            modifier = Modifier.padding(start = ICON_INDENT.dp),
+        AboutRow(HainIcons.tag, stringResource(R.string.about_version), info.versionLine()) {
+            if (settings.dev.enabled) {
+                hint = already
+                return@AboutRow
+            }
+            taps++
+            if (taps >= DEV_TAPS) {
+                taps = 0
+                haptics.confirm()
+                hint = unlocked
+                actions.onDev(settings.dev.copy(enabled = true))
+            } else {
+                haptics.tick()
+            }
+        }
+        val reduce = LocalReduceMotion.current
+        AnimatedVisibility(
+            hint != null,
+            enter = fadeIn(hainTween(HainMotion.FAST_MS, reduce)),
+            exit = fadeOut(hainTween(HainMotion.PAGE_MS, reduce)),
+        ) {
+            BasicText(
+                hint.orEmpty(),
+                style = type.label.copy(color = colors.accent),
+                modifier = Modifier.padding(start = ICON_INDENT.dp),
+            )
+        }
+        if (info.buildDate.isNotBlank()) {
+            BasicText(
+                stringResource(R.string.about_built, info.buildDate),
+                style = type.label.copy(color = colors.textMuted),
+                modifier = Modifier.padding(start = ICON_INDENT.dp),
+            )
+        }
+        AboutRow(HainIcons.licence, stringResource(R.string.about_licence), "GPL-3.0") { uri.openUri(LICENCE) }
+        AboutRow(
+            HainIcons.document,
+            stringResource(R.string.about_open_source),
+            stringResource(R.string.about_open_source_hint),
+            onClick = onLicences,
         )
     }
-    if (info.buildDate.isNotBlank()) {
-        BasicText(
-            stringResource(R.string.about_built, info.buildDate),
-            style = type.label.copy(color = colors.textMuted),
-            modifier = Modifier.padding(start = ICON_INDENT.dp),
-        )
+    SettingsSection(R.string.about_updates, hue, 1) {
+        UpdateBlock(settings, actions, update, nightlyOnly = info.nightlyOnly)
     }
-    AboutRow(HainIcons.licence, stringResource(R.string.about_licence), "GPL-3.0") { uri.openUri(LICENCE) }
-    AboutRow(
-        HainIcons.document,
-        stringResource(R.string.about_open_source),
-        stringResource(R.string.about_open_source_hint),
-        onClick = onLicences,
-    )
-    UpdateBlock(settings, actions, update, nightlyOnly = info.nightlyOnly)
     if (settings.dev.enabled) {
-        Link(R.string.about_dev_off, R.string.about_dev_off_hint) { actions.onDev(settings.dev.copy(enabled = false)) }
+        SettingsSection(R.string.settings_group_dev, hue, DEV_BLOCK) {
+            Link(R.string.about_dev_off, R.string.about_dev_off_hint) {
+                actions.onDev(settings.dev.copy(enabled = false))
+            }
+        }
     }
 }
 
@@ -164,7 +176,6 @@ private fun UpdateBlock(
     val colors = LocalHainColors.current
     val type = LocalHainTypography.current
     val uri = LocalUriHandler.current
-    Group(R.string.about_updates)
     // T-283: "einmal am Tag suchen" is on the Internet page, with everything else that goes online
     // T-281: a debug build only takes the next nightly, so it has no channel to choose
     if (nightlyOnly) {
@@ -264,3 +275,6 @@ private const val HINT_FROM = 3
 private const val HINT_MS = 1_600L
 private const val ICON = 20
 private const val ICON_INDENT = 36
+
+/** Position of the developer block in the staggered entrance. */
+private const val DEV_BLOCK = 2

@@ -134,6 +134,7 @@
     <string name="about_dev_unlocked">Der Entwicklermodus ist an. Du findest ihn in den Einstellungen.</string>
     <string name="about_dev_off">Entwicklermodus ausschalten</string>
     <string name="about_dev_off_hint">Hain nutzt dann wieder seine normalen Einstellungen.</string>
+    <string name="about_group_app">App und Projekt</string>
     <string name="about_updates">Updates</string>
     <string name="about_update_channel">Kanal</string>
     <string name="about_channel_stable">Stabil</string>

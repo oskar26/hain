@@ -137,7 +137,7 @@ internal fun SettingsPageContent(
                         .padding(vertical = LocalHainSpacing.current.md, horizontal = LocalHainSpacing.current.sm),
             )
         }
-        SettingsPage.INTERNET -> InternetPage(settings, actions, networkLog)
+        SettingsPage.INTERNET -> InternetPage(settings, actions, networkLog, page.hue)
         SettingsPage.PRIVACY -> {
             Info(R.string.settings_privacy_text)
             SettingsSection(R.string.settings_privacy_group_safety, page.hue, 0) {
@@ -154,12 +154,13 @@ internal fun SettingsPageContent(
             SettingsSection(R.string.settings_privacy_group_data, page.hue, 2) { ExportAllSection(actions) }
         }
         SettingsPage.ABOUT ->
-            AboutPage(settings, actions, extras.appInfo, extras.updateStatus) { nav.goTo(SettingsPage.LICENCES) }
+            AboutPage(settings, actions, extras.appInfo, extras.updateStatus, page.hue) {
+                nav.goTo(SettingsPage.LICENCES)
+            }
         SettingsPage.LICENCES -> LicencesPage(extras.appInfo, nav)
         SettingsPage.DEVELOPER ->
-            DeveloperPage(settings.dev, actions, extras.devModels) {
+            DeveloperPage(settings.dev, actions, extras.devModels, hue = page.hue, network = {
                 // T-266: moved here from "Privatsphäre"
-                Group(R.string.dev_network)
                 SearxSetting(settings.searxUrl, actions.onSearxUrl)
                 Toggle(
                     R.string.settings_log_detail,
@@ -167,7 +168,7 @@ internal fun SettingsPageContent(
                     settings.networkLogDetail,
                     actions.onNetworkLogDetail,
                 )
-            }
+            })
     }
 }
 
