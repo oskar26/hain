@@ -191,10 +191,10 @@ export const COPY: Record<Lang, Copy> = {
           shotAlt: 'The chat list in the side panel',
         },
         {
-          id: 'privacy', icon: 'shield', status: 'new', shot: 'settings_privacy',
+          id: 'privacy', icon: 'shield', status: 'new', shot: 'settings_internet',
           title: 'Private chat, app lock, network log',
           text: 'A private chat is never saved and gone when you leave it. Lock Hain with fingerprint or PIN and block screenshots. Every request to the internet is listed, and one switch turns all of it off. The network log has been there since 0.1; the rest is new.',
-          shotAlt: 'Privacy settings in groups: going online, safety, your data',
+          shotAlt: 'The Internet page: one main switch and what may go online',
         },
         {
           id: 'packs', icon: 'package', status: 'new', shot: 'packs_knowledge',
@@ -490,10 +490,10 @@ export const COPY: Record<Lang, Copy> = {
           shotAlt: 'Die Chat-Liste in der Seitenleiste',
         },
         {
-          id: 'privacy', icon: 'shield', status: 'new', shot: 'settings_privacy',
+          id: 'privacy', icon: 'shield', status: 'new', shot: 'settings_internet',
           title: 'Privater Chat, App-Sperre, Netzwerk-Log',
           text: 'Ein privater Chat wird nie gespeichert und ist beim Verlassen weg. Hain mit Fingerabdruck oder PIN sperren und Bildschirmfotos verhindern. Jede Anfrage ins Internet wird aufgelistet, ein Schalter macht alles aus. Das Netzwerk-Log gibt es seit 0.1, der Rest ist neu.',
-          shotAlt: 'Privatsphäre-Einstellungen in Gruppen: Online gehen, Sicherheit, Deine Daten',
+          shotAlt: 'Die Internet-Seite: ein Hauptschalter und was ins Internet darf',
         },
         {
           id: 'packs', icon: 'package', status: 'new', shot: 'packs_knowledge',

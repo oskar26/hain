@@ -32,7 +32,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.hain.common.api.HainSettings
 import app.hain.common.api.UpdateChannel
-import app.hain.common.api.UpdateCheck
 import app.hain.feature.settings.R
 import app.hain.ui.HainIcons
 import app.hain.ui.motion.HainMotion
@@ -153,7 +152,7 @@ internal fun AboutPage(
 }
 
 /** T-212: the update check — off or once a day at start, channel, "Jetzt prüfen" and its result. */
-@Suppress("LongMethod") // two choices, a hint and the check row
+@Suppress("LongMethod") // the channel, a hint and the check row
 @Composable
 private fun UpdateBlock(
     settings: HainSettings,
@@ -165,12 +164,7 @@ private fun UpdateBlock(
     val type = LocalHainTypography.current
     val uri = LocalUriHandler.current
     Group(R.string.about_updates)
-    Choice(
-        R.string.about_update_check,
-        settings.updateCheck,
-        listOf(UpdateCheck.OFF to R.string.about_update_off, UpdateCheck.DAILY to R.string.about_update_daily),
-        actions.onUpdateCheck,
-    )
+    // T-283: "einmal am Tag suchen" is on the Internet page, with everything else that goes online
     // T-281: a debug build only takes the next nightly, so it has no channel to choose
     if (nightlyOnly) {
         Info(R.string.about_update_nightly_only)

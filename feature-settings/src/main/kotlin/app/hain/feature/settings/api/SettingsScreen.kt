@@ -217,7 +217,6 @@ private fun Hub(
     // T-234: the first page only lists the groups (icon, name, one line); everything else is one level down
     tile(SettingsPage.LOOK)
     tile(SettingsPage.ANSWERS)
-    tile(SettingsPage.YOU)
     // T-115: what Pim keeps about you, on its own page
     Tile(Hain3D.BULB, GlowHue.LILAC, R.string.settings_memory, R.string.settings_memory_hint) { actions.onOpenMemory() }
     // T-234: "Modelle & Pakete" (knowledge, brains, multimedia, voice, extras), each with its own page
@@ -225,6 +224,7 @@ private fun Hub(
     actions.onOpenNews?.let { news ->
         Tile(Hain3D.NEWS, GlowHue.PEACH, R.string.settings_news, R.string.settings_news_hint, onClick = news)
     }
+    tile(SettingsPage.INTERNET)
     tile(SettingsPage.PRIVACY)
     tile(SettingsPage.ABOUT)
     // T-211: only after "Version" was tapped 7× in "Über Hain"

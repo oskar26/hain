@@ -17,7 +17,6 @@ import app.hain.common.api.HainSettings
 import app.hain.common.api.HapticStrength
 import app.hain.common.api.SearxAddress
 import app.hain.common.api.ThemeChoice
-import app.hain.common.api.WebSearch
 import app.hain.common.api.net.NetworkLogEntry
 import app.hain.feature.settings.R
 import app.hain.ui.components.AppIconPicker
@@ -105,8 +104,8 @@ internal fun SettingsPageContent(
                 ),
                 actions.onAnswerMode,
             )
-        }
-        SettingsPage.YOU -> {
+            // T-283: "Über dich" is part of this page (one level less)
+            Group(R.string.settings_answers_group_you)
             TextSetting(
                 R.string.settings_about_me,
                 R.string.settings_about_me_hint,
@@ -123,38 +122,9 @@ internal fun SettingsPageContent(
                         .padding(vertical = LocalHainSpacing.current.md),
             )
         }
+        SettingsPage.INTERNET -> InternetPage(settings, actions, networkLog)
         SettingsPage.PRIVACY -> {
             Info(R.string.settings_privacy_text)
-            // T-266: three calm groups; the technical parts (own search, full addresses) are in the developer area
-            Group(R.string.settings_privacy_group_online)
-            Toggle(
-                R.string.settings_offline,
-                R.string.settings_offline_hint,
-                settings.offlineMode,
-                actions.onOfflineMode,
-            )
-            Choice(
-                R.string.settings_web_search,
-                settings.webSearch,
-                listOf(
-                    WebSearch.ON to R.string.settings_web_search_on,
-                    WebSearch.ASK to R.string.settings_web_search_ask,
-                    WebSearch.OFF to R.string.settings_web_search_off,
-                ),
-                actions.onWebSearch,
-            )
-            Toggle(
-                R.string.settings_weather_location,
-                R.string.settings_weather_location_hint,
-                settings.weatherLocation,
-                actions.onWeatherLocation,
-            )
-            Toggle(
-                R.string.settings_source_icons,
-                R.string.settings_source_icons_hint,
-                settings.sourceIcons,
-                actions.onSourceIcons,
-            )
             Group(R.string.settings_privacy_group_safety)
             Toggle(
                 R.string.settings_confirm_actions,
@@ -165,7 +135,6 @@ internal fun SettingsPageContent(
             AppLockSection(settings, actions, extras.lockAvailable)
             Group(R.string.settings_privacy_group_data)
             ExportAllSection(actions)
-            NetworkLogSection(networkLog, actions)
         }
         SettingsPage.ABOUT -> AboutPage(settings, actions, extras.appInfo, extras.updateStatus)
         SettingsPage.DEVELOPER ->
