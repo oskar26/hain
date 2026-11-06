@@ -281,4 +281,8 @@
     <string name="packs_failed_network">Keine Verbindung. Tipp auf „Nochmal“.</string>
     <string name="packs_failed_storage">Auf deinem Handy ist nicht genug Platz frei.</string>
     <string name="packs_failed_checksum">Die Datei kam beschädigt an. Lade sie noch einmal.</string>
+    <!-- T-292: section headings -->
+    <string name="settings_section_appearance">Darstellung</string>
+    <string name="settings_section_feel">Gefühl und Bewegung</string>
+    <string name="settings_section_answer_style">Sprache und Art der Antwort</string>
 </resources>

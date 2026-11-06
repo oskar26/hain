@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,34 +21,84 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.hain.ui.components.HainSwitch
 import app.hain.ui.components.SegmentedControl
 import app.hain.ui.motion.rememberHainHaptics
+import app.hain.ui.motion.staggeredEnter
+import app.hain.ui.theme.GlowHue
 import app.hain.ui.theme.HainLevel
 import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
+import app.hain.ui.theme.glassTile
 import app.hain.ui.theme.hainSurface
 
 @Composable
 internal fun Group(label: Int) {
-    // T-266 (Lichtung): a hairline above each group and more air, so a page reads in calm blocks
+    // T-266 (Lichtung): a hairline above each group and more air, so a page reads in calm blocks.
+    // T-292: more air above (a new block starts), the heading marked as one for TalkBack
     val spacing = LocalHainSpacing.current
-    Column(Modifier.fillMaxWidth().padding(top = spacing.sm), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
+    Column(Modifier.fillMaxWidth().padding(top = spacing.md), verticalArrangement = Arrangement.spacedBy(spacing.md)) {
         Box(Modifier.fillMaxWidth().height(HAIRLINE.dp).background(LocalHainColors.current.border))
-        BasicText(
-            stringResource(label),
-            style = LocalHainTypography.current.label.copy(color = LocalHainColors.current.accent),
+        SectionTitle(label)
+    }
+}
+
+/** T-292: the small green heading over a block of settings. */
+@Composable
+internal fun SectionTitle(
+    label: Int,
+    modifier: Modifier = Modifier,
+) {
+    BasicText(
+        stringResource(label),
+        style = LocalHainTypography.current.label.copy(color = LocalHainColors.current.accent),
+        modifier = modifier.semantics { heading() },
+    )
+}
+
+/**
+ * T-292 (Copilot-like list, Lichtung): one block of a settings page – a heading in the margin, then
+ * its rows on their own calm card with plenty of air. [index] staggers the entrance (T-295).
+ */
+@Composable
+internal fun SettingsSection(
+    title: Int?,
+    hue: GlowHue,
+    index: Int,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val spacing = LocalHainSpacing.current
+    Column(
+        Modifier.fillMaxWidth().staggeredEnter(index),
+        verticalArrangement = Arrangement.spacedBy(spacing.sm),
+    ) {
+        if (title != null) SectionTitle(title, Modifier.padding(start = spacing.sm))
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .glassTile(hue, elevation = SECTION_ELEVATION.dp, lightAt = Offset(x = 0.5f, y = 0f))
+                .padding(horizontal = spacing.lg, vertical = spacing.md),
+            verticalArrangement = Arrangement.spacedBy(spacing.lg),
+            content = content,
         )
     }
 }
 
 private const val HAIRLINE = 0.5f
+private const val SECTION_ELEVATION = 4
+
+/** T-292: a hint under a row is at most this many lines; the rest ends in "…". */
+internal const val HINT_LINES = 2
 
 @Composable
 internal fun <T> Choice(
@@ -93,7 +144,12 @@ internal fun Toggle(
     ) {
         Column(Modifier.weight(1f).padding(end = LocalHainSpacing.current.md)) {
             BasicText(stringResource(label), style = type.body.copy(color = colors.text))
-            BasicText(stringResource(hint), style = type.bodySmall.copy(color = colors.textMuted))
+            BasicText(
+                stringResource(hint),
+                style = type.bodySmall.copy(color = colors.textMuted),
+                maxLines = HINT_LINES,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
         HainSwitch(checked)
     }
@@ -148,6 +204,11 @@ internal fun Link(
             .padding(vertical = LocalHainSpacing.current.sm),
     ) {
         BasicText(stringResource(label), style = type.body.copy(color = colors.text))
-        BasicText(stringResource(hint), style = type.bodySmall.copy(color = colors.textMuted))
+        BasicText(
+            stringResource(hint),
+            style = type.bodySmall.copy(color = colors.textMuted),
+            maxLines = HINT_LINES,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }

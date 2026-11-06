@@ -281,4 +281,8 @@
     <string name="packs_failed_network">No connection. Tap “Try again”.</string>
     <string name="packs_failed_storage">Not enough space on your phone.</string>
     <string name="packs_failed_checksum">The file arrived damaged. Load it again.</string>
+    <!-- T-292: section headings -->
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_section_feel">Feel and motion</string>
+    <string name="settings_section_answer_style">Language and way of answering</string>
 </resources>

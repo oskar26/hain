@@ -29,6 +29,9 @@ internal enum class SettingsPage(
     LICENCES(R.string.about_open_source, R.string.licences_hint, Hain3D.DOCUMENT, GlowHue.TEAL),
     ;
 
+    /** T-292: the page is built from [SettingsSection] cards itself (no one big tile around it). */
+    val sectioned: Boolean get() = this == LOOK || this == ANSWERS || this == PRIVACY
+
     /** The page "back" leads to instead of the hub; the hub marks it on wide windows (T-285). */
     val parent: SettingsPage? get() = if (this == LICENCES) ABOUT else null
 }

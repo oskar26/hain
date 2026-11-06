@@ -22,7 +22,6 @@ internal fun AppLockSection(
     actions: SettingsActions,
     lockAvailable: Boolean,
 ) {
-    Group(R.string.settings_lock_title)
     if (lockAvailable || settings.appLock) {
         Toggle(R.string.settings_lock, R.string.settings_lock_hint, settings.appLock, actions.onAppLock)
     } else {
@@ -59,7 +58,6 @@ internal fun ExportAllSection(actions: SettingsActions) {
         rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
             if (uri != null) actions.onExportAll(uri)
         }
-    Group(R.string.settings_export_title)
     Link(R.string.settings_export_all, R.string.settings_export_all_hint) {
         external()
         runCatching { launcher.launch("hain-chats-${LocalDate.now()}.zip") }
