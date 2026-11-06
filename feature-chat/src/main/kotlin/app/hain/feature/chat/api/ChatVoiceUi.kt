@@ -19,20 +19,17 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,6 +40,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -50,9 +48,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -103,6 +98,12 @@ internal class VoiceUi(
     private val haptics: HainHaptics,
 ) {
     var setup by mutableStateOf<VoiceSetup?>(null)
+
+    /** T-296: the mic is pressed and held (hold mode): the box stays until you let go, then no pill. */
+    var holding by mutableStateOf(false)
+
+    /** T-296: counts finished dictations; the send button pulses once per new text in the box. */
+    var handoff by mutableIntStateOf(0)
     var requestPermission: () -> Unit = {}
 
     val recording: Boolean get() = voice.dictation.state.value is DictationState.Recording
@@ -255,7 +256,13 @@ internal fun MicButton(
                         }
                         !current || ui.voice.dictation.busy || !ui.tryStart() -> waitForUpOrCancellation()
                         else -> {
-                            val up = waitForUpOrCancellation()
+                            ui.holding = true
+                            val up =
+                                try {
+                                    waitForUpOrCancellation()
+                                } finally {
+                                    ui.holding = false
+                                }
                             val held = (up?.uptimeMillis ?: Long.MAX_VALUE) - down.uptimeMillis >= HOLD_MS
                             when {
                                 up == null -> ui.cancel() // slid off the button
@@ -307,6 +314,7 @@ internal fun VoicePanel(
         when (val s = state) {
             is DictationState.Done -> {
                 onInput(appendDictation(latestInput, s.text))
+                ui.handoff++
                 haptics.done()
                 ui.voice.dictation.consume()
             }
@@ -327,7 +335,7 @@ internal fun VoicePanel(
         ui.setup?.let { SetupCard(ui, it) }
     }
     when (val s = state) {
-        is DictationState.Recording -> RecordingBar(s, onCancel = ui::cancel, onDone = ui::finish)
+        // T-296: while recording the message box itself is the dictation pill (see ChatScreen)
         DictationState.Transcribing -> WritingLine()
         is DictationState.Failed -> VoiceLine(stringResource(errorText(s.reason)))
         else -> Unit
@@ -466,67 +474,6 @@ private fun CardAction(
     )
 }
 
-/** While recording: cancel, the level bars, the clock and "Fertig" (T-140). */
-@Composable
-private fun RecordingBar(
-    state: DictationState.Recording,
-    onCancel: () -> Unit,
-    onDone: () -> Unit,
-) {
-    val colors = LocalHainColors.current
-    val spacing = LocalHainSpacing.current
-    val type = LocalHainTypography.current
-    val listening = stringResource(R.string.chat_dictation_listening)
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(horizontal = spacing.md)
-            .semantics { contentDescription = listening },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-    ) {
-        val cancel = stringResource(R.string.chat_dictation_cancel)
-        HainIconButton(HainIcons.close, cancel, onCancel, tint = colors.textMuted)
-        LevelBars(state.levels, Modifier.weight(1f).height(BARS_HEIGHT.dp))
-        BasicText(dictationClock(state.elapsedMs), style = type.label.copy(color = colors.textMuted))
-        BasicText(
-            stringResource(R.string.chat_dictation_done),
-            style = type.label.copy(color = colors.accent),
-            modifier =
-                Modifier
-                    .clip(LocalHainShapes.current.button)
-                    .clickable(role = Role.Button, onClick = onDone)
-                    .padding(horizontal = spacing.md, vertical = spacing.md),
-        )
-    }
-}
-
-/** The last [levels] as rounded green bars, newest on the right. */
-@Composable
-private fun LevelBars(
-    levels: List<Float>,
-    modifier: Modifier = Modifier,
-) {
-    val color = LocalHainColors.current.accent
-    val muted = LocalHainColors.current.border
-    Canvas(modifier) {
-        val slots = BAR_SLOTS
-        val gap = size.width / slots
-        val barWidth = (gap * BAR_FILL).coerceAtLeast(1f)
-        val minHeight = size.height * MIN_BAR
-        val padded = List((slots - levels.size).coerceAtLeast(0)) { 0f } + levels.takeLast(slots)
-        padded.forEachIndexed { i, level ->
-            val h = (minHeight + (size.height - minHeight) * level).coerceAtMost(size.height)
-            drawRoundRect(
-                color = if (level > 0f) color else muted,
-                topLeft = Offset(i * gap + (gap - barWidth) / 2, (size.height - h) / 2),
-                size = Size(barWidth, h),
-                cornerRadius = CornerRadius(barWidth / 2, barWidth / 2),
-            )
-        }
-    }
-}
-
 @Composable
 private fun WritingLine() {
     val colors = LocalHainColors.current
@@ -599,7 +546,3 @@ private const val ICON = 20
 private const val SMALL_ICON = 18
 private const val LEVEL_GROW = 0.18f
 private const val DISABLED = 0.4f
-private const val BARS_HEIGHT = 28
-private const val BAR_SLOTS = 24
-private const val BAR_FILL = 0.55f
-private const val MIN_BAR = 0.12f

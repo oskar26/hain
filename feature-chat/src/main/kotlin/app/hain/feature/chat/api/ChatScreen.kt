@@ -9,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -103,6 +104,7 @@ import app.hain.ui.theme.LocalHainColors
 import app.hain.ui.theme.LocalHainShapes
 import app.hain.ui.theme.LocalHainSpacing
 import app.hain.ui.theme.LocalHainTypography
+import app.hain.voice.api.DictationState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -288,34 +290,72 @@ fun ChatScreen(
                             )
                         }
                     }
-                    Composer(
-                        text = state.input,
-                        onTextChange = viewModel::onInputChange,
-                        placeholder = stringResource(R.string.chat_placeholder),
-                        isGenerating = state.isGenerating,
-                        onSend = {
-                            haptics.send()
-                            if (!state.isGenerating) sendTick++
-                            viewModel.send()
+                    // T-296: while Pim listens (tap mode) the message box morphs into the dictation pill
+                    val dictation =
+                        voiceUi
+                            ?.voice
+                            ?.dictation
+                            ?.state
+                            ?.collectAsStateWithLifecycle()
+                    val recording = dictation?.value as? DictationState.Recording
+                    val pill = recording != null && voiceUi?.holding == false
+                    val reduce = LocalReduceMotion.current
+                    AnimatedContent(
+                        targetState = pill,
+                        transitionSpec = {
+                            val enter = fadeIn(hainTween(HainMotion.BASE_MS, reduce))
+                            val exit = fadeOut(hainTween(HainMotion.FAST_MS, reduce))
+                            (enter togetherWith exit).using(
+                                SizeTransform(clip = false) { _, _ -> hainTween(HainMotion.BASE_MS, reduce) },
+                            )
                         },
-                        canQueue = state.editingId == null,
-                        queueLabel = stringResource(R.string.chat_send_queue),
-                        focusRequester = composerFocus,
-                        onStop = viewModel::stop,
-                        sendLabel = stringResource(R.string.chat_send),
-                        stopLabel = stringResource(R.string.chat_stop),
-                        enabled = state.engineAvailable,
-                        modifier = Modifier.padding(LocalHainSpacing.current.md),
-                        // T-084: the thinking level lives inside the message box (brain + popover)
-                        leading = {
-                            if (docs != null) {
-                                AttachButton(onFile = { picker.launch(DOC_TYPES) }, onLibrary = { showFiles = true })
-                            }
-                            ThinkingPicker(answerMode, onAnswerMode, canThink = state.brainThinks)
-                        },
-                        trailing = { voiceUi?.let { MicButton(it, enabled = !state.isGenerating) } },
-                        glass = chrome,
-                    )
+                        contentAlignment = Alignment.BottomCenter,
+                        label = "composer-pill",
+                    ) { showPill ->
+                        val rec = dictation?.value as? DictationState.Recording
+                        if (showPill && rec != null && voiceUi != null) {
+                            DictationPill(
+                                rec,
+                                onCancel = voiceUi::cancel,
+                                onDone = voiceUi::finish,
+                                modifier = Modifier.padding(LocalHainSpacing.current.md),
+                            )
+                        } else {
+                            Composer(
+                                text = state.input,
+                                onTextChange = viewModel::onInputChange,
+                                placeholder = stringResource(R.string.chat_placeholder),
+                                isGenerating = state.isGenerating,
+                                onSend = {
+                                    haptics.send()
+                                    if (!state.isGenerating) sendTick++
+                                    viewModel.send()
+                                },
+                                canQueue = state.editingId == null,
+                                queueLabel = stringResource(R.string.chat_send_queue),
+                                focusRequester = composerFocus,
+                                onStop = viewModel::stop,
+                                sendLabel = stringResource(R.string.chat_send),
+                                stopLabel = stringResource(R.string.chat_stop),
+                                enabled = state.engineAvailable,
+                                modifier = Modifier.padding(LocalHainSpacing.current.md),
+                                // T-296: after a dictation the send button takes over with a short pulse
+                                sendModifier = Modifier.dictationHandoff(voiceUi?.handoff ?: 0),
+                                // T-084: the thinking level lives inside the message box (brain + popover)
+                                leading = {
+                                    if (docs != null) {
+                                        AttachButton(
+                                            onFile = { picker.launch(DOC_TYPES) },
+                                            onLibrary = { showFiles = true },
+                                        )
+                                    }
+                                    ThinkingPicker(answerMode, onAnswerMode, canThink = state.brainThinks)
+                                },
+                                trailing = { voiceUi?.let { MicButton(it, enabled = !state.isGenerating) } },
+                                glass = chrome,
+                            )
+                        }
+                    }
                 }
             },
         ) { chromePadding ->
