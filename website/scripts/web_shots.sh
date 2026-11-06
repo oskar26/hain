@@ -7,7 +7,7 @@
 set -euo pipefail
 SRC=$1
 OUT="$(dirname "$0")/../public/screenshots"
-IDS="tools research actions cards memory documents branches packs_brains news_briefing settings_privacy packs_knowledge packs_voice tablet"
+IDS="tools research actions cards memory documents branches packs_brains news_briefing settings_internet packs_knowledge packs_voice tablet"
 for id in $IDS; do
   width=720
   [ "$id" = tablet ] && width=1280
