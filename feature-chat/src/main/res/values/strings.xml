@@ -60,6 +60,8 @@
     <string name="chat_tool_search">Search</string>
     <string name="chat_tool_read_page">Page</string>
     <string name="chat_tool_pages">Pages</string>
+    <!-- T-280: pages of a search are loading, their number is not known yet -->
+    <string name="chat_tool_reading_pages_any">reading pages…</string>
     <plurals name="chat_tool_reading_pages">
         <item quantity="one">reading %d page…</item>
         <item quantity="other">reading %d pages…</item>

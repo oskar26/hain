@@ -218,7 +218,13 @@ private fun toolName(name: String): Int =
 private fun readPagesText(step: ToolStep): String {
     val n = step.detail?.toIntOrNull() ?: 0
     return when (step.state) {
-        StepState.RUNNING -> pluralStringResource(R.plurals.chat_tool_reading_pages, n, n)
+        // T-280: no "lese 0 Seiten…" before the number is known
+        StepState.RUNNING ->
+            if (n > 0) {
+                pluralStringResource(R.plurals.chat_tool_reading_pages, n, n)
+            } else {
+                stringResource(R.string.chat_tool_reading_pages_any)
+            }
         StepState.DONE -> pluralStringResource(R.plurals.chat_tool_read_pages, n, n)
         StepState.FAILED -> stringResource(R.string.chat_tool_pages) + " · " + stringResource(R.string.chat_tool_failed)
     }
