@@ -15,7 +15,7 @@
     <string name="chat_retry">Ask again</string>
     <string name="chat_share">Share</string>
     <string name="chat_delete">Delete chat</string>
-    <string name="chat_thought_for">Thought for %1$d s</string>
+    <string name="chat_thought_for">Thought · %1$d s</string>
     <string name="chat_thinking">Pim is thinking…</string>
     <string name="chat_stopped">Stopped</string>
     <string name="chat_loading_brain">Waking up the brain…</string>
@@ -212,7 +212,6 @@
     <string name="chat_status_waiting">Pim is reading your message…</string>
     <string name="chat_status_writing">Pim is writing…</string>
     <string name="chat_status_thought">Thought it over</string>
-    <string name="chat_status_open_thinking">show or hide the thinking</string>
     <string name="chat_pim_looking">Pim is looking it up…</string>
     <string name="chat_dev_stats">%1$s tokens/s · first token after %2$s s</string>
     <string name="chat_dev_copy_debug">Copy debug info</string>
@@ -294,4 +293,13 @@
     <string name="chat_source_chip">Source %1$d: %2$s</string>
     <string name="chat_sources_open">expanded</string>
     <string name="chat_sources_closed">collapsed</string>
+    <!-- T-280: thinking and tool steps fold into one line -->
+    <string name="chat_expand">expand</string>
+    <string name="chat_collapse">collapse</string>
+    <string name="chat_expanded">expanded</string>
+    <string name="chat_collapsed">collapsed</string>
+    <plurals name="chat_tools_used">
+        <item quantity="one">%1$d tool used</item>
+        <item quantity="other">%1$d tools used</item>
+    </plurals>
 </resources>

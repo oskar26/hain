@@ -40,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.hain.feature.chat.R
@@ -99,7 +100,7 @@ internal fun showsStatusLine(
  * hanging from a thin line under Pim. Phases cross-fade; the height never jumps.
  * Older answers show a small brain icon instead of Pim.
  */
-@Suppress("LongMethod") // one element: line, thinking, tool steps
+@Suppress("LongMethod", "CyclomaticComplexMethod") // one element: line, thinking, tool steps
 @Composable
 internal fun PimStatus(
     message: UiMessage,
@@ -117,7 +118,9 @@ internal fun PimStatus(
     if (!showLine && message.steps.isEmpty()) return
     var expanded by rememberSaveable(message.id) { mutableStateOf(initiallyExpanded) }
     val label = statusLabel(message, phase)
-    val openLabel = stringResource(R.string.chat_status_open_thinking)
+    // T-280: TalkBack says what a tap does ("ausklappen" / "einklappen") and the state
+    val openLabel = stringResource(if (expanded) R.string.chat_collapse else R.string.chat_expand)
+    val openState = stringResource(if (expanded) R.string.chat_expanded else R.string.chat_collapsed)
     Column(
         modifier
             .fillMaxWidth()
@@ -137,7 +140,10 @@ internal fun PimStatus(
                         },
                     ).heightIn(min = LINE_HEIGHT.dp)
                     .padding(end = 8.dp)
-                    .semantics(mergeDescendants = true) { label?.let { contentDescription = it } },
+                    .semantics(mergeDescendants = true) {
+                        label?.let { contentDescription = it }
+                        if (canOpen) stateDescription = openState
+                    },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(Modifier.size(PIM_SLOT.dp), contentAlignment = Alignment.Center) {
@@ -185,6 +191,17 @@ internal fun PimStatus(
                 }
             }
         }
+        // T-280: while Pim thinks, its newest line shows live under the closed status line
+        val liveLine = reasoning?.takeIf { message.streaming && !expanded && phase == PimPhase.THINKING }
+        liveLine?.let { lastLine(it) }?.let { line ->
+            BasicText(
+                line,
+                style = type.bodySmall.copy(color = colors.textMuted),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.thread().padding(start = INDENT.dp, bottom = 4.dp),
+            )
+        }
         // the thinking, in the same element: muted text hanging from the thread under Pim
         AnimatedVisibility(
             visible = expanded && reasoning != null,
@@ -201,15 +218,17 @@ internal fun PimStatus(
                 modifier = Modifier.thread().padding(start = INDENT.dp, top = 2.dp, bottom = 8.dp),
             )
         }
-        if (message.steps.isNotEmpty()) {
-            ToolTimeline(
-                message.steps,
-                research = message.research.takeIf { message.streaming },
-                modifier = Modifier.thread(),
-            )
-        }
+        // T-280: the tool steps fold into "3 Werkzeuge genutzt ›"; while working, the current one shows
+        StepsFold(message, modifier = Modifier.thread(), initiallyOpen = initiallyExpanded)
     }
 }
+
+/** The newest non-empty line of the thinking, for the live line while Pim thinks (T-280). */
+internal fun lastLine(reasoning: String): String? =
+    reasoning
+        .lineSequence()
+        .map { it.trim() }
+        .lastOrNull { it.isNotEmpty() }
 
 /** A thin vertical line under Pim's middle that holds thinking and tool steps together. */
 @Composable
